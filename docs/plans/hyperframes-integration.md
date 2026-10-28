@@ -16,6 +16,10 @@ Everything built from here on must run on **macOS and Windows** (and keep workin
 - Fonts differ by platform, so bundled fonts (P19) matter more: they are what makes output identical across both.
 - Limit: I can't test on a real Windows machine here. CI runners (free for public repos, minute-limited for private) and your own runs are the check.
 
+## Scope rule: standalone toolkit only
+
+Reelwright stays a **standalone toolkit**: a command line plus scripts in this repo. It is **not** an MCP server and **not** a Claude plugin, and no phase adds either. Every feature is a CLI command that works from a terminal with no Claude involved. The only Claude hook-in stays what it is today: the optional project skill in `.claude/skills/product-video/` and `CLAUDE.md`, which only help when Claude Code is opened inside this folder.
+
 ## The two source repos and how we merge them
 
 - **[Arnavxy/product-video-kit](https://github.com/Arnavxy/product-video-kit)** (MIT): the base of Reelwright. Already merged: Reelwright *is* this code, renamed, with its license notice kept.
@@ -277,9 +281,9 @@ Generic start prompt (fill in the name and branch):
 ### Larger bets
 
 **P15 — Film from a URL** · branch `phase-15-url-to-film` · Needs: P7, P10
-- Goal: give a URL, get a script to approve, then a finished video after a self-review loop.
-- Steps: extend `tools/capture_site.mjs` to read page text, colors and fonts; draft the script; run the build; render stills, check them with the QA gates, fix problems, then report.
-- Exit: a real public landing page produces a reviewed mp4 with no manual editing beyond script approval.
+- Goal: give a URL, get a script to approve, then a finished video after an automatic QA pass. Stays a plain CLI command (`reelwright from-url <url>`), not an MCP server or plugin.
+- Steps: extend `tools/capture_site.mjs` to read page text, colors and fonts; draft the script with simple rules and templates (no paid AI service); run the build; render stills and check them with the QA gates (P10); report any failures with the frame and time.
+- Exit: a real public landing page produces an mp4 that passes the QA gates, with no manual editing beyond script approval. A smarter script draft or visual review is optional when you run the command inside Claude Code, using the project skill; it isn't required.
 
 **P16 — Native Windows + macOS support (do right after Phase 1, before Phase 2)** · branch `phase-16-windows`
 - Goal: the same commands run directly on Windows and macOS, no WSL. Required by the platform rule above.

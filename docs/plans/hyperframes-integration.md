@@ -1,6 +1,6 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing implemented yet**. This is the streamlined version: 7 phases, one chat each, plus an optional backlog.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing implemented yet**. This is the streamlined version: 13 phases, one chat each. Phases 1–6 build the core; Phases 7–12 add the extra features; Phase 13 finishes it.
 
 ## Progress
 
@@ -12,7 +12,13 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing
 | 4 | Look and feel: design tokens, themes, fonts, layouts, multi-format | ☐ Not started |
 | 5 | Captions and quality: word-accurate captions, subtitle files, QA gates | ☐ Not started |
 | 6 | Preview and speed: live scrubber, incremental rendering, remix | ☐ Not started |
-| 7 | Docs, licensing, release | ☐ Not started |
+| 7 | Film from a URL | ☐ Not started |
+| 8 | Style from a reference | ☐ Not started |
+| 9 | Re-voice in other languages | ☐ Not started |
+| 10 | Reproducible builds | ☐ Not started |
+| 11 | Automatic music drop detection | ☐ Not started |
+| 12 | Free cloud rendering (Colab + Drive) | ☐ Not started |
+| 13 | Docs, licensing, release | ☐ Not started |
 
 Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order; each needs the one before it.
 
@@ -153,27 +159,108 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 7: Docs, licensing, release ☐
+## Phase 7: Film from a URL ☐
 
-**Branch:** `phase-7-release` · **Needs:** Phases 1–6
+**Branch:** `phase-7-from-url` · **Needs:** Phase 5
+
+**Goal:** give a URL, get a script to approve, then a finished film that has passed the QA gates. A plain command-line command (`reelwright from-url <url>`), not an MCP server or plugin.
 
 **Steps**
-1. README: a "Renderers" section (when to use which), platform support (macOS, Windows, Linux), the themes and layouts. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data). Update `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`.
-2. Licensing: `THIRD_PARTY.md` and a root `NOTICE` for the vendored HyperFrames code and bundled fonts; confirm every changed vendored file has its header; a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
-3. CI green on macOS, Windows and Linux for both example films; tag a first release.
+1. Extend `tools/capture_site.mjs` to read page text, headings, colors, fonts and screenshots from a public page.
+2. Draft the voiceover script from that text with simple rules and templates (no paid AI service) and show it for approval before building.
+3. Build the film, run the QA gates from Phase 5, and report any failure with the frame and time. Never perform a real write on the site (no forms submitted, nothing published); mock any interaction.
+4. Only capture sites you own or have the right to use, and say so in the command's help text.
 
-**Exit:** CI green everywhere; docs describe both renderers; all licenses and notices present.
+**Exit:** a real public landing page produces an mp4 that passes the QA gates, with no manual editing beyond script approval. Smarter script drafts or a visual review are optional when the command is run inside Claude Code with the project skill.
 
 ---
 
-## Optional backlog (not phased; one chat each if you want it)
+## Phase 8: Style from a reference ☐
 
-- **Free cloud rendering:** a Google Colab notebook that mounts Drive, installs the tools, renders a project and saves the mp4 to Drive (with a resume cell for disconnects), plus a GitHub Actions fallback. First check that headless Chromium runs in Colab.
-- **Film from a URL:** `reelwright from-url <url>` captures the site, drafts a script with simple templates (no paid AI), builds, and runs the QA gates. Smarter drafts are optional when run inside Claude Code.
-- **Re-voice in other languages:** per-language lines and voices; the timeline re-flows automatically.
-- **Reproducible builds:** a manifest per film (versions, input and output hashes) and a `verify` command.
-- **Automatic music drop detection:** find the biggest energy jump in the track and snap the key moment to it.
-- **Style from a reference:** draft a theme from a site or image's palette and fonts.
+**Branch:** `phase-8-reference-style` · **Needs:** Phases 4 and 7
+
+**Goal:** give a site or image and start from its palette and fonts.
+
+**Steps**
+1. `reelwright theme-from <url|image>`: extract the dominant colors and the font families in use.
+2. Map each font to the closest bundled open-license font when the real one isn't free to bundle.
+3. Write a draft theme file the user can edit and select with `"style"` in `project.json`.
+
+**Exit:** a draft theme from a real landing page is recognizably related to it and builds the example film without errors.
+
+---
+
+## Phase 9: Re-voice in other languages ☐
+
+**Branch:** `phase-9-languages` · **Needs:** Phase 5
+
+**Goal:** the same film in another language, with the timeline re-flowing automatically.
+
+**Steps**
+1. Per-language `lines` in `project.json` and a voice per language (free edge-tts voices).
+2. Captions, subtitle files and voiceover all follow the chosen language; output is named per language (`out/<name>-<lang>.mp4`).
+3. Add a QA check for text that overflows its box in longer languages. Translations are supplied by you; nothing is machine-translated unless you run the command inside Claude Code.
+
+**Exit:** the example builds in a second language with cuts, captions and subtitle files all aligned.
+
+---
+
+## Phase 10: Reproducible builds ☐
+
+**Branch:** `phase-10-manifest` · **Needs:** Phase 3
+
+**Goal:** any film can be rebuilt and audited.
+
+**Steps**
+1. Write a `manifest.json` per film: tool versions (Node, Python, ffmpeg, Chromium, the vendored HyperFrames commit), hashes of every input (project file, film code, assets, fonts, music, script text), and the output's duration, frame count and per-frame hashes.
+2. `reelwright verify <name>`: rebuild and compare against the manifest. Compare per-frame hashes and duration, not raw mp4 bytes, since encoders can differ between machines.
+
+**Exit:** `verify` passes on repeated runs on the same machine, and the docs state what can differ across operating systems.
+
+---
+
+## Phase 11: Automatic music drop detection ☐
+
+**Branch:** `phase-11-drops` · **Needs:** Phase 3
+
+**Goal:** find the big drop in a track and snap the key moment to it.
+
+**Steps**
+1. Extend `tools/beatgrid.py` to find the biggest energy jump after a quieter section and write its time into `film/data.js` and `hf/kit-data.js`.
+2. Expose it in the engine (`KIT.drop()`) and as a helper for HyperFrames compositions; allow a manual override in `project.json`.
+3. Use it in the teaser film for the flash and logo hit.
+
+**Exit:** on the sample track, the flash and logo hit land on the detected drop, and the manual override works.
+
+---
+
+## Phase 12: Free cloud rendering ☐
+
+**Branch:** `phase-12-cloud` · **Needs:** Phase 2
+
+**Goal:** render in the cloud for free, using your Google Drive for storage. Drive only stores files; Colab does the rendering.
+
+**Steps**
+1. `cloud/reelwright_colab.ipynb`: mounts Drive, installs ffmpeg, Node, Python deps and headless Chromium, copies the project from a Drive folder, runs the build, and saves the mp4 back to Drive. Include a resume cell so a disconnected session doesn't redo finished stages, and keep the browser and pip caches in Drive.
+2. Fallback: a GitHub Actions `workflow_dispatch` workflow that takes a project name and uploads the mp4 as an artifact; document the free-minutes limit.
+3. First check that headless Chromium (Playwright, and the vendored HyperFrames engine) actually runs in Colab. Skip HyperFrames' AWS rendering (paid).
+
+**Exit:** the example builds in a free Colab session and the mp4 appears in Drive; the Actions workflow also produces it. Colab sessions disconnect after idle time or a few hours, and Google sets the free limits.
+
+---
+
+## Phase 13: Docs, licensing, release ☐
+
+**Branch:** `phase-13-release` · **Needs:** Phases 1–12
+
+**Steps**
+1. README: a "Renderers" section (when to use which), platform support (macOS, Windows, Linux), themes and layouts, and every new command. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data). Update `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`.
+2. Licensing: `THIRD_PARTY.md` and a root `NOTICE` for the vendored HyperFrames code and bundled fonts; confirm every changed vendored file has its header; a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
+3. CI green on macOS, Windows and Linux for both example films; tag a first release.
+
+**Exit:** CI green everywhere; docs describe both renderers and every command; all licenses and notices present.
+
+---
 
 ## Risks
 

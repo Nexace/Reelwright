@@ -27,11 +27,17 @@ Everything built from here on must run on **macOS and Windows** (and keep workin
 | Weak at | Only one authoring model (`render(t)` JS); small component set; bash-only (Windows via WSL); no live preview | No script-driven timing, no beat sync, no screen recording; voiceover and music only through a separate `/media-use` skill; studio and Lambda still maturing |
 
 **Merge options**
-1. **Depend on it (recommended):** use HyperFrames as a pinned npm dependency. No code copied, no extra license duties beyond normal use.
-2. **Vendor parts of it:** copy selected packages (for example its runtime, frame adapters or linter) into this repo. Allowed under Apache 2.0 if we keep its `LICENSE`, keep copyright and attribution notices, mark files we changed, and carry over any `NOTICE` file. Do this only if we need to fork or patch it.
-3. **Re-implement from its docs:** write our own versions of the ideas without copying code. No license duties, but the most work.
+1. ~~Depend on it as a pinned npm dependency.~~ **Rejected by you.**
+2. **Vendor parts of it (chosen):** copy the parts we need into this repo and change them freely. Allowed under Apache 2.0 if we keep its `LICENSE`, keep copyright and attribution notices, mark every file we changed, and carry over any `NOTICE` file.
+3. ~~Re-implement from its docs.~~ Not chosen.
 
-Phases 0–4 use option 1. Option 2 or 3 only come up in Phase 5 if we decide to port features.
+**How vendoring works here**
+- Copied code lives in `vendor/hyperframes/` (one folder per upstream package we take), each with the upstream `LICENSE` and a `VENDORED.md` recording the upstream repo, the exact commit we copied, which files, and what we changed.
+- Every file we modify gets a header comment saying it was changed from upstream, with the original copyright line kept.
+- Take only what we need (likely the runtime, frame adapters, producer/engine and linter). Leave out the studio, Lambda and docs unless a later phase needs them.
+- Clone upstream with `GIT_LFS_SKIP_SMUDGE=1`: its golden test videos are about 240 MB in Git LFS and must **not** enter this repo.
+- Vendored code's own third-party packages (for example Puppeteer) still install through `npm`; only HyperFrames' own code is copied.
+- Trade-off you accept: we no longer get upstream fixes automatically. Updating means re-copying from a newer upstream commit and re-applying our changes.
 
 ## How to use this plan
 
@@ -82,13 +88,14 @@ Assumptions to verify:
 **Read first:** this plan; `tools/render.mjs`.
 
 **Steps**
-1. In a temp folder, `npm i hyperframes` (note the exact version). Scaffold with `hyperframes init`.
-2. Render a 3-second hello composition (a GSAP-animated title) at 30 fps, then 60 fps.
-3. Check each assumption A–D. For C, compare two renders frame by frame.
-4. Read the HyperFrames CLI help and `render` source for output flags (video-only, frames, audio).
-5. Write the findings into the repo as `docs/plans/spike-findings.md` (the only file that lands in the repo). Delete the temp folder.
+1. In a temp folder, clone heygen-com/hyperframes with `GIT_LFS_SKIP_SMUDGE=1` (note the exact commit). Read its `LICENSE`, any `NOTICE` and `CREDITS.md`, and its package list (`core`, `engine`, `producer`, `player`, `shader-transitions`, others).
+2. **Vendoring map:** for each package, record size, what it depends on, and whether we need it. Decide the smallest set to copy, and check each copied file's license header and any third-party code inside it (for example the catalog blocks may carry their own licenses).
+3. Build and run it from the clone: render a 3-second hello composition (a GSAP-animated title) at 30 fps, then 60 fps.
+4. Check each assumption A–D. For C, compare two renders frame by frame.
+5. Read the CLI and `render` source for output flags (video-only, frames, audio).
+6. Write the findings into the repo as `docs/plans/spike-findings.md` (the only file that lands in the repo). Delete the temp folder.
 
-**Exit criteria:** findings file lists the exact version, the exact render command that works, and a go/no-go for Phases 1–3. If A or B fails, the file says what the fallback is (for example extracting frames and keeping the kit's `encode`).
+**Exit criteria:** findings file lists the upstream commit, the exact render command that works, the vendoring map (which packages and files to copy, which to skip, and every license or notice we must carry over), and a go/no-go for Phases 1–3. If A or B fails, the file says what the fallback is (for example extracting frames and keeping the kit's `encode`).
 
 **Start prompt:**
 > Read `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 0 (the HyperFrames feasibility spike) only. Use a throwaway folder outside the repo. Write `docs/plans/spike-findings.md` and create `docs/plans/STATUS.md` marking Phase 0 done. Don't touch `tools/`.
@@ -125,7 +132,7 @@ Assumptions to verify:
 **Read first:** `STATUS.md`, `spike-findings.md`, `tools/renderers/pvk.mjs`, `tools/sched.py`, `tools/mix.py`, `tools/qa.py`.
 
 **Steps**
-1. `npm i hyperframes` at the exact version from the spike; add to `package.json`.
+1. Vendor HyperFrames: copy the packages and files chosen in the spike's vendoring map into `vendor/hyperframes/`, with upstream `LICENSE`, any `NOTICE`, a `VENDORED.md` (upstream commit, files, changes) and a "changed from upstream" header on every file we edit. Install the vendored code's own npm dependencies through `package.json`.
 2. `tools/sched.py`: when the renderer is `hyperframes`, also write `hf/kit-data.js` with the same VO times and music grid that `film/data.js` carries.
 3. `tools/renderers/hyperframes.mjs`:
    - `info`: read the composition root's `data-duration` plus kit data; write `timeline.json` in the format `mix.py` already reads.
@@ -138,7 +145,7 @@ Assumptions to verify:
 **Exit criteria:** a minimal hyperframes composition builds via `./video.sh all <name>`; output duration equals `mix.wav` within one frame; `qa` passes; pvk films still build.
 
 **Start prompt:**
-> Read `docs/plans/STATUS.md`, `docs/plans/spike-findings.md`, `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 2 only (the HyperFrames renderer) on branch `phase-2-hyperframes-renderer`. Use the exact version and render command from the spike. Verify with a minimal composition and a pvk regression build. Update `STATUS.md` and run `/graphify --update`.
+> Read `docs/plans/STATUS.md`, `docs/plans/spike-findings.md`, `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 2 only (the HyperFrames renderer) on branch `phase-2-hyperframes-renderer`. Vendor the code per the spike's vendoring map (keep licenses and mark changes), and use the render command from the spike. Verify with a minimal composition and a pvk regression build. Update `STATUS.md` and run `/graphify --update`.
 
 ---
 
@@ -173,7 +180,7 @@ Assumptions to verify:
 2. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data).
 3. `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`: workflow for hyperframes films.
 4. CI: second job builds `example-hf`; add the new files to the syntax-check loop.
-5. `THIRD_PARTY.md`: HyperFrames is an Apache-2.0 dependency (not copied). Keep the original MIT notice in `LICENSE`.
+5. License notices: `THIRD_PARTY.md` and a root `NOTICE` listing the vendored HyperFrames code (Apache 2.0, upstream commit, what we changed) and any third-party code inside it; confirm every changed vendored file has its header; keep the original MIT notice in `LICENSE`. Add a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
 
 **Exit criteria:** CI green on both example films; docs mention both renderers.
 
@@ -293,7 +300,8 @@ Generic start prompt (fill in the name and branch):
 
 ## Risks
 
-- **Version drift:** HyperFrames is young; pin the exact version, upgrade deliberately.
+- **Upstream divergence:** vendored code stops getting HyperFrames' fixes and features. Record the upstream commit in `VENDORED.md`, keep our edits small and marked, and re-sync deliberately.
+- **Repo size and license hygiene:** copy only what we need, never the Git LFS test videos, and keep every notice.
 - **Two Chrome stacks:** Playwright (kit) and Puppeteer (HyperFrames) double the browser download.
 - **Timing sync:** declarative `data-start` values must come from kit data or they drift when the script changes.
 - **Parallelism:** the kit renders across `PAGES` browser pages; HyperFrames' own parallelism may differ, so render times may not match.
@@ -301,4 +309,4 @@ Generic start prompt (fill in the name and branch):
 
 ## License notes
 
-Reelwright is MIT (original notice from Arnavxy and product-video-kit contributors kept, plus Amogh Khairate). HyperFrames is Apache 2.0, used as an npm dependency with no code copied. If code is ever copied or ported from it, keep its license and notices.
+Reelwright is MIT (original notice from Arnavxy and product-video-kit contributors kept, plus Amogh Khairate). HyperFrames is Apache 2.0 and its code is vendored into `vendor/hyperframes/`. Apache 2.0 allows this if we: keep its `LICENSE` and a copy of the license with the code, keep all copyright and attribution notices, mark every file we changed, and carry over any `NOTICE` file. Our own code stays MIT. This is a plain-language summary, not legal advice.

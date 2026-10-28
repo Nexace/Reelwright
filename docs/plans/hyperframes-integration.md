@@ -245,10 +245,12 @@ Generic start prompt (fill in the name and branch):
 - Steps: replace the bash entry point with a Node command line; port `setup.sh`; remove bash-only assumptions in the tools; CI job on a Windows runner.
 - Exit: the example builds on a Windows runner in CI. (I can't test on a real Windows machine; you or CI would.)
 
-**P17 — Free cloud rendering via GitHub Actions** · branch `phase-17-cloud-render`
-- Goal: a "render in the cloud" workflow you start by hand that returns the mp4 as a download.
-- Steps: a `workflow_dispatch` workflow taking the project name; caching for browser and Python deps; upload the mp4 as an artifact; document the free-minutes limit.
-- Exit: a manual run produces the example mp4 as an artifact within the free quota. Skip HyperFrames' AWS rendering (paid).
+**P17 — Free cloud rendering: Google Colab + Drive (main), GitHub Actions (fallback)** · branch `phase-17-cloud-render`
+- Goal: render a film in the cloud for free. Google Drive only stores files; Colab does the rendering.
+- Main path, Colab + Drive: a notebook (`cloud/reelwright_colab.ipynb`) that mounts Drive, installs ffmpeg, Node, Python deps and headless Chromium, copies the project from a Drive folder, runs `./video.sh all <name>`, and saves the mp4 back to Drive. Include a "resume" cell so a disconnected session doesn't redo finished stages, and put the browser and pip caches in Drive to speed up reinstalls.
+- Fallback, GitHub Actions: a `workflow_dispatch` workflow taking the project name that uploads the mp4 as an artifact; document the free-minutes limit.
+- Exit: the example builds in a free Colab session and the mp4 appears in Drive; the Actions workflow also produces it. First check: headless Chromium (Playwright, and later HyperFrames' Puppeteer) actually runs in Colab, since it's untested. Skip HyperFrames' AWS rendering (paid).
+- Notes: Colab sessions disconnect after idle time or a few hours, and Google sets the free limits, so keep each render resumable. Drive storage is not a constraint with a 5 TB plan.
 
 **P18 — Automatic music drop detection** · branch `phase-18-drops`
 - Goal: find the big drop in a track and snap the key moment to it.

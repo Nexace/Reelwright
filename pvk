@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Runs video.sh from any folder, e.g. `pvk all example`. Adds Homebrew's ffmpeg to PATH.
+export PATH="/opt/homebrew/bin:$PATH"
+exec "$(dirname "$(realpath "$0")")/video.sh" "$@"

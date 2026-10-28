@@ -6,6 +6,16 @@ Status: **plan only, nothing implemented.** Repo: `~/projects/reelwright` (priva
 
 Reelwright keeps its voice, music, mix, recording and QA stages, and gains HyperFrames (HeyGen, Apache 2.0) as a second way to author and render the visuals. A `renderer` setting in `project.json` picks which one; the default stays the current engine, so no existing film changes.
 
+## Platform rule: macOS and Windows, both natively
+
+Everything built from here on must run on **macOS and Windows** (and keep working on Linux, which CI and Colab use), with no WSL. That changes the order of work, because the kit's entry point (`video.sh`, `setup.sh`) is bash, which Windows can't run natively.
+
+- **New tooling is written in Node (`.mjs`), not bash.** Python tools stay, but must avoid hard-coded `/` paths, shell calls and Unix-only commands.
+- **Native Windows support (P16) moves up:** do it right after Phase 1, before Phase 2, so the HyperFrames renderer and every later phase are built on the cross-platform command line instead of being ported afterward.
+- **Every phase's exit test also passes on a Windows runner and a macOS runner in CI** once P16 lands. Before then, new files must not use bash-only syntax.
+- Fonts differ by platform, so bundled fonts (P19) matter more: they are what makes output identical across both.
+- Limit: I can't test on a real Windows machine here. CI runners (free for public repos, minute-limited for private) and your own runs are the check.
+
 ## The two source repos and how we merge them
 
 - **[Arnavxy/product-video-kit](https://github.com/Arnavxy/product-video-kit)** (MIT): the base of Reelwright. Already merged: Reelwright *is* this code, renamed, with its license notice kept.
@@ -31,6 +41,8 @@ Each phase below is sized for **one fresh chat**. For every phase:
 2. Paste that phase's **Start prompt**.
 3. Work on branch `phase-N-<name>`. At the end: tests pass, commit, merge to `main` (or open a PR), update `docs/plans/STATUS.md`, run `/graphify --update`.
 4. Close the chat. The next phase reads `STATUS.md`, so it needs no memory of this one.
+
+**Order of work:** Phase 0 → Phase 1 → **P16 (Windows + macOS)** → Phase 2 → Phase 3 → Phase 4 → P6–P10 → **P19–P21 (design variety)** → the rest (P11–P15, P17, P18, P22, Phase 5). Numbers are labels, not the order.
 
 Every phase starts with: read `docs/plans/STATUS.md`, then `graphify-out/GRAPH_REPORT.md`, then only the files listed under "Read first".
 
@@ -121,7 +133,7 @@ Assumptions to verify:
    - `frames`: render a frame sequence (or an mp4, per the spike's finding) into `frames/`.
    - `encode`: mux the kit's `mix.wav` over the video with the kit's existing loudness settings.
 4. `tools/qa.py`: accept the hyperframes output (extract frames from the mp4 if needed).
-5. `setup.sh`: check Node 22+.
+5. Setup: check Node 22+ in the cross-platform setup from P16 (not only `setup.sh`). Needs P16 done first.
 
 **Exit criteria:** a minimal hyperframes composition builds via `./video.sh all <name>`; output duration equals `mix.wav` within one frame; `qa` passes; pvk films still build.
 
@@ -177,9 +189,9 @@ Candidates for `tools/engine.js`: Lottie / Three.js / WAAPI adapters, a composit
 
 ---
 
-## Phases 6–18 — Making it better than both
+## Phases 6–22 — Making it better than both
 
-Each phase is one chat, same routine as Phases 0–4 (read `STATUS.md` and the graph report first, work on its own branch, update `STATUS.md`, run `/graphify --update`). **Everything stays free and local**: no paid services, no API keys. They can run in any order unless "Needs" says otherwise; the order below is my suggested value-for-effort order. All of them need Phases 0–4 finished first.
+Each phase is one chat, same routine as Phases 0–4 (read `STATUS.md` and the graph report first, work on its own branch, update `STATUS.md`, run `/graphify --update`). **Everything stays free and local**: no paid services, no API keys. They can run in any order unless "Needs" says otherwise; the order below is my suggested value-for-effort order. All of them need Phases 0–4 finished first. **Design variety (P19–P22) is placed after P8 in order of work**, even though it is numbered last, because every film looks alike today: all films share one system font stack, `tools/kit.css` is 38 lines with no color or type variables, and the playbook has no palette, type or layout guidance.
 
 Generic start prompt (fill in the name and branch):
 > Read `docs/plans/STATUS.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase N only (<name>) on branch `phase-N-<slug>`. Write a short spec first and wait for my OK before coding. Update `STATUS.md` and run `/graphify --update` at the end.
@@ -198,7 +210,7 @@ Generic start prompt (fill in the name and branch):
 
 **P8 — `brand.json`** · branch `phase-8-brand`
 - Goal: one file for colors, fonts, logo and tone, applied to every film.
-- Steps: define the schema; load it in `engine.js` / `kit.css` and in HyperFrames films; `./video.sh new` copies a default brand; fonts load from the project folder.
+- Steps: turn `tools/kit.css` into design tokens (CSS variables for colors, fonts, radius, shadow, spacing); define the `brand.json` schema as an override layer on those tokens (P19 themes sit underneath it); load it in `engine.js` / `kit.css` and in HyperFrames films; `./video.sh new` copies a default brand; fonts load from the project folder.
 - Exit: changing `brand.json` recolors and re-fonts the example without touching `film.js`.
 
 **P9 — One script, many formats** · branch `phase-9-formats`
@@ -210,6 +222,28 @@ Generic start prompt (fill in the name and branch):
 - Goal: automatic checks neither repo has.
 - Steps: loudness (LUFS) vs `project.json` target; caption overflow and contrast; flash-rate check against photosensitivity limits; "Illustrative data" label lint; non-seekable-animation linter for HyperFrames films. Each check reports a clear pass/fail with the frame or time.
 - Exit: `./video.sh qa` runs all checks; a deliberately broken test film trips each one.
+
+### Design variety (do right after P8)
+
+**P19 — Style packs and bundled fonts** · branch `phase-19-themes` · Needs: P8
+- Goal: films stop looking alike. A theme bundles fonts, palette, corner radius, shadow style, motion feel (snappy, floaty, mechanical) and caption style.
+- Steps: ship 8–10 distinct themes (for example editorial, brutalist, soft pastel, dark tech, playful, retro); bundle open-license fonts (Google Fonts, free) in curated display + text pairings, with each font's license kept in the repo; `project.json` `"style": "<theme>"` picks one; `brand.json` overrides a theme; motion feel changes easing and pacing, not just colors.
+- Exit: the example film builds in at least 3 visibly different themes with no change to `film.js`; every bundled font's license is recorded.
+
+**P20 — Scene layout library** · branch `phase-20-layouts` · Needs: P19
+- Goal: reusable layouts to mix inside one film instead of rebuilding each from scratch.
+- Steps: engine components for split screen, full-bleed text, bento grid, tilted device, big-number stat, quote card and kinetic type; each reads theme tokens; document when to use which in `docs/PLAYBOOK.md`.
+- Exit: a short film built from five different layouts, in two themes, passes QA.
+
+**P21 — Remix and variety check** · branch `phase-21-remix` · Needs: P19, P20
+- Goal: pick a look from options instead of defaulting to the same one, and catch drift back to sameness.
+- Steps: `./video.sh remix <name>` renders three stills of the same script in three different themes and layouts and builds a contact sheet; a variety check compares a new film's fonts, palette and layouts with earlier films in `projects/` and warns when they are too similar.
+- Exit: remix produces three clearly different options from one script; the check flags two films made with the same theme.
+
+**P22 — Style from a reference** · branch `phase-22-reference-style` · Needs: P19, P15
+- Goal: give a site or image and start from its palette and fonts.
+- Steps: extract dominant colors and font families from a URL (reusing the capture from P15) or an image; write a draft theme; fall back to the closest bundled font when the real one isn't free to bundle.
+- Exit: a draft theme from a real landing page is recognizably related to it and builds the example without errors.
 
 ### Bigger
 
@@ -240,10 +274,10 @@ Generic start prompt (fill in the name and branch):
 - Steps: extend `tools/capture_site.mjs` to read page text, colors and fonts; draft the script; run the build; render stills, check them with the QA gates, fix problems, then report.
 - Exit: a real public landing page produces a reviewed mp4 with no manual editing beyond script approval.
 
-**P16 — Native Windows support** · branch `phase-16-windows`
-- Goal: run the same commands directly on Windows, no WSL.
-- Steps: replace the bash entry point with a Node command line; port `setup.sh`; remove bash-only assumptions in the tools; CI job on a Windows runner.
-- Exit: the example builds on a Windows runner in CI. (I can't test on a real Windows machine; you or CI would.)
+**P16 — Native Windows + macOS support (do right after Phase 1, before Phase 2)** · branch `phase-16-windows`
+- Goal: the same commands run directly on Windows and macOS, no WSL. Required by the platform rule above.
+- Steps: replace the bash entry point (`video.sh`) with a Node command line (`reelwright <command>`) that keeps the same commands, and keep `./video.sh` as a thin wrapper on macOS/Linux; port `setup.sh` to Node (install or check ffmpeg, Node, Python, Chromium; use `winget` or Chocolatey hints on Windows, Homebrew on macOS); fix path handling and shell calls in `tools/*.py` and `tools/*.mjs`; make the `./video.sh clean` and `new` commands (which use `rm` and `rsync`) cross-platform; CI matrix of macOS, Windows and Ubuntu.
+- Exit: the example builds on macOS, Windows and Ubuntu runners in CI with identical frame counts and duration. (I can't test on a real Windows machine; CI and your own run are the check.)
 
 **P17 — Free cloud rendering: Google Colab + Drive (main), GitHub Actions (fallback)** · branch `phase-17-cloud-render`
 - Goal: render a film in the cloud for free. Google Drive only stores files; Colab does the rendering.

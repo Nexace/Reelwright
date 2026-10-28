@@ -1,316 +1,189 @@
-# Plan: integrate HyperFrames into Reelwright (phased, one chat per phase)
+# Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Status: **plan only, nothing implemented.** Repo: `~/projects/reelwright` (private: Nexace/reelwright). Updated after mapping the project with graphify.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing implemented yet**. This is the streamlined version: 7 phases, one chat each, plus an optional backlog.
 
-## Goal
+## Progress
 
-Reelwright keeps its voice, music, mix, recording and QA stages, and gains HyperFrames (HeyGen, Apache 2.0) as a second way to author and render the visuals. A `renderer` setting in `project.json` picks which one; the default stays the current engine, so no existing film changes.
-
-## Platform rule: macOS and Windows, both natively
-
-Everything built from here on must run on **macOS and Windows** (and keep working on Linux, which CI and Colab use), with no WSL. That changes the order of work, because the kit's entry point (`video.sh`, `setup.sh`) is bash, which Windows can't run natively.
-
-- **New tooling is written in Node (`.mjs`), not bash.** Python tools stay, but must avoid hard-coded `/` paths, shell calls and Unix-only commands.
-- **Native Windows support (P16) moves up:** do it right after Phase 1, before Phase 2, so the HyperFrames renderer and every later phase are built on the cross-platform command line instead of being ported afterward.
-- **Every phase's exit test also passes on a Windows runner and a macOS runner in CI** once P16 lands. Before then, new files must not use bash-only syntax.
-- Fonts differ by platform, so bundled fonts (P19) matter more: they are what makes output identical across both.
-- Limit: I can't test on a real Windows machine here. CI runners (free for public repos, minute-limited for private) and your own runs are the check.
-
-## Scope rule: standalone toolkit only
-
-Reelwright stays a **standalone toolkit**: a command line plus scripts in this repo. It is **not** an MCP server and **not** a Claude plugin, and no phase adds either. Every feature is a CLI command that works from a terminal with no Claude involved. The only Claude hook-in stays what it is today: the optional project skill in `.claude/skills/product-video/` and `CLAUDE.md`, which only help when Claude Code is opened inside this folder.
-
-## The two source repos and how we merge them
-
-- **[Arnavxy/product-video-kit](https://github.com/Arnavxy/product-video-kit)** (MIT): the base of Reelwright. Already merged: Reelwright *is* this code, renamed, with its license notice kept.
-- **[heygen-com/hyperframes](https://github.com/heygen-com/hyperframes)** (Apache 2.0): the second source.
-
-| | product-video-kit (Reelwright today) | HyperFrames |
+| # | Phase | Status |
 |---|---|---|
-| Strongest at | The whole pipeline from script to mp4: neural voiceover, screen recording, beat-synced cuts, ducked music, SFX, loudness mix, QA | A general HTML-to-video engine: declarative compositions, many animation runtimes, ~450-block catalog (transitions, captions, charts, maps, 3D), studio, player, Lambda rendering, agent skills |
-| Weak at | Only one authoring model (`render(t)` JS); small component set; bash-only (Windows via WSL); no live preview | No script-driven timing, no beat sync, no screen recording; voiceover and music only through a separate `/media-use` skill; studio and Lambda still maturing |
+| 1 | Spike: verify HyperFrames and map what to copy | ☐ Not started |
+| 2 | Cross-platform core: swappable renderer, Node CLI, macOS + Windows + Linux CI | ☐ Not started |
+| 3 | HyperFrames inside: vendored engine, example film, catalog blocks | ☐ Not started |
+| 4 | Look and feel: design tokens, themes, fonts, layouts, multi-format | ☐ Not started |
+| 5 | Captions and quality: word-accurate captions, subtitle files, QA gates | ☐ Not started |
+| 6 | Preview and speed: live scrubber, incremental rendering, remix | ☐ Not started |
+| 7 | Docs, licensing, release | ☐ Not started |
 
-**Merge options**
-1. ~~Depend on it as a pinned npm dependency.~~ **Rejected by you.**
-2. **Vendor parts of it (chosen):** copy the parts we need into this repo and change them freely. Allowed under Apache 2.0 if we keep its `LICENSE`, keep copyright and attribution notices, mark every file we changed, and carry over any `NOTICE` file.
-3. ~~Re-implement from its docs.~~ Not chosen.
+Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order; each needs the one before it.
 
-**How vendoring works here**
-- Copied code lives in `vendor/hyperframes/` (one folder per upstream package we take), each with the upstream `LICENSE` and a `VENDORED.md` recording the upstream repo, the exact commit we copied, which files, and what we changed.
-- Every file we modify gets a header comment saying it was changed from upstream, with the original copyright line kept.
-- Take only what we need (likely the runtime, frame adapters, producer/engine and linter). Leave out the studio, Lambda and docs unless a later phase needs them.
-- Clone upstream with `GIT_LFS_SKIP_SMUDGE=1`: its golden test videos are about 240 MB in Git LFS and must **not** enter this repo.
-- Vendored code's own third-party packages (for example Puppeteer) still install through `npm`; only HyperFrames' own code is copied.
-- Trade-off you accept: we no longer get upstream fixes automatically. Updating means re-copying from a newer upstream commit and re-applying our changes.
+## Rules for the whole project
 
-## How to use this plan
+- **Standalone toolkit only.** No MCP server, no Claude plugin. Every feature is a command-line command that works without Claude. The only Claude hook-in is the optional project skill and `CLAUDE.md` for sessions opened in this folder.
+- **macOS and Windows natively, no WSL**, and still Linux (CI, Colab). New tooling is Node (`.mjs`), not bash. Python tools stay but avoid Unix-only paths and commands. I can't test on a real Windows machine here, so CI runners and your own runs are the check.
+- **Everything free and local.** No paid services or API keys.
+- **HyperFrames code is vendored into this repo** (not an npm dependency), under its Apache 2.0 license: keep its `LICENSE` and notices, mark every file we change, carry over any `NOTICE`. Our own code stays MIT, and the original product-video-kit notice stays in `LICENSE`.
 
-Each phase below is sized for **one fresh chat**. For every phase:
+## The two source repos
 
-1. Start a new chat in `~/projects/reelwright`.
-2. Paste that phase's **Start prompt**.
-3. Work on branch `phase-N-<name>`. At the end: tests pass, commit, merge to `main` (or open a PR), update `docs/plans/STATUS.md`, run `/graphify --update`.
-4. Close the chat. The next phase reads `STATUS.md`, so it needs no memory of this one.
+- **[Arnavxy/product-video-kit](https://github.com/Arnavxy/product-video-kit)** (MIT): already merged. Reelwright is this code, renamed. Strong at the whole pipeline from script to mp4: neural voiceover, screen recording, beat-synced cuts, ducked music, SFX, loudness mix, QA. Weak at: one authoring model, a small component set, one system font and no design system, bash-only, no live preview.
+- **[heygen-com/hyperframes](https://github.com/heygen-com/hyperframes)** (Apache 2.0): to be vendored. Strong at a general HTML-to-video engine: declarative compositions, many animation runtimes (GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI), about 450 catalog blocks, studio, player. Weak at: no script-driven timing, no beat sync, no screen recording, voiceover and music only via a separate skill.
 
-**Order of work:** Phase 0 → Phase 1 → **P16 (Windows + macOS)** → Phase 2 → Phase 3 → Phase 4 → P6–P10 → **P19–P21 (design variety)** → the rest (P11–P15, P17, P18, P22, Phase 5). Numbers are labels, not the order.
+The goal: a script-driven, beat-synced film built from HyperFrames-style compositions and blocks, with real design variety.
 
-Every phase starts with: read `docs/plans/STATUS.md`, then `graphify-out/GRAPH_REPORT.md`, then only the files listed under "Read first".
+**How vendoring works.** Copied code lives in `vendor/hyperframes/` (one folder per upstream package we take), each with the upstream `LICENSE` and a `VENDORED.md` (upstream repo, exact commit, files, what we changed). Every file we edit gets a "changed from upstream" header with the original copyright kept. Take only what we need; clone upstream with `GIT_LFS_SKIP_SMUDGE=1` so its roughly 240 MB of Git LFS test videos never enter this repo. Vendored code's own third-party packages still install through npm. Trade-off: no automatic upstream fixes; updating means re-copying from a newer commit and re-applying our changes.
 
 ## What exists today (from the graph)
 
 | Area | Where | Role |
 |---|---|---|
-| Entry point | `video.sh` | Dispatches `new`, `record`, `vo`, `beatgrid`, `sched`, `info`, `music`, `mix`, `stills`, `frames`, `encode`, `qa`, `clean`, `all`, `audio`, `film` |
-| Renderer | `tools/render.mjs` (93 lines) | Playwright pages call `window.render(t)`; modes `info`, `stills`, `frames`, `encode` |
-| Engine contract | `tools/engine.js` | `render(t)` must be a pure function of `t`; exposes `window.FILM`, `window.READY`, `window.MUSIC` |
-| Timing | `tools/sched.py` | Writes `film/data.js` (VO times, music grid) |
-| Audio | `tools/vo.py`, `music.py`, `beatgrid.py`, `mix.py` | Voice, music bed, beat grid, mix to `mix.wav` |
+| Entry point | `video.sh`, `setup.sh` | Bash commands: `new record vo beatgrid sched info music mix stills frames encode qa clean all audio film` |
+| Renderer | `tools/render.mjs` | Playwright pages call `window.render(t)`; modes `info`, `stills`, `frames`, `encode` |
+| Engine contract | `tools/engine.js`, `tools/kit.css` | `render(t)` must be a pure function of `t`; kit.css is 38 lines of device frames and subtitles, no tokens |
+| Timing and audio | `tools/sched.py`, `vo.py`, `music.py`, `beatgrid.py`, `mix.py` | VO times and music grid into `film/data.js`; mix to `mix.wav` |
 | QA | `tools/qa.py` | Checks `frames/` for blips and blank frames |
 | Config | `projects/<name>/project.json` | `fps`, `voice`, `music`, `lines`, `out` |
-| CI | `.github/workflows/ci.yml` | Syntax checks, then builds the example end to end |
 
-Only `info`, `stills`, `frames`, `encode` (and the frame input to `qa`) depend on the renderer. Everything else is shared.
+Only `info`, `stills`, `frames`, `encode` (and the frame input to `qa`) depend on the renderer.
 
-## HyperFrames facts this plan relies on
+## How to run each phase
 
-From its README (not yet verified by running it): compositions are HTML with `data-start` / `data-duration` / `data-track-index`; animations are registered on `window.__timelines`; supports GSAP, CSS, Lottie, Three.js, Anime.js, WAAPI; CLI `init`, `preview`, `render`, `add`, `catalog`, `skills`; needs Node 22+ and FFmpeg; Apache 2.0. **Phase 0 exists to verify the assumptions below.**
+1. Open a new chat in `~/projects/reelwright` and paste the phase's start prompt.
+2. Work on branch `phase-N-<name>`. At the end: exit test passes, commit, merge to `main` (or PR), update `STATUS.md` and the Progress table, run `/graphify --update`.
+3. Close the chat. The next one reads `STATUS.md` and `graphify-out/GRAPH_REPORT.md`, so it needs no memory of this one.
 
-Assumptions to verify:
-- A. `hyperframes render` can produce **video-only** output (or a frame sequence).
-- B. It can render at **60 fps** to match the kit.
-- C. Two renders of the same composition give **identical frames**.
-- D. It runs next to Playwright's Chromium without conflict.
+Start prompt template (fill in N and the name):
+> Read `docs/plans/STATUS.md`, `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase N only (<name>) on branch `phase-N-<slug>`. Write a short spec first and wait for my OK before coding. Update `STATUS.md` and the Progress table and run `/graphify --update` at the end.
 
 ---
 
-## Phase 0 — Feasibility spike
+## Phase 1: Spike (verify HyperFrames, map what to copy) ☐
 
-**Chat title:** `P0 HyperFrames spike`
-**Branch:** none (throwaway folder outside the repo, e.g. a temp dir)
-**Goal:** answer A–D, decide go/no-go.
+**Branch:** none (throwaway folder outside the repo) · **Needs:** nothing
 
-**Read first:** this plan; `tools/render.mjs`.
+**Goal:** answer four questions and decide go or no-go. A: can it render video-only or a frame sequence? B: at 60 fps? C: are two renders identical? D: does it run next to Playwright's Chromium?
 
 **Steps**
-1. In a temp folder, clone heygen-com/hyperframes with `GIT_LFS_SKIP_SMUDGE=1` (note the exact commit). Read its `LICENSE`, any `NOTICE` and `CREDITS.md`, and its package list (`core`, `engine`, `producer`, `player`, `shader-transitions`, others).
-2. **Vendoring map:** for each package, record size, what it depends on, and whether we need it. Decide the smallest set to copy, and check each copied file's license header and any third-party code inside it (for example the catalog blocks may carry their own licenses).
-3. Build and run it from the clone: render a 3-second hello composition (a GSAP-animated title) at 30 fps, then 60 fps.
-4. Check each assumption A–D. For C, compare two renders frame by frame.
-5. Read the CLI and `render` source for output flags (video-only, frames, audio).
-6. Write the findings into the repo as `docs/plans/spike-findings.md` (the only file that lands in the repo). Delete the temp folder.
+1. Clone heygen-com/hyperframes into a temp folder with `GIT_LFS_SKIP_SMUDGE=1` (note the commit). Read its `LICENSE`, any `NOTICE`, `CREDITS.md`, and its package list.
+2. Build the vendoring map: for each package, its size, dependencies, whether we need it, and any third-party code or per-block license inside it. Pick the smallest set to copy.
+3. Build and run it: render a 3-second GSAP hello composition at 30 and 60 fps; compare two renders frame by frame; read the render source for output flags.
+4. Write `docs/plans/spike-findings.md` (the only file that lands in the repo) and create `docs/plans/STATUS.md`. Delete the temp folder.
 
-**Exit criteria:** findings file lists the upstream commit, the exact render command that works, the vendoring map (which packages and files to copy, which to skip, and every license or notice we must carry over), and a go/no-go for Phases 1–3. If A or B fails, the file says what the fallback is (for example extracting frames and keeping the kit's `encode`).
-
-**Start prompt:**
-> Read `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 0 (the HyperFrames feasibility spike) only. Use a throwaway folder outside the repo. Write `docs/plans/spike-findings.md` and create `docs/plans/STATUS.md` marking Phase 0 done. Don't touch `tools/`.
+**Exit:** findings list the upstream commit, the working render command, the vendoring map with every notice to carry over, and go or no-go for Phases 2–3 (with a fallback if A or B fails, such as extracting frames and keeping the kit's `encode`).
 
 ---
 
-## Phase 1 — Renderer abstraction (no behavior change)
+## Phase 2: Cross-platform core ☐
 
-**Chat title:** `P1 renderer abstraction`
-**Branch:** `phase-1-renderer-abstraction`
-**Goal:** make the renderer swappable while the existing renderer behaves exactly as before.
+**Branch:** `phase-2-core` · **Needs:** Phase 1
 
-**Read first:** `STATUS.md`, `spike-findings.md`, `video.sh`, `tools/render.mjs`, `projects/example/project.json`.
+**Goal:** the renderer is swappable and the toolkit runs natively on macOS, Windows and Linux, with no behavior change for existing films.
 
 **Steps**
-1. Add `"renderer": "pvk"` (optional, defaults to `pvk`) to `project.json` handling. Document it in the example's `project.json`.
-2. Move the current `tools/render.mjs` logic into `tools/renderers/pvk.mjs`. Keep `tools/render.mjs` as a thin dispatcher that reads `renderer` and calls the matching module with the same four modes.
-3. Define the renderer contract in a short comment at the top of the dispatcher: each renderer implements `info`, `stills`, `frames`, `encode` and writes the same files (`timeline.json`, `stills/`, `frames/`, the mp4).
-4. Keep `video.sh` commands unchanged.
+1. Add `"renderer": "pvk"` (the default) to `project.json` handling. Move the current `tools/render.mjs` logic into `tools/renderers/pvk.mjs`; keep `tools/render.mjs` as a thin dispatcher with the same four modes and a short comment defining the renderer contract (each renderer implements `info`, `stills`, `frames`, `encode` and writes the same files).
+2. Replace the bash entry point with a Node command line (`reelwright <command>`, same commands); keep `./video.sh` as a thin wrapper on macOS and Linux.
+3. Port `setup.sh` to Node (check or install ffmpeg, Node, Python, Chromium; Homebrew hints on macOS, winget or Chocolatey on Windows).
+4. Make `clean`, `new` and any `rm`, `rsync` or shell calls cross-platform; fix path handling in `tools/*.py` and `tools/*.mjs`.
+5. CI matrix: macOS, Windows and Ubuntu.
 
-**Exit criteria:** `PAGES=2 ./video.sh all` builds the example; output mp4 has the same duration and frame count as before the change; CI syntax checks pass (add the new files to the loop); no change to any film.
-
-**Start prompt:**
-> Read `docs/plans/STATUS.md`, `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 1 only (renderer abstraction, no behavior change). Work on branch `phase-1-renderer-abstraction`. Verify by rebuilding the example film and comparing duration and frame count to a build from `main`. Update `STATUS.md` and run `/graphify --update` at the end.
+**Exit:** the example builds on all three runners with the same duration and frame count as before the change; no film changed.
 
 ---
 
-## Phase 2 — HyperFrames renderer
+## Phase 3: HyperFrames inside ☐
 
-**Chat title:** `P2 hyperframes renderer`
-**Branch:** `phase-2-hyperframes-renderer`
-**Goal:** a project with `"renderer": "hyperframes"` builds end to end.
+**Branch:** `phase-3-hyperframes` · **Needs:** Phase 2
 
-**Read first:** `STATUS.md`, `spike-findings.md`, `tools/renderers/pvk.mjs`, `tools/sched.py`, `tools/mix.py`, `tools/qa.py`.
+**Goal:** a project with `"renderer": "hyperframes"` builds end to end, with a real example film and a few catalog blocks.
 
 **Steps**
-1. Vendor HyperFrames: copy the packages and files chosen in the spike's vendoring map into `vendor/hyperframes/`, with upstream `LICENSE`, any `NOTICE`, a `VENDORED.md` (upstream commit, files, changes) and a "changed from upstream" header on every file we edit. Install the vendored code's own npm dependencies through `package.json`.
-2. `tools/sched.py`: when the renderer is `hyperframes`, also write `hf/kit-data.js` with the same VO times and music grid that `film/data.js` carries.
-3. `tools/renderers/hyperframes.mjs`:
-   - `info`: read the composition root's `data-duration` plus kit data; write `timeline.json` in the format `mix.py` already reads.
-   - `stills`: render single frames at the requested times.
-   - `frames`: render a frame sequence (or an mp4, per the spike's finding) into `frames/`.
-   - `encode`: mux the kit's `mix.wav` over the video with the kit's existing loudness settings.
-4. `tools/qa.py`: accept the hyperframes output (extract frames from the mp4 if needed).
-5. Setup: check Node 22+ in the cross-platform setup from P16 (not only `setup.sh`). Needs P16 done first.
+1. Vendor the packages from the spike's map into `vendor/hyperframes/` with `LICENSE`, `VENDORED.md`, and change headers.
+2. `tools/sched.py`: for hyperframes projects also write `hf/kit-data.js` (VO times, music grid) so compositions take timing from kit data, never hard-coded seconds.
+3. `tools/renderers/hyperframes.mjs`: `info` (duration from the composition root plus kit data, writing the `timeline.json` that `mix.py` reads), `stills`, `frames`, and `encode` (mux the kit's `mix.wav` over the video with the kit's loudness settings). Adapt `qa.py` to accept the output.
+4. `projects/example-hf/`: title card, captions timed to VO lines, a beat-pulsing element. `reelwright new <name> --renderer hyperframes` copies it.
+5. Catalog blocks: an `add <block>` helper, and use one transition and one chart block in the example (check each block's license first).
 
-**Exit criteria:** a minimal hyperframes composition builds via `./video.sh all <name>`; output duration equals `mix.wav` within one frame; `qa` passes; pvk films still build.
-
-**Start prompt:**
-> Read `docs/plans/STATUS.md`, `docs/plans/spike-findings.md`, `docs/plans/hyperframes-integration.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 2 only (the HyperFrames renderer) on branch `phase-2-hyperframes-renderer`. Vendor the code per the spike's vendoring map (keep licenses and mark changes), and use the render command from the spike. Verify with a minimal composition and a pvk regression build. Update `STATUS.md` and run `/graphify --update`.
+**Exit:** `example-hf` builds on macOS, Windows and Linux CI; two builds give identical frames; output duration matches `mix.wav` within one frame; pvk films still build unchanged.
 
 ---
 
-## Phase 3 — Example film and template
+## Phase 4: Look and feel ☐
 
-**Chat title:** `P3 hyperframes example`
-**Branch:** `phase-3-hf-example`
-**Goal:** a real sample film and a one-command way to start a HyperFrames film.
+**Branch:** `phase-4-design` · **Needs:** Phase 3 · *If it runs long, split into two chats: (a) tokens, brand and themes; (b) layouts and formats.*
 
-**Read first:** `STATUS.md`, `projects/example/` (script, film), `docs/PLAYBOOK.md`.
+**Goal:** films stop looking alike. Today every film uses one system font stack and `kit.css` has no design tokens.
 
 **Steps**
-1. `projects/example-hf/`: a short composition with a title card, captions timed to the VO lines from kit data (no hard-coded seconds), and an element that pulses on the beat.
-2. `./video.sh new <name> --renderer hyperframes` copies that example.
-3. Build it twice and compare frames (determinism check from assumption C, now on a real film).
+1. Turn `tools/kit.css` into design tokens (CSS variables for colors, fonts, radius, shadow, spacing). `brand.json` (colors, fonts, logo, tone) overrides them.
+2. Style packs: 8 to 10 distinct themes (for example editorial, brutalist, soft pastel, dark tech, playful, retro), each with a palette, motion feel and caption style, picked with `"style": "<theme>"` in `project.json`.
+3. Bundle open-license fonts (Google Fonts) in curated display and text pairings, with each font's license recorded. This also makes output identical on macOS and Windows.
+4. Scene layout library: split screen, full-bleed text, bento grid, tilted device, big-number stat, quote card, kinetic type; all read theme tokens; add guidance to `docs/PLAYBOOK.md`.
+5. One script, many formats: `--formats 16x9,9x16,1x1` with a safe-area helper.
 
-**Exit criteria:** `./video.sh all example-hf` builds; two builds match; the film respects the "timings come from kit data" rule.
-
-**Start prompt:**
-> Read `docs/plans/STATUS.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 3 only (example-hf film and the `--renderer hyperframes` template) on branch `phase-3-hf-example`. Update `STATUS.md` and run `/graphify --update`.
+**Exit:** the example builds in at least 3 visibly different themes and all 3 formats with no change to `film.js`; a short film using five layouts passes QA; every bundled font's license is recorded.
 
 ---
 
-## Phase 4 — Docs, CI, licensing
+## Phase 5: Captions and quality ☐
 
-**Chat title:** `P4 docs and ci`
-**Branch:** `phase-4-docs-ci`
-**Goal:** the integration is documented, tested in CI, and license-clean.
+**Branch:** `phase-5-captions-qa` · **Needs:** Phase 3
+
+**Goal:** accurate captions and automatic checks neither source repo has.
 
 **Steps**
-1. README: a "Renderers" section (when to pick which).
-2. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data).
-3. `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`: workflow for hyperframes films.
-4. CI: second job builds `example-hf`; add the new files to the syntax-check loop.
-5. License notices: `THIRD_PARTY.md` and a root `NOTICE` listing the vendored HyperFrames code (Apache 2.0, upstream commit, what we changed) and any third-party code inside it; confirm every changed vendored file has its header; keep the original MIT notice in `LICENSE`. Add a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
+1. Capture word boundaries from the voiceover in `tools/vo.py` (check what edge-tts returns) and write them into the timeline data.
+2. A shared karaoke caption component for both renderers, plus `.srt` and `.vtt` export next to the mp4.
+3. QA gates in `./video.sh qa` (and `reelwright qa`): loudness (LUFS) against the project target; caption overflow and contrast; flash rate against photosensitivity limits; "Illustrative data" label lint; a non-seekable-animation linter for HyperFrames films. Each reports pass or fail with the frame or time.
 
-**Exit criteria:** CI green on both example films; docs mention both renderers.
-
-**Start prompt:**
-> Read `docs/plans/STATUS.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase 4 only (docs, CI, licensing) on branch `phase-4-docs-ci`. Update `STATUS.md` and run `/graphify --update`.
+**Exit:** the example's captions highlight each word on time (checked on stills); `.srt` and `.vtt` open in a player; a deliberately broken test film trips each check.
 
 ---
 
-## Phase 5 — Optional ports (decide after Phase 4)
+## Phase 6: Preview and speed ☐
 
-**Chat title:** `P5 port features` — one chat per feature, each with its own short spec.
-Candidates for `tools/engine.js`: Lottie / Three.js / WAAPI adapters, a composition linter, shader-style transitions. Skip entirely if HyperFrames covers the need.
+**Branch:** `phase-6-preview-speed` · **Needs:** Phase 4 for remix, Phase 5 optional
+
+**Goal:** faster iteration and a way to pick a look instead of defaulting to the same one.
+
+**Steps**
+1. Live scrubber preview: a local page with a timeline slider, voice waveform from `mix.wav`, beat and VO markers, and reload on file change.
+2. Incremental rendering: split the timeline into shots, hash each shot's inputs (film code, data, assets, time range), cache frames by hash, re-render only changed shots.
+3. `reelwright remix <name>`: three stills of the same script in three themes and layouts as a contact sheet; a variety check that warns when a new film's fonts, palette and layouts are too similar to earlier films.
+
+**Exit:** scrubbing shows the exact frame the renderer produces; changing one caption re-renders only its shot and the full output matches a clean build; remix gives three clearly different options and the check flags two films using the same theme.
 
 ---
 
-## Phases 6–22 — Making it better than both
+## Phase 7: Docs, licensing, release ☐
 
-Each phase is one chat, same routine as Phases 0–4 (read `STATUS.md` and the graph report first, work on its own branch, update `STATUS.md`, run `/graphify --update`). **Everything stays free and local**: no paid services, no API keys. They can run in any order unless "Needs" says otherwise; the order below is my suggested value-for-effort order. All of them need Phases 0–4 finished first. **Design variety (P19–P22) is placed after P8 in order of work**, even though it is numbered last, because every film looks alike today: all films share one system font stack, `tools/kit.css` is 38 lines with no color or type variables, and the playbook has no palette, type or layout guidance.
+**Branch:** `phase-7-release` · **Needs:** Phases 1–6
 
-Generic start prompt (fill in the name and branch):
-> Read `docs/plans/STATUS.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase N only (<name>) on branch `phase-N-<slug>`. Write a short spec first and wait for my OK before coding. Update `STATUS.md` and run `/graphify --update` at the end.
+**Steps**
+1. README: a "Renderers" section (when to use which), platform support (macOS, Windows, Linux), the themes and layouts. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data). Update `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`.
+2. Licensing: `THIRD_PARTY.md` and a root `NOTICE` for the vendored HyperFrames code and bundled fonts; confirm every changed vendored file has its header; a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
+3. CI green on macOS, Windows and Linux for both example films; tag a first release.
 
-### Easy wins
+**Exit:** CI green everywhere; docs describe both renderers; all licenses and notices present.
 
-**P6 — Catalog blocks in Reelwright films** · branch `phase-6-catalog-blocks` · Needs: Phase 2
-- Goal: a film can use HyperFrames catalog blocks (shader transitions, captions, charts, overlays) with kit timing injected.
-- Steps: list which blocks work with kit data; add a `./video.sh add <block>` helper that installs a block into a project; pass VO times and beat grid into blocks; document the pattern.
-- Exit: `example-hf` uses at least one transition and one chart block; builds and passes QA.
+---
 
-**P7 — Word-accurate captions and subtitle files** · branch `phase-7-captions`
-- Goal: karaoke captions driven by real word timings from the voiceover, in both renderers, plus `.srt` / `.vtt` export.
-- Steps: capture word boundaries in `tools/vo.py` (check what edge-tts returns); write them into the timeline data; a shared caption component for both renderers; export subtitle files next to the mp4.
-- Exit: example film's captions highlight each word on time (check against stills); `.srt` / `.vtt` open correctly in a player.
+## Optional backlog (not phased; one chat each if you want it)
 
-**P8 — `brand.json`** · branch `phase-8-brand`
-- Goal: one file for colors, fonts, logo and tone, applied to every film.
-- Steps: turn `tools/kit.css` into design tokens (CSS variables for colors, fonts, radius, shadow, spacing); define the `brand.json` schema as an override layer on those tokens (P19 themes sit underneath it); load it in `engine.js` / `kit.css` and in HyperFrames films; `./video.sh new` copies a default brand; fonts load from the project folder.
-- Exit: changing `brand.json` recolors and re-fonts the example without touching `film.js`.
-
-**P9 — One script, many formats** · branch `phase-9-formats`
-- Goal: build 16:9, 9:16 and 1:1 from the same script and timings with one command.
-- Steps: layout presets in the engine; `./video.sh all <name> --formats 16x9,9x16,1x1`; per-format outputs; safe-area helper.
-- Exit: the example builds in all three sizes with captions inside the safe area.
-
-**P10 — Stronger QA gates** · branch `phase-10-qa`
-- Goal: automatic checks neither repo has.
-- Steps: loudness (LUFS) vs `project.json` target; caption overflow and contrast; flash-rate check against photosensitivity limits; "Illustrative data" label lint; non-seekable-animation linter for HyperFrames films. Each check reports a clear pass/fail with the frame or time.
-- Exit: `./video.sh qa` runs all checks; a deliberately broken test film trips each one.
-
-### Design variety (do right after P8)
-
-**P19 — Style packs and bundled fonts** · branch `phase-19-themes` · Needs: P8
-- Goal: films stop looking alike. A theme bundles fonts, palette, corner radius, shadow style, motion feel (snappy, floaty, mechanical) and caption style.
-- Steps: ship 8–10 distinct themes (for example editorial, brutalist, soft pastel, dark tech, playful, retro); bundle open-license fonts (Google Fonts, free) in curated display + text pairings, with each font's license kept in the repo; `project.json` `"style": "<theme>"` picks one; `brand.json` overrides a theme; motion feel changes easing and pacing, not just colors.
-- Exit: the example film builds in at least 3 visibly different themes with no change to `film.js`; every bundled font's license is recorded.
-
-**P20 — Scene layout library** · branch `phase-20-layouts` · Needs: P19
-- Goal: reusable layouts to mix inside one film instead of rebuilding each from scratch.
-- Steps: engine components for split screen, full-bleed text, bento grid, tilted device, big-number stat, quote card and kinetic type; each reads theme tokens; document when to use which in `docs/PLAYBOOK.md`.
-- Exit: a short film built from five different layouts, in two themes, passes QA.
-
-**P21 — Remix and variety check** · branch `phase-21-remix` · Needs: P19, P20
-- Goal: pick a look from options instead of defaulting to the same one, and catch drift back to sameness.
-- Steps: `./video.sh remix <name>` renders three stills of the same script in three different themes and layouts and builds a contact sheet; a variety check compares a new film's fonts, palette and layouts with earlier films in `projects/` and warns when they are too similar.
-- Exit: remix produces three clearly different options from one script; the check flags two films made with the same theme.
-
-**P22 — Style from a reference** · branch `phase-22-reference-style` · Needs: P19, P15
-- Goal: give a site or image and start from its palette and fonts.
-- Steps: extract dominant colors and font families from a URL (reusing the capture from P15) or an image; write a draft theme; fall back to the closest bundled font when the real one isn't free to bundle.
-- Exit: a draft theme from a real landing page is recognizably related to it and builds the example without errors.
-
-### Bigger
-
-**P11 — Live scrubber preview** · branch `phase-11-preview`
-- Goal: a local page with a timeline scrubber, voice waveform and beat markers that reloads as files change.
-- Steps: small local server; load the film in a page with a time slider; draw waveform from `mix.wav`; show beat grid and VO cue markers; file watcher reload.
-- Exit: scrub to any time and see the exact frame the renderer would produce; edits show within a couple of seconds.
-
-**P12 — Incremental rendering** · branch `phase-12-incremental`
-- Goal: after an edit, re-render only the shots that changed.
-- Steps: split the timeline into shots; hash each shot's inputs (film code, data, assets, time range); cache frames by hash; invalidate on change.
-- Exit: changing one caption re-renders only its shot; full build output is identical to a clean build.
-
-**P13 — Re-voice in other languages** · branch `phase-13-languages`
-- Goal: translate the script, re-run voiceover, and let the timeline re-flow automatically.
-- Steps: `lines` get per-language text; language picks the voice; captions use the same words; output named per language.
-- Exit: the example builds in a second language with all cuts and captions still aligned.
-
-**P14 — Reproducible builds** · branch `phase-14-manifest`
-- Goal: any film can be rebuilt identically and audited.
-- Steps: write `manifest.json` per film (tool versions, input hashes, output hash); a `verify` command that rebuilds and compares.
-- Exit: `./video.sh verify example` passes on two runs.
-
-### Larger bets
-
-**P15 — Film from a URL** · branch `phase-15-url-to-film` · Needs: P7, P10
-- Goal: give a URL, get a script to approve, then a finished video after an automatic QA pass. Stays a plain CLI command (`reelwright from-url <url>`), not an MCP server or plugin.
-- Steps: extend `tools/capture_site.mjs` to read page text, colors and fonts; draft the script with simple rules and templates (no paid AI service); run the build; render stills and check them with the QA gates (P10); report any failures with the frame and time.
-- Exit: a real public landing page produces an mp4 that passes the QA gates, with no manual editing beyond script approval. A smarter script draft or visual review is optional when you run the command inside Claude Code, using the project skill; it isn't required.
-
-**P16 — Native Windows + macOS support (do right after Phase 1, before Phase 2)** · branch `phase-16-windows`
-- Goal: the same commands run directly on Windows and macOS, no WSL. Required by the platform rule above.
-- Steps: replace the bash entry point (`video.sh`) with a Node command line (`reelwright <command>`) that keeps the same commands, and keep `./video.sh` as a thin wrapper on macOS/Linux; port `setup.sh` to Node (install or check ffmpeg, Node, Python, Chromium; use `winget` or Chocolatey hints on Windows, Homebrew on macOS); fix path handling and shell calls in `tools/*.py` and `tools/*.mjs`; make the `./video.sh clean` and `new` commands (which use `rm` and `rsync`) cross-platform; CI matrix of macOS, Windows and Ubuntu.
-- Exit: the example builds on macOS, Windows and Ubuntu runners in CI with identical frame counts and duration. (I can't test on a real Windows machine; CI and your own run are the check.)
-
-**P17 — Free cloud rendering: Google Colab + Drive (main), GitHub Actions (fallback)** · branch `phase-17-cloud-render`
-- Goal: render a film in the cloud for free. Google Drive only stores files; Colab does the rendering.
-- Main path, Colab + Drive: a notebook (`cloud/reelwright_colab.ipynb`) that mounts Drive, installs ffmpeg, Node, Python deps and headless Chromium, copies the project from a Drive folder, runs `./video.sh all <name>`, and saves the mp4 back to Drive. Include a "resume" cell so a disconnected session doesn't redo finished stages, and put the browser and pip caches in Drive to speed up reinstalls.
-- Fallback, GitHub Actions: a `workflow_dispatch` workflow taking the project name that uploads the mp4 as an artifact; document the free-minutes limit.
-- Exit: the example builds in a free Colab session and the mp4 appears in Drive; the Actions workflow also produces it. First check: headless Chromium (Playwright, and later HyperFrames' Puppeteer) actually runs in Colab, since it's untested. Skip HyperFrames' AWS rendering (paid).
-- Notes: Colab sessions disconnect after idle time or a few hours, and Google sets the free limits, so keep each render resumable. Drive storage is not a constraint with a 5 TB plan.
-
-**P18 — Automatic music drop detection** · branch `phase-18-drops`
-- Goal: find the big drop in a track and snap the key moment to it.
-- Steps: extend `tools/beatgrid.py` to find the biggest energy jump; write it into `film/data.js`; expose `KIT.drop()` in the engine; use it in the teaser.
-- Exit: on the sample track, the white flash and logo hit land on the detected drop.
+- **Free cloud rendering:** a Google Colab notebook that mounts Drive, installs the tools, renders a project and saves the mp4 to Drive (with a resume cell for disconnects), plus a GitHub Actions fallback. First check that headless Chromium runs in Colab.
+- **Film from a URL:** `reelwright from-url <url>` captures the site, drafts a script with simple templates (no paid AI), builds, and runs the QA gates. Smarter drafts are optional when run inside Claude Code.
+- **Re-voice in other languages:** per-language lines and voices; the timeline re-flows automatically.
+- **Reproducible builds:** a manifest per film (versions, input and output hashes) and a `verify` command.
+- **Automatic music drop detection:** find the biggest energy jump in the track and snap the key moment to it.
+- **Style from a reference:** draft a theme from a site or image's palette and fonts.
 
 ## Risks
 
-- **Upstream divergence:** vendored code stops getting HyperFrames' fixes and features. Record the upstream commit in `VENDORED.md`, keep our edits small and marked, and re-sync deliberately.
-- **Repo size and license hygiene:** copy only what we need, never the Git LFS test videos, and keep every notice.
+- **Upstream divergence:** vendored code stops getting HyperFrames' fixes. Record the commit in `VENDORED.md`, keep our edits small and marked.
+- **Repo size and license hygiene:** copy only what we need, never the LFS test videos, keep every notice.
+- **Timing sync:** HyperFrames' declarative start times must come from kit data or they drift when the script changes.
 - **Two Chrome stacks:** Playwright (kit) and Puppeteer (HyperFrames) double the browser download.
-- **Timing sync:** declarative `data-start` values must come from kit data or they drift when the script changes.
-- **Parallelism:** the kit renders across `PAGES` browser pages; HyperFrames' own parallelism may differ, so render times may not match.
-- **Unverified claims:** everything about HyperFrames above comes from its README and web summaries until Phase 0 runs it.
+- **Windows is untested locally:** only CI runners and your own runs can confirm it.
+- **Unverified HyperFrames claims:** everything about it comes from its README and summaries until Phase 1 runs it.
 
 ## License notes
 
-Reelwright is MIT (original notice from Arnavxy and product-video-kit contributors kept, plus Amogh Khairate). HyperFrames is Apache 2.0 and its code is vendored into `vendor/hyperframes/`. Apache 2.0 allows this if we: keep its `LICENSE` and a copy of the license with the code, keep all copyright and attribution notices, mark every file we changed, and carry over any `NOTICE` file. Our own code stays MIT. This is a plain-language summary, not legal advice.
+Reelwright is MIT (original notice from Arnavxy and product-video-kit contributors kept, plus Amogh Khairate). HyperFrames is Apache 2.0 and vendored into `vendor/hyperframes/`; Apache 2.0 allows this if we keep its license with the code, keep copyright and attribution notices, mark every changed file and carry over any `NOTICE` file. This is a plain-language summary, not legal advice.

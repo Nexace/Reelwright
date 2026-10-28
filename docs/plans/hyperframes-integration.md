@@ -6,6 +6,23 @@ Status: **plan only, nothing implemented.** Repo: `~/projects/reelwright` (priva
 
 Reelwright keeps its voice, music, mix, recording and QA stages, and gains HyperFrames (HeyGen, Apache 2.0) as a second way to author and render the visuals. A `renderer` setting in `project.json` picks which one; the default stays the current engine, so no existing film changes.
 
+## The two source repos and how we merge them
+
+- **[Arnavxy/product-video-kit](https://github.com/Arnavxy/product-video-kit)** (MIT): the base of Reelwright. Already merged: Reelwright *is* this code, renamed, with its license notice kept.
+- **[heygen-com/hyperframes](https://github.com/heygen-com/hyperframes)** (Apache 2.0): the second source.
+
+| | product-video-kit (Reelwright today) | HyperFrames |
+|---|---|---|
+| Strongest at | The whole pipeline from script to mp4: neural voiceover, screen recording, beat-synced cuts, ducked music, SFX, loudness mix, QA | A general HTML-to-video engine: declarative compositions, many animation runtimes, ~450-block catalog (transitions, captions, charts, maps, 3D), studio, player, Lambda rendering, agent skills |
+| Weak at | Only one authoring model (`render(t)` JS); small component set; bash-only (Windows via WSL); no live preview | No script-driven timing, no beat sync, no screen recording; voiceover and music only through a separate `/media-use` skill; studio and Lambda still maturing |
+
+**Merge options**
+1. **Depend on it (recommended):** use HyperFrames as a pinned npm dependency. No code copied, no extra license duties beyond normal use.
+2. **Vendor parts of it:** copy selected packages (for example its runtime, frame adapters or linter) into this repo. Allowed under Apache 2.0 if we keep its `LICENSE`, keep copyright and attribution notices, mark files we changed, and carry over any `NOTICE` file. Do this only if we need to fork or patch it.
+3. **Re-implement from its docs:** write our own versions of the ideas without copying code. No license duties, but the most work.
+
+Phases 0–4 use option 1. Option 2 or 3 only come up in Phase 5 if we decide to port features.
+
 ## How to use this plan
 
 Each phase below is sized for **one fresh chat**. For every phase:
@@ -159,6 +176,29 @@ Assumptions to verify:
 Candidates for `tools/engine.js`: Lottie / Three.js / WAAPI adapters, a composition linter, shader-style transitions. Skip entirely if HyperFrames covers the need.
 
 ---
+
+## Phase 6+ — Making it better than both
+
+Each item is its own chat with its own short spec; none is needed for Phases 0–4. Ordered by value for effort. Gaps come from the two READMEs; nothing here is built or tested.
+
+**Tier 1 — cheap, clear wins**
+1. **Catalog blocks inside Reelwright films.** Let a film pull HyperFrames catalog blocks (shader transitions, captions, charts, overlays) with kit timing injected. Gives us a large asset library on day one, which the kit lacks.
+2. **Word-accurate captions + subtitle files.** Use the TTS word timings to drive karaoke captions in both renderers, and export `.srt` / `.vtt` for muted viewing and accessibility. Neither repo ships this end to end.
+3. **`brand.json`.** Colors, fonts, logo and tone in one file applied to every film, so a new film is on-brand without edits.
+4. **One script, many formats.** Build 16:9, 9:16 and 1:1 from the same script and timings (the kit already supports vertical sizes; make it a single command with layout presets).
+5. **Stronger QA gates.** Add checks neither repo has: loudness (LUFS) target, caption overflow and contrast, photosensitivity (flash-rate) check for strobe-style teasers, "Illustrative data" label lint, and a non-seekable-animation linter for HyperFrames films.
+
+**Tier 2 — bigger, high payoff**
+6. **Live scrubber preview.** A local page with a timeline scrubber, voice waveform and beat markers, reloading as files change. The kit only has a stills sheet; HyperFrames' studio is still evolving.
+7. **Incremental rendering.** Hash each shot's inputs and re-render only shots that changed after a script or film edit, instead of every frame.
+8. **Re-voice in other languages.** Translate the script, re-run voiceover, and let the timeline re-flow automatically (the kit already re-flows on script change).
+9. **Reproducible builds.** Write a manifest per film (inputs, versions, hashes of output) so any film can be rebuilt identically and audited.
+
+**Tier 3 — larger bets**
+10. **Agent-first workflow.** A skill or MCP server so "make a film from this URL / this app" runs end to end, including a self-review loop (render stills, critique, fix) before reporting.
+11. **Native Windows support** (PowerShell scripts or a Node-based CLI replacing the bash entry point), since the kit supports Windows only through WSL2 and untested.
+12. **Cloud rendering.** A GitHub Actions or serverless render path for long films, only if local render time becomes a problem.
+13. **Automatic music drop detection** (already listed as an idea in the kit's README) to snap big moments to the drop.
 
 ## Risks
 

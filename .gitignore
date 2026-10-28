@@ -18,3 +18,6 @@ projects/*/film/data.js
 projects/*/film/clip.js
 projects/*/assets/
 projects/*/film/site.js
+
+# graphify map (local, rebuild with /graphify --update)
+graphify-out/

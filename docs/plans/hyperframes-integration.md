@@ -177,28 +177,83 @@ Candidates for `tools/engine.js`: Lottie / Three.js / WAAPI adapters, a composit
 
 ---
 
-## Phase 6+ — Making it better than both
+## Phases 6–18 — Making it better than both
 
-Each item is its own chat with its own short spec; none is needed for Phases 0–4. Ordered by value for effort. Gaps come from the two READMEs; nothing here is built or tested.
+Each phase is one chat, same routine as Phases 0–4 (read `STATUS.md` and the graph report first, work on its own branch, update `STATUS.md`, run `/graphify --update`). **Everything stays free and local**: no paid services, no API keys. They can run in any order unless "Needs" says otherwise; the order below is my suggested value-for-effort order. All of them need Phases 0–4 finished first.
 
-**Tier 1 — cheap, clear wins**
-1. **Catalog blocks inside Reelwright films.** Let a film pull HyperFrames catalog blocks (shader transitions, captions, charts, overlays) with kit timing injected. Gives us a large asset library on day one, which the kit lacks.
-2. **Word-accurate captions + subtitle files.** Use the TTS word timings to drive karaoke captions in both renderers, and export `.srt` / `.vtt` for muted viewing and accessibility. Neither repo ships this end to end.
-3. **`brand.json`.** Colors, fonts, logo and tone in one file applied to every film, so a new film is on-brand without edits.
-4. **One script, many formats.** Build 16:9, 9:16 and 1:1 from the same script and timings (the kit already supports vertical sizes; make it a single command with layout presets).
-5. **Stronger QA gates.** Add checks neither repo has: loudness (LUFS) target, caption overflow and contrast, photosensitivity (flash-rate) check for strobe-style teasers, "Illustrative data" label lint, and a non-seekable-animation linter for HyperFrames films.
+Generic start prompt (fill in the name and branch):
+> Read `docs/plans/STATUS.md` and `graphify-out/GRAPH_REPORT.md`. Run Phase N only (<name>) on branch `phase-N-<slug>`. Write a short spec first and wait for my OK before coding. Update `STATUS.md` and run `/graphify --update` at the end.
 
-**Tier 2 — bigger, high payoff**
-6. **Live scrubber preview.** A local page with a timeline scrubber, voice waveform and beat markers, reloading as files change. The kit only has a stills sheet; HyperFrames' studio is still evolving.
-7. **Incremental rendering.** Hash each shot's inputs and re-render only shots that changed after a script or film edit, instead of every frame.
-8. **Re-voice in other languages.** Translate the script, re-run voiceover, and let the timeline re-flow automatically (the kit already re-flows on script change).
-9. **Reproducible builds.** Write a manifest per film (inputs, versions, hashes of output) so any film can be rebuilt identically and audited.
+### Easy wins
 
-**Tier 3 — larger bets**
-10. **Agent-first workflow.** A skill or MCP server so "make a film from this URL / this app" runs end to end, including a self-review loop (render stills, critique, fix) before reporting.
-11. **Native Windows support** (PowerShell scripts or a Node-based CLI replacing the bash entry point), since the kit supports Windows only through WSL2 and untested.
-12. **Cloud rendering.** A GitHub Actions or serverless render path for long films, only if local render time becomes a problem.
-13. **Automatic music drop detection** (already listed as an idea in the kit's README) to snap big moments to the drop.
+**P6 — Catalog blocks in Reelwright films** · branch `phase-6-catalog-blocks` · Needs: Phase 2
+- Goal: a film can use HyperFrames catalog blocks (shader transitions, captions, charts, overlays) with kit timing injected.
+- Steps: list which blocks work with kit data; add a `./video.sh add <block>` helper that installs a block into a project; pass VO times and beat grid into blocks; document the pattern.
+- Exit: `example-hf` uses at least one transition and one chart block; builds and passes QA.
+
+**P7 — Word-accurate captions and subtitle files** · branch `phase-7-captions`
+- Goal: karaoke captions driven by real word timings from the voiceover, in both renderers, plus `.srt` / `.vtt` export.
+- Steps: capture word boundaries in `tools/vo.py` (check what edge-tts returns); write them into the timeline data; a shared caption component for both renderers; export subtitle files next to the mp4.
+- Exit: example film's captions highlight each word on time (check against stills); `.srt` / `.vtt` open correctly in a player.
+
+**P8 — `brand.json`** · branch `phase-8-brand`
+- Goal: one file for colors, fonts, logo and tone, applied to every film.
+- Steps: define the schema; load it in `engine.js` / `kit.css` and in HyperFrames films; `./video.sh new` copies a default brand; fonts load from the project folder.
+- Exit: changing `brand.json` recolors and re-fonts the example without touching `film.js`.
+
+**P9 — One script, many formats** · branch `phase-9-formats`
+- Goal: build 16:9, 9:16 and 1:1 from the same script and timings with one command.
+- Steps: layout presets in the engine; `./video.sh all <name> --formats 16x9,9x16,1x1`; per-format outputs; safe-area helper.
+- Exit: the example builds in all three sizes with captions inside the safe area.
+
+**P10 — Stronger QA gates** · branch `phase-10-qa`
+- Goal: automatic checks neither repo has.
+- Steps: loudness (LUFS) vs `project.json` target; caption overflow and contrast; flash-rate check against photosensitivity limits; "Illustrative data" label lint; non-seekable-animation linter for HyperFrames films. Each check reports a clear pass/fail with the frame or time.
+- Exit: `./video.sh qa` runs all checks; a deliberately broken test film trips each one.
+
+### Bigger
+
+**P11 — Live scrubber preview** · branch `phase-11-preview`
+- Goal: a local page with a timeline scrubber, voice waveform and beat markers that reloads as files change.
+- Steps: small local server; load the film in a page with a time slider; draw waveform from `mix.wav`; show beat grid and VO cue markers; file watcher reload.
+- Exit: scrub to any time and see the exact frame the renderer would produce; edits show within a couple of seconds.
+
+**P12 — Incremental rendering** · branch `phase-12-incremental`
+- Goal: after an edit, re-render only the shots that changed.
+- Steps: split the timeline into shots; hash each shot's inputs (film code, data, assets, time range); cache frames by hash; invalidate on change.
+- Exit: changing one caption re-renders only its shot; full build output is identical to a clean build.
+
+**P13 — Re-voice in other languages** · branch `phase-13-languages`
+- Goal: translate the script, re-run voiceover, and let the timeline re-flow automatically.
+- Steps: `lines` get per-language text; language picks the voice; captions use the same words; output named per language.
+- Exit: the example builds in a second language with all cuts and captions still aligned.
+
+**P14 — Reproducible builds** · branch `phase-14-manifest`
+- Goal: any film can be rebuilt identically and audited.
+- Steps: write `manifest.json` per film (tool versions, input hashes, output hash); a `verify` command that rebuilds and compares.
+- Exit: `./video.sh verify example` passes on two runs.
+
+### Larger bets
+
+**P15 — Film from a URL** · branch `phase-15-url-to-film` · Needs: P7, P10
+- Goal: give a URL, get a script to approve, then a finished video after a self-review loop.
+- Steps: extend `tools/capture_site.mjs` to read page text, colors and fonts; draft the script; run the build; render stills, check them with the QA gates, fix problems, then report.
+- Exit: a real public landing page produces a reviewed mp4 with no manual editing beyond script approval.
+
+**P16 — Native Windows support** · branch `phase-16-windows`
+- Goal: run the same commands directly on Windows, no WSL.
+- Steps: replace the bash entry point with a Node command line; port `setup.sh`; remove bash-only assumptions in the tools; CI job on a Windows runner.
+- Exit: the example builds on a Windows runner in CI. (I can't test on a real Windows machine; you or CI would.)
+
+**P17 — Free cloud rendering via GitHub Actions** · branch `phase-17-cloud-render`
+- Goal: a "render in the cloud" workflow you start by hand that returns the mp4 as a download.
+- Steps: a `workflow_dispatch` workflow taking the project name; caching for browser and Python deps; upload the mp4 as an artifact; document the free-minutes limit.
+- Exit: a manual run produces the example mp4 as an artifact within the free quota. Skip HyperFrames' AWS rendering (paid).
+
+**P18 — Automatic music drop detection** · branch `phase-18-drops`
+- Goal: find the big drop in a track and snap the key moment to it.
+- Steps: extend `tools/beatgrid.py` to find the biggest energy jump; write it into `film/data.js`; expose `KIT.drop()` in the engine; use it in the teaser.
+- Exit: on the sample track, the white flash and logo hit land on the detected drop.
 
 ## Risks
 

@@ -4,7 +4,7 @@ Plan: [hyperframes-integration.md](hyperframes-integration.md). Mark a phase ☑
 
 | # | Phase | Status | Notes |
 |---|---|---|---|
-| 1 | Foundation | ◐ 1a done, 1b in progress | Spike: go. See [spike-findings.md](spike-findings.md). |
+| 1 | Foundation | ☑ Done | Spike: go ([spike-findings.md](spike-findings.md)). Example builds on macOS, Windows, Ubuntu CI: 1378 frames, 22.952 s, same as before. Known: one pvk frame (t≈15 s) varies run to run, pre-existing; look at it in Phase 5. |
 | 2 | HyperFrames inside | ☐ | |
 | 3 | Look and feel | ☐ | |
 | 4 | Captions, audio and quality | ☐ | |

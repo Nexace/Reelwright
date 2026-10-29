@@ -1,26 +1,21 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing implemented yet**. This is the streamlined version: 13 phases, one chat each. Phases 1–6 build the core; Phases 7–12 add the extra features; Phase 13 finishes it.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Plan only, **nothing implemented yet**. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
 
 ## Progress
 
 | # | Phase | Status |
 |---|---|---|
-| 1 | Spike: verify HyperFrames and map what to copy | ☐ Not started |
-| 2 | Cross-platform core: swappable renderer, Node CLI, macOS + Windows + Linux CI | ☐ Not started |
-| 3 | HyperFrames inside: vendored engine, example film, catalog blocks | ☐ Not started |
-| 4 | Look and feel: design tokens, themes, fonts, layouts, multi-format | ☐ Not started |
-| 5 | Captions and quality: word-accurate captions, subtitle files, QA gates | ☐ Not started |
-| 6 | Preview and speed: live scrubber, incremental rendering, remix | ☐ Not started |
-| 7 | Film from a URL | ☐ Not started |
-| 8 | Style from a reference | ☐ Not started |
-| 9 | Re-voice in other languages | ☐ Not started |
-| 10 | Reproducible builds | ☐ Not started |
-| 11 | Automatic music drop detection | ☐ Not started |
-| 12 | Free cloud rendering (Colab + Drive) | ☐ Not started |
-| 13 | Docs, licensing, release | ☐ Not started |
+| 1 | Foundation: HyperFrames spike, swappable renderer, cross-platform command line and CI | ☐ Not started |
+| 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☐ Not started |
+| 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ☐ Not started |
+| 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☐ Not started |
+| 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☐ Not started |
+| 6 | Film from a URL and style from a reference | ☐ Not started |
+| 7 | Free cloud rendering (Colab + Drive) | ☐ Not started |
+| 8 | Docs, licensing, release | ☐ Not started |
 
-Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order; each needs the one before it.
+Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order unless a phase says otherwise.
 
 ## Rules for the whole project
 
@@ -62,47 +57,37 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 1: Spike (verify HyperFrames, map what to copy) ☐
+## Phase 1: Foundation ☐
 
-**Branch:** none (throwaway folder outside the repo) · **Needs:** nothing
+**Branch:** `phase-1-foundation` · **Needs:** nothing
 
-**Goal:** answer four questions and decide go or no-go. A: can it render video-only or a frame sequence? B: at 60 fps? C: are two renders identical? D: does it run next to Playwright's Chromium?
+**Goal:** verify HyperFrames before committing to it, and make the renderer swappable and the toolkit run natively on macOS, Windows and Linux, with no behavior change for existing films.
 
-**Steps**
-1. Clone heygen-com/hyperframes into a temp folder with `GIT_LFS_SKIP_SMUDGE=1` (note the commit). Read its `LICENSE`, any `NOTICE`, `CREDITS.md`, and its package list.
+**Checkpoint 1a: spike (throwaway, outside the repo).** Answer four questions: A, can it render video-only or a frame sequence? B, at 60 fps? C, are two renders identical? D, does it run next to Playwright's Chromium?
+1. Clone heygen-com/hyperframes into a temp folder with `GIT_LFS_SKIP_SMUDGE=1` (note the commit). Read its `LICENSE`, any `NOTICE`, `CREDITS.md` and package list.
 2. Build the vendoring map: for each package, its size, dependencies, whether we need it, and any third-party code or per-block license inside it. Pick the smallest set to copy.
-3. Build and run it: render a 3-second GSAP hello composition at 30 and 60 fps; compare two renders frame by frame; read the render source for output flags.
-4. Write `docs/plans/spike-findings.md` (the only file that lands in the repo) and create `docs/plans/STATUS.md`. Delete the temp folder.
+3. Build and run it: render a 3-second GSAP hello composition at 30 and 60 fps, compare two renders frame by frame, and read the render source for output flags.
+4. Write `docs/plans/spike-findings.md` (upstream commit, working render command, vendoring map with every notice to carry over, go or no-go with a fallback if A or B fails) and create `docs/plans/STATUS.md`. Delete the temp folder.
 
-**Exit:** findings list the upstream commit, the working render command, the vendoring map with every notice to carry over, and go or no-go for Phases 2–3 (with a fallback if A or B fails, such as extracting frames and keeping the kit's `encode`).
+**Checkpoint 1b: cross-platform core.**
+5. Add `"renderer": "pvk"` (the default) to `project.json` handling. Move the current `tools/render.mjs` logic into `tools/renderers/pvk.mjs`; keep `tools/render.mjs` as a thin dispatcher with the same four modes (`info`, `stills`, `frames`, `encode`) and a short comment defining the renderer contract.
+6. Replace the bash entry point with a Node command line (`reelwright <command>`, same commands); keep `./video.sh` as a thin wrapper on macOS and Linux.
+7. Port `setup.sh` to Node (check or install ffmpeg, Node, Python, Chromium; Homebrew hints on macOS, winget or Chocolatey on Windows).
+8. Make `clean`, `new` and any `rm`, `rsync` or shell calls cross-platform; fix path handling in `tools/*.py` and `tools/*.mjs`.
+9. CI matrix: macOS, Windows and Ubuntu.
 
----
-
-## Phase 2: Cross-platform core ☐
-
-**Branch:** `phase-2-core` · **Needs:** Phase 1
-
-**Goal:** the renderer is swappable and the toolkit runs natively on macOS, Windows and Linux, with no behavior change for existing films.
-
-**Steps**
-1. Add `"renderer": "pvk"` (the default) to `project.json` handling. Move the current `tools/render.mjs` logic into `tools/renderers/pvk.mjs`; keep `tools/render.mjs` as a thin dispatcher with the same four modes and a short comment defining the renderer contract (each renderer implements `info`, `stills`, `frames`, `encode` and writes the same files).
-2. Replace the bash entry point with a Node command line (`reelwright <command>`, same commands); keep `./video.sh` as a thin wrapper on macOS and Linux.
-3. Port `setup.sh` to Node (check or install ffmpeg, Node, Python, Chromium; Homebrew hints on macOS, winget or Chocolatey on Windows).
-4. Make `clean`, `new` and any `rm`, `rsync` or shell calls cross-platform; fix path handling in `tools/*.py` and `tools/*.mjs`.
-5. CI matrix: macOS, Windows and Ubuntu.
-
-**Exit:** the example builds on all three runners with the same duration and frame count as before the change; no film changed.
+**Exit:** the spike findings exist with a go or no-go; the example builds on all three runners with the same duration and frame count as before the change; no film changed.
 
 ---
 
-## Phase 3: HyperFrames inside ☐
+## Phase 2: HyperFrames inside ☐
 
-**Branch:** `phase-3-hyperframes` · **Needs:** Phase 2
+**Branch:** `phase-2-hyperframes` · **Needs:** Phase 1
 
 **Goal:** a project with `"renderer": "hyperframes"` builds end to end, with a real example film and a few catalog blocks.
 
 **Steps**
-1. Vendor the packages from the spike's map into `vendor/hyperframes/` with `LICENSE`, `VENDORED.md`, and change headers.
+1. Vendor the packages from the spike's map into `vendor/hyperframes/` with `LICENSE`, `VENDORED.md` and change headers.
 2. `tools/sched.py`: for hyperframes projects also write `hf/kit-data.js` (VO times, music grid) so compositions take timing from kit data, never hard-coded seconds.
 3. `tools/renderers/hyperframes.mjs`: `info` (duration from the composition root plus kit data, writing the `timeline.json` that `mix.py` reads), `stills`, `frames`, and `encode` (mux the kit's `mix.wav` over the video with the kit's loudness settings). Adapt `qa.py` to accept the output.
 4. `projects/example-hf/`: title card, captions timed to VO lines, a beat-pulsing element. `reelwright new <name> --renderer hyperframes` copies it.
@@ -112,16 +97,18 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 4: Look and feel ☐
+## Phase 3: Look and feel ☐
 
-**Branch:** `phase-4-design` · **Needs:** Phase 3 · *If it runs long, split into two chats: (a) tokens, brand and themes; (b) layouts and formats.*
+**Branch:** `phase-3-design` · **Needs:** Phase 2
 
 **Goal:** films stop looking alike. Today every film uses one system font stack and `kit.css` has no design tokens.
 
-**Steps**
+**Checkpoint 3a: tokens, brand, themes, fonts.**
 1. Turn `tools/kit.css` into design tokens (CSS variables for colors, fonts, radius, shadow, spacing). `brand.json` (colors, fonts, logo, tone) overrides them.
-2. Style packs: 8 to 10 distinct themes (for example editorial, brutalist, soft pastel, dark tech, playful, retro), each with a palette, motion feel and caption style, picked with `"style": "<theme>"` in `project.json`.
-3. Bundle open-license fonts (Google Fonts) in curated display and text pairings, with each font's license recorded. This also makes output identical on macOS and Windows.
+2. Style packs: 8 to 10 distinct themes (for example editorial, brutalist, soft pastel, dark tech, playful, retro), each with a palette, motion feel and caption style, picked with `"style": "<theme>"` in `project.json`. Show stills of each theme for your approval before building further.
+3. Bundle open-license fonts (Google Fonts) in curated display and text pairings, each license recorded. This also makes output identical on macOS and Windows.
+
+**Checkpoint 3b: layouts and formats.**
 4. Scene layout library: split screen, full-bleed text, bento grid, tilted device, big-number stat, quote card, kinetic type; all read theme tokens; add guidance to `docs/PLAYBOOK.md`.
 5. One script, many formats: `--formats 16x9,9x16,1x1` with a safe-area helper.
 
@@ -129,114 +116,60 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 5: Captions and quality ☐
+## Phase 4: Captions, audio and quality ☐
 
-**Branch:** `phase-5-captions-qa` · **Needs:** Phase 3
+**Branch:** `phase-4-captions-audio-qa` · **Needs:** Phase 2
 
-**Goal:** accurate captions and automatic checks neither source repo has.
+**Goal:** accurate captions, multilingual voiceover, a sharper music edit, and automatic checks neither source repo has.
 
-**Steps**
+**Checkpoint 4a: captions and languages.**
 1. Capture word boundaries from the voiceover in `tools/vo.py` (check what edge-tts returns) and write them into the timeline data.
 2. A shared karaoke caption component for both renderers, plus `.srt` and `.vtt` export next to the mp4.
-3. QA gates in `./video.sh qa` (and `reelwright qa`): loudness (LUFS) against the project target; caption overflow and contrast; flash rate against photosensitivity limits; "Illustrative data" label lint; a non-seekable-animation linter for HyperFrames films. Each reports pass or fail with the frame or time.
+3. Re-voice in other languages: per-language `lines` and a free edge-tts voice per language; captions, subtitle files and voiceover follow the language; output named `out/<name>-<lang>.mp4`. Translations are supplied by you; nothing is machine-translated unless you run the command inside Claude Code.
 
-**Exit:** the example's captions highlight each word on time (checked on stills); `.srt` and `.vtt` open in a player; a deliberately broken test film trips each check.
+**Checkpoint 4b: QA gates and music drops.**
+4. QA gates in `reelwright qa`: loudness (LUFS) against the project target; caption overflow and contrast (including longer languages); flash rate against photosensitivity limits; "Illustrative data" label lint; a non-seekable-animation linter for HyperFrames films. Each reports pass or fail with the frame or time.
+5. Automatic music drop detection: extend `tools/beatgrid.py` to find the biggest energy jump after a quieter section, write it into `film/data.js` and `hf/kit-data.js`, expose it as `KIT.drop()` and a HyperFrames helper, allow a manual override in `project.json`, and use it in the teaser.
+
+**Exit:** captions highlight each word on time (checked on stills); `.srt` and `.vtt` open in a player; the example builds in a second language with everything aligned; a deliberately broken test film trips each QA check; the teaser's flash and logo hit land on the detected drop.
 
 ---
 
-## Phase 6: Preview and speed ☐
+## Phase 5: Preview, speed and repeatability ☐
 
-**Branch:** `phase-6-preview-speed` · **Needs:** Phase 4 for remix, Phase 5 optional
+**Branch:** `phase-5-preview-speed` · **Needs:** Phase 3 for remix
 
-**Goal:** faster iteration and a way to pick a look instead of defaulting to the same one.
+**Goal:** faster iteration, a way to pick a look, and builds that can be audited.
 
-**Steps**
+**Checkpoint 5a: preview and speed.**
 1. Live scrubber preview: a local page with a timeline slider, voice waveform from `mix.wav`, beat and VO markers, and reload on file change.
 2. Incremental rendering: split the timeline into shots, hash each shot's inputs (film code, data, assets, time range), cache frames by hash, re-render only changed shots.
+
+**Checkpoint 5b: remix and reproducible builds.**
 3. `reelwright remix <name>`: three stills of the same script in three themes and layouts as a contact sheet; a variety check that warns when a new film's fonts, palette and layouts are too similar to earlier films.
+4. Reproducible builds: a `manifest.json` per film (tool versions including the vendored HyperFrames commit, hashes of every input, the output's duration, frame count and per-frame hashes) and `reelwright verify <name>`, which rebuilds and compares per-frame hashes and duration, not raw mp4 bytes.
 
-**Exit:** scrubbing shows the exact frame the renderer produces; changing one caption re-renders only its shot and the full output matches a clean build; remix gives three clearly different options and the check flags two films using the same theme.
+**Exit:** scrubbing shows the exact frame the renderer produces; changing one caption re-renders only its shot and the output matches a clean build; remix gives three clearly different options and the check flags two films with the same theme; `verify` passes on repeated runs, and the docs state what can differ across operating systems.
 
 ---
 
-## Phase 7: Film from a URL ☐
+## Phase 6: Film from a URL and style from a reference ☐
 
-**Branch:** `phase-7-from-url` · **Needs:** Phase 5
+**Branch:** `phase-6-url-reference` · **Needs:** Phases 3 and 4
 
-**Goal:** give a URL, get a script to approve, then a finished film that has passed the QA gates. A plain command-line command (`reelwright from-url <url>`), not an MCP server or plugin.
+**Goal:** start a film or a theme from an existing site or image. Plain command-line commands, not an MCP server or plugin.
 
 **Steps**
-1. Extend `tools/capture_site.mjs` to read page text, headings, colors, fonts and screenshots from a public page.
-2. Draft the voiceover script from that text with simple rules and templates (no paid AI service) and show it for approval before building.
-3. Build the film, run the QA gates from Phase 5, and report any failure with the frame and time. Never perform a real write on the site (no forms submitted, nothing published); mock any interaction.
-4. Only capture sites you own or have the right to use, and say so in the command's help text.
+1. `reelwright from-url <url>`: extend `tools/capture_site.mjs` to read page text, headings, colors, fonts and screenshots from a public page; draft the voiceover with simple rules and templates (no paid AI) and show it for approval; build the film and run the QA gates; report any failure with the frame and time. Never perform a real write on the site; mock any interaction. Only capture sites you own or have the right to use, and say so in the help text.
+2. `reelwright theme-from <url|image>`: extract the dominant colors and font families, map each font to the closest bundled open-license font when the real one isn't free to bundle, and write a draft theme the user can edit and select with `"style"`.
 
-**Exit:** a real public landing page produces an mp4 that passes the QA gates, with no manual editing beyond script approval. Smarter script drafts or a visual review are optional when the command is run inside Claude Code with the project skill.
+**Exit:** a real public landing page produces an mp4 that passes the QA gates with no manual editing beyond script approval; a draft theme from a real landing page is recognizably related to it and builds the example without errors. Smarter script drafts or a visual review are optional when run inside Claude Code with the project skill.
 
 ---
 
-## Phase 8: Style from a reference ☐
+## Phase 7: Free cloud rendering ☐
 
-**Branch:** `phase-8-reference-style` · **Needs:** Phases 4 and 7
-
-**Goal:** give a site or image and start from its palette and fonts.
-
-**Steps**
-1. `reelwright theme-from <url|image>`: extract the dominant colors and the font families in use.
-2. Map each font to the closest bundled open-license font when the real one isn't free to bundle.
-3. Write a draft theme file the user can edit and select with `"style"` in `project.json`.
-
-**Exit:** a draft theme from a real landing page is recognizably related to it and builds the example film without errors.
-
----
-
-## Phase 9: Re-voice in other languages ☐
-
-**Branch:** `phase-9-languages` · **Needs:** Phase 5
-
-**Goal:** the same film in another language, with the timeline re-flowing automatically.
-
-**Steps**
-1. Per-language `lines` in `project.json` and a voice per language (free edge-tts voices).
-2. Captions, subtitle files and voiceover all follow the chosen language; output is named per language (`out/<name>-<lang>.mp4`).
-3. Add a QA check for text that overflows its box in longer languages. Translations are supplied by you; nothing is machine-translated unless you run the command inside Claude Code.
-
-**Exit:** the example builds in a second language with cuts, captions and subtitle files all aligned.
-
----
-
-## Phase 10: Reproducible builds ☐
-
-**Branch:** `phase-10-manifest` · **Needs:** Phase 3
-
-**Goal:** any film can be rebuilt and audited.
-
-**Steps**
-1. Write a `manifest.json` per film: tool versions (Node, Python, ffmpeg, Chromium, the vendored HyperFrames commit), hashes of every input (project file, film code, assets, fonts, music, script text), and the output's duration, frame count and per-frame hashes.
-2. `reelwright verify <name>`: rebuild and compare against the manifest. Compare per-frame hashes and duration, not raw mp4 bytes, since encoders can differ between machines.
-
-**Exit:** `verify` passes on repeated runs on the same machine, and the docs state what can differ across operating systems.
-
----
-
-## Phase 11: Automatic music drop detection ☐
-
-**Branch:** `phase-11-drops` · **Needs:** Phase 3
-
-**Goal:** find the big drop in a track and snap the key moment to it.
-
-**Steps**
-1. Extend `tools/beatgrid.py` to find the biggest energy jump after a quieter section and write its time into `film/data.js` and `hf/kit-data.js`.
-2. Expose it in the engine (`KIT.drop()`) and as a helper for HyperFrames compositions; allow a manual override in `project.json`.
-3. Use it in the teaser film for the flash and logo hit.
-
-**Exit:** on the sample track, the flash and logo hit land on the detected drop, and the manual override works.
-
----
-
-## Phase 12: Free cloud rendering ☐
-
-**Branch:** `phase-12-cloud` · **Needs:** Phase 2
+**Branch:** `phase-7-cloud` · **Needs:** Phase 1
 
 **Goal:** render in the cloud for free, using your Google Drive for storage. Drive only stores files; Colab does the rendering.
 
@@ -249,9 +182,9 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 13: Docs, licensing, release ☐
+## Phase 8: Docs, licensing, release ☐
 
-**Branch:** `phase-13-release` · **Needs:** Phases 1–12
+**Branch:** `phase-8-release` · **Needs:** Phases 1–7
 
 **Steps**
 1. README: a "Renderers" section (when to use which), platform support (macOS, Windows, Linux), themes and layouts, and every new command. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data). Update `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`.

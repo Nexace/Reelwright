@@ -3,11 +3,11 @@
 // For your product: change URL, the viewport, and the steps between startScreencast and stopScreencast.
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { launch } from "../../tools/browser.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const URL = process.env.URL || "file://" + path.join(HERE, "demo-app/index.html");
+const URL = process.env.URL || pathToFileURL(path.join(HERE, "demo-app/index.html")).href;
 const W = 390, H = 797;                          // phone screen in CSS px (iPhone 14-ish minus status bar)
 const dir = path.join(HERE, "clips/flow");
 fs.rmSync(dir, { recursive: true, force: true });

@@ -2,11 +2,11 @@
 // (clips/flow/ + film/clip.js). The film draws its own cursor from the logged path.
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { launch } from "../../tools/browser.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const URL = process.env.URL || "file://" + path.join(HERE, "app/index.html");
+const URL = process.env.URL || pathToFileURL(path.join(HERE, "app/index.html")).href;
 const W = 1440, H = 900;
 const dir = path.join(HERE, "clips/flow");
 fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });

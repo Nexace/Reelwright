@@ -2,11 +2,11 @@
 // with its exact position on the page → assets/site/ + film/site.js. (For a real site: change URL and POP.)
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { launch } from "../../tools/browser.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const URL = process.env.URL || "file://" + path.join(HERE, "site/index.html");
+const URL = process.env.URL || pathToFileURL(path.join(HERE, "site/index.html")).href;
 const OUT = path.join(HERE, "assets/site");
 const POP = { headline: ".hero > div:first-child", phone: ".phone", f1: ".feature:nth-child(1)", f2: ".feature:nth-child(2)",
   f3: ".feature:nth-child(3)", stats: ".stat", q1: ".quote:nth-child(1)", pro: ".price.pro", cta: ".cta" };

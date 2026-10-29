@@ -14,8 +14,8 @@ film with one command.
 
 ```bash
 git clone https://github.com/Nexace/reelwright && cd reelwright
-./setup.sh          # once: ffmpeg, Node, Python libs, headless Chromium (macOS or Debian/Ubuntu)
-./video.sh all      # builds the example → projects/example/out/tidy-example.mp4 (~1 min)
+./setup.sh          # once: ffmpeg, Node, Python libs, headless Chromium (Windows: node setup.mjs)
+./video.sh all      # (Windows: node bin/reelwright.mjs all) builds the example → projects/example/out/tidy-example.mp4 (~1 min)
 ```
 
 ---
@@ -98,15 +98,19 @@ Optional: **Claude Code** in this folder does all of the above from plain Englis
 
 Requirements: Node 18+, Python 3.9+, ffmpeg. `./setup.sh` installs what's missing (Homebrew on macOS:
 install it from https://brew.sh first; apt on Debian/Ubuntu), then checks each piece. Re-run it any time.
+On Windows, install Node first (`winget install OpenJS.NodeJS.LTS`), then run `node setup.mjs` (winget or
+Chocolatey for the rest).
+
+Every command is `node bin/reelwright.mjs <command> [project]` on any platform (`npm link` makes it plain
+`reelwright`); `./video.sh` is the same thing on macOS and Linux. The docs use `./video.sh`.
 
 ### Does it work on my computer?
 
 | Platform | Status |
 |---|---|
 | **macOS** (Apple Silicon or Intel) | ✅ Supported. All the sample films were made on a Mac. |
-| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds the example film on Ubuntu for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
-| **Windows 10 / 11** | ✅ **Through WSL2.** Install [WSL](https://learn.microsoft.com/windows/wsl/install) (`wsl --install` in PowerShell, which gives you Ubuntu), then run the same commands inside Ubuntu. This takes the Linux path that CI tests, but nobody has tried it on a real Windows machine yet; reports welcome. Open the finished mp4 from Explorer at `\\wsl$\Ubuntu\home\<you>\reelwright\projects\...`. |
-| Windows without WSL | ❌ Not supported. The scripts are bash. PRs welcome. |
+| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds the example film on Ubuntu (and macOS, Windows) for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
+| **Windows 10 / 11** | ✅ Native, no WSL. CI builds the example film on Windows for every commit; nobody has tried it on a real Windows machine yet, so reports welcome. Use `node bin/reelwright.mjs` where the docs say `./video.sh`. |
 
 Fonts differ by platform: the samples use the system UI font, which is San Francisco on macOS and a
 fallback on Linux. For identical output everywhere, add a `.woff2` font to your project (see the playbook).
@@ -216,10 +220,12 @@ reading order. View access is enough.
 ## Folder layout
 
 ```
-setup.sh, video.sh          one-time setup; every build step
+bin/reelwright.mjs          every build step (video.sh is a wrapper for it)
+setup.mjs, setup.sh         one-time setup
 tools/                      shared — you rarely edit these
   engine.js, kit.css        the director engine (timing helpers, phone, clip player, subtitles, SFX cues)
-  render.mjs                stills / frames / encode
+  render.mjs                stills / frames / encode, through the renderer project.json picks
+  renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   vo.py, sched.py           voiceover + placing it on the timeline
   beatgrid.py, music.py     music tempo fit + music bed
   mix.py                    voice + ducked music + SFX → mix.wav

@@ -23,4 +23,4 @@ Describe what you changed and attach a still or short clip if it affects the pic
 - More engine components: split screens, device frames (tablet, laptop), text-on-path, particle presets.
 - Music section detection (find the drop in a real track automatically) and bar-aligned cuts for shortening tracks.
 - More soundtrack styles in `tools/music.py`.
-- Native Windows support (PowerShell versions of `setup.sh` / `video.sh`), and reports from WSL users.
+- Reports from people running it on a real Windows machine (CI is the only Windows test so far).

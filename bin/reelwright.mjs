@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+// reelwright <command> [project]   (project defaults to projects/example)
+//
+//   new <name>       copy the example into projects/<name> to start your own film
+//   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
+//   vo               voiceover from project.json lines (edge-tts) → vo/
+//   beatgrid         fit the beat grid of music/track.mp3 → music/grid.json (only with a real track)
+//   sched            place VO lines on the timeline → film/data.js
+//   info             timeline.json (duration + SFX cues) from the director
+//   music            music/bed.wav (your track, or the built-in synth bed)
+//   mix              mix.wav (voice + ducked music + SFX)
+//   stills [t,t,..]  preview frames → stills/ + stills/sheet.jpg
+//   frames           render every frame → frames/
+//   encode           frames + mix.wav → the mp4 in project.json "out"
+//   qa               check frames for blips and blank frames
+//   clean            delete frames/ stills/ and intermediate audio (keeps the mp4)
+//   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
+//   audio            vo → sched → info → music → mix   (after editing the script)
+//   film             sched → info → mix → frames → encode   (after editing film.js)
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+process.chdir(ROOT);
+// Windows has `python`, not `python3`; PYTHONUTF8 stops cp1252 errors on our UTF-8 JSON and ▶ output.
+const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+process.env.PYTHONUTF8 = "1";
+
+const [cmd = "help", ...args] = process.argv.slice(2);
+let proj = "projects/example";
+if (cmd !== "new" && args.length) {
+  const a = args[0].replace(/[\\/]+$/, "");
+  if (isDir(a)) { proj = a; args.shift(); }
+  else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }
+}
+
+function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }
+function step(name) { console.log(`\n\x1b[1;32m▶ ${name}\x1b[0m  (${proj})`); }
+function run(bin, ...a) {
+  const r = spawnSync(bin, a, { stdio: "inherit" });
+  if (r.error) { console.error(`${bin}: ${r.error.message}`); process.exit(1); }
+  if (r.status !== 0) process.exit(r.status ?? 1);
+}
+const py = (tool, ...a) => run(PY, path.join("tools", tool), proj, ...a);
+const render = (mode, ...a) => run(process.execPath, path.join("tools", "render.mjs"), proj, mode, ...a);
+const project = () => JSON.parse(fs.readFileSync(path.join(proj, "project.json"), "utf8"));
+const rm = (...ps) => ps.forEach((p) => fs.rmSync(path.join(proj, p), { recursive: true, force: true }));
+function hasTrack() { const f = project().music?.file; return !!f && fs.existsSync(path.join(proj, f)); }
+
+const C = {
+  new() {
+    const name = args[0];
+    if (!name) { console.log("usage: reelwright new <name>"); process.exit(1); }
+    const dest = path.join("projects", name);
+    if (fs.existsSync(dest)) { console.log(`${dest} already exists`); process.exit(1); }
+    const src = path.join("projects", "example");
+    const skip = new Set(["clips", "frames", "stills", "vo", "out", "mix.wav", "timeline.json",
+      "music/bed.wav", "music/grid.json", "film/data.js", "film/clip.js"]);
+    fs.cpSync(src, dest, { recursive: true, filter: (s) => !skip.has(path.relative(src, s).split(path.sep).join("/")) });
+    console.log(`created ${dest} — edit project.json (script), record.mjs (the take), film/film.js (the edit)`);
+    console.log(`then: reelwright all ${name}`);
+  },
+  record() {
+    const f = path.join(proj, "record.mjs");
+    if (!fs.existsSync(f)) return console.log(`(${proj} has no record.mjs — nothing to record)`);
+    step("record"); run(process.execPath, f);
+  },
+  vo() { step("vo"); py("vo.py", ...args); },
+  beatgrid() { step("beatgrid"); py("beatgrid.py"); },
+  sched() { step("sched"); py("sched.py"); },
+  info() { step("info"); render("info"); },
+  music() { step("music"); py("music.py"); },
+  mix() { step("mix"); py("mix.py"); },
+  stills() { step("stills"); render("stills", ...args); py("sheet.py"); },
+  frames() { step("frames"); render("frames", ...args); },
+  encode() { step("encode"); render("encode"); },
+  qa() { step("qa"); py("qa.py"); },
+  clean() { rm("frames", "stills", "mix.wav", "music/bed.wav"); console.log(`cleaned ${proj} (mp4 kept)`); },
+  audio() { args.length = 0; C.vo(); C.sched(); C.info(); C.music(); C.mix(); },
+  film() { args.length = 0; C.sched(); C.info(); C.mix(); rm("frames"); C.frames(); C.encode(); },
+  all() {
+    args.length = 0;
+    C.record(); C.vo();
+    if (hasTrack()) C.beatgrid();
+    C.sched(); C.info(); C.music(); C.mix();
+    rm("frames"); C.frames(); C.encode(); C.qa();
+    console.log(`\n\x1b[1;32m✔ done:\x1b[0m ${path.join(proj, project().out || "out/film.mp4")}`);
+  },
+};
+
+if (Object.hasOwn(C, cmd)) C[cmd]();
+else {
+  const lines = fs.readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1);
+  console.log(lines.slice(0, lines.findIndex((l) => !l.startsWith("//"))).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
+}

@@ -2,29 +2,46 @@ name: CI
 on: [push, pull_request]
 jobs:
   build-example:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
+      - name: Install ffmpeg
+        run: |
+          case "$RUNNER_OS" in
+            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg ;;
+            macOS) brew install ffmpeg ;;
+            Windows) choco install -y --no-progress ffmpeg ;;
+          esac
       - name: Install
         run: |
-          sudo apt-get update -q && sudo apt-get install -yq ffmpeg
           pip install -r requirements.txt
           npm install
-          npx playwright install --with-deps chromium
+          npx playwright install $([ "$RUNNER_OS" = Linux ] && echo --with-deps) chromium
       - name: Syntax checks
         run: |
-          for f in tools/*.mjs projects/example/*.mjs; do node --check "$f"; done
+          for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
           node --check tools/engine.js projects/example/film/film.js
           python -m py_compile tools/*.py
-          bash -n video.sh setup.sh
       - name: Build the example film end to end
-        run: PAGES=2 ./video.sh all
+        env: { PAGES: 2, PYTHON: python }
+        run: node bin/reelwright.mjs all
+      - name: Duration and frame count
+        run: |
+          echo "frames: $(ls projects/example/frames | wc -l)" | tee -a "$GITHUB_STEP_SUMMARY"
+          ffprobe -v error -show_entries format=duration:stream=codec_type,nb_frames -of compact projects/example/out/*.mp4 | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
-          name: example-film
+          name: example-film-${{ matrix.os }}
           path: projects/example/out/*.mp4

@@ -22,6 +22,7 @@ Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exi
 - **Standalone toolkit only.** No MCP server, no Claude plugin. Every feature is a command-line command that works without Claude. The only Claude hook-in is the optional project skill and `CLAUDE.md` for sessions opened in this folder.
 - **macOS and Windows natively, no WSL**, and still Linux (CI, Colab). New tooling is Node (`.mjs`), not bash. Python tools stay but avoid Unix-only paths and commands. I can't test on a real Windows machine here, so CI runners and your own runs are the check.
 - **Everything free and local.** No paid services or API keys.
+- **Keep it tidy.** Put test and scratch files in a folder that git ignores (e.g. `scratch/`), never in the repo's real folders, so the Phase 8 cleanup is a deletion and not a hunt.
 - **HyperFrames code is vendored into this repo** (not an npm dependency), under its Apache 2.0 license: keep its `LICENSE` and notices, mark every file we change, carry over any `NOTICE`. Our own code stays MIT, and the original product-video-kit notice stays in `LICENSE`.
 
 ## The two source repos
@@ -190,8 +191,14 @@ Start prompt template (fill in N and the name):
 1. README: a "Renderers" section (when to use which), platform support (macOS, Windows, Linux), themes and layouts, and every new command. `docs/PLAYBOOK.md`: HyperFrames rules (seekable animations only, timings from kit data). Update `CLAUDE.md` and `.claude/skills/product-video/SKILL.md`.
 2. Licensing: `THIRD_PARTY.md` and a root `NOTICE` for the vendored HyperFrames code and bundled fonts; confirm every changed vendored file has its header; a CI check that fails if `vendor/hyperframes/` loses its `LICENSE` or `VENDORED.md`.
 3. CI green on macOS, Windows and Linux for both example films; tag a first release.
+4. **Final cleanup, to save storage** (last step, after the release is tagged):
+   - List everything that was only used for testing or building and is no longer needed: spike folders and spike notes, throwaway test projects, scratch renders, `frames/`, `stills/`, `out/` and cache folders, leftover `.graphify_*` temp files, Colab test outputs, unused fixtures and samples, vendored HyperFrames files we never import (docs, studio, Git LFS test videos), duplicate copies of the plan.
+   - Show me the list with sizes and **wait for my OK before deleting anything**.
+   - Never delete: `LICENSE`, `NOTICE`, `THIRD_PARTY.md`, `VENDORED.md`, the example films and their assets, the docs samples the README shows, `docs/plans/` (move to `docs/archive/` instead), or anything a CI job reads.
+   - Reorganize the repo into a tidy layout (`tools/`, `vendor/`, `themes/`, `projects/`, `docs/`, `.github/`), remove empty folders, update every path in the README, `CLAUDE.md`, scripts and CI, and make sure `.gitignore` covers generated output.
+   - Check: a fresh clone builds both example films, CI is still green, and report the repo size before and after.
 
-**Exit:** CI green everywhere; docs describe both renderers and every command; all licenses and notices present.
+**Exit:** CI green everywhere; docs describe both renderers and every command; all licenses and notices present; test and unneeded files removed, files organized, and the before/after size reported.
 
 ---
 

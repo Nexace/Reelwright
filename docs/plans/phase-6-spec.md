@@ -1,6 +1,6 @@
 # Phase 6 spec: film from a URL, style from a reference
 
-Branch `phase-6-url-reference`. Status: approved 2026-11-01 (go ahead given with the task); built.
+Branch `phase-6-url-reference`. Status: approved 2026-11-01 (go ahead given with the task); built. Exit test passed locally on macOS; CI not yet run.
 
 Both commands are plain CLI, free and local: Playwright reads the page, rules and templates write the script, no AI
 service or key. Only capture sites you own or have the right to use; the help text says so.
@@ -61,3 +61,27 @@ passes, else ink). Select with `"style": "<name>"`.
 
 AI-written scripts, crawling more than one page, logging in, recording interactions on the site (mocked writes only
 matter once a take clicks), reading fonts from images (OCR), checking the site's numeric claims.
+
+## As built (differences from the plan above)
+
+- Ink is the highest-contrast of the four commonest readable (≥ 4.5) text colours, not simply the commonest: on
+  vite.dev grey body copy outweighs the white headings, and the theme's `ink` is the heading colour (`muted` gets the
+  body grey). Images use the same rule over their pixel histogram.
+- Saturation is chroma ((max − min) / 255), so near-black text like #010000 doesn't count as an accent.
+- `file://` pages work too (`from-url`, `theme-from`), so CI drafts a project and a theme from
+  `projects/website/site/` offline on all three OSes. The host then reads "local-page".
+- The heading shots are one viewport (1440×900 @2×) scrolled to each h2/h3; `from-url` keeps only the hero and the
+  shots the draft uses. `site.json` stays in `hf/site/` for reference.
+- The QA "illustrative" gate reads page text only: numbers inside a screenshot (vite.dev's "80k+" stars, the demo
+  site's "40%") aren't checked. Real stats on the user's own site are fine; a site's fake numbers would need a label.
+- The film starts with ~1 s of plain background (the kinetic hook waits for the first spoken word after `lead`);
+  `qa` lists it as a near-blank stretch, not a gate failure — same as layouts-hf.
+
+**Exit test (macOS, 2026-11-01).** `from-url https://vite.dev` (Vite's site source is MIT-licensed in the
+vitejs/vite repo, so filming it for a test is allowed), script approved as drafted, then `all vite-dev`: 839 frames,
+27.93 s, all five gates PASS (−14.0 LUFS, peak −1.4 dBTP). `theme-from https://vite.dev vite`: bg #16171d, ink
+#ffffff, muted #867e8e, accent #b39aff (Vite's lilac), Inter → Inter, "APK Protocol" → Inter Tight 700,
+"KH Teka Mono" → JetBrains Mono; `film example-hf --style vite` 337 frames, 11.221 s, all gates PASS.
+`theme-from` on a screenshot: accent #6a13e4 (Vite's violet), white ink. `from-url <file:// demo site> --yes`
+(light site, clean base): 676 frames, 22.5 s, all gates PASS. `example` (pvk) 1378 frames, 22.952 s. The test
+projects and the vite theme stay out of the repo (kept in `scratch/`).

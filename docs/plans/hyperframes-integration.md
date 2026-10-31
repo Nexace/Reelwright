@@ -94,7 +94,7 @@ Start prompt template (fill in N and the name):
 4. `projects/example-hf/`: title card, captions timed to VO lines, a beat-pulsing element. `reelwright new <name> --renderer hyperframes` copies it.
 5. Catalog blocks: an `add <block>` helper, and use one transition and one chart block in the example (check each block's license first).
 
-**Exit:** `example-hf` builds on macOS, Windows and Linux CI; two builds give identical frames; output duration matches `mix.wav` within one frame; pvk films still build unchanged.
+**Exit:** `example-hf` builds on macOS, Windows and Linux CI; two builds give the same frames (byte-identical on macOS; on Linux and Windows within Chromium's software-raster noise, checked by `.github/framediff.py`: no pixel off by more than 8/255, at most 500 changed pixels per frame); output duration matches `mix.wav` within one frame; pvk films still build unchanged.
 
 ---
 

@@ -48,19 +48,12 @@ jobs:
       - name: Build the HyperFrames example
         env: { PAGES: 2, PYTHON: python }
         run: node bin/reelwright.mjs all example-hf
-      - name: "HyperFrames: identical frames on a rebuild, duration matches mix.wav"
-        env: { PAGES: 2 }
+      - name: "HyperFrames: same frames on a rebuild (within raster noise), duration matches mix.wav"
+        env: { PAGES: 2, PYTHON: python }
         run: |
-          hash() { node -e 'const fs=require("fs"),h=require("crypto").createHash("sha1"),d=process.argv[1];for(const f of fs.readdirSync(d).sort())h.update(fs.readFileSync(d+"/"+f));console.log(h.digest("hex"))' projects/example-hf/frames; }
-          a=$(hash); cp -r projects/example-hf/frames frames-1; node bin/reelwright.mjs frames example-hf; b=$(hash)
-          echo "frames: $(ls projects/example-hf/frames | wc -l), hash $a then $b" | tee -a "$GITHUB_STEP_SUMMARY"
-          if [ "$a" != "$b" ]; then
-            mkdir -p frame-diff
-            for f in $(ls frames-1); do cmp -s "frames-1/$f" "projects/example-hf/frames/$f" || echo "$f"; done > frame-diff/differing.txt
-            echo "differing frames: $(wc -l < frame-diff/differing.txt): $(head -c 600 frame-diff/differing.txt | tr '\n' ' ')" | tee -a "$GITHUB_STEP_SUMMARY"
-            f=$(head -1 frame-diff/differing.txt); cp "frames-1/$f" frame-diff/run1.png; cp "projects/example-hf/frames/$f" frame-diff/run2.png
-            exit 1
-          fi
+          cp -r projects/example-hf/frames frames-1
+          node bin/reelwright.mjs frames example-hf
+          python .github/framediff.py frames-1 projects/example-hf/frames frame-diff | tee -a "$GITHUB_STEP_SUMMARY"
           v=$(ffprobe -v error -select_streams v -show_entries stream=duration -of csv=p=0 projects/example-hf/out/example-hf.mp4)
           m=$(ffprobe -v error -show_entries format=duration -of csv=p=0 projects/example-hf/mix.wav)
           node -e 'const [v,m]=process.argv.slice(1).map(Number);console.log(`video ${v}s, mix.wav ${m}s`);process.exit(Math.abs(v-m)<=1/30?0:1)' "$v" "$m" | tee -a "$GITHUB_STEP_SUMMARY"

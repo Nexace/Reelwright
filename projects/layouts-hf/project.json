@@ -1,0 +1,22 @@
+{
+  "title": "Reelwright — scene layouts",
+  "renderer": "hyperframes",
+  "style": "editorial",
+  "out": "out/layouts-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.8,
+  "tail": 2.4,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 2 },
+  "lines": [
+    { "id": "kinetic", "gap": 0.0, "text": "One script. Five layouts." },
+    { "id": "split",   "gap": 0.8, "text": "Words on the left, your product on the right." },
+    { "id": "bento",   "gap": 0.8, "text": "Every feature gets its own tile." },
+    { "id": "stat",    "gap": 0.8, "text": "Teams ship forty percent faster." },
+    { "id": "quote",   "gap": 0.8, "text": "It finally looks like our brand." }
+  ]
+}

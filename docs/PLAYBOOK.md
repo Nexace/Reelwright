@@ -78,3 +78,32 @@ Read once before your first real film.
   higher `z-index`.
 - Fonts: system fonts render offline. For a brand font, put the `.woff2` in the project and use `@font-face`
   — the renderer waits for fonts before the first frame.
+
+## Scene layouts (`KIT.layout.*`, tools/layouts.js)
+
+Ready-made scenes for title cards and feature beats, so a film doesn't hand-place text. Each one is
+`KIT.layout.<name>({ ...content, in, out, note })` → `{ el, set(t) }`: it builds itself inside the title-safe box,
+re-arranges for 16x9 / 9x16 / 1x1, styles itself from the theme's tokens, enters after `in` and leaves before `out`
+with the theme's motion. You compute `in`/`out` from `V()`/`W()`/`KIT.snap()` and call `set(t)` in `render(t)`.
+`note: 'Illustrative data'` puts the label under the box.
+
+| Layout | Use it for |
+|---|---|
+| `kinetic({ line, accent })` | The hook or a slogan: the VO line itself, huge, each word landing as it's spoken. |
+| `fullBleed({ text, accent })` | One short claim that should fill the frame (no VO sync — words rise in turn). |
+| `split({ kicker, title, body, media, flip })` | A feature with its picture: text beside a media card (stacked in vertical/square). Fill `.media` with a mock UI, an image, a clip. |
+| `tiltedDevice({ kicker, title, body, screen, aspect })` | Revealing the product: a framed screen tilted in 3D that settles flat, caption beside/below. |
+| `bento({ kicker, title, tiles: [{ icon, title, body, wide, hero }], step })` | "Everything it does" — a grid of tiles popping in on the beat (4 columns wide, 2 vertical). |
+| `stat({ value, prefix, suffix, decimals, label, at })` | One number that matters, counting up from `at` (put it on the spoken number). |
+| `quote({ text, author, role })` | Social proof. Fictional people unless it's a real, approved quote. |
+
+```js
+const L = KIT.layout, IN = (id) => KIT.snap(KIT.V(id).start - 0.45);   // on the beat just before the line
+const stat = L.stat({ in: IN('stat'), out: IN('quote') + KIT.dur(0.45), value: 40, suffix: '%', label: 'faster to ship',
+                      at: KIT.snap(KIT.W('stat', 'forty')), note: 'Illustrative data' });
+function render(t) { stat.set(t); /* … */ }
+```
+
+One layout per VO line reads best. Let each scene's `out` fall just after the next one's `in`
+(`+ KIT.dur(0.45)`): the exit takes the last 0.45 s before `out`, so the old scene fades as the new one enters; `out` = next `in` leaves a blank dip that
+`qa` flags, while a short overlap reads as a crossfade. projects/layouts-hf is the worked example.

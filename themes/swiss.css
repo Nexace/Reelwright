@@ -1,0 +1,15 @@
+/* swiss: International Typographic Style. White, black, one red; tight grotesk, flush-left feel, no shadows;
+   precise motion; captions plain black, spoken word red. */
+:root {
+  --kit-theme: "swiss";
+  --kit-bg: #ffffff; --kit-bg-image: linear-gradient(90deg, #e30613 0 24px, transparent 24px);
+  --kit-ink: #111111; --kit-muted: #8a8a8a;
+  --kit-accent: #e30613; --kit-accent-2: #111111; --kit-on-accent: #ffffff; --kit-surface: #f2f2f2;
+  --kit-font-display: "Inter Tight", Helvetica, Arial, sans-serif; --kit-font-text: "Inter", Helvetica, Arial, sans-serif;
+  --kit-font-mono: "Inter", Helvetica, Arial, sans-serif; --kit-label-font: "Inter", Helvetica, Arial, sans-serif;
+  --kit-display-weight: 800; --kit-display-tracking: -0.05em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: none; --kit-shadow: none; --kit-space: 24px;
+  --kit-sub-bg: transparent; --kit-sub-ink: rgba(17,17,17,.35); --kit-sub-said: #e30613;
+  --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: out; --kit-tempo: 0.85;
+}

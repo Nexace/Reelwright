@@ -1,0 +1,16 @@
+/* luxury: black and gold. Light serif display with wide tracking, thin rules; slow, smooth motion;
+   captions plain, spaced capitals, spoken word in gold. */
+:root {
+  --kit-theme: "luxury";
+  --kit-bg: #0a0908; --kit-bg-image: radial-gradient(ellipse at 50% 35%, #1d1a14 0%, #0a0908 70%);
+  --kit-ink: #f1e9d8; --kit-muted: #8f8573;
+  --kit-accent: #c9a961; --kit-accent-2: #e8d6a8; --kit-on-accent: #0a0908; --kit-surface: #15130f;
+  --kit-font-display: "Cormorant Garamond", Georgia, serif; --kit-font-text: "Montserrat", sans-serif;
+  --kit-font-mono: "Montserrat", sans-serif; --kit-label-font: "Montserrat", sans-serif;
+  --kit-display-weight: 500; --kit-display-tracking: 0.04em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: 1px solid rgba(201,169,97,.6); --kit-shadow: 0 40px 120px rgba(0,0,0,.7); --kit-space: 32px;
+  --kit-sub-bg: transparent; --kit-sub-ink: rgba(241,233,216,.4); --kit-sub-said: #c9a961;
+  --kit-sub-font: 400 24px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: inOut; --kit-tempo: 1.4;
+}
+.kit-subrow { letter-spacing: .22em; text-transform: uppercase; }

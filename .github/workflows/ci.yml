@@ -32,7 +32,7 @@ jobs:
       - name: Syntax checks
         run: |
           for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
-          node --check tools/engine.js projects/example/film/film.js projects/example-hf/hf/film.js
+          node --check tools/engine.js tools/layouts.js projects/example/film/film.js projects/example-hf/hf/film.js projects/layouts-hf/hf/film.js
           python -m py_compile tools/*.py
       - name: Build the example film end to end
         env: { PAGES: 2, PYTHON: python }
@@ -62,7 +62,19 @@ jobs:
         with:
           name: frame-diff-${{ matrix.os }}
           path: frame-diff/
+      - name: "Look and feel: example-hf in two more themes and 9x16/1x1, layouts film passes QA"
+        env: { PAGES: 2, PYTHON: python }
+        run: |
+          node bin/reelwright.mjs film example-hf --style editorial
+          node bin/reelwright.mjs film example-hf --style neon
+          node bin/reelwright.mjs film example-hf --formats 9x16,1x1
+          node bin/reelwright.mjs all layouts-hf
+          for f in projects/example-hf/out/*.mp4 projects/layouts-hf/out/*.mp4; do   # ffprobe takes one input
+            ffprobe -v error -select_streams v -show_entries stream=width,height,nb_frames:format=filename,duration -of compact "$f"
+          done | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: example-hf-film-${{ matrix.os }}
-          path: projects/example-hf/out/*.mp4
+          path: |
+            projects/example-hf/out/*.mp4
+            projects/layouts-hf/out/*.mp4

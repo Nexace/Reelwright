@@ -15,9 +15,14 @@
 //   encode           frames + mix.wav → the mp4 in project.json "out"
 //   qa               check frames for blips and blank frames
 //   clean            delete frames/ stills/ and intermediate audio (keeps the mp4)
+//   themes           list the styles in themes/ (use with "style" in project.json or --style <name>)
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
 //   film             sched → info → mix → frames → encode   (after editing film.js)
+//
+//   --style <name>        build with themes/<name>.css, output <out>-<name>.mp4
+//   --formats 16x9,9x16,1x1   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080):
+//                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -30,6 +35,14 @@ const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "pyt
 process.env.PYTHONUTF8 = "1";
 
 const [cmd = "help", ...args] = process.argv.slice(2);
+const st = args.indexOf("--style");   // any command: build with themes/<name>.css, output <out>-<name>.mp4
+if (st >= 0) process.env.REELWRIGHT_STYLE = args.splice(st, 2)[1];
+const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080" };
+const fo = args.indexOf("--formats");
+const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
+if (formats && (!formats.length || formats.some((f) => !SIZES[f]))) {
+  console.log(`--formats takes a comma list of ${Object.keys(SIZES).join(", ")}`); process.exit(1);
+}
 let proj = "projects/example";
 if (cmd !== "new" && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
@@ -99,7 +112,11 @@ const C = {
   frames() { step("frames"); render("frames", ...args); },
   encode() { step("encode"); render("encode"); },
   qa() { step("qa"); py("qa.py"); },
-  clean() { rm("frames", "stills", "mix.wav", "music/bed.wav"); console.log(`cleaned ${proj} (mp4 kept)`); },
+  themes() { import("../tools/theme.mjs").then((m) => console.log(m.themes().join("\n"))); },
+  clean() {
+    rm("frames", "stills", "mix.wav", "music/bed.wav", ...fs.readdirSync(proj).filter((f) => /^(frames|stills)-/.test(f)));
+    console.log(`cleaned ${proj} (mp4 kept)`);
+  },
   audio() { args.length = 0; C.vo(); C.sched(); C.info(); C.music(); C.mix(); },
   film() { args.length = 0; C.sched(); C.info(); C.mix(); rm("frames"); C.frames(); C.encode(); },
   all() {
@@ -112,7 +129,28 @@ const C = {
   },
 };
 
-if (Object.hasOwn(C, cmd)) C[cmd]();
+// --formats: shared steps once, then these steps per format with the frame size in the env (tools/sched.py and
+// tools/render.mjs read it). frames/ and stills/ are parked as frames-<fmt>/ and stills-<fmt>/ between formats.
+const PER_FORMAT = {
+  film: ["sched", "info", "frames", "encode"], all: ["sched", "info", "frames", "encode", "qa"],
+  stills: ["sched", "stills"], frames: ["sched", "frames"], encode: ["encode"], qa: ["qa"],
+};
+const SHARED = { film: ["sched", "info", "mix"], all: ["record", "vo", "beatgrid", "sched", "info", "music", "mix"] };
+if (formats && Object.hasOwn(PER_FORMAT, cmd)) {
+  const extra = args.splice(0).filter(() => !SHARED[cmd]);   // film/all take no extra args, as without --formats
+  for (const s of SHARED[cmd] || []) if (s !== "beatgrid" || hasTrack()) C[s]();
+  for (const f of formats) {
+    console.log(`\n\x1b[1;36m■ format ${f}\x1b[0m`);
+    Object.assign(process.env, { REELWRIGHT_FORMAT: f, REELWRIGHT_SIZE: SIZES[f] });
+    const d = cmd === "stills" ? "stills" : "frames";
+    rm(d);   // start from this format's parked dir, or empty
+    if (fs.existsSync(path.join(proj, `${d}-${f}`))) fs.renameSync(path.join(proj, `${d}-${f}`), path.join(proj, d));
+    for (const s of PER_FORMAT[cmd]) { args.splice(0, args.length, ...extra); C[s](); }
+    if (fs.existsSync(path.join(proj, d))) fs.renameSync(path.join(proj, d), path.join(proj, `${d}-${f}`));
+  }
+  delete process.env.REELWRIGHT_FORMAT; delete process.env.REELWRIGHT_SIZE;
+  if (PER_FORMAT[cmd].includes("sched")) C.sched();   // leave the data file at project.json's own size
+} else if (Object.hasOwn(C, cmd)) C[cmd]();
 else {
   const lines = fs.readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1);
   console.log(lines.slice(0, lines.findIndex((l) => !l.startsWith("//"))).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));

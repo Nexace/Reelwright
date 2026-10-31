@@ -1,6 +1,7 @@
 {
   "title": "Reelwright — HyperFrames example",
   "renderer": "hyperframes",
+  "style": "dark-tech",
   "out": "out/example-hf.mp4",
   "fps": 30,
   "voice": "en-US-AndrewNeural",

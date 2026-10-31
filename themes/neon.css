@@ -1,0 +1,16 @@
+/* neon: night club. Deep purple, magenta and cyan glow, wide display; punchy expo; captions plain with a
+   glowing spoken word. */
+:root {
+  --kit-theme: "neon";
+  --kit-bg: #12002b; --kit-bg-image: radial-gradient(ellipse at 20% 0%, #3a0a6b 0%, transparent 55%), radial-gradient(ellipse at 90% 100%, #002f4f 0%, transparent 50%);
+  --kit-ink: #ffffff; --kit-muted: #a58fd1;
+  --kit-accent: #ff2bd6; --kit-accent-2: #22e4ff; --kit-on-accent: #12002b; --kit-surface: #1f0a40;
+  --kit-font-display: "Syne", sans-serif; --kit-font-text: "Space Grotesk", sans-serif;
+  --kit-font-mono: "Space Grotesk", sans-serif; --kit-label-font: "Space Grotesk", sans-serif;
+  --kit-display-weight: 700; --kit-display-tracking: -0.01em; --kit-display-case: none;
+  --kit-radius: 16px; --kit-border: 2px solid #ff2bd6; --kit-shadow: 0 0 40px rgba(255,43,214,.45), 0 0 120px rgba(34,228,255,.2); --kit-space: 28px;
+  --kit-sub-bg: transparent; --kit-sub-ink: rgba(255,255,255,.45); --kit-sub-said: #22e4ff;
+  --kit-sub-font: 700 32px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: outExpo; --kit-tempo: 0.85;
+}
+.kit-subrow .said { text-shadow: 0 0 18px #22e4ff, 0 0 4px #22e4ff; }

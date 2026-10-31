@@ -5,7 +5,8 @@
 #   loudness      the mp4's audio: integrated within ±1 LU of project.json loudness, true peak ≤ −1 dBTP
 #   captions      in the safe area, ≤ 2 lines, contrast ≥ 4.5 (tools/qa_page.mjs)
 #   flash         ≤ 3 flashes in any 1 s, over the whole frame or any quarter (WCAG 2.3.1 general flash; red flash not checked)
-#   illustrative  numbers on screen come with an "Illustrative data" label (tools/qa_page.mjs)
+#   illustrative  numbers on screen come with an "Illustrative data" label; numbers in a screenshot's data-qa-text
+#                 pass with that label or a "Source: …" credit (tools/qa_page.mjs)
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
 import json, os, re, subprocess, sys
 import numpy as np

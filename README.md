@@ -211,12 +211,16 @@ node bin/reelwright.mjs from-url https://example.com my-film   # capture + draft
 # read the lines, edit projects/my-film/project.json (and the on-screen copy in hf/site.js) if you want, then:
 node bin/reelwright.mjs all my-film                            # build + QA gates (a failing gate names the time)
 ```
-The draft is rule-based: the h1 is the hook, the meta description says what it is, the first three section
-headings (with the sentence under each) are the features, and the first hero button is the call to action. Text
-with numbers in it is left out (they'd be the site's claims, unchecked). The film is a HyperFrames project
-(`tools/from_url/`): kinetic hook → the first screen on a tilted device → one split scene per feature with its
+The draft is rule-based: the h1 is the hook, a "<Name> is …" sentence (else the meta description) says what it
+is, the first three section headings that aren't navigation, sponsors or testimonials (with the sentence under
+each) are the features, and the first "Get started / Install / Try" button is the call to action. Lines stay
+under ~25 words; text with numbers in it is left out (they'd be the site's claims, unchecked). Numbers that show
+inside the screenshots are listed at the stop, and the film credits the site ("Source: example.com") while such a
+shot is on screen. The film is a HyperFrames project (`tools/from_url/`): the site's name from the first frame,
+giving way to the hook word by word → the first screen on a tilted device → one split scene per feature with its
 screenshot → the call to action, in the site's colours and the nearest bundled fonts (`brand.json`). `--yes`
-skips the stop and builds at once. Nothing on the site is clicked; any non-GET request is answered locally.
+skips the stop and builds at once. Read-only: nothing is clicked, writes get a fake answer in the browser,
+popups, service workers and WebSockets are blocked. A 404 or challenge page stops the capture.
 
 **A theme from a URL or an image** — `node bin/reelwright.mjs theme-from https://example.com acme` (or
 `theme-from moodboard.png acme`) writes `themes/acme.css`: the site's background, text, muted and accent colours,

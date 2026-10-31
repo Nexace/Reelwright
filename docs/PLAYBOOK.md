@@ -72,6 +72,9 @@ Read once before your first real film.
   viewers), **illustrative** (numbers like 40% or $12 need the label on screen), **seekable** (no clock,
   randomness, timers or CSS transitions in the film's code). Fix the film; turn a gate off only for a reason,
   e.g. `"qa": { "illustrative": false }` when the numbers are real. `projects/qa-broken` trips every gate.
+  Screenshots count too: give an `<img>` of a page `data-qa-text="<the text it shows>"` and the gate reads its
+  numbers; real figures from a real site pass with a visible "Source: …" credit instead of the label
+  (`from-url` films do both). Version numbers (v8.3.4, 3.10.2) aren't data.
 - `encode` writes `<out>.srt` and `<out>.vtt` beside the mp4 for players and upload sites.
 - Re-recorded the take? Re-run `sched` and `info` — anchors and SFX times derive from the take's marks;
   stale ones give blank white frames.

@@ -2,7 +2,8 @@
 // Captures a website for a film: scrolls the whole page first (so scroll-reveal animations fire and lazy
 // images load), then saves a 2× screenshot of every <section>, the full page, and the raw image files.
 // Use the pieces as layers in film.js (a scrolling "browser" shot, cards popping out, etc.).
-// Also writes site.json (the page's facts: text, headings, colours, fonts) and hero.jpg + one shot per h2/h3,
+// Also writes site.json (the page's facts: text, headings, colours, fonts) and hero.jpg + one shot per h2/h3 (with the
+// text visible in each, heroText / shotText),
 // which `reelwright from-url` / `theme-from` use through capture(). Only capture sites you own or may use.
 // Read-only: any request other than GET/HEAD gets a fake 200 and never reaches the site; service workers, popups,
 // WebSockets and sendBeacon are blocked.
@@ -42,6 +43,7 @@ export async function capture(url, out, { width = 1440, extras = false, shots = 
     const facts = { url: u.href, ...(await p.evaluate(readFacts)) };
     if (shots) {
       await p.screenshot({ path: path.join(out, "hero.jpg"), type: "jpeg", quality: 85 });
+      facts.heroText = await p.evaluate(viewText);
       for (const [i, h] of facts.headings.entries()) {
         if (h.level < 2 || i > 24) continue;
         const ph = await p.evaluate(() => document.documentElement.scrollHeight);
@@ -49,6 +51,7 @@ export async function capture(url, out, { width = 1440, extras = false, shots = 
         await p.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), y); await p.waitForTimeout(300);
         h.shot = `shot${String(i).padStart(2, "0")}.jpg`;
         await p.screenshot({ path: path.join(out, h.shot), type: "jpeg", quality: 85 });
+        h.shotText = await p.evaluate(viewText);
       }
       await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
     }
@@ -76,6 +79,21 @@ async function saveExtras(p, out) {
   await p.screenshot({ path: path.join(out, "full.png"), fullPage: true });
   console.log(`${n} sections, ${srcs.length} images, full.png → ${out}`);
   console.log("check full.png: some sites repeat content in fullPage shots (sticky/virtual layouts) — crop if so");
+}
+
+// runs in the page: the text visible in the viewport, i.e. in the screenshot just taken. Films put it on the shot's
+// <img data-qa-text> so the QA illustrative gate sees numbers inside screenshots too.
+function viewText() {
+  const out = [], w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n; (n = w.nextNode());) {
+    const s = n.textContent.trim(), e = n.parentElement;
+    if (!s || !e) continue;
+    const r = e.getBoundingClientRect(), st = getComputedStyle(e);
+    if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
+    if (st.visibility === "hidden" || Number(st.opacity) < 0.1) continue;
+    out.push(s);
+  }
+  return out.join(" ").replace(/\s+/g, " ").slice(0, 4000);
 }
 
 // runs in the page (scrolled to the top): text, headings, buttons, colours, fonts

@@ -116,6 +116,8 @@ const C = {
     const r = await fromUrl(url, name).catch((e) => { console.error(e.message); process.exit(1); });
     console.log(`\ndrafted ${path.relative(ROOT, r.dir)} — the voiceover:\n`);
     for (const l of r.lines) console.log(`  ${l.id.padEnd(5)} ${l.text}`);
+    if (r.numbers.length) console.log(`\nnumbers inside the screenshots (shown with a "Source:" credit — real figures only):\n` +
+      r.numbers.map((n) => `  ${n.id.padEnd(5)} ${n.nums.join("  ")}`).join("\n"));
     proj = path.relative(ROOT, r.dir);
     if (!yes) return console.log(`\nedit the lines in ${proj}/project.json (and on-screen copy in hf/site.js), then: reelwright all ${r.name}`);
     C.all();

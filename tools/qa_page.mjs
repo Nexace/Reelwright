@@ -4,7 +4,9 @@
 //   captions      at each VO line's middle and end: the caption row sits inside KIT.safe horizontally and inside the
 //                 frame, wraps to ≤ 2 lines, and its said/now words reach WCAG contrast 4.5 against what's behind them
 //   illustrative  every 0.5 s: when visible text outside the captions shows a data-like number (%, currency, ×, k/M,
-//                 1,200, 4.8), an "Illustrative data" label is visible too
+//                 1,200, 4.8), an "Illustrative data" label is visible too. A visible <img data-qa-text="…"> (a
+//                 screenshot, with the text it shows) counts the same, but there a "Source: …" credit also passes:
+//                 real numbers from a real site, credited
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -67,20 +69,26 @@ try {
       }
     }
 
-    // numbers that read as data need the label: 40%, $12, 3×, 2.5k, 1,200, 4.8 — not step numbers ("01") or clocks ("9:41")
+    // numbers that read as data need the label: 40%, $12, 3×, 2.5k, 1,200, 4.8 — not step numbers ("01"), clocks ("9:41")
+    // or versions
     const DATA = /[$€£¥₹]\s?\d|\d\s?(%|×|x\b|[kKMB]\b)|\d{1,3}(,\d{3})+|\d\.\d/;
+    const VER = /\bv?\d+(\.\d+){2,}\S*|\bv\d+(\.\d+)?\b/g;   // version numbers (v8.3.4, 3.10.2) aren't data
+    const data = (s) => { const t = s.replace(VER, ''); return DATA.test(t) && ((t.match(/\S*\d\S*/g) || []).find((x) => DATA.test(x)) || t.match(DATA)[0]); };
     const dur = window.FILM.DUR;
     for (let t = 0; t < dur; t += 0.5) {
       await window.render(t);
-      let num = null, label = false;
+      let num = null, label = false, credit = false, shot = null;
       const walk = document.createTreeWalker(K.stage, NodeFilter.SHOW_TEXT);
       for (let n; (n = walk.nextNode());) {
         const s = n.textContent.trim(), e = n.parentElement;
         if (!s || e.closest('.kit-subs') || !visible(e)) continue;
         if (/illustrative/i.test(s)) label = true;
-        else if (DATA.test(s)) num ??= s;
+        else if (/^source\b/i.test(s)) credit = true;
+        else if (data(s)) num ??= s;
       }
+      for (const im of K.stage.querySelectorAll('img[data-qa-text]')) if (!shot && visible(im)) shot = data(im.dataset.qaText);
       if (num && !label) out.illustrative.push(`${t2(t)}s "${num.slice(0, 30)}"`);
+      if (shot && !label && !credit) out.illustrative.push(`${t2(t)}s "${shot}" in a screenshot (data-qa-text), no label or Source credit`);
     }
     return out;
   });

@@ -1,6 +1,6 @@
 # Phase 4 spec: captions, audio and quality
 
-Branch `phase-4-captions-audio-qa`. Status: spec approved 2026-11-01 with the three defaults; built.
+Branch `phase-4-captions-audio-qa`. Status: spec approved 2026-11-01 with the three defaults; built. Done: exit test passed locally and on CI (run 41245317577).
 
 ## 4a. Captions and languages
 

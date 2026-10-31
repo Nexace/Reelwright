@@ -307,6 +307,10 @@
     window.render = async (t) => {
       render(t);
       while (pending.length) await pending.shift();
+      // Chromium keeps a composited layer's tiles while the layer only moves, so their anti-aliasing was set at an
+      // earlier frame's sub-pixel offset and a frame depended on what the page drew before (run-to-run and cache
+      // misses). Rebuilding the layout re-rasters everything: the frame is a function of t alone.
+      const b = document.body.style; b.display = 'none'; void document.body.offsetHeight; b.display = '';
     };
     window.READY = document.fonts.ready.then(() => window.render(0)).then(() => true);
     // HyperFrames (renderer "hyperframes") seeks the root composition's timeline; ours is render(t).

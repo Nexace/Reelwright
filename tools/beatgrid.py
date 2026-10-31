@@ -1,6 +1,6 @@
 # python3 tools/beatgrid.py <project>
 # Fits the beat grid of <project>/music/track.mp3 (or project.json music.file) from its drum hits
-# → <project>/music/grid.json {bpm, beat, t0, downbeat, residual_ms}.
+# → <project>/music/grid.json {bpm, beat, t0, downbeat, residual_ms, drop}.
 # Never trust a BPM from a website or a quick estimate: a 0.5% error drifts a whole beat in two minutes.
 # Then set project.json music.start to a bar time (printed below) where you want the film to begin.
 #
@@ -80,7 +80,7 @@ best = min(fits, key=lambda k: fits[k]["res"])
 g = fits[best]; beat, t0 = g["beat"], g["t0"]
 # phase: kicks sit on beats, claps/hats often on off-beats — so when the kick is consistent, it sets the phase
 kick_start = onsets(20, 120, 0.6 * beat0, start=True)    # half-rise is steadier for tempo, hit start for phase
-if len(kick_start) >= 20:
+if len(kick_start) >= 12:   # a short track can carry few kicks; coherence below still guards the phase
     zk = np.exp(2j * np.pi * (kick_start - t0) / beat).mean()
     if abs(zk) > 0.4:
         t0 = (t0 + np.angle(zk) / (2 * np.pi) * beat) % beat
@@ -94,16 +94,33 @@ else:
 out = {"file": os.path.relpath(src, proj), "bpm": round(60 / beat, 4), "beat": round(beat, 6), "bar": round(4 * beat, 6),
        "t0": round(t0, 4), "downbeat": round(down, 4), "residual_ms": round(1000 * g["res"], 2), "matched_onsets": g["n"],
        "method": best, "duration": round(dur, 2)}
+# ── bar loudness, and the drop: the beat where the low end (< 150 Hz: kick, bass) jumps most, next bar vs the
+# two bars before, when those two bars sit below the median. Beat-accurate, so it doesn't lean on the downbeat
+# guess, and a riser (mostly highs) before the drop doesn't pull it a beat early.
+sm = lambda y: np.sqrt(np.convolve(y ** 2, np.ones(SR // 10) / (SR // 10), "same"))
+rms = sm(x)
+Y = X.copy(); Y[F > 150] = 0; low = sm(np.fft.irfft(Y, len(x)))
+ldb = lambda e, a, b: 20 * np.log10(e[max(0, int(a * SR)): int(b * SR)].mean() + 1e-9)   # bar loudness table
+bars = []
+b = down % (4 * beat)
+while b < dur - 1:
+    bars.append((b, ldb(rms, b, b + 4 * beat))); b += 4 * beat
+beats = t0 + beat * np.arange(8, int((dur - t0) / beat) - 3)
+lm = lambda a, b: low[max(0, int(a * SR)): int(b * SR)].mean()   # linear: near-silence before a drop has no stable dB
+lows = [(lm(bt, bt + 4 * beat), lm(bt - 8 * beat, bt), bt) for bt in beats]
+med = np.median([a for a, _, _ in lows]) if lows else 0
+jumps = [(a - p, a, p, bt) for a, p, bt in lows if p < med]
+if jumps:
+    _, a, p, bt = max(jumps)
+    out.update({"drop": round(float(bt), 4), "drop_jump_db": round(float(20 * np.log10((a + 1e-9) / (p + 1e-9))), 1)})
 json.dump(out, open(os.path.join(proj, "music/grid.json"), "w"), indent=1)
 print(json.dumps(out, indent=1))
 if g["res"] > 0.012:
     print("WARNING: loose fit (>12 ms). The track may have tempo changes or swing; check by ear.")
 print("The downbeat (bar 1) is a best guess from the kick pattern — confirm by ear.")
 
-rms = np.sqrt(np.convolve(x ** 2, np.ones(SR // 10) / (SR // 10), "same"))
-print("\nbar  start(s)  loudness   (pick music.start = a bar start; a drop is where loudness jumps)")
-b, i = down % (4 * beat), 0
-while b < dur - 1:
-    db = 20 * np.log10(rms[int(b * SR): int((b + 4 * beat) * SR)].mean() + 1e-9)
+print("\nbar  start(s)  loudness   (pick music.start = a bar start)")
+for i, (b, db) in enumerate(bars):
     print(f"{i:3}  {b:8.3f}  {db:6.1f} dB  " + "#" * max(0, int((db + 40) / 1.5)))
-    b += 4 * beat; i += 1
+if "drop" in out:
+    print(f"drop at {out['drop']}s (KIT.drop() in the film; override with project.json music.drop_bar)")

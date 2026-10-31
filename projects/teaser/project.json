@@ -1,10 +1,14 @@
 {
-  "title": "Tidy — beat-synced teaser (music only)",
+  "title": "Tidy \u2014 beat-synced teaser (music only)",
   "out": "out/teaser.mp4",
   "fps": 60,
   "lead": 0,
   "tail": 0,
   "loudness": -14,
-  "music": { "style": "drive", "bpm": 128, "drop_bar": 2, "end_bar": 6 },
+  "music": {
+    "file": "music/track.mp3",
+    "start": 3.75,
+    "end_bar": 6
+  },
   "lines": []
 }

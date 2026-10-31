@@ -12,14 +12,15 @@
 //   mix              mix.wav (voice + ducked music + SFX)
 //   stills [t,t,..]  preview frames → stills/ + stills/sheet.jpg
 //   frames           render every frame → frames/
-//   encode           frames + mix.wav → the mp4 in project.json "out"
-//   qa               check frames for blips and blank frames
+//   encode           frames + mix.wav → the mp4 in project.json "out", plus .srt and .vtt beside it
+//   qa               blips and blank frames, then gates (loudness, captions, flash, illustrative, seekable): FAIL exits 1
 //   clean            delete frames/ stills/ and intermediate audio (keeps the mp4)
 //   themes           list the styles in themes/ (use with "style" in project.json or --style <name>)
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
 //   film             sched → info → mix → frames → encode   (after editing film.js)
 //
+//   --lang <code>         voice project.json langs.<code> (its voice + lines), output <out>-<code>.mp4 + .srt/.vtt
 //   --style <name>        build with themes/<name>.css, output <out>-<name>.mp4
 //   --formats 16x9,9x16,1x1   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080):
 //                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
@@ -37,6 +38,8 @@ process.env.PYTHONUTF8 = "1";
 const [cmd = "help", ...args] = process.argv.slice(2);
 const st = args.indexOf("--style");   // any command: build with themes/<name>.css, output <out>-<name>.mp4
 if (st >= 0) process.env.REELWRIGHT_STYLE = args.splice(st, 2)[1];
+const lg = args.indexOf("--lang");     // any command: voice project.json langs.<code>, output <out>-<code>.mp4
+if (lg >= 0) process.env.REELWRIGHT_LANG = args.splice(lg, 2)[1];
 const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080" };
 const fo = args.indexOf("--formats");
 const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
@@ -102,7 +105,13 @@ const C = {
     if (!fs.existsSync(f)) return console.log(`(${proj} has no record.mjs — nothing to record)`);
     step("record"); run(process.execPath, f);
   },
-  vo() { step("vo"); py("vo.py", ...args); },
+  vo() {
+    if (process.env.REELWRIGHT_LANG) {   // the base-language VO too: --lang cues map from its word positions
+      const lang = process.env.REELWRIGHT_LANG; delete process.env.REELWRIGHT_LANG;
+      step("vo"); py("vo.py"); process.env.REELWRIGHT_LANG = lang;
+    }
+    step("vo"); py("vo.py", ...args);
+  },
   beatgrid() { step("beatgrid"); py("beatgrid.py"); },
   sched() { step("sched"); py("sched.py"); },
   info() { step("info"); render("info"); },

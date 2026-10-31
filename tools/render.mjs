@@ -21,7 +21,8 @@ const P = JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8"));
 const style = process.env.REELWRIGHT_STYLE;   // `--style <name>` builds another look without editing project.json
 const fmt = process.env.REELWRIGHT_FORMAT;    // `--formats` (bin/reelwright.mjs): this format's size in REELWRIGHT_SIZE
 if (fmt) [P.width, P.height] = process.env.REELWRIGHT_SIZE.split("x").map(Number);
-const suffix = [style, fmt].filter(Boolean).map((s) => "-" + s).join("");
+const lang = process.env.REELWRIGHT_LANG;     // `--lang <code>`: voiced from project.json langs.<code>
+const suffix = [lang, style, fmt].filter(Boolean).map((s) => "-" + s).join("");
 if (suffix) P.out = (P.out || "out/film.mp4").replace(/(\.mp4)?$/, `${suffix}.mp4`);
 writeTheme(DIR, P);
 const name = P.renderer || "pvk";

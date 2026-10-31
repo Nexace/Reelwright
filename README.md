@@ -88,7 +88,7 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 | Sound effects | Synthesised in **numpy** (`tools/mix.py`) | Whooshes, taps, pops, impacts, chimes — generated, no sample licences. Placed by `cue()` calls in the film. |
 | Mix | **numpy + ffmpeg loudnorm** (`tools/mix.py`) | Music ducks under the voice automatically; output normalised to −14 LUFS (YouTube/Instagram level). |
 | Encode | **ffmpeg** (H.264 + AAC) | Plays everywhere: WhatsApp, Slack, Drive, YouTube, Keynote. |
-| QA | `tools/qa.py`, `tools/sheet.py` | Finds blank frames and jumpy cuts; contact sheet of stills to review the whole film at a glance. |
+| QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked. Contact sheet of stills to review the whole film at a glance. |
 
 Optional: **Claude Code** in this folder does all of the above from plain English — see [CLAUDE.md](CLAUDE.md).
 
@@ -166,6 +166,8 @@ Without a track you get the built-in synth bed (fine for drafts and internal fil
 2. `./video.sh beatgrid my-film` → measures the tempo and prints every bar's start time with a loudness bar.
 3. Set `"music": { "start": <a bar time> }` in `project.json` — pick a bar just before a drop, so the film
    opens on energy (or a quiet bar for a calm opening).
+4. `beatgrid` also finds the drop (where the kick and bass come in after a quieter stretch); `KIT.drop()` is its
+   time in the film. Override with `"music": { "drop_bar": <bar> }`. `projects/teaser` cuts to it.
 
 ### 4. Edit — `film/film.js`
 The edit is a list of things on screen, each with a time window. Times come from the voice and the take,
@@ -260,8 +262,7 @@ docs/PLAYBOOK.md            what makes these films good — read before your fir
 
 ## Contributing
 
-Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more engine components, vertical
-9:16 presets, automatic drop detection for music.
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more engine components.
 
 ## Licence and credits
 

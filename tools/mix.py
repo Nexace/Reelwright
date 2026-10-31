@@ -25,7 +25,7 @@ def mavg(x, w):  # fast moving average (np.convolve with a huge window hangs on 
 # ── voice ──
 vo = np.zeros(N)
 for lid, v in (TL.get("VO") or {}).items():
-    x = load(os.path.join(proj, f"vo/{lid}.mp3"), 1)[:, 0]
+    x = load(os.path.join(proj, "vo", os.environ.get("REELWRIGHT_LANG", ""), f"{lid}.mp3"), 1)[:, 0]
     i = int(round(v["at"] * SR)); j = min(N, i + len(x))
     if i < 0: x = x[-i:]; i = 0
     vo[i:j] += x[: j - i]

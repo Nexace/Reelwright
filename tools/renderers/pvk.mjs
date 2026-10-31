@@ -89,4 +89,17 @@ export function encode(DIR, P, FPS, pattern, start) {
   const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
   if (r.status !== 0) process.exit(r.status || 1);
   console.log("→", outFile);
+  subtitles(DIR, outFile);
+}
+
+// timeline.json captions (KIT.captionCues) → <out>.srt and <out>.vtt beside the mp4
+function subtitles(DIR, outFile) {
+  const cues = JSON.parse(fs.readFileSync(path.join(DIR, "timeline.json"), "utf8")).captions || [];
+  if (!cues.length) return;
+  const ts = (s, sep) => new Date(Math.round(s * 1000)).toISOString().slice(11, 23).replace(".", sep);
+  const body = (sep) => cues.map((c, i) => `${i + 1}\n${ts(c.t, sep)} --> ${ts(c.end, sep)}\n${c.text}\n`).join("\n");
+  const base = outFile.replace(/\.mp4$/, "");
+  fs.writeFileSync(base + ".srt", body(","));
+  fs.writeFileSync(base + ".vtt", "WEBVTT\n\n" + body("."));
+  console.log("→", base + ".srt", "+ .vtt,", cues.length, "cues");
 }

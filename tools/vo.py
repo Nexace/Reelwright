@@ -1,15 +1,24 @@
 # python3 tools/vo.py <project> [line_id ...]
 # Voiceover with Microsoft Edge neural voices (edge-tts, free, no key): one mp3 per line in project.json
-# + word timings → <project>/vo/lines.json. Unchanged lines are reused; pass ids to force a redo.
+# + word timings → <project>/vo/lines.json (vo/<lang>/ with --lang). Unchanged lines are reused; pass ids to force a redo.
 import asyncio, hashlib, json, os, subprocess, sys
 import edge_tts
 
 proj = sys.argv[1]
 force = set(sys.argv[2:])
 P = json.load(open(os.path.join(proj, "project.json")))
+LANG = os.environ.get("REELWRIGHT_LANG")   # `--lang es`: project.json langs.es {voice, rate?, pitch?, lines: {id: text}} → vo/es/
+VD = "vo"
+if LANG:
+    Lg = (P.get("langs") or {}).get(LANG) or sys.exit(f'no "langs": {{"{LANG}": ...}} in project.json')
+    miss = [ln["id"] for ln in P["lines"] if ln["id"] not in Lg.get("lines", {})]
+    if miss: sys.exit(f"langs.{LANG}.lines is missing: {', '.join(miss)}")
+    P = {**P, **{k: Lg[k] for k in ("voice", "rate", "pitch") if k in Lg},
+         "lines": [{**ln, "text": Lg["lines"][ln["id"]]} for ln in P["lines"]]}
+    VD = f"vo/{LANG}"
 VOICE, RATE, PITCH = P.get("voice", "en-US-AndrewNeural"), P.get("rate", "+0%"), P.get("pitch", "+0Hz")
-os.makedirs(os.path.join(proj, "vo"), exist_ok=True)
-OUT = os.path.join(proj, "vo/lines.json")
+os.makedirs(os.path.join(proj, VD), exist_ok=True)
+OUT = os.path.join(proj, VD, "lines.json")
 old = json.load(open(OUT)) if os.path.exists(OUT) else {}
 
 
@@ -18,7 +27,7 @@ def key(text):
 
 
 async def one(lid, text):
-    mp3 = os.path.join(proj, f"vo/{lid}.mp3")
+    mp3 = os.path.join(proj, VD, f"{lid}.mp3")
     words = []
     com = edge_tts.Communicate(text, VOICE, rate=RATE, pitch=PITCH, boundary="WordBoundary")
     with open(mp3, "wb") as f:
@@ -51,7 +60,7 @@ async def main():
     for ln in P["lines"]:
         lid, text = ln["id"], ln["text"]
         o = old.get(lid)
-        if o and o.get("key") == key(text) and lid not in force and os.path.exists(os.path.join(proj, f"vo/{lid}.mp3")):
+        if o and o.get("key") == key(text) and lid not in force and os.path.exists(os.path.join(proj, VD, f"{lid}.mp3")):
             res[lid] = o
             continue
         res[lid] = await retry(lid, text)

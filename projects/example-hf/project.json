@@ -12,6 +12,13 @@
   "snapToBeat": true,
   "loudness": -14,
   "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 2 },
+  "langs": {
+    "es": { "voice": "es-ES-AlvaroNeural", "lines": {
+      "hook": "Vídeos de producto, escritos como código.",
+      "hf": "Ahora renderizados con HyperFrames.",
+      "chart": "Cada gráfico crece al ritmo.",
+      "end": "Reelwright." } }
+  },
   "lines": [
     { "id": "hook",  "gap": 0.0, "text": "Product films, written as code." },
     { "id": "hf",    "gap": 0.6, "text": "Now rendered by HyperFrames." },

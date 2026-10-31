@@ -9,7 +9,7 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–3 done; l
 | 1 | Foundation: HyperFrames spike, swappable renderer, cross-platform command line and CI | ☑ Done |
 | 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☑ Done |
 | 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ☑ Done |
-| 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☐ Not started |
+| 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☑ Done |
 | 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☐ Not started |
 | 6 | Film from a URL and style from a reference | ☐ Not started |
 | 7 | Free cloud rendering (Colab + Drive) | ☐ Not started |
@@ -117,7 +117,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 4: Captions, audio and quality ☐
+## Phase 4: Captions, audio and quality ☑
 
 **Branch:** `phase-4-captions-audio-qa` · **Needs:** Phase 2
 

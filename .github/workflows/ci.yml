@@ -32,7 +32,7 @@ jobs:
       - name: Syntax checks
         run: |
           for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
-          node --check tools/engine.js tools/layouts.js projects/example/film/film.js projects/example-hf/hf/film.js projects/layouts-hf/hf/film.js
+          for f in tools/engine.js tools/layouts.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
           python -m py_compile tools/*.py
       - name: Build the example film end to end
         env: { PAGES: 2, PYTHON: python }
@@ -72,9 +72,24 @@ jobs:
           for f in projects/example-hf/out/*.mp4 projects/layouts-hf/out/*.mp4; do   # ffprobe takes one input
             ffprobe -v error -select_streams v -show_entries stream=width,height,nb_frames:format=filename,duration -of compact "$f"
           done | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: "Captions, languages, QA: subtitle files open, Spanish build matches its mix, qa-broken fails every gate"
+        env: { PAGES: 2, PYTHON: python }
+        run: |
+          for f in projects/example-hf/out/example-hf.srt projects/example-hf/out/example-hf.vtt; do
+            ffprobe -v error -show_entries stream=codec_name -of csv=p=0 "$f"
+          done | tee -a "$GITHUB_STEP_SUMMARY"
+          node bin/reelwright.mjs all example-hf --lang es
+          v=$(ffprobe -v error -select_streams v -show_entries stream=duration -of csv=p=0 projects/example-hf/out/example-hf-es.mp4)
+          m=$(ffprobe -v error -show_entries format=duration -of csv=p=0 projects/example-hf/mix.wav)
+          node -e 'const [v,m]=process.argv.slice(1).map(Number);console.log(`es: video ${v}s, mix.wav ${m}s`);process.exit(Math.abs(v-m)<=1/30?0:1)' "$v" "$m" | tee -a "$GITHUB_STEP_SUMMARY"
+          head -4 projects/example-hf/out/example-hf-es.srt | tee -a "$GITHUB_STEP_SUMMARY"
+          node bin/reelwright.mjs audio qa-broken && node bin/reelwright.mjs film qa-broken
+          if node bin/reelwright.mjs qa qa-broken > qa-broken.txt; then echo "qa-broken passed QA"; exit 1; fi
+          cat qa-broken.txt
+          test "$(grep -c '^  FAIL' qa-broken.txt)" = 5
       - uses: actions/upload-artifact@v4
         with:
           name: example-hf-film-${{ matrix.os }}
           path: |
-            projects/example-hf/out/*.mp4
+            projects/example-hf/out/*
             projects/layouts-hf/out/*.mp4

@@ -1,0 +1,14 @@
+{
+  "title": "QA test film — broken on purpose, every reelwright qa gate should FAIL",
+  "renderer": "hyperframes",
+  "out": "out/qa-broken.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "lead": 0.5,
+  "tail": 1.0,
+  "loudness": -6,
+  "music": { "bpm": 120, "style": "drive", "drop_bar": 1 },
+  "lines": [
+    { "id": "long", "gap": 0.0, "text": "This caption is far too long for the screen, so it keeps on going past two lines of text and out of the safe area, which the captions gate should catch and report with the time it happens. It goes on and on, with more and more words, until the caption needs three or even four lines, far more than anyone could read in time." }
+  ]
+}

@@ -25,6 +25,8 @@
   K.MUSIC = MU;
   K.beat = (k) => MU.t0 + k * MU.beat;
   K.bar = (k) => MU.t0 + k * MU.bar;
+  // the music drop in film time: detected by tools/beatgrid.py, or project.json music.drop_bar (sched.py)
+  K.drop = () => { if (MU.drop == null) throw new Error('no music drop: run beatgrid on a track, or set music.drop_bar'); return MU.drop; };
   K.snap = (t, unit = MU.beat) => MU.t0 + Math.round((t - MU.t0) / unit) * unit;  // nearest beat (or bar)
   K.pulse = (t, decay = 9) => {                       // 1 on each beat, decaying — for kick "pumps"
     const x = (t - MU.t0) / MU.beat; if (x < 0) return 0;
@@ -41,7 +43,15 @@
   K.W = (id, word, nth = 1) => {
     const ws = K.V(id).words; let n = 0;
     for (const w of ws) if (norm(w.w) === norm(word) && ++n === nth) return w.t;
+    const b = baseAt(id, word, nth, 'f'); if (b != null) return b;
     throw new Error(`word "${word}" (#${nth}) not in VO line ${id}: ${K.V(id).text}`);
+  };
+  // `--lang` builds: a cue word from the base-language script lands at the same fraction (0..1) of the
+  // translated line (tools/sched.py writes VO[id].base). shortcut: proportional, not aligned by meaning.
+  const baseAt = (id, word, nth, k) => {
+    const v = K.V(id); let n = 0;
+    for (const w of v.base || []) if (norm(w.w) === norm(word) && ++n === nth) return v.start + w[k] * (v.end - v.start);
+    return null;
   };
   // display tokens (text split on spaces) → start time of each, matched in order against the spoken words.
   // Tolerant of punctuation and of TTS splitting "to-do" / "₹500" differently from the text.
@@ -66,6 +76,7 @@
   K.WE = (id, word, nth = 1) => {        // end time of that word
     const ws = K.V(id).words; let n = 0;
     for (const w of ws) if (norm(w.w) === norm(word) && ++n === nth) return w.t + w.d;
+    const b = baseAt(id, word, nth, 'fe'); if (b != null) return b;
     throw new Error(`word "${word}" not in VO line ${id}`);
   };
 
@@ -202,6 +213,17 @@
     };
   };
 
+  // ── caption cues for .srt/.vtt (tools/renderers/pvk.mjs encode): each line in ≤ 42-character chunks ──
+  K.captionCues = (max = 42) => Object.keys(VO).flatMap((id) => {
+    const v = VO[id], toks = v.text.split(/\s+/).filter(Boolean), ts = K.align(id), out = [];
+    toks.forEach((tok, i) => {
+      const c = out[out.length - 1];
+      if (c && (c.text + ' ' + tok).length <= max) c.text += ' ' + tok;
+      else out.push({ id, t: ts[i], text: tok });
+    });
+    return out.map((c, i) => ({ ...c, end: +(out[i + 1] ? out[i + 1].t : v.end).toFixed(3) }));
+  }).sort((a, b) => a.t - b.t);
+
   // ── subtitles: the current VO line, spoken words highlighted ────────────
   K.subtitles = (ids, parent = K.stage) => {
     const box = K.el('div', 'kit-subs', parent);
@@ -215,7 +237,8 @@
         rows.forEach((r) => {
           const op = r === cur ? K.win(t, r.v.start - 0.15, r.v.end + 0.35, 0.15, 0.2) * on : 0;
           K.show(r.row, op);
-          if (r === cur) r.w.forEach((s, i) => { s.className = t >= r.ts[i] ? 'said' : ''; });
+          // karaoke: every spoken word is .said, the one being spoken is also .now
+          if (r === cur) r.w.forEach((s, i) => { s.className = t < r.ts[i] ? '' : t < (r.ts[i + 1] ?? r.v.end) ? 'said now' : 'said'; });
         });
       },
     };
@@ -280,7 +303,7 @@
   // K.start({ dur, render(t), music }) — exposes window.render / window.FILM / window.READY for tools/render.mjs.
   // music: overrides for the generated soundtrack decided by the edit, e.g. { end_bar: 5 } puts the final hit there.
   K.start = ({ dur, render, music = {} }) => {
-    window.FILM = { DUR: +dur.toFixed(3), FPS: (window.PROJECT && window.PROJECT.fps) || 60, cues: cues.sort((a, b) => a.t - b.t), VO: window.VO, MUSIC: MU, music };
+    window.FILM = { DUR: +dur.toFixed(3), FPS: (window.PROJECT && window.PROJECT.fps) || 60, cues: cues.sort((a, b) => a.t - b.t), VO: window.VO, MUSIC: MU, music, captions: K.captionCues() };
     window.render = async (t) => {
       render(t);
       while (pending.length) await pending.shift();

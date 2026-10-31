@@ -15,6 +15,7 @@ projects/*/timeline.json
 projects/*/music/bed.wav
 projects/*/music/grid.json
 projects/*/music/*.mp3
+!projects/teaser/music/track.mp3
 projects/*/music/*.wav
 projects/*/film/data.js
 projects/*/film/clip.js

@@ -9,6 +9,17 @@ if os.environ.get("REELWRIGHT_SIZE"):   # `reelwright ... --formats`: this forma
     P["width"], P["height"] = map(int, os.environ["REELWRIGHT_SIZE"].split("x"))
 lp = os.path.join(proj, "vo/lines.json")
 L = json.load(open(lp)) if os.path.exists(lp) else {}
+LANG = os.environ.get("REELWRIGHT_LANG")   # `--lang es`: place vo/es/ lines; film.js cues on base-language words map by position
+base = {}
+if LANG:
+    for lid, b in L.items():   # where each base-language word falls in its line, 0..1 (KIT.W falls back to it)
+        w0, w1 = b["words"][0]["t"], b["words"][-1]["t"] + b["words"][-1]["d"]
+        f = lambda t: round((t - w0) / (w1 - w0), 4) if w1 > w0 else 0
+        base[lid] = [{"w": x["w"], "f": f(x["t"]), "fe": f(x["t"] + x["d"])} for x in b["words"]]
+    lp = os.path.join(proj, "vo", LANG, "lines.json")
+    if not os.path.exists(lp): sys.exit(f"no {lp} — run vo with --lang {LANG} first")
+    L = json.load(open(lp))
+    P["lines"] = [{**ln, "text": L[ln["id"]]["text"]} for ln in P["lines"]]
 M = P.get("music", {})
 
 grid_path = os.path.join(proj, "music/grid.json")
@@ -17,8 +28,12 @@ if track and os.path.exists(grid_path):
     g = json.load(open(grid_path))
     beat = g["beat"]
     # film t=0 = source time music.start (pick a downbeat), so beats land on t0 + k*beat in film time
-    t0 = (g["t0"] - M.get("start", 0)) % beat
+    # kept within ±half a beat of a beat at t=0, so a fit landing just before the beat doesn't shift KIT.bar(k) by one
+    t0 = (g["t0"] - M.get("start", 0) + beat / 2) % beat - beat / 2
     music = {"source": "track", "bpm": g["bpm"], "beat": beat, "bar": 4 * beat, "t0": round(t0, 4)}
+    if "drop" in g:   # detected by beatgrid.py, in film time
+        music["drop"] = round(g["drop"] - M.get("start", 0), 3)
+        music["drop_bar"] = round((music["drop"] - t0) / music["bar"])
 else:
     if track:
         print("warning: music/track.mp3 found but no music/grid.json — run tools/beatgrid.py first; using synth grid")
@@ -37,10 +52,14 @@ for ln in P["lines"]:
     at = t - w[0]["t"]                                                   # file start so the first word lands on t
     vo[lid] = {"at": round(at, 3), "start": round(t, 3), "end": round(at + w[-1]["t"] + w[-1]["d"], 3),
                "text": ln["text"], "words": [{"w": x["w"], "t": round(at + x["t"], 3), "d": x["d"]} for x in w]}
+    if lid in base: vo[lid]["base"] = base[lid]
     t = vo[lid]["end"]
 speech_end = t
 music.update({k: M[k] for k in ("drop_bar", "end_bar", "style") if k in M})
+if "drop_bar" in M:   # set by hand (or the synth bed's drop): overrides detection
+    music["drop"] = round(music["t0"] + M["drop_bar"] * music["bar"], 3)
 data = {"PROJECT": {k: P[k] for k in ("title", "fps", "lead", "tail", "width", "height") if k in P}, "VO": vo, "MUSIC": music}
+if LANG: data["PROJECT"]["lang"] = LANG
 data["PROJECT"]["speechEnd"] = round(speech_end, 3)
 out = "hf/kit-data.js" if P.get("renderer") == "hyperframes" else "film/data.js"
 with open(os.path.join(proj, out), "w") as f:

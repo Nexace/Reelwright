@@ -1,7 +1,7 @@
 // Beat-synced teaser. No voice: the music grid is the timeline. B(k) = time of beat k, BAR(k) = bar k.
 'use strict';
 const { el, css, show, seg, lerp, E, cue, beat: B, bar: BAR, pulse } = KIT;
-const MU = KIT.MUSIC, DROP = BAR(MU.drop_bar), END = BAR(MU.end_bar);
+const MU = KIT.MUSIC, DROP = KIT.drop(), END = BAR(MU.end_bar);   // drop: detected in music/track.mp3 by beatgrid
 const DUR = END + 2.2;
 const COLORS = ['#2fd08a', '#8b5cf6', '#ff7a1a', '#ff4f9a'];
 // deterministic pseudo-random (same t → same value, in any frame order)
@@ -15,6 +15,8 @@ WORDS.forEach(([b], i) => cue(B(b), i === WORDS.length - 1 ? 'whoosh' : 'tap', 1
 // ── drop: flash + shockwave + 3D field of UI cards ───────────────────────
 const scene = el('div', 'scene'), world = el('div', 'world', scene);
 const ring = el('div', 'ring'), flash = el('div', 'flash');
+const illus = el('div', 'illus', undefined, 'Illustrative data');   // the cards show made-up numbers
+css(illus, { right: '48px', bottom: '36px', font: '600 18px var(--kit-font-text)', color: 'rgba(255,255,255,.75)', background: 'rgba(10,10,20,.7)', padding: '6px 12px', borderRadius: '8px', letterSpacing: '.08em', textTransform: 'uppercase', zIndex: 9999 });
 const CARD_HTML = [
   `<div class="row"><div class="ck" data-on="1"></div>Reply to Sam</div><div class="row"><div class="ck" data-on="2"></div>Book dentist</div><div class="row"><div class="ck" data-on="3"></div>Groceries</div>`,
   `<div class="muted">Today</div><div class="big" data-count="5">0 / 5</div><div class="bar"><i></i></div>`,
@@ -72,6 +74,7 @@ function render(t) {
   // card field: in after the drop, orbiting, pumping on the kick, exploding at the last bar
   const inP = E.outExpo(seg(t, DROP, DROP + 1.2)), boom = E.in(seg(t, END - BAR(1) + BAR(0) - 0.4, END));
   show(scene, t > DROP && t < END + 0.1 ? 1 : 0);
+  show(illus, t > DROP && t < END + 0.1 ? 1 : 0);
   const spin = (t - DROP) * 22 + 40 * (1 - inP);
   world.style.transform = `translateZ(${-1300 + 950 * inP + 2400 * boom}px) rotateX(${-8 + 4 * Math.sin(t)}deg) rotateY(${spin}deg) scale(${1 + 0.035 * pulse(t)})`;
   cards.forEach((k, i) => {

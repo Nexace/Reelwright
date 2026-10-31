@@ -50,7 +50,11 @@ Read once before your first real film.
 - **Music** sets the energy. Find free tracks on Mixkit (licence: free use, no attribution). Always measure
   the beat grid (`beatgrid`) — listed BPMs are often wrong, and a 0.5% error drifts a beat in two minutes.
 - Start the music so the **drop lands on the reveal**, and let the song's final hit (or silence) land on
-  the end card.
+  the end card. `beatgrid` finds the drop; cut to `KIT.drop()` (or set `music.drop_bar` by hand).
+- **Other languages**: add `"langs": { "es": { "voice": "es-ES-AlvaroNeural", "lines": { "<id>": "…" } } }` to
+  `project.json` and build with `--lang es` → `out/<name>-es.mp4`. Voice, captions and `.srt/.vtt` follow; cues
+  on English words (`W('chart', 'grows')`) land at the same point of the translated line. Copy you typed into
+  film.js stays as typed. Get translations from a fluent speaker; nothing is machine-translated.
 - If you cut music to shorten it, cut on bar lines between sections that sound alike, with a short
   crossfade — otherwise the jump is audible.
 - Music ducks ~10 dB under the voice (automatic). Final loudness −14 LUFS (automatic).
@@ -63,6 +67,12 @@ Read once before your first real film.
   render; it's seconds instead of minutes.
 - **Watch it yourself before sending.** `./video.sh qa` lists blank frames and frame-to-frame jumps; every
   big jump should be on a cut. Then scrub the mp4 at the times it prints.
+- `qa` also runs gates that fail the build: **loudness** (±1 LU of `loudness`, peak ≤ −1 dBTP), **captions**
+  (inside the safe area, ≤ 2 lines, contrast ≥ 4.5), **flash** (≤ 3 flashes a second, for photosensitive
+  viewers), **illustrative** (numbers like 40% or $12 need the label on screen), **seekable** (no clock,
+  randomness, timers or CSS transitions in the film's code). Fix the film; turn a gate off only for a reason,
+  e.g. `"qa": { "illustrative": false }` when the numbers are real. `projects/qa-broken` trips every gate.
+- `encode` writes `<out>.srt` and `<out>.vtt` beside the mp4 for players and upload sites.
 - Re-recorded the take? Re-run `sched` and `info` — anchors and SFX times derive from the take's marks;
   stale ones give blank white frames.
 - Keep only the final mp4. Frames are ~1 GB per minute: `./video.sh clean <project>`.

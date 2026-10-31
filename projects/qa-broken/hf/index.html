@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- QA test film (reelwright qa qa-broken): each part breaks one gate on purpose. Not a template. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  body { background: var(--kit-bg); }
+  .strobe { inset: 0; background: #fff; }
+  .stat { left: 50%; top: 30%; transform: translateX(-50%); font: 800 220px var(--kit-font-display); color: var(--kit-ink);
+    transition: opacity .3s; }   /* broken: a CSS transition can't be seeked (seekable gate) */
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>
+<script src="kit/engine.js"></script>
+<script src="film.js"></script>
+</body>
+</html>

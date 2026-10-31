@@ -40,7 +40,8 @@ jobs:
           node bin/reelwright.mjs from-url "$u" ci-site | tee -a "$GITHUB_STEP_SUMMARY"
           node bin/reelwright.mjs theme-from "$u" ci-site
           node -e 'const p=require("./projects/ci-site/project.json");if(p.lines.length<4||!p.lines.some(l=>l.id==="f1"))process.exit(1)'
-          grep -q -- '--kit-accent: #' themes/ci-site.css && grep -q 'Inter' themes/ci-site.css
+          # the drafted accent (the demo site's green) must override the base theme's
+          node -e 'const a=[...require("fs").readFileSync("themes/ci-site.css","utf8").matchAll(/--kit-accent:\s*([^;]+);/g)].map(m=>m[1]);console.log("accent",a);if(a.length<2||a[0]===a.at(-1))process.exit(1)'
           rm -rf projects/ci-site themes/ci-site.css
       - name: Build the example film end to end
         env: { PAGES: 2, PYTHON: python }

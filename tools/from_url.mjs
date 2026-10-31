@@ -15,9 +15,11 @@ const DATA = /[$€£¥₹]\s?\d|\d\s?(%|×|x\b|[kKMB]\b)|\d{1,3}(,\d{3})+|\d\.\
 const NAV = /^(faq|blog|docs?|documentation|pricing|sponsors?|partners?|newsletter|contact|resources|community|team|about|careers|legal|privacy|terms|changelog|news|support|menu|search|sign ?in|log ?in|get started)\b/i;
 const words = (s) => s.split(/\s+/).filter(Boolean).length;
 const clean = (s = "") => s.replace(/[^\p{L}\p{N}\s.,:;!?'’&()/+-]/gu, " ").replace(/\s+/g, " ").trim();
+// a sentence ends at . ! ? and a space, but not after e.g. / i.e. / etc. / Dr. and the like
+const ENDS = /(?<!\b(?:e\.g|i\.e|etc|vs|cf|approx|incl|Dr|Mr|Mrs|Ms|St|Inc|Ltd|Co|No)\.)(?<=[.!?])\s/i;
 // first sentence, ≤ max words, ending in a full stop; null if too long, empty, or it shows a data-like number
 const sentence = (s, max) => {
-  const t = clean(s).split(/(?<=[.!?])\s/)[0]?.replace(/[\s.,:;!?-]+$/, "");
+  const t = clean(s).split(ENDS)[0]?.replace(/[\s.,:;!?-]+$/, "");
   return t && words(t) <= max && !DATA.test(t) ? t + "." : null;
 };
 export const hostOf = (url) => new URL(url).hostname.replace(/^www\./, "") || "local-page";   // file:// pages (CI) have no host
@@ -48,17 +50,23 @@ export function draftLines(f, host) {
     features: features.map((x) => ({ ...x, shot: "site/" + x.shot, body: x.body.replace(/\.$/, "") })), cta } };
 }
 
-export async function fromUrl(url, name) {
-  const host = hostOf(url);
-  name ||= host.replace(/[^\w]+/g, "-");
+export async function fromUrl(input, name) {
+  name ||= hostOf(input).replace(/[^\w]+/g, "-");
   if (!/^[\w-]+$/.test(name)) throw new Error(`project name "${name}": use letters, digits, - and _`);
   const dir = path.join(ROOT, "projects", name), hf = path.join(dir, "hf"), shots = path.join(hf, "site");
   if (fs.existsSync(dir)) throw new Error(`projects/${name} already exists — edit it and run: reelwright all ${name}`);
-  console.log(`capturing ${url} (read-only: non-GET requests are answered locally) …`);
-  const facts = await capture(url, shots);
+  console.log(`capturing ${input} (read-only: writes are answered locally, no popups, workers or sockets) …`);
+  // capture into a temp dir: a failed capture leaves no half-made project behind
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-"));
+  let facts;
+  try { facts = await capture(input, tmp); }
+  catch (e) { fs.rmSync(tmp, { recursive: true, force: true }); throw e; }
+  const url = facts.url, host = hostOf(url);   // after redirects, no query or fragment
   const { lines, site } = draftLines(facts, host);
-  const used = new Set(["hero.jpg", "site.json", ...site.features.map((x) => path.basename(x.shot))]);
-  for (const f of fs.readdirSync(shots)) if (!used.has(f)) fs.rmSync(path.join(shots, f));
+  const used = ["hero.jpg", "site.json", ...site.features.map((x) => path.basename(x.shot))];
+  fs.mkdirSync(shots, { recursive: true });
+  for (const f of used) fs.copyFileSync(path.join(tmp, f), path.join(shots, f));
+  fs.rmSync(tmp, { recursive: true, force: true });
   const d = draftTheme(facts);
   for (const f of ["index.html", "film.js"]) fs.copyFileSync(path.join(ROOT, "tools", "from_url", f), path.join(hf, f));
   fs.writeFileSync(path.join(hf, "site.js"), `// drafted by reelwright from-url from ${url}: on-screen copy and shots (edit freely)\nwindow.SITE = ${JSON.stringify(site, null, 1)};\n`);
@@ -67,6 +75,7 @@ export async function fromUrl(url, name) {
     title: `${site.name} — from ${host}`, source: url, renderer: "hyperframes", style: d.base, out: `out/${name}.mp4`, fps: 30,
     voice: "en-US-AndrewNeural", rate: "+4%", pitch: "+0Hz", lead: 0.8, tail: 2.4, snapToBeat: true, loudness: -14,
     music: { bpm: 100, duck_db: -10, style: "drive", drop_bar: 2 }, lines }, null, 2) + "\n");
+  if (lines.length < 3) console.warn(`only ${lines.length} lines drafted: the page had little usable text — write the script by hand`);
   return { dir, name, lines };
 }
 
@@ -82,6 +91,7 @@ export async function themeFrom(src, name) {
   if (isUrl) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-"));
     try { facts = await capture(src, tmp, { shots: false }); } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+    src = facts.url;
   } else facts = await imageFacts(src);
   const d = draftTheme(facts);
   if (!isUrl) d.notes.push("fonts: not read from an image — kept from the base theme");

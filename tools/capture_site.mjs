@@ -4,38 +4,53 @@
 // Use the pieces as layers in film.js (a scrolling "browser" shot, cards popping out, etc.).
 // Also writes site.json (the page's facts: text, headings, colours, fonts) and hero.jpg + one shot per h2/h3,
 // which `reelwright from-url` / `theme-from` use through capture(). Only capture sites you own or may use.
-// Read-only: any request other than GET/HEAD gets a fake 200 and never reaches the site.
+// Read-only: any request other than GET/HEAD gets a fake 200 and never reaches the site; service workers, popups,
+// WebSockets and sendBeacon are blocked.
 import fs from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { launch } from "./browser.mjs";
 
 // opts: width; extras (sections, full page, images, as the CLI always did); shots (hero + per-heading jpgs)
 export async function capture(url, out, { width = 1440, extras = false, shots = true } = {}) {
-  fs.mkdirSync(out, { recursive: true });
+  if (!/^(https?|file):\/\//i.test(url)) throw new Error(`${url}: only http(s) and file URLs`);
   const b = await launch();
   try {
-    const p = await b.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 2 });
-    await p.route("**/*", (r) => (["GET", "HEAD"].includes(r.request().method()) ? r.continue()
-      : r.fulfill({ status: 200, contentType: "application/json", body: "{}" })));
-    await p.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+    // read-only, per context so popups and workers are covered too: writes get a fake 200, no service workers,
+    // no WebSockets, no popups (window.open is null; any other new page is closed), no beacons
+    const ctx = await b.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+    await ctx.route("**/*", (r) => {
+      const q = r.request();
+      if (!/^(https?|file|data|blob):/i.test(q.url())) return r.abort();
+      return ["GET", "HEAD"].includes(q.method()) ? r.continue() : r.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+    });
+    await ctx.routeWebSocket(/.*/, (ws) => ws.close());   // never connects to the server
+    await ctx.addInitScript(() => { window.open = () => null; navigator.sendBeacon = () => true; });
+    const p = await ctx.newPage();
+    ctx.on("page", (x) => { if (x !== p) x.close().catch(() => {}); });
+    // networkidle never comes on pages that poll or stream: then take what has loaded after a short wait
+    const resp = await p.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+    if (resp && !resp.ok()) throw new Error(`${url}: HTTP ${resp.status()} — not capturing an error or challenge page`);
+    await p.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => p.waitForTimeout(3000));
     const H = await p.evaluate(() => document.documentElement.scrollHeight);
-    for (let y = 0; y < H; y += 300) { await p.evaluate((y) => scrollTo(0, y), y); await p.waitForTimeout(120); }
-    await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(1000);
+    for (let y = 0; y < H; y += 300) { await p.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), y); await p.waitForTimeout(120); }
+    await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" })); await p.waitForTimeout(1000);
     await p.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 20000 }).catch(() => {});
 
-    const facts = { url, ...(await p.evaluate(readFacts)) };
+    const u = new URL(p.url()); u.search = ""; u.hash = "";   // after redirects, without query or fragment
+    fs.mkdirSync(out, { recursive: true });
+    const facts = { url: u.href, ...(await p.evaluate(readFacts)) };
     if (shots) {
       await p.screenshot({ path: path.join(out, "hero.jpg"), type: "jpeg", quality: 85 });
       for (const [i, h] of facts.headings.entries()) {
         if (h.level < 2 || i > 24) continue;
         const ph = await p.evaluate(() => document.documentElement.scrollHeight);
         const y = Math.max(0, Math.min(h.y - 48, ph - 900));
-        await p.evaluate((y) => scrollTo(0, y), y); await p.waitForTimeout(300);
+        await p.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), y); await p.waitForTimeout(300);
         h.shot = `shot${String(i).padStart(2, "0")}.jpg`;
         await p.screenshot({ path: path.join(out, h.shot), type: "jpeg", quality: 85 });
       }
-      await p.evaluate(() => scrollTo(0, 0));
+      await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
     }
     fs.writeFileSync(path.join(out, "site.json"), JSON.stringify(facts, null, 1));
     if (extras) await saveExtras(p, out);
@@ -57,7 +72,7 @@ async function saveExtras(p, out) {
     await s.scrollIntoViewIfNeeded(); await p.waitForTimeout(400);
     await s.screenshot({ path: path.join(out, `section${String(i).padStart(2, "0")}.png`) });
   }
-  await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(600);
+  await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" })); await p.waitForTimeout(600);
   await p.screenshot({ path: path.join(out, "full.png"), fullPage: true });
   console.log(`${n} sections, ${srcs.length} images, full.png → ${out}`);
   console.log("check full.png: some sites repeat content in fullPage shots (sticky/virtual layouts) — crop if so");
@@ -79,14 +94,14 @@ function readFacts() {
   // background: what's on top at grid points over the first two screens
   const bgs = new Map();
   for (const sy of [0, innerHeight]) {
-    scrollTo(0, sy);
+    scrollTo({ top: sy, behavior: "instant" });
     for (let gx = 0.5; gx < 24; gx++) for (let gy = 0.5; gy < 14; gy++) {
       const hit = document.elementsFromPoint(gx / 24 * innerWidth, gy / 14 * innerHeight)
         .map((e) => rgba(getComputedStyle(e).backgroundColor)).find((c) => c && c[3] >= 0.5);
       tally(bgs, hex(hit || [255, 255, 255]), 1);   // nothing opaque, not even <html>: the browser's white
     }
   }
-  scrollTo(0, 0);
+  scrollTo({ top: 0, behavior: "instant" });
 
   // text colour and fonts weighted by text length; accent from saturated buttons/links/text
   const inks = new Map(), accents = new Map(), fonts = { display: new Map(), text: new Map(), mono: new Map() };
@@ -129,7 +144,8 @@ function readFacts() {
   };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+const same = (a, b) => { const [x, y] = [a, b].map((f) => fs.realpathSync(f)); return process.platform === "win32" ? x.toLowerCase() === y.toLowerCase() : x === y; };
+if (process.argv[1] && fs.existsSync(process.argv[1]) && same(process.argv[1], fileURLToPath(import.meta.url))) {
   const [url, out, width = "1440"] = process.argv.slice(2);
   if (!url || !out) { console.log("usage: node tools/capture_site.mjs <url> <out_dir> [width]   (only sites you own or may use)"); process.exit(1); }
   await capture(url, out, { width: Number(width), extras: true });

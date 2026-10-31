@@ -46,11 +46,12 @@ const NEAR = [
   [/work sans|karla|rubik|archivo(?! black)|chivo/i, "Work Sans"],
   [/black|heavy|impact|anton|bebas|oswald|league gothic/i, "Archivo Black"],
 ];
+const BUNDLED = fs.readdirSync(FONTS, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 const weights = (fam) => fs.readdirSync(path.join(FONTS, slug(fam))).filter((f) => f.endsWith(".woff2")).map((f) => +f.slice(0, -6));
 export function mapFont(stack, role) {
   const fams = stack.split(",").map((s) => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
-  const first = fams[0] || "";
-  if (first && fs.existsSync(path.join(FONTS, slug(first)))) return { family: first, why: "bundled" };
+  const first = /^[\w ]+$/.test(fams[0] || "") ? fams[0] : "";   // page-supplied: plain names only
+  if (first && BUNDLED.includes(slug(first))) return { family: first, why: "bundled" };
   const hit = NEAR.find(([re]) => re.test(first));
   if (hit) return { family: hit[1], why: "nearest bundled" };
   const g = fams.includes("monospace") ? "JetBrains Mono" : fams.includes("serif") ? (role === "display" ? "Playfair Display" : "Source Serif 4")
@@ -73,7 +74,8 @@ export function draftTheme(facts) {
   if (accs.length) {
     const accent = accs[0];
     const a2 = accs.find((h) => Math.min(Math.abs(hue(h) - hue(accent)), 360 - Math.abs(hue(h) - hue(accent))) > 25) || rotate(accent, 40);
-    Object.assign(tokens, { accent, "accent-2": a2, "on-accent": best(accent, bg, ink) });
+    const on = best(accent, bg, ink);
+    Object.assign(tokens, { accent, "accent-2": a2, "on-accent": ratio(on, accent) >= 4.5 ? on : best(accent, "#111111", "#ffffff") });
   } else notes.push("no saturated colour found: accent kept from the base theme");
   const sayInk = ratio(ink, surface) >= 4.5 ? ink : best(surface, "#111111", "#ffffff");
   Object.assign(tokens, { surface, "sub-bg": surface, "sub-ink": hex(rgb(sayInk)) + "73",
@@ -123,12 +125,13 @@ export async function imageFacts(file) {
   } finally { await b.close(); }
 }
 
+const cmt = (x) => String(x).replace(/\*\//g, "* /");   // page text inside a CSS comment can't close it
 export function themeCss(name, source, d) {
   const v = Object.entries(d.tokens).map(([k, x]) => `--kit-${k}: ${x};`);
   for (const [role, fam] of Object.entries(d.fonts))
     v.push(`--kit-font-${role}: "${fam}", ${role === "mono" ? "monospace" : /serif|garamond|playfair/i.test(fam) ? "serif" : "sans-serif"};`);
   const base = fs.readFileSync(path.join(THEMES, d.base + ".css"), "utf8");
-  return `/* ${name}: drafted by \`reelwright theme-from ${source}\` on the ${d.base} theme — a starting point, edit freely.\n` +
-    d.notes.map((n) => `   ${n}\n`).join("") + `   Below: the ${d.base} theme as it was, then the drafted tokens, which win. */\n` +
-    base + `\n/* drafted from ${source} */\n:root {\n  --kit-theme: "${name}";\n  ${v.join("\n  ")}\n}\n`;
+  return `/* ${name}: drafted by \`reelwright theme-from ${cmt(source)}\` on the ${d.base} theme — a starting point, edit freely.\n` +
+    d.notes.map((n) => `   ${cmt(n)}\n`).join("") + `   Below: the ${d.base} theme as it was, then the drafted tokens, which win. */\n` +
+    base + `\n/* drafted from ${cmt(source)} */\n:root {\n  --kit-theme: "${name}";\n  ${v.join("\n  ")}\n}\n`;
 }

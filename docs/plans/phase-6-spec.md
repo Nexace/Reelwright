@@ -67,6 +67,18 @@ matter once a take clicks), reading fonts from images (OCR), checking the site's
 - Ink is the highest-contrast of the four commonest readable (≥ 4.5) text colours, not simply the commonest: on
   vite.dev grey body copy outweighs the white headings, and the theme's `ink` is the heading colour (`muted` gets the
   body grey). Images use the same rule over their pixel histogram.
+- Read-only is per browser context, not per page (review fix): writes from popups and workers get the fake 200 too,
+  service workers are blocked, WebSockets are closed before they connect, `window.open` returns null and any other
+  new page is closed at once, `navigator.sendBeacon` is a no-op, and only http(s)/file URLs are loaded. Checked with
+  a local server that logs methods (`scratch/probe/`): an unprotected page sent POST/PUT from a service worker, a
+  popup form, a `_blank` form, sendBeacon, fetch and XHR plus a WebSocket upgrade; `from-url` and `theme-from` on
+  the same page logged only `GET /`.
+- The capture goes to a temp dir; the project is created only after it succeeds. An HTTP error (404, 403, a 503
+  challenge) stops the capture; `file://` has no response status. Pages that never reach network idle are captured
+  after 20 s plus 3 s. The final URL after redirects, without query or fragment, is what the project records.
+  Fewer than 3 drafted lines prints a warning.
+- Font names from the page are used only if they're plain (`[\w ]+`) and a folder in `fonts/`; page text written
+  into a theme's comments can't close them. `on-accent` is checked for 4.5 contrast on the accent.
 - Saturation is chroma ((max − min) / 255), so near-black text like #010000 doesn't count as an accent.
 - `file://` pages work too (`from-url`, `theme-from`), so CI drafts a project and a theme from
   `projects/website/site/` offline on all three OSes. The host then reads "local-page".

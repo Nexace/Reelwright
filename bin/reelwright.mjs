@@ -16,6 +16,12 @@
 //   qa               blips and blank frames, then gates (loudness, captions, flash, illustrative, seekable): FAIL exits 1
 //   clean            delete frames/ stills/ and intermediate audio (keeps the mp4)
 //   themes           list the styles in themes/ (use with "style" in project.json or --style <name>)
+//   from-url <url> [name] [--yes]   capture a public page → projects/<name>/ (HyperFrames): drafts the voiceover
+//                    from the page's text by rules (no AI), prints it and stops; edit project.json, then `all <name>`.
+//                    --yes builds straight away. Read-only: never submits anything on the site.
+//   theme-from <url|image> [name]   draft themes/<name>.css from a page's colours and fonts (nearest bundled OFL
+//                    font when the real one isn't bundled) or an image's colours; use with "style": "<name>"
+//                    Only capture sites you own or have the right to use.
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
 //   film             sched → info → mix → frames → encode   (after editing film.js)
@@ -47,7 +53,7 @@ if (formats && (!formats.length || formats.some((f) => !SIZES[f]))) {
   console.log(`--formats takes a comma list of ${Object.keys(SIZES).join(", ")}`); process.exit(1);
 }
 let proj = "projects/example";
-if (cmd !== "new" && args.length) {
+if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
   if (isDir(a)) { proj = a; args.shift(); }
   else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }
@@ -99,6 +105,27 @@ const C = {
       `vendor/hyperframes/LICENSE and VENDORED.md). Drive it from render(t) via KIT.block("${name}"). -->\n` +
       fs.readFileSync(path.join(dir, files[0]), "utf8"));
     console.log(`${dest} — ${item.description || item.title}`);
+  },
+  async "from-url"() {
+    const y = args.indexOf("--yes"), yes = y >= 0 && !!args.splice(y, 1);
+    const [url, name] = args;
+    if (!/^(https?|file):\/\//i.test(url || "")) {
+      console.log("usage: reelwright from-url <url> [name] [--yes]   (only capture sites you own or have the right to use)"); process.exit(1);
+    }
+    const { fromUrl } = await import("../tools/from_url.mjs");
+    const r = await fromUrl(url, name).catch((e) => { console.error(e.message); process.exit(1); });
+    console.log(`\ndrafted ${path.relative(ROOT, r.dir)} — the voiceover:\n`);
+    for (const l of r.lines) console.log(`  ${l.id.padEnd(5)} ${l.text}`);
+    proj = path.relative(ROOT, r.dir);
+    if (!yes) return console.log(`\nedit the lines in ${proj}/project.json (and on-screen copy in hf/site.js), then: reelwright all ${r.name}`);
+    C.all();
+  },
+  async "theme-from"() {
+    const [src, name] = args;
+    if (!src) { console.log("usage: reelwright theme-from <url|image> [name]   (only capture sites you own or have the right to use)"); process.exit(1); }
+    const { themeFrom } = await import("../tools/from_url.mjs");
+    const r = await themeFrom(src, name).catch((e) => { console.error(e.message); process.exit(1); });
+    console.log(`${path.relative(ROOT, r.out)} (on ${r.d.base})\n  ${r.d.notes.join("\n  ")}\nuse it: "style": "${r.name}" in project.json, or --style ${r.name}`);
   },
   record() {
     const f = path.join(proj, "record.mjs");

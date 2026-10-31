@@ -70,18 +70,23 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     } finally { await browser.close(); }
     console.log(`frames ${from}–${to} done in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   } else if (mode === "encode") {
-    const outFile = path.join(DIR, P.out || "out/film.mp4");
-    fs.mkdirSync(path.dirname(outFile), { recursive: true });
-    const audio = path.join(DIR, "mix.wav");
-    const args = ["-y", "-v", "error", "-framerate", String(FPS), "-start_number", "0", "-i", path.join(DIR, "frames/f%05d.jpg")];
-    if (fs.existsSync(audio)) args.push("-i", audio); else console.log("no mix.wav — encoding silent video");
-    args.push("-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-profile:v", "high", "-movflags", "+faststart");
-    if (fs.existsSync(audio)) args.push("-c:a", "aac", "-b:a", "256k", "-shortest");
-    args.push(outFile);
-    const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
-    if (r.status !== 0) process.exit(r.status || 1);
-    console.log("→", outFile);
+    encode(DIR, P, FPS, "frames/f%05d.jpg", 0);
   } else {
     console.log("unknown mode", mode); process.exit(1);
   }
+}
+
+// frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC). Shared with the other renderers.
+export function encode(DIR, P, FPS, pattern, start) {
+  const outFile = path.join(DIR, P.out || "out/film.mp4");
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
+  const audio = path.join(DIR, "mix.wav");
+  const args = ["-y", "-v", "error", "-framerate", String(FPS), "-start_number", String(start), "-i", path.join(DIR, pattern)];
+  if (fs.existsSync(audio)) args.push("-i", audio); else console.log("no mix.wav — encoding silent video");
+  args.push("-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-profile:v", "high", "-movflags", "+faststart");
+  if (fs.existsSync(audio)) args.push("-c:a", "aac", "-b:a", "256k", "-shortest");
+  args.push(outFile);
+  const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
+  if (r.status !== 0) process.exit(r.status || 1);
+  console.log("→", outFile);
 }

@@ -32,7 +32,7 @@ jobs:
       - name: Syntax checks
         run: |
           for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
-          node --check tools/engine.js projects/example/film/film.js
+          node --check tools/engine.js projects/example/film/film.js projects/example-hf/hf/film.js
           python -m py_compile tools/*.py
       - name: Build the example film end to end
         env: { PAGES: 2, PYTHON: python }
@@ -45,3 +45,24 @@ jobs:
         with:
           name: example-film-${{ matrix.os }}
           path: projects/example/out/*.mp4
+      - name: Build the HyperFrames example
+        env: { PAGES: 2, PYTHON: python }
+        run: node bin/reelwright.mjs all example-hf
+      - name: "HyperFrames: same frames on a rebuild (within raster noise), duration matches mix.wav"
+        env: { PAGES: 2, PYTHON: python }
+        run: |
+          cp -r projects/example-hf/frames frames-1
+          node bin/reelwright.mjs frames example-hf
+          python .github/framediff.py frames-1 projects/example-hf/frames frame-diff | tee -a "$GITHUB_STEP_SUMMARY"
+          v=$(ffprobe -v error -select_streams v -show_entries stream=duration -of csv=p=0 projects/example-hf/out/example-hf.mp4)
+          m=$(ffprobe -v error -show_entries format=duration -of csv=p=0 projects/example-hf/mix.wav)
+          node -e 'const [v,m]=process.argv.slice(1).map(Number);console.log(`video ${v}s, mix.wav ${m}s`);process.exit(Math.abs(v-m)<=1/30?0:1)' "$v" "$m" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: frame-diff-${{ matrix.os }}
+          path: frame-diff/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: example-hf-film-${{ matrix.os }}
+          path: projects/example-hf/out/*.mp4

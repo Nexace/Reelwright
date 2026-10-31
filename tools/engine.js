@@ -229,6 +229,18 @@
     };
   };
 
+  // ── catalog component: K.block('directional-wipe') mounts blocks/<name>.html (reelwright add) → its root ──
+  // Built once at load like any element; drive its CSS custom properties from render(t).
+  K.block = (name, parent = K.stage) => {
+    const x = new XMLHttpRequest(); x.open('GET', 'blocks/' + name + '.html', false); x.send();
+    if (!x.responseText) throw new Error('no block ' + name + ' — run: reelwright add ' + name);
+    const box = K.el('div', 'kit-block', parent, x.responseText);
+    for (const old of box.querySelectorAll('script')) {     // innerHTML scripts don't run; re-create them
+      const s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s);
+    }
+    return box.querySelector('[class^="hf-catalog-"]') || box;
+  };
+
   // ── number that counts up: K.count(el, to, t0, t1, fmt) → .set(t) ──
   K.count = (el, to, t0, t1, fmt = (v) => Math.round(v).toLocaleString('en-US'), from = 0) => ({
     set(t) { el.textContent = fmt(K.lerp(from, to, K.E.outExpo(K.seg(t, t0, t1)))); },
@@ -249,6 +261,11 @@
       while (pending.length) await pending.shift();
     };
     window.READY = document.fonts.ready.then(() => window.render(0)).then(() => true);
+    // HyperFrames (renderer "hyperframes") seeks the root composition's timeline; ours is render(t).
+    // shortcut: seek doesn't wait for K.img decodes, fine while HF films swap no images per frame
+    let now = 0;
+    window.__timelines = window.__timelines || {};
+    window.__timelines.main = { duration: () => window.FILM.DUR, time: () => now, seek: (t) => { now = t; render(t); }, pause() {}, play() {} };
     // open film/index.html#12.5 in a browser to preview a moment; #play to play in real time (approximate)
     const h = location.hash.slice(1);
     if (h === 'play') { const t0 = performance.now(); const loop = () => { render((performance.now() - t0) / 1000); requestAnimationFrame(loop); }; loop(); }

@@ -1,6 +1,6 @@
 # python3 tools/sched.py <project>
 # Places every VO line on the film timeline (gap before each line, optional snap to the music's beat)
-# and writes <project>/film/data.js = window.PROJECT + window.VO (absolute word times) + window.MUSIC (beat grid).
+# and writes <project>/film/data.js (hf/kit-data.js for renderer "hyperframes") = window.PROJECT + window.VO (absolute word times) + window.MUSIC (beat grid).
 import json, math, os, sys
 
 proj = sys.argv[1]
@@ -40,7 +40,8 @@ speech_end = t
 music.update({k: M[k] for k in ("drop_bar", "end_bar", "style") if k in M})
 data = {"PROJECT": {k: P[k] for k in ("title", "fps", "lead", "tail", "width", "height") if k in P}, "VO": vo, "MUSIC": music}
 data["PROJECT"]["speechEnd"] = round(speech_end, 3)
-with open(os.path.join(proj, "film/data.js"), "w") as f:
+out = "hf/kit-data.js" if P.get("renderer") == "hyperframes" else "film/data.js"
+with open(os.path.join(proj, out), "w") as f:
     for k, v in data.items():
         f.write(f"window.{k}={json.dumps(v)};\n")
 for lid, v in vo.items():

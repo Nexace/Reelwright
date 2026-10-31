@@ -1,13 +1,13 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phase 1 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–2 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
 
 ## Progress
 
 | # | Phase | Status |
 |---|---|---|
 | 1 | Foundation: HyperFrames spike, swappable renderer, cross-platform command line and CI | ☑ Done |
-| 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☐ Not started |
+| 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☑ Done |
 | 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ☐ Not started |
 | 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☐ Not started |
 | 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☐ Not started |
@@ -81,7 +81,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 2: HyperFrames inside ☐
+## Phase 2: HyperFrames inside ☑
 
 **Branch:** `phase-2-hyperframes` · **Needs:** Phase 1
 
@@ -94,7 +94,7 @@ Start prompt template (fill in N and the name):
 4. `projects/example-hf/`: title card, captions timed to VO lines, a beat-pulsing element. `reelwright new <name> --renderer hyperframes` copies it.
 5. Catalog blocks: an `add <block>` helper, and use one transition and one chart block in the example (check each block's license first).
 
-**Exit:** `example-hf` builds on macOS, Windows and Linux CI; two builds give identical frames; output duration matches `mix.wav` within one frame; pvk films still build unchanged.
+**Exit:** `example-hf` builds on macOS, Windows and Linux CI; two builds give the same frames (byte-identical on macOS; on Linux and Windows within Chromium's software-raster noise, checked by `.github/framediff.py`: no pixel off by more than 8/255, at most 500 changed pixels per frame); output duration matches `mix.wav` within one frame; pvk films still build unchanged.
 
 ---
 

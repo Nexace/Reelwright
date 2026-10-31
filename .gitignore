@@ -21,3 +21,5 @@ projects/*/film/site.js
 
 # graphify map (local, rebuild with /graphify --update)
 graphify-out/
+projects/*/hf/kit/
+projects/*/hf/kit-data.js

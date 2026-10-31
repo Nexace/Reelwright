@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- Layouts test film: one scene per KIT.layout (tools/layouts.js), all timings from hf/kit-data.js (tools/sched.py).
+     Preview in a browser: open hf/index.html#4.2 (a moment) or #play (rough real-time playback). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  /* the split scene's mock product UI; colors from the theme's --kit-* tokens */
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .mock { position: absolute; inset: 0; display: flex; }
+  .mock-side { width: 24%; padding: calc(32 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(20 * var(--kit-u));
+    background: color-mix(in srgb, var(--kit-ink) 5%, transparent); }
+  .mock-side i, .mock-h, .mock-kpis i { display: block; border-radius: calc(8 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 14%, transparent); }
+  .mock-side i { height: calc(16 * var(--kit-u)); }
+  .mock-side i:first-child { background: var(--kit-accent); width: 60%; margin-bottom: calc(16 * var(--kit-u)); }
+  .mock-main { flex: 1; padding: calc(40 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(28 * var(--kit-u)); }
+  .mock-h { height: calc(30 * var(--kit-u)); width: 42%; background: color-mix(in srgb, var(--kit-ink) 70%, transparent); }
+  .mock-kpis { display: flex; gap: calc(20 * var(--kit-u)); }
+  .mock-kpis i { flex: 1; height: calc(96 * var(--kit-u)); }
+  .mock-chart { flex: 1; display: flex; align-items: flex-end; gap: calc(16 * var(--kit-u)); }
+  .mock-chart i { flex: 1; display: block; background: var(--kit-accent); border-radius: calc(4 * var(--kit-u)); transform-origin: bottom; }
+  .mock-chart i:nth-child(odd) { background: var(--kit-accent-2); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>     <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>   <!-- copied from tools/ by the renderer -->
+<script src="kit/layouts.js"></script>  <!-- KIT.layout.* -->
+<script src="film.js"></script>
+</body>
+</html>

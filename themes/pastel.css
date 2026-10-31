@@ -1,0 +1,15 @@
+/* pastel: soft and friendly. Lavender to peach wash, rounded type, big radius, soft shadows; gentle motion;
+   captions in white pills. */
+:root {
+  --kit-theme: "pastel";
+  --kit-bg: #f6efff; --kit-bg-image: linear-gradient(135deg, #efe6ff 0%, #fdf1f6 50%, #ffeedd 100%);
+  --kit-ink: #3b3355; --kit-muted: #9a91b5;
+  --kit-accent: #b49cff; --kit-accent-2: #ffb4a2; --kit-on-accent: #ffffff; --kit-surface: #ffffff;
+  --kit-font-display: "Quicksand", sans-serif; --kit-font-text: "Nunito", sans-serif;
+  --kit-font-mono: "Nunito", sans-serif; --kit-label-font: "Nunito", sans-serif;
+  --kit-display-weight: 700; --kit-display-tracking: -0.02em; --kit-display-case: none;
+  --kit-radius: 36px; --kit-border: none; --kit-shadow: 0 30px 80px rgba(120,90,200,.18); --kit-space: 32px;
+  --kit-sub-bg: rgba(255,255,255,.85); --kit-sub-ink: rgba(59,51,85,.45); --kit-sub-said: #7a5cff;
+  --kit-sub-font: 700 32px var(--kit-font-text); --kit-sub-radius: 999px; --kit-sub-deco: none;
+  --kit-ease: inOut; --kit-tempo: 1.15;
+}

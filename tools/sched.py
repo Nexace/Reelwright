@@ -5,6 +5,8 @@ import json, math, os, sys
 
 proj = sys.argv[1]
 P = json.load(open(os.path.join(proj, "project.json")))
+if os.environ.get("REELWRIGHT_SIZE"):   # `reelwright ... --formats`: this format's frame size, e.g. 1080x1920
+    P["width"], P["height"] = map(int, os.environ["REELWRIGHT_SIZE"].split("x"))
 lp = os.path.join(proj, "vo/lines.json")
 L = json.load(open(lp)) if os.path.exists(lp) else {}
 M = P.get("music", {})

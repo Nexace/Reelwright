@@ -33,15 +33,27 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
   const HF = path.join(DIR, "hf");
   // the kit travels with the composition: HyperFrames serves only the composition folder
   fs.mkdirSync(path.join(HF, "kit"), { recursive: true });
-  for (const f of ["engine.js", "kit.css"]) fs.copyFileSync(new URL(f, TOOLS), path.join(HF, "kit", f));
+  for (const f of ["engine.js", "kit.css", "layouts.js"]) fs.copyFileSync(new URL(f, TOOLS), path.join(HF, "kit", f));
   Object.assign(process.env, { DO_NOT_TRACK: "1", HYPERFRAMES_NO_TELEMETRY: "1" });
   process.env.PRODUCER_BROWSER_GPU_MODE ||= "software";
   process.env.HYPERFRAMES_BROWSER_PATH ||= headlessShell();
 
   async function hfRender(out, fps) {
+    fs.rmSync(out, { recursive: true, force: true });
+    // The producer takes the frame size from index.html's static root data-width/height, not the live DOM, so
+    // stamp P's size (project.json or --formats) in for the render and put the file back after, even on exit.
+    const idx = path.join(HF, "index.html"), src = fs.readFileSync(idx, "utf8");
+    const sized = src.replace(/<[^>]*data-composition-id[^>]*>/, (tag) => tag
+      .replace(/data-width="\d+"/, `data-width="${P.width || 1920}"`).replace(/data-height="\d+"/, `data-height="${P.height || 1080}"`));
+    const restore = () => fs.writeFileSync(idx, src);
+    const interrupted = () => { restore(); process.exit(130); };
+    if (sized !== src) { fs.writeFileSync(idx, sized); process.once("exit", restore); process.once("SIGINT", interrupted); }
+    try { return await produce(out, fps); }
+    finally { if (sized !== src) { restore(); process.off("exit", restore); process.off("SIGINT", interrupted); } }
+  }
+  async function produce(out, fps) {
     const { createRenderRequest, createRenderJob, renderConfigFromRequest, executeRenderJob, createConsoleLogger } =
       await import("@hyperframes/producer");
-    fs.rmSync(out, { recursive: true, force: true });
     const req = createRenderRequest({ projectDir: HF, outputPath: out,
       options: { fps: { num: fps, den: 1 }, format: "png-sequence", quality: "high", workers: Number(process.env.PAGES || 4) } });
     const job = createRenderJob(renderConfigFromRequest(req, { logger: createConsoleLogger("warn") }));

@@ -1,0 +1,16 @@
+/* retro: 1970s print. Warm cream, burnt orange and brown sun stripes, swashy display; smooth easing;
+   plain captions, spoken word in orange. */
+:root {
+  --kit-theme: "retro";
+  --kit-bg: #f4e4c1;
+  --kit-bg-image: linear-gradient(to top, #b5452a 0 26px, transparent 26px 40px, #e2711d 40px 62px, transparent 62px 76px, #f6a04d 76px 94px, transparent 94px);
+  --kit-ink: #3d2416; --kit-muted: #8c6a4f;
+  --kit-accent: #e2711d; --kit-accent-2: #b5452a; --kit-on-accent: #f4e4c1; --kit-surface: #fbf1dc;
+  --kit-font-display: "Shrikhand", cursive; --kit-font-text: "Work Sans", sans-serif;
+  --kit-font-mono: "Work Sans", sans-serif; --kit-label-font: "Work Sans", sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: 0; --kit-display-case: none;
+  --kit-radius: 18px; --kit-border: 4px solid #3d2416; --kit-shadow: 8px 8px 0 #e2711d; --kit-space: 28px;
+  --kit-sub-bg: #3d2416; --kit-sub-ink: rgba(244,228,193,.5); --kit-sub-said: #f6a04d;
+  --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 999px; --kit-sub-deco: none;
+  --kit-ease: inOut; --kit-tempo: 1.1;
+}

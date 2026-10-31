@@ -1,0 +1,16 @@
+/* clean: modern SaaS. White to ice-blue, confident blue accent, one geometric sans; quick ease-out;
+   captions in a white card with a soft shadow, spoken word in blue. */
+:root {
+  --kit-theme: "clean";
+  --kit-bg: #f7f9fc; --kit-bg-image: linear-gradient(180deg, #ffffff 0%, #eef3fb 100%);
+  --kit-ink: #0f172a; --kit-muted: #64748b;
+  --kit-accent: #2563eb; --kit-accent-2: #14b8a6; --kit-on-accent: #ffffff; --kit-surface: #ffffff;
+  --kit-font-display: "Manrope", sans-serif; --kit-font-text: "Manrope", sans-serif;
+  --kit-font-mono: "Manrope", sans-serif; --kit-label-font: "Manrope", sans-serif;
+  --kit-display-weight: 800; --kit-display-tracking: -0.035em; --kit-display-case: none;
+  --kit-radius: 20px; --kit-border: 1px solid #e2e8f0; --kit-shadow: 0 24px 60px rgba(15,23,42,.10); --kit-space: 28px;
+  --kit-sub-bg: #ffffff; --kit-sub-ink: rgba(15,23,42,.4); --kit-sub-said: #2563eb;
+  --kit-sub-font: 700 30px var(--kit-font-text); --kit-sub-radius: 16px; --kit-sub-deco: none;
+  --kit-ease: out; --kit-tempo: 1;
+}
+.kit-subrow { box-shadow: 0 12px 30px rgba(15,23,42,.10); }

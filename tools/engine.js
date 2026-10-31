@@ -74,6 +74,31 @@
   K.H_ = (window.PROJECT && window.PROJECT.height) || 1080;
   K.stage = document.getElementById('stage');
   for (const e of [document.documentElement, document.body]) { e.style.width = K.W_ + 'px'; e.style.height = K.H_ + 'px'; }
+
+  // ── format: one film.js for 16x9, 9x16 and 1x1 ───────────────────────────
+  // KIT.fmt names the frame's shape; KIT.safe is the title-safe box {x, y, w, h} to lay content out in
+  // (vertical keeps clear of the top and of social-app UI at the bottom); KIT.u = short side / 1080, also the
+  // CSS unit --kit-u, so `calc(64 * var(--kit-u))` is 64px at 1080p in every format.
+  K.fmt = K.W_ > K.H_ ? '16x9' : K.W_ < K.H_ ? '9x16' : '1x1';
+  K.u = Math.min(K.W_, K.H_) / 1080;
+  {
+    const [mx, top, bottom] = { '16x9': [0.06, 0.08, 0.08], '9x16': [0.08, 0.12, 0.2], '1x1': [0.07, 0.07, 0.07] }[K.fmt];
+    const x = Math.round(K.W_ * mx), y = Math.round(K.H_ * top);
+    K.safe = { x, y, w: K.W_ - 2 * x, h: K.H_ - y - Math.round(K.H_ * bottom) };
+    const r = document.documentElement.style;
+    r.setProperty('--kit-u', K.u + 'px');
+    for (const k in K.safe) r.setProperty('--kit-safe-' + k, K.safe[k] + 'px');
+  }
+
+  // ── theme (kit.css tokens, set by the generated theme.css) ─────────────────
+  const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue('--kit-' + n).trim();
+  K.token = tok;
+  K.theme = tok('theme').replace(/"/g, '');
+  K.ease = K.E[tok('ease')] || K.E.out;            // the theme's default easing
+  K.dur = (s) => s * (Number(tok('tempo')) || 1);  // scale a duration by the theme's tempo
+  // load every declared font now (not on first use), so no frame renders with a fallback face;
+  // document.fonts.ready, which READY and HyperFrames wait on, then covers them
+  for (const f of document.fonts) f.load().catch(() => console.error('font failed:', f.family, f.weight));
   K.el = (tag, cls, parent = K.stage, html = '') => {
     const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html;
     parent.appendChild(e); return e;

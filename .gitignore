@@ -6,6 +6,8 @@ package-lock.json
 projects/*/clips/
 projects/*/frames/
 projects/*/stills/
+projects/*/frames-*/
+projects/*/stills-*/
 projects/*/vo/
 projects/*/out/
 projects/*/mix.wav
@@ -23,3 +25,6 @@ projects/*/film/site.js
 graphify-out/
 projects/*/hf/kit/
 projects/*/hf/kit-data.js
+projects/*/film/theme.css
+projects/*/hf/theme.css
+scratch/

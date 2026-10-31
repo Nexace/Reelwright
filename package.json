@@ -3,9 +3,23 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@hyperframes/core": "file:vendor/hyperframes/core",
+    "@hyperframes/engine": "file:vendor/hyperframes/engine",
+    "@hyperframes/lint": "file:vendor/hyperframes/lint",
+    "@hyperframes/parsers": "file:vendor/hyperframes/parsers",
+    "@hyperframes/producer": "file:vendor/hyperframes/producer",
+    "@hyperframes/studio-server": "file:vendor/hyperframes/studio-server",
     "playwright": "^1.56.0"
   },
   "bin": {
     "reelwright": "bin/reelwright.mjs"
+  },
+  "overrides": {
+    "@hyperframes/producer": "$@hyperframes/producer",
+    "@hyperframes/engine": "$@hyperframes/engine",
+    "@hyperframes/core": "$@hyperframes/core",
+    "@hyperframes/parsers": "$@hyperframes/parsers",
+    "@hyperframes/lint": "$@hyperframes/lint",
+    "@hyperframes/studio-server": "$@hyperframes/studio-server"
   }
 }

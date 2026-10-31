@@ -7,8 +7,8 @@
 //
 // Renderer contract: project.json "renderer" (default "pvk") picks tools/renderers/<name>.mjs, whose default
 // export is `async (projectDir, projectJson, mode, extraArgs)` and implements the four modes above with the
-// same outputs: info → timeline.json {DUR, cues, VO}, stills → stills/*.jpg, frames → frames/f%05d.jpg from 0,
-// encode → the mp4 at "out" (frames + mix.wav). Everything else in the pipeline only reads those files.
+// same outputs: info → timeline.json {DUR, cues, VO}, stills → stills/*.jpg, frames → frames/ as .jpg or .png in
+// time order (pvk f%05d.jpg, hyperframes frame_%06d.png), encode → the mp4 at "out" (frames + mix.wav). Everything else in the pipeline only reads those files.
 import fs from "node:fs";
 import path from "node:path";
 

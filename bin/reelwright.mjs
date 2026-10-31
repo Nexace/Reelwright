@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // reelwright <command> [project]   (project defaults to projects/example)
 //
-//   new <name>       copy the example into projects/<name> to start your own film
+//   new <name> [--renderer hyperframes]   copy the example (or example-hf) into projects/<name>
+//   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)
 //   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
 //   vo               voiceover from project.json lines (edge-tts) → vo/
 //   beatgrid         fit the beat grid of music/track.mp3 → music/grid.json (only with a real track)
@@ -51,16 +52,37 @@ function hasTrack() { const f = project().music?.file; return !!f && fs.existsSy
 
 const C = {
   new() {
+    const r = args.indexOf("--renderer");
+    const hf = r >= 0 && args.splice(r, 2)[1] === "hyperframes";
     const name = args[0];
-    if (!name) { console.log("usage: reelwright new <name>"); process.exit(1); }
+    if (!name) { console.log("usage: reelwright new <name> [--renderer hyperframes]"); process.exit(1); }
     const dest = path.join("projects", name);
     if (fs.existsSync(dest)) { console.log(`${dest} already exists`); process.exit(1); }
-    const src = path.join("projects", "example");
+    const src = path.join("projects", hf ? "example-hf" : "example");
     const skip = new Set(["clips", "frames", "stills", "vo", "out", "mix.wav", "timeline.json",
-      "music/bed.wav", "music/grid.json", "film/data.js", "film/clip.js"]);
+      "music/bed.wav", "music/grid.json", "film/data.js", "film/clip.js", "hf/kit", "hf/kit-data.js"]);
     fs.cpSync(src, dest, { recursive: true, filter: (s) => !skip.has(path.relative(src, s).split(path.sep).join("/")) });
-    console.log(`created ${dest} — edit project.json (script), record.mjs (the take), film/film.js (the edit)`);
+    console.log(hf ? `created ${dest} — edit project.json (script) and hf/film.js (the edit)`
+      : `created ${dest} — edit project.json (script), record.mjs (the take), film/film.js (the edit)`);
     console.log(`then: reelwright all ${name}`);
+  },
+  add() {
+    const name = args[0];
+    const dir = path.join("vendor", "hyperframes", "registry", "components", name || "");
+    if (!name || !/^[\w-]+$/.test(name) || !isDir(dir)) {
+      console.log("usage: reelwright add [project] <component>   (list: vendor/hyperframes/registry/components/)"); process.exit(1);
+    }
+    const item = JSON.parse(fs.readFileSync(path.join(dir, "registry-item.json"), "utf8"));
+    const files = (item.files || []).map((f) => f.path);
+    if (files.length !== 1 || !files[0].endsWith(".html")) {
+      console.log(`${name} needs ${files.join(", ")} — only single-file components are vendored`); process.exit(1);
+    }
+    const dest = path.join(proj, "hf", "blocks", name + ".html");
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, `<!-- ${name} from the HyperFrames catalog (heygen-com/hyperframes, Apache-2.0, see ` +
+      `vendor/hyperframes/LICENSE and VENDORED.md). Drive it from render(t) via KIT.block("${name}"). -->\n` +
+      fs.readFileSync(path.join(dir, files[0]), "utf8"));
+    console.log(`${dest} — ${item.description || item.title}`);
   },
   record() {
     const f = path.join(proj, "record.mjs");

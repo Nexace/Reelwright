@@ -1,13 +1,13 @@
 # python3 tools/qa.py <project>
 # Checks rendered frames: biggest frame-to-frame jumps (should sit on cuts / beats, not mid-shot) and
 # blank or near-uniform frames (a missing image, a scene that faded to nothing). Then look at the times it prints.
-import os, sys
+import json, os, sys
 from PIL import Image, ImageChops, ImageStat
 
 proj = sys.argv[1]
-fps = int(os.environ.get("FPS", 60))
+fps = int(os.environ.get("FPS") or json.load(open(os.path.join(proj, "project.json"))).get("fps", 60))
 D = os.path.join(proj, "frames")
-files = sorted(f for f in os.listdir(D) if f.endswith(".jpg"))
+files = sorted(f for f in os.listdir(D) if f.endswith((".jpg", ".png")))   # pvk: f%05d.jpg, hyperframes: frame_%06d.png
 prev, diffs, flat = None, [], []
 for i, f in enumerate(files):
     im = Image.open(os.path.join(D, f)).convert("L").resize((192, 108))

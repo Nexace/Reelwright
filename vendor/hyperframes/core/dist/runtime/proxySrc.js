@@ -1,0 +1,5 @@
+/** Media elements swapped to their proxy, each with the src attribute it had before the swap. */
+export const swappedElements = new WeakMap();
+export function unproxiedSrc(el) {
+    return swappedElements.has(el) ? (swappedElements.get(el) ?? null) : el.getAttribute("src");
+}

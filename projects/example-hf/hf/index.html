@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- A HyperFrames composition driven by the reelwright kit. tools/renderers/hyperframes.mjs renders it; the root
+     timeline is KIT.start's render(t), so every timing comes from hf/kit-data.js (tools/sched.py).
+     Preview in a browser: open hf/index.html#4.2 (a moment) or #play (rough real-time playback). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<style>
+  /* project look — change these */
+  :root { --bg: #0f1115; --ink: #f4f1ea; --muted: #8b8f98; --accent: #6ee7b7; }
+  body { background: var(--bg); }
+  #stage { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  .big { left: 160px; right: 160px; top: 50%; transform: translateY(-50%); text-align: center;
+         font-size: 112px; font-weight: 750; letter-spacing: -3px; line-height: 1.08; }
+  .pulse { left: 50%; top: 150px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: var(--accent); }
+  .label { left: 50%; top: 872px; transform: translateX(-50%); font-size: 22px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .logo { left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-size: 150px; font-weight: 800; letter-spacing: -5px; }
+  .kit-subrow { color: var(--ink); background: rgba(255,255,255,.08); }
+  .kit-subrow span.said { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>   <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script> <!-- copied from tools/ by the renderer -->
+<script src="film.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–2 done; Phase 3 built (CI pending); later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–3 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
 
 ## Progress
 
@@ -8,7 +8,7 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–2 done; P
 |---|---|---|
 | 1 | Foundation: HyperFrames spike, swappable renderer, cross-platform command line and CI | ☑ Done |
 | 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☑ Done |
-| 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ◐ Built, CI pending |
+| 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ☑ Done |
 | 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☐ Not started |
 | 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☐ Not started |
 | 6 | Film from a URL and style from a reference | ☐ Not started |
@@ -98,7 +98,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 3: Look and feel ☐
+## Phase 3: Look and feel ☑
 
 **Branch:** `phase-3-design` · **Needs:** Phase 2
 

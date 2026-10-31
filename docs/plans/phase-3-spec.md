@@ -1,6 +1,6 @@
 # Phase 3 spec: look and feel
 
-Branch `phase-3-design`. Status: spec approved 2026-10-31. 3a themes approved; 3b built. Local exit test passed; CI pending.
+Branch `phase-3-design`. Status: spec approved 2026-10-31. 3a themes approved; 3b built. Done: exit test passed locally and on CI (run 41204248644).
 
 ## 3a. Tokens, brand, themes, fonts
 

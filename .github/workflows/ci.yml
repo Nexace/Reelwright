@@ -80,7 +80,6 @@ jobs:
           cp -r projects/example-hf/frames frames-1
           node bin/reelwright.mjs frames example-hf
           python .github/framediff.py frames-1 projects/example-hf/frames frame-diff | tee -a "$GITHUB_STEP_SUMMARY"
-          python -c "from PIL import Image;[print('TEMP lcd-check',d,sum(1 for r,g,b in Image.open(d+'/frame_000109.png').convert('RGB').crop((700,945,1215,985)).getdata() if max(r,g,b)-min(r,g,b)>30)) for d in ('frames-1','projects/example-hf/frames')]" | tee -a "$GITHUB_STEP_SUMMARY"
           v=$(ffprobe -v error -select_streams v -show_entries stream=duration -of csv=p=0 projects/example-hf/out/example-hf.mp4)
           m=$(ffprobe -v error -show_entries format=duration -of csv=p=0 projects/example-hf/mix.wav)
           node -e 'const [v,m]=process.argv.slice(1).map(Number);console.log(`video ${v}s, mix.wav ${m}s`);process.exit(Math.abs(v-m)<=1/30?0:1)' "$v" "$m" | tee -a "$GITHUB_STEP_SUMMARY"

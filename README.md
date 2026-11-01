@@ -343,10 +343,10 @@ No fast computer? Two free options, both building the same way as `./video.sh al
 
 **Google Colab + Drive** ([cloud/reelwright_colab.ipynb](cloud/reelwright_colab.ipynb)). Drive stores files;
 Colab does the rendering.
-1. Open the notebook in Colab: File → Upload notebook → `cloud/reelwright_colab.ipynb` (no GitHub permission
-   needed). Once the repo is public, File → Open notebook → GitHub works too.
-2. While the repo is private, add a Colab secret `GITHUB_TOKEN` (🔑 in the left bar): a fine-grained GitHub token
-   with *Contents: read* on this repo only. The notebook sends it as a header; it isn't saved in the clone or printed.
+1. Open the notebook in Colab: [open it from GitHub](https://colab.research.google.com/github/Nexace/reelwright/blob/main/cloud/reelwright_colab.ipynb),
+   or File → Upload notebook → `cloud/reelwright_colab.ipynb`.
+2. Only for a private fork: add a Colab secret `GITHUB_TOKEN` (🔑 in the left bar), a fine-grained GitHub token
+   with *Contents: read* on that repo only. The notebook sends it as a header; it isn't saved in the clone or printed.
 3. Put your project in `MyDrive/reelwright/projects/<name>/` (bundled projects like `example` need nothing), set
    `PROJECT` in the first cell, then Runtime → Run all. Allow Drive access when asked (only "See, edit, create, and
    delete all of your Google Drive files" is needed); finish the popup within ~2 minutes or the mount times out
@@ -359,8 +359,8 @@ After a disconnect, Run all again: each step is saved to Drive as it finishes, s
 (pvk films) rendered frames are reused. HyperFrames films re-render their frames.
 
 **GitHub Actions** ([render.yml](.github/workflows/render.yml)): Actions → Render → Run workflow, pick a project
-committed to the repo and optional build options; download the film from the run's artifacts. Public repos are
-free; private repos on GitHub Free get 2,000 Linux minutes a month (the example takes about 10).
+committed to the repo and optional build options; download the film from the run's artifacts. This repo is public, so
+Actions minutes are free; a private fork on GitHub Free gets 2,000 Linux minutes a month (the example takes about 10).
 
 HyperFrames' own cloud rendering (AWS Lambda) isn't used: it's paid.
 

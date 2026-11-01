@@ -7,6 +7,7 @@
 #   flash         ≤ 3 flashes in any 1 s, over the whole frame or any quarter (WCAG 2.3.1 general flash; red flash not checked)
 #   illustrative  numbers on screen come with an "Illustrative data" label (tools/qa_page.mjs)
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
+# Then a variety line (WARN, never a failure) when another film in projects/ has the same theme or look (tools/look.mjs).
 import json, os, re, subprocess, sys
 import numpy as np
 from PIL import Image, ImageChops, ImageStat
@@ -124,4 +125,8 @@ for f in src:
         if line.lstrip().startswith("//"): continue
         hits += [f"{f}:{n}: {why}" for rx, why in BAD if re.search(rx, line)]
 gate("seekable", hits)
+
+# variety: a WARN line when another film in projects/ looks the same (tools/look.mjs); never fails the build
+r = subprocess.run(["node", os.path.join(os.path.dirname(__file__), "look.mjs"), proj], capture_output=True, text=True)
+print(r.stdout.rstrip() or f"  ?     variety  {r.stderr.strip()[-200:]}")
 sys.exit(1 if fails else 0)

@@ -11,10 +11,14 @@
 //   music            music/bed.wav (your track, or the built-in synth bed)
 //   mix              mix.wav (voice + ducked music + SFX)
 //   stills [t,t,..]  preview frames → stills/ + stills/sheet.jpg
-//   frames           render every frame → frames/
-//   encode           frames + mix.wav → the mp4 in project.json "out", plus .srt and .vtt beside it
-//   qa               blips and blank frames, then gates (loudness, captions, flash, illustrative, seekable): FAIL exits 1
-//   clean            delete frames/ stills/ and intermediate audio (keeps the mp4)
+//   frames           render every frame → frames/ (pvk: unchanged frames come from .cache/frames/)
+//   encode           frames + mix.wav → the mp4 in project.json "out", plus .srt, .vtt and .manifest.json beside it
+//   qa               blips and blank frames, then gates (loudness, captions, flash, illustrative, seekable): FAIL exits 1;
+//                    and a variety line (WARN when another film in projects/ has the same theme or look)
+//   verify           inputs still match <out>.manifest.json, and freshly rendered frames match its hashes: FAIL exits 1
+//   preview          live scrubber at http://localhost:4173: the film's own page, mix.wav waveform, reloads on save
+//   remix            stills at 25/50/75 % in the 3 themes furthest from this one × 16x9, 9x16, 1x1 → stills-remix/sheet.jpg
+//   clean            delete frames/ stills/ .cache/ and intermediate audio (keeps the mp4)
 //   themes           list the styles in themes/ (use with "style" in project.json or --style <name>)
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
@@ -24,6 +28,7 @@
 //   --style <name>        build with themes/<name>.css, output <out>-<name>.mp4
 //   --formats 16x9,9x16,1x1   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080):
 //                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
+//   --no-cache            frames: render every frame instead of reusing .cache/frames/
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -40,6 +45,8 @@ const st = args.indexOf("--style");   // any command: build with themes/<name>.c
 if (st >= 0) process.env.REELWRIGHT_STYLE = args.splice(st, 2)[1];
 const lg = args.indexOf("--lang");     // any command: voice project.json langs.<code>, output <out>-<code>.mp4
 if (lg >= 0) process.env.REELWRIGHT_LANG = args.splice(lg, 2)[1];
+const nc = args.indexOf("--no-cache");   // frames: render every frame (tools/renderers/pvk.mjs frame cache off)
+if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
 const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080" };
 const fo = args.indexOf("--formats");
 const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
@@ -122,8 +129,37 @@ const C = {
   encode() { step("encode"); render("encode"); },
   qa() { step("qa"); py("qa.py"); },
   themes() { import("../tools/theme.mjs").then((m) => console.log(m.themes().join("\n"))); },
+  verify() { step("verify"); render("verify"); },
+  preview() { run(process.execPath, path.join("tools", "preview.mjs"), proj); },
+  async remix() {
+    const { furthest, variety } = await import("../tools/look.mjs");
+    const looks = furthest(proj).map((s, i) => [s, Object.keys(SIZES)[i]]);
+    if (!fs.existsSync(path.join(proj, "timeline.json"))) C.info();
+    const dur = JSON.parse(fs.readFileSync(path.join(proj, "timeline.json"), "utf8")).DUR;
+    const ts = [0.25, 0.5, 0.75].map((f) => +(f * dur).toFixed(2)).join(",");
+    const out = path.join(proj, "stills-remix"), keep = path.join(proj, "stills-keep"), stills = path.join(proj, "stills");
+    rm("stills-remix"); fs.mkdirSync(out);
+    if (fs.existsSync(stills)) fs.renameSync(stills, keep);   // the user's own stills come back after
+    const ENV = ["REELWRIGHT_STYLE", "REELWRIGHT_FORMAT", "REELWRIGHT_SIZE"], saved = ENV.map((k) => process.env[k]);
+    try {
+      looks.forEach(([s, f], i) => {
+        console.log(`\n\x1b[1;36m■ ${s} · ${f}\x1b[0m`);
+        Object.assign(process.env, { REELWRIGHT_STYLE: s, REELWRIGHT_FORMAT: f, REELWRIGHT_SIZE: SIZES[f] });
+        C.sched(); step("stills"); render("stills", ts);
+        fs.renameSync(stills, path.join(out, `${i + 1} ${s} · ${f}`));
+      });
+    } finally {
+      ENV.forEach((k, i) => (saved[i] === undefined ? delete process.env[k] : (process.env[k] = saved[i])));
+      if (fs.existsSync(keep)) { rm("stills"); fs.renameSync(keep, stills); }
+    }
+    C.sched();   // back to project.json's own size and look
+    (await import("../tools/theme.mjs")).writeTheme(path.resolve(proj), project());
+    py("sheet.py", "stills-remix");
+    const [st, msg] = variety(proj);
+    console.log(`\nvariety: ${st} ${msg}`);
+  },
   clean() {
-    rm("frames", "stills", "mix.wav", "music/bed.wav", ...fs.readdirSync(proj).filter((f) => /^(frames|stills)-/.test(f)));
+    rm("frames", "stills", ".cache", "mix.wav", "music/bed.wav", ...fs.readdirSync(proj).filter((f) => /^(frames|stills)-/.test(f)));
     console.log(`cleaned ${proj} (mp4 kept)`);
   },
   audio() { args.length = 0; C.vo(); C.sched(); C.info(); C.music(); C.mix(); },

@@ -183,22 +183,41 @@ The recorded take is re-timed with **anchors** — `[clip time, film time]` pair
 lands on the word *list*". Between anchors it plays at a constant speed (the engine warns if any section
 would play slower than 0.4× or faster than 2.5×).
 
-Preview without rendering: open `projects/my-film/film/index.html#12.5` in Chrome (the frame at 12.5 s),
-or `#play` for rough playback. Or render stills:
+Preview without rendering: `./video.sh preview my-film` opens a live scrubber at http://localhost:4173 —
+the film's own page (so a frame there is the frame the renderer makes), a slider stepping whole frames
+(←/→ one frame, shift ±1 s, space plays with sound), and the `mix.wav` waveform with the VO lines, SFX cues,
+beats, bars and the drop marked. Saving film.js, data, the theme or the kit reloads it at the same moment; a
+`project.json` edit shows "script changed: run `reelwright audio`". Or render stills:
 ```bash
 ./video.sh sched my-film && ./video.sh stills my-film          # 12 evenly spaced stills + stills/sheet.jpg
 ./video.sh stills my-film 3.2,7.8,15                            # specific moments
+./video.sh remix my-film     # the 25/50/75 % moments in the 3 themes furthest from yours, as 16x9, 9x16 and 1x1
 ```
+`remix` writes `stills-remix/sheet.jpg`, one labelled row per look; pick one with `"style"` in project.json.
+It also runs the variety check (a `qa` line too): a WARN when another film in `projects/` uses the same
+theme, or the same fonts, a palette within ΔE 10 and the same `KIT.layout` scenes.
 
 ### 5. Build
 ```bash
 ./video.sh all my-film     # everything, from recording to mp4
 ./video.sh audio my-film   # after script/voice/music changes
 ./video.sh film my-film    # after film.js changes (re-renders)
-./video.sh clean my-film   # delete frames/stills (GBs) — keeps the mp4
+./video.sh verify my-film  # inputs unchanged since the build, and a fresh render gives the same frames
+./video.sh clean my-film   # delete frames/stills/.cache (GBs) — keeps the mp4
 ```
 The mp4 lands where `project.json` → `out` says. Render speed is roughly 30–60 frames/s; `PAGES=6
 ./video.sh frames my-film` uses more CPU for a faster render.
+
+Re-renders are incremental (pvk films): `frames` fingerprints what each frame shows (the visible DOM,
+video times, scroll offsets, canvas pixels, plus every file the page loaded) and copies frames it has seen
+before from `.cache/frames/`, so a caption edit re-renders only the frames that show it. It reports how many
+frames it rendered and where (`260 rendered in 1 shot: 367–626 (6.12–10.45 s)`). `--no-cache` renders every
+frame. HyperFrames films always render in full.
+
+`encode` also writes `<out>.manifest.json`: tool versions, a hash of every input and of every frame, the
+duration. `verify` names any input that changed since, then re-renders the frames with the cache off and
+compares them to the manifest — identical on the same machine. What can differ on another OS:
+[docs/REPRODUCIBLE.md](docs/REPRODUCIBLE.md).
 
 ---
 
@@ -234,6 +253,9 @@ vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog 
   beatgrid.py, music.py     music tempo fit + music bed
   mix.py                    voice + ducked music + SFX → mix.wav
   qa.py, sheet.py           checks and contact sheets
+  preview.mjs, preview.html the live scrubber (reelwright preview)
+  look.mjs                  a film's resolved look: remix's theme pick and the variety check
+  manifest.mjs              <out>.manifest.json and reelwright verify
   capture_site.mjs, figma_export.py, browser.mjs
 projects/
   example/                  the starter: app walkthrough (copy it with ./video.sh new <name>)
@@ -246,7 +268,9 @@ projects/<name>/
   hf/index.html, film.js    the same, for "renderer": "hyperframes"; hf/blocks/ holds catalog components
                             (reelwright add <project> <component>, then KIT.block('<component>') in film.js)
   demo-app/                 (example only) the fake app being filmed
+  .cache/frames/            rendered frames by fingerprint (reused by frames; clean deletes it)
 docs/PLAYBOOK.md            what makes these films good — read before your first real one
+docs/REPRODUCIBLE.md        the manifest, verify, and what can differ across operating systems
 ```
 
 ## Troubleshooting

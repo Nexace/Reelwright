@@ -1,6 +1,6 @@
 # Phase 5 spec: preview, speed and repeatability
 
-Branch `phase-5-preview-speed`. Status: draft, waiting for OK.
+Branch `phase-5-preview-speed` (built on `phase-5-work`). Status: built; local exit test passed on macOS except the items marked open under "As built"; CI not run yet.
 
 ## 5a. Preview and speed
 
@@ -69,3 +69,65 @@ the ffmpeg/x264 build (mp4 bytes are never compared).
 ## Not in this phase
 
 Incremental HF rendering via a vendored patch, audio caching (audio steps are already fast), comparing mp4 bytes.
+
+## As built (differences from the plan above)
+
+- **The t≈15 s flake, root-caused.** It was not one frame: three 4-page renders of `example` differed in 50–370
+  frames, all in the phone shot (7.6–17.4 s), by up to 32/255 on anti-aliased edges (the phone's corners, shadow and
+  screen edge, caption and subtitle glyphs). Chromium keeps a composited layer's tiles while the layer only moves, so
+  those edges keep the sub-pixel offset of whichever earlier frame rastered them; a frame depended on where its page
+  started rendering (start at frame 353 → match, 354 → differ) and on raster timing. `--disable-partial-raster`
+  removed the run-to-run part but not the history part. Fix: `window.render` (tools/engine.js) rebuilds the layout
+  after `render(t)` (body `display: none`, reflow, back), so every frame is fully re-rastered. Three full renders,
+  and renders starting mid-shot on one page, are now byte-identical. Cost: `frames example` 18 s → 22 s. Frames moved
+  by a few levels on those edges compared with Phase 4 output (1378 frames, duration unchanged).
+- **Fingerprint skips what can't paint.** Hashing the whole `outerHTML` keyed every frame on a caption that is only
+  shown later (hidden elements stay in the DOM), so one caption edit re-rendered all 1378 frames. The fingerprint walks
+  the body instead and leaves out `display: none` subtrees and out-of-flow (absolute/fixed) subtrees with opacity 0 or
+  visibility hidden; in-flow hidden elements stay in, since they move their neighbours. Shadow roots are included.
+- **Scripts are not in the global key.** What film.js, data.js and clip.js do lands in the DOM, which is
+  fingerprinted; if they were hashed, a film.js edit would re-render every frame. Everything else the pages request
+  (index.html, css, fonts, clip images) is hashed, plus the parsed CSSOM once per render (shortcut: CSS rules a film
+  inserts per frame from JS aren't seen; nothing does that today).
+- **Theme fonts are inlined, and usable while the film loads.** The HF preview didn't match HyperFrames frames: film
+  code that measures text at load (example-hf centres its chart with `offsetHeight`) got the fallback face in our
+  pages (fonts `loading 0/4` when film.js ran: label 25 px vs 29, chart 596 vs 603) but the real one in the producer,
+  which inlines fonts. `tools/theme.mjs` now writes fonts as data: URLs and the engine registers them as `FontFace`
+  objects from the bytes, which are usable at once. HyperFrames frames are byte-identical to before; pvk films with a
+  theme now lay out with the real font in `frames`, `info` and `qa` too. Fonts are no longer copied to `hf/kit/fonts/`.
+- **HyperFrames stays a full render.** `executeRenderJob` (what we call) takes no frame range. The producer's
+  distributed API does (`plan()` then `renderChunk(planDir, i, out, { frameRange })`), but that is a separate capture
+  pipeline with a plan directory and an ffmpeg-version pin, and whether its frames equal `executeRenderJob`'s is
+  untested. example-hf renders 337 frames in 7–9 s, so this was left for Phase 7 (cloud rendering uses that API).
+- **Manifest** is `<out without .mp4>.manifest.json` (beside the `.srt`/`.vtt`), not `<out>.manifest.json`. Inputs
+  are every project file except build output, the theme and all of `tools/`; fonts are covered through the inlined
+  `theme.css`. The duration is the mp4's (ffprobe format duration); verify accepts frames/fps within one frame of it.
+  Against a manifest from another platform or Chromium, verify applies framediff only when the original `frames/` is
+  beside the manifest (the tolerance needs the pixels); otherwise it fails and says so. Notes: docs/REPRODUCIBLE.md.
+- **Variety check**: films with neither a theme nor brand.json are skipped (their look is in their own CSS, which the
+  check can't read; otherwise every pvk sample would match every other on kit defaults). It prints `PASS`/`WARN`/
+  `SKIP  variety` as the last `qa` line and never changes the exit code. Fonts compared: display and text families;
+  palette: bg, ink, muted, accent, surface (mean ΔE76).
+- **remix** takes the three furthest themes by palette ΔE plus 25 for a different display face and 15 for a different
+  text face (example-hf: playful, swiss, editorial). The user's own `stills/` is parked and restored.
+- **Preview** reloads the whole page (iframe and waveform) on a change and returns to `#t=`; the "script changed"
+  banner stays until data.js / kit-data.js changes (sched ran). Play uses WebAudio from the decoded `mix.wav`.
+  `?fit=0` shows the film at 100 % (the exit test screenshots it there).
+- CI: one more step after the example build, `verify` and a cached `frames` re-run.
+
+### Exit test (macOS, local)
+
+- Preview vs stills, `example` at 2, 6.5, 9.25, 15, 21 s: iframe screenshots byte-identical to `stills` (5/5).
+  `example-hf` at 1, 3.5, 6, 8.2, 10.5 s, compared with the renderer's frames at those t (the PNGs stills are cut
+  from): before the font fix 1 of 5 matched (4220–39507 px off, the chart 5.5 px lower); after it: OPEN, see below.
+- Caption edit (`'Add in one tap'` → `'Add with one tap'`): `frames` re-rendered 260 frames in 1 shot, 367–626
+  (6.12–10.45 s), 1118 from cache, 8 s; byte-identical to a clean `--no-cache` build (0 of 1378 differ).
+- Variety: a copy of example-hf (`reelwright new … --renderer hyperframes`) gives `WARN variety same theme
+  "dark-tech"` both ways; with the copy gone, `PASS`. Remix sheet: OPEN.
+- `verify example` passed twice in a row (248 inputs, 1378 frames identical, 1378 frames = 22.967 s vs mp4 22.952 s);
+  after appending a rule to `tools/kit.css` (the default theme of this no-style film) it failed with
+  `tools/kit.css (changed)`.
+- `example`: 1378 frames, mp4 22.952 s. CI: not run (not pushed).
+- OPEN: the Playwright browser cache (`~/Library/Caches/ms-playwright`) disappeared from this machine mid-test, outside
+  this work, so the HF preview re-check after the font fix and the `remix example-hf` sheet still need a run:
+  `npx playwright install chromium`, then the commands above.

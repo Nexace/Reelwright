@@ -1,7 +1,7 @@
 // <out>.manifest.json beside the mp4 (written by encode), and `reelwright verify` (render.mjs mode "verify").
 //   tools    node, python, ffmpeg, Chromium, Playwright, edge-tts, the vendored HyperFrames commit
 //   inputs   sha256 of every file in the project except build output (frames*, stills*, out/, .cache/), the theme,
-//            the bundled fonts the theme loads, and tools/
+//            and tools/ (the fonts used are inside the project's generated theme.css)
 //   output   the video's duration and frame count, sha256 of every frame
 // verify: inputs must match (it names the ones that don't), then it re-renders the frames into a temp folder with
 // the cache off and compares frame count, duration and per-frame hashes. Same machine: identical frames. A manifest
@@ -35,12 +35,6 @@ function inputs(DIR, P) {
   const files = walk(DIR, BUILD).concat(walk(path.join(ROOT, "tools")));
   const style = process.env.REELWRIGHT_STYLE || P.style;
   if (style) files.push(path.join(ROOT, "themes", style + ".css"));
-  const page = path.join(DIR, P.renderer === "hyperframes" ? "hf" : "film");
-  const theme = path.join(page, "theme.css");
-  for (const m of (fs.existsSync(theme) ? fs.readFileSync(theme, "utf8") : "").matchAll(/url\("([^"]+)"\)/g)) {
-    const f = path.resolve(page, m[1]);
-    if (!f.startsWith(DIR + path.sep) && fs.existsSync(f)) files.push(f);   // in-project copies are listed already
-  }
   return Object.fromEntries([...new Set(files)].map((f) => [rel(f), sha(f)]));
 }
 

@@ -110,6 +110,18 @@
   // load every declared font now (not on first use), so no frame renders with a fallback face;
   // document.fonts.ready, which READY and HyperFrames wait on, then covers them
   for (const f of document.fonts) f.load().catch(() => console.error('font failed:', f.family, f.weight));
+  // theme.css inlines its fonts as data: URLs (tools/theme.mjs). A FontFace built from the bytes is usable at once, so
+  // film code that measures text while loading (offsetHeight) gets the real face, as in the HyperFrames producer.
+  for (const sh of document.styleSheets) {
+    let rules; try { rules = sh.cssRules; } catch { continue; }
+    for (const r of rules) {
+      const m = r instanceof CSSFontFaceRule && /data:[^;]+;base64,([^")]+)/.exec(r.style.getPropertyValue('src'));
+      if (!m) continue;
+      const s = (k, d) => r.style.getPropertyValue(k) || d;
+      document.fonts.add(new FontFace(s('font-family').replace(/["']/g, ''), Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0)),
+        { weight: s('font-weight', 'normal'), style: s('font-style', 'normal') }));
+    }
+  }
   K.el = (tag, cls, parent = K.stage, html = '') => {
     const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html;
     parent.appendChild(e); return e;

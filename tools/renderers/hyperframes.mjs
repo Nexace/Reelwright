@@ -92,7 +92,7 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
   } else if (mode === "frames") {
     if (a3) console.log("hyperframes renders the whole film; frame range ignored");
     const t0 = Date.now();
-    const n = (await hfRender(path.join(DIR, "frames"), FPS)).length;
+    const n = (await hfRender(process.env.REELWRIGHT_FRAMES_DIR || path.join(DIR, "frames"), FPS)).length;
     console.log(`${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   } else if (mode === "encode") {
     encode(DIR, P, FPS, "frames/frame_%06d.png", 1);

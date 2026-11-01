@@ -41,6 +41,11 @@ jobs:
         run: |
           echo "frames: $(ls projects/example/frames | wc -l)" | tee -a "$GITHUB_STEP_SUMMARY"
           ffprobe -v error -show_entries format=duration:stream=codec_type,nb_frames -of compact projects/example/out/*.mp4 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: "Repeatability: inputs and a fresh render match the manifest; a re-render comes from the cache"
+        env: { PAGES: 2, PYTHON: python }
+        run: |
+          node bin/reelwright.mjs verify | grep -E "PASS|FAIL" | tee -a "$GITHUB_STEP_SUMMARY"
+          node bin/reelwright.mjs frames | tail -1 | tee -a "$GITHUB_STEP_SUMMARY" | grep -q ": 0 rendered in 0 shots,"
       - uses: actions/upload-artifact@v4
         with:
           name: example-film-${{ matrix.os }}

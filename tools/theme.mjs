@@ -4,8 +4,9 @@
 //   brand.json: { "colors": { "<token>": "#hex" }, "fonts": { "display" | "text" | "mono": "<bundled family>" |
 //                 { "family", "src": "<file in the project>", "weight" } }, "logo": "<file in the project>", "tone": "..." }
 //   (tone is for the writer; it does not change the render). Brand wins over the theme.
-// Every bundled family (fonts/<slug>/) named in a --kit-font-* token gets @font-face rules; HyperFrames serves only
-// hf/, so for it the fonts are copied into hf/kit/fonts/.
+// Every bundled family (fonts/<slug>/) named in a --kit-font-* token gets @font-face rules. The font files are inlined
+// as data: URLs, which Chromium loads before any script runs: film code that measures text at load (offsetWidth)
+// then measures the real face, in every renderer and in preview, as the HyperFrames producer's own inlining does.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,8 @@ const FONTS = path.join(ROOT, "fonts"), THEMES = path.join(ROOT, "themes");
 const slug = (f) => f.toLowerCase().replace(/\s+/g, "-");
 const posix = (p) => p.split(path.sep).join("/");
 const FALLBACK = { display: "sans-serif", text: "sans-serif", mono: "monospace" };
+const FONT_TYPES = { ".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf", ".otf": "font/otf" };
+const inline = (f) => `data:${FONT_TYPES[path.extname(f).toLowerCase()] || "application/octet-stream"};base64,${fs.readFileSync(f).toString("base64")}`;
 
 export const themes = () => fs.readdirSync(THEMES).filter((f) => f.endsWith(".css")).map((f) => f.slice(0, -4)).sort();
 
@@ -31,7 +34,7 @@ export function writeTheme(DIR, P) {
     process.exit(1);
   }
 
-  // a file the page loads: relative to the page for pvk; copied under hf/kit/ for hyperframes
+  // a file the page loads (the logo; fonts are inlined): relative to the page for pvk; copied under hf/kit/ for hyperframes
   const kitDir = path.join(page, "kit");
   const url = (abs, sub) => {
     if (!hf) return posix(path.relative(page, abs));
@@ -56,7 +59,7 @@ export function writeTheme(DIR, P) {
         const src = path.resolve(DIR, font.src);
         if (!fs.existsSync(src)) { console.error(`brand.json font not found: ${font.src}`); process.exit(1); }
         css += `@font-face { font-family: "${fam}"; font-weight: ${font.weight || 400}; font-display: block; ` +
-          `src: url("${url(src, path.join("brand", path.basename(src)))}"); }\n`;
+          `src: url("${inline(src)}"); }\n`;
       }
       v.push(`--kit-font-${role}: "${fam}", ${FALLBACK[role] || "sans-serif"};`);
     }
@@ -73,7 +76,7 @@ export function writeTheme(DIR, P) {
     if (!fs.existsSync(d)) continue;   // a system or brand-file family
     for (const w of fs.readdirSync(d).filter((f) => f.endsWith(".woff2")).sort())
       faces += `@font-face { font-family: "${fam}"; font-weight: ${w.slice(0, -6)}; font-display: block; ` +
-        `src: url("${url(path.join(d, w), path.join("fonts", slug(fam), w))}") format("woff2"); }\n`;
+        `src: url("${inline(path.join(d, w))}") format("woff2"); }\n`;
   }
   fs.writeFileSync(out, faces + css);
 }

@@ -79,7 +79,8 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 | Job | Tool | Why this one |
 |---|---|---|
 | Record the product | **Playwright** + Chrome DevTools screencast (`record.mjs`) | Scripted, repeatable take at 2× (Retina). Logs every tap and named moment so the edit can sync to them. Re-record any time the UI changes. |
-| Capture a website | **Playwright** (`tools/capture_site.mjs`) | Scrolls first so scroll-animations fire, then saves each section, the full page and every image. |
+| Capture a website | **Playwright** (`tools/capture_site.mjs`) | Scrolls first so scroll-animations fire, then saves each section, the full page and every image, plus the page's text, headings, colours and fonts (`site.json`). Read-only: form posts and other writes never leave the browser. |
+| Film or theme from a URL | `reelwright from-url`, `reelwright theme-from` (`tools/from_url.mjs`, `tools/theme_from.mjs`) | Drafts a whole project (script, look, screenshots) or a theme from a page, by rules — no AI service, no key. |
 | Use Figma designs | **Figma REST API** (`tools/figma_export.py`) | Exports every screen frame in a section as PNG — make a film from designs before the app exists. |
 | Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Plus anything CSS, SVG or 3D transforms can draw. |
 | Render | **Playwright** (headless Chrome) → JPEG frames (`tools/render.mjs`) | Deterministic, 60 fps, parallel pages. 1920×1080 by default; any size via `project.json` (`1080×1920` for vertical). |
@@ -225,6 +226,29 @@ compares them to the manifest — identical on the same machine. What can differ
 
 ## Other sources
 
+**A film from a URL** — only for sites you own or have the right to use:
+```bash
+node bin/reelwright.mjs from-url https://example.com my-film   # capture + draft the voiceover, print it, stop
+# read the lines, edit projects/my-film/project.json (and the on-screen copy in hf/site.js) if you want, then:
+node bin/reelwright.mjs all my-film                            # build + QA gates (a failing gate names the time)
+```
+The draft is rule-based: the h1 is the hook, a "<Name> is …" sentence (else the meta description) says what it
+is, the first three section headings that aren't navigation, sponsors or testimonials (with the sentence under
+each) are the features, and the first "Get started / Install / Try" button is the call to action. Lines stay
+under ~25 words; text with numbers in it is left out (they'd be the site's claims, unchecked). Numbers that show
+inside the screenshots are listed at the stop, and the film credits the site ("Source: example.com") while such a
+shot is on screen. The film is a HyperFrames project (`tools/from_url/`): the site's name from the first frame,
+giving way to the hook word by word → the first screen on a tilted device → one split scene per feature with its
+screenshot → the call to action, in the site's colours and the nearest bundled fonts (`brand.json`). `--yes`
+skips the stop and builds at once. Read-only: nothing is clicked, writes get a fake answer in the browser,
+popups, service workers and WebSockets are blocked. A 404 or challenge page stops the capture.
+
+**A theme from a URL or an image** — `node bin/reelwright.mjs theme-from https://example.com acme` (or
+`theme-from moodboard.png acme`) writes `themes/acme.css`: the site's background, text, muted and accent colours,
+caption colours with WCAG contrast enforced, button radius, and its fonts mapped to the nearest bundled open-licence
+family (the header says which, e.g. `"Helvetica Neue" → Inter`). Images give colours only. It's a draft on top of the
+`clean` or `dark-tech` theme: edit it, then use `"style": "acme"`.
+
 **A website** — `node tools/capture_site.mjs https://example.com projects/my-film/assets/site` saves each
 section, `full.png` and all images. Put them in the film as `<img>` layers (a slow scroll of `full.png` inside
 a browser frame is a classic).
@@ -259,6 +283,7 @@ vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog 
   look.mjs                  a film's resolved look: remix's theme pick and the variety check
   manifest.mjs              <out>.manifest.json and reelwright verify
   capture_site.mjs, figma_export.py, browser.mjs
+  from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
 projects/
   example/                  the starter: app walkthrough (copy it with ./video.sh new <name>)
   example-hf/               HyperFrames starter (reelwright new <name> --renderer hyperframes)

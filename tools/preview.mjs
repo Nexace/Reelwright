@@ -17,12 +17,17 @@ const hf = () => project().renderer === "hyperframes";
 
 // what render.mjs does before a render: theme.css, and for HyperFrames the kit copied into hf/kit/
 function prepare() {
-  const P = project();
-  writeTheme(DIR, P);
-  if (P.renderer === "hyperframes") {
-    fs.mkdirSync(path.join(DIR, "hf", "kit"), { recursive: true });
-    for (const f of KIT) fs.copyFileSync(path.join(ROOT, "tools", f), path.join(DIR, "hf", "kit", f));
-  }
+  // theme.mjs exits on a bad style or brand.json (it prints why); here that's an error to fix, not the end of preview
+  const exit = process.exit;
+  process.exit = () => { throw new Error("theme.css not updated: fix the error above"); };
+  try {
+    const P = project();
+    writeTheme(DIR, P);
+    if (P.renderer === "hyperframes") {
+      fs.mkdirSync(path.join(DIR, "hf", "kit"), { recursive: true });
+      for (const f of KIT) fs.copyFileSync(path.join(ROOT, "tools", f), path.join(DIR, "hf", "kit", f));
+    }
+  } catch (e) { console.error(e.message); } finally { process.exit = exit; }
 }
 prepare();
 
@@ -32,7 +37,15 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
   ".woff": "font/woff", ".ttf": "font/ttf", ".otf": "font/otf", ".mp4": "video/mp4", ".webm": "video/webm" };
 const clients = new Set();
 
+const HOSTS = new Set([`localhost:${PORT}`, `127.0.0.1:${PORT}`]);   // no DNS rebinding: other sites can't read the repo
+
 http.createServer((req, res) => {
+  if (!HOSTS.has(req.headers.host)) { res.writeHead(403); return res.end(); }
+  try { serve(req, res); } catch (e) { res.writeHead(e instanceof URIError ? 400 : 500); res.end(e.message); }
+}).on("error", (e) => { console.error(e.code === "EADDRINUSE" ? `port ${PORT} is busy: PORT=<n> reelwright preview` : e.message); process.exit(1); })
+  .listen(PORT, "127.0.0.1", () => console.log(`preview of ${posix(path.relative(ROOT, DIR))}: http://localhost:${PORT}/  (ctrl-c to stop)`));
+
+function serve(req, res) {
   const u = new URL(req.url, "http://localhost");
   if (u.pathname === "/") { res.writeHead(302, { location: "/tools/preview.html" }); return res.end(); }
   if (u.pathname === "/__project") {
@@ -61,8 +74,7 @@ http.createServer((req, res) => {
       "content-length": st.size, "cache-control": "no-store" });
     fs.createReadStream(f).pipe(res);
   });
-}).on("error", (e) => { console.error(e.code === "EADDRINUSE" ? `port ${PORT} is busy: PORT=<n> reelwright preview` : e.message); process.exit(1); })
-  .listen(PORT, "127.0.0.1", () => console.log(`preview of ${posix(path.relative(ROOT, DIR))}: http://localhost:${PORT}/  (ctrl-c to stop)`));
+}
 
 // changes → one debounced event listing the files; build output is ignored
 const SKIP = /^(frames|stills|out|\.cache)([-/]|$)|^hf\/kit\/|\.(mp4|tmp)$/;
@@ -74,10 +86,11 @@ function changed(rel) {
   timer = setTimeout(() => {
     const files = [...pending]; pending = new Set();
     // the look or the kit moved: redo what render.mjs would (writes theme.css / hf/kit, which reload the page anyway)
-    if (files.some((f) => /^(project|brand)\.json$|^tools\//.test(f))) try { prepare(); } catch (e) { console.error(e.message); }
+    if (files.some((f) => /^(project|brand)\.json$|^(tools|themes)\//.test(f))) prepare();
     console.log("changed:", files.join(", "));
     for (const c of clients) c.write(`data: ${JSON.stringify({ files })}\n\n`);
   }, 150);
 }
 fs.watch(DIR, { recursive: true }, (_, f) => changed(f && posix(f)));
 fs.watch(path.join(ROOT, "tools"), (_, f) => KIT.includes(f) && changed("tools/" + f));
+fs.watch(path.join(ROOT, "themes"), (_, f) => f && f.endsWith(".css") && changed("themes/" + f));

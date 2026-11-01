@@ -12,7 +12,7 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–6 done; l
 | 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☑ Done |
 | 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☑ Done |
 | 6 | Film from a URL and style from a reference | ☑ Done |
-| 7 | Free cloud rendering (Colab + Drive) | ☐ Not started |
+| 7 | Free cloud rendering (Colab + Drive) | ☑ Done |
 | 8 | Docs, licensing, release | ☐ Not started |
 
 Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order unless a phase says otherwise.
@@ -168,7 +168,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 7: Free cloud rendering ☐
+## Phase 7: Free cloud rendering ☑
 
 **Branch:** `phase-7-cloud` · **Needs:** Phase 1
 

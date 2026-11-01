@@ -1,6 +1,6 @@
 # Phase 7 spec: free cloud rendering
 
-Branch `phase-7-cloud`. Status: spec approved 2026-11-01 (token from Colab Secrets; real-Colab run by the user); built.
+Branch `phase-7-cloud`. Status: spec approved 2026-11-01 (token from Colab Secrets); built; exit test passed in real Colab and on CI.
 
 ## 7a. Colab notebook: `cloud/reelwright_colab.ipynb`
 
@@ -56,8 +56,13 @@ Actions fallback. HyperFrames' AWS Lambda rendering stays out (paid).
 
 Paid clouds, GPU rendering, a `reelwright cloud` command that uploads for you (Drive's API needs OAuth setup).
 
-## Decisions I need from you
+## As built
 
-1. Clone with a read-only GitHub token from Colab Secrets while the repo is private (my default), or keep a copy of
-   the code in Drive instead (no token, but you re-upload after each change)?
-2. OK that the real-Colab exit check is a run you do and paste back to me?
+- Colab runs Ubuntu 24.04 (not 22.04 as assumed), so the CI notebook job runs on `ubuntu-24.04`.
+- Colab's own Node was new enough, so the Node tarball path only runs in CI; the Chromium tarball in Drive is what
+  makes the second session fast (tools 81 s → 36 s).
+- npm and pip caches are not kept in Drive: npm reading thousands of small files through Drive's FUSE mount stalled
+  `npm install` for minutes; from the registry it takes ~25 s.
+- The notebook was opened by uploading it (File → Upload notebook), not through Colab's GitHub tab: that needs an
+  OAuth grant to GitHub (public repos + gists, or all private repos), and the clone only needs the read-only token.
+- Drive's mount gives up after ~2 minutes if Google's consent popup isn't finished; rerunning the cell is enough.

@@ -270,12 +270,14 @@ No fast computer? Two free options, both building the same way as `./video.sh al
 
 **Google Colab + Drive** ([cloud/reelwright_colab.ipynb](cloud/reelwright_colab.ipynb)). Drive stores files;
 Colab does the rendering.
-1. Open the notebook in Colab: File → Open notebook → GitHub (tick "Include private repos" while this repo is
-   private), or upload it to Drive and open it from there.
+1. Open the notebook in Colab: File → Upload notebook → `cloud/reelwright_colab.ipynb` (no GitHub permission
+   needed). Once the repo is public, File → Open notebook → GitHub works too.
 2. While the repo is private, add a Colab secret `GITHUB_TOKEN` (🔑 in the left bar): a fine-grained GitHub token
    with *Contents: read* on this repo only. The notebook sends it as a header; it isn't saved in the clone or printed.
 3. Put your project in `MyDrive/reelwright/projects/<name>/` (bundled projects like `example` need nothing), set
-   `PROJECT` in the first cell, then Runtime → Run all.
+   `PROJECT` in the first cell, then Runtime → Run all. Allow Drive access when asked (only "See, edit, create, and
+   delete all of your Google Drive files" is needed); finish the popup within ~2 minutes or the mount times out
+   (just run again).
 4. The mp4, `.srt`, `.vtt`, manifest and `qa.txt` appear in `MyDrive/reelwright/projects/<name>/out/`.
 
 The first session downloads Node and Chromium into `MyDrive/reelwright/cache/` (a few minutes); later ones unpack

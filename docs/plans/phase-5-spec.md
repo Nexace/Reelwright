@@ -1,6 +1,6 @@
 # Phase 5 spec: preview, speed and repeatability
 
-Branch `phase-5-preview-speed` (built on `phase-5-work`). Status: built; local exit test passed on macOS (see "As built"); CI not run yet.
+Branch `phase-5-preview-speed` (built on `phase-5-work`). Status: built; local exit test passed on macOS (see "As built"); CI green on macOS, Windows, Ubuntu (run 41312365933); merged to main 2026-11-01.
 
 ## 5a. Preview and speed
 

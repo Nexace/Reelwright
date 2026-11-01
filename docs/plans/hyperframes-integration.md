@@ -1,6 +1,6 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–3 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–6 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
 
 ## Progress
 
@@ -10,8 +10,8 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–3 done; l
 | 2 | HyperFrames inside: vendored engine, example film, catalog blocks | ☑ Done |
 | 3 | Look and feel: tokens, themes, fonts, layouts, multi-format | ☑ Done |
 | 4 | Captions, audio and quality: word captions, QA gates, other languages, music drops | ☑ Done |
-| 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☐ Not started |
-| 6 | Film from a URL and style from a reference | ☐ Not started |
+| 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☑ Done |
+| 6 | Film from a URL and style from a reference | ☑ Done |
 | 7 | Free cloud rendering (Colab + Drive) | ☐ Not started |
 | 8 | Docs, licensing, release | ☐ Not started |
 
@@ -136,7 +136,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 5: Preview, speed and repeatability ☐
+## Phase 5: Preview, speed and repeatability ☑
 
 **Branch:** `phase-5-preview-speed` · **Needs:** Phase 3 for remix
 
@@ -154,7 +154,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 6: Film from a URL and style from a reference ☐
+## Phase 6: Film from a URL and style from a reference ☑
 
 **Branch:** `phase-6-url-reference` · **Needs:** Phases 3 and 4
 

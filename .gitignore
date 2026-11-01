@@ -30,3 +30,6 @@ projects/*/hf/kit-data.js
 projects/*/film/theme.css
 projects/*/hf/theme.css
 scratch/
+
+# agent worktrees (Claude Code)
+.claude/worktrees/

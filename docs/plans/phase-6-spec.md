@@ -1,6 +1,6 @@
 # Phase 6 spec: film from a URL, style from a reference
 
-Branch `phase-6-url-reference`. Status: approved 2026-11-01 (go ahead given with the task); built. Exit test passed locally on macOS; CI not yet run.
+Branch `phase-6-url-reference`. Status: approved 2026-11-01 (go ahead given with the task); built. Exit test passed locally on macOS; CI green on macOS, Windows, Ubuntu (run 41251725840); merged to main 2026-11-01.
 
 Both commands are plain CLI, free and local: Playwright reads the page, rules and templates write the script, no AI
 service or key. Only capture sites you own or have the right to use; the help text says so.

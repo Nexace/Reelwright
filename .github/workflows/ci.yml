@@ -122,13 +122,13 @@ jobs:
           pip install -q nbconvert ipykernel
           sudo npx -y playwright install-deps chromium   # Colab runs as root, so the notebook does this itself there
       - name: "Run 1: build the example into ./drive"
-        env: { PAGES: 2, REELWRIGHT_DRIVE: drive, REELWRIGHT_CODE: "${{ github.workspace }}" }
+        env: { PAGES: 2, REELWRIGHT_DRIVE: "${{ github.workspace }}/drive", REELWRIGHT_CODE: "${{ github.workspace }}" }
         run: |
           jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=3000 --output run1.ipynb cloud/reelwright_colab.ipynb
           ls -l drive/projects/example/out/ | tee -a "$GITHUB_STEP_SUMMARY"
           test -s drive/projects/example/out/tidy-example.mp4
       - name: "Run 2: fresh project folder, resume from ./drive"
-        env: { PAGES: 2, REELWRIGHT_DRIVE: drive, REELWRIGHT_CODE: "${{ github.workspace }}" }
+        env: { PAGES: 2, REELWRIGHT_DRIVE: "${{ github.workspace }}/drive", REELWRIGHT_CODE: "${{ github.workspace }}" }
         run: |
           git clean -fdXq projects/example
           jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=3000 --output run2.ipynb cloud/reelwright_colab.ipynb

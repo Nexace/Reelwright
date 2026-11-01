@@ -1,6 +1,18 @@
 name: CI
 on: [push, pull_request]
 jobs:
+  licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: License and notice files are present
+        run: |
+          for f in LICENSE NOTICE THIRD_PARTY.md fonts/LICENSES.md vendor/hyperframes/LICENSE vendor/hyperframes/VENDORED.md vendor/hyperframes/CREDITS.md; do
+            test -s "$f" || { echo "missing $f"; exit 1; }
+          done
+          for d in fonts/*/; do test -s "$d/OFL.txt" || { echo "missing $d/OFL.txt"; exit 1; }; done
+          for f in projects/*/hf/blocks/*.html; do [ -e "$f" ] || continue; head -1 "$f" | grep -q "HyperFrames catalog" || { echo "no source header: $f"; exit 1; }; done
+          echo "licenses OK"
   build-example:
     strategy:
       fail-fast: false

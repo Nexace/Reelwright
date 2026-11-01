@@ -83,7 +83,7 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 | Film or theme from a URL | `reelwright from-url`, `reelwright theme-from` (`tools/from_url.mjs`, `tools/theme_from.mjs`) | Drafts a whole project (script, look, screenshots) or a theme from a page, by rules — no AI service, no key. |
 | Use Figma designs | **Figma REST API** (`tools/figma_export.py`) | Exports every screen frame in a section as PNG — make a film from designs before the app exists. |
 | Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Plus anything CSS, SVG or 3D transforms can draw. |
-| Render | **Playwright** (headless Chrome) → JPEG frames (`tools/render.mjs`) | Deterministic, 60 fps, parallel pages. 1920×1080 by default; any size via `project.json` (`1080×1920` for vertical). |
+| Render | **Playwright** (headless Chrome) → JPEG frames (`tools/renderers/pvk.mjs`), or **HyperFrames** (vendored, `tools/renderers/hyperframes.mjs`) | Deterministic, 60 fps, parallel pages. 16x9, 9x16 or 1x1 from one edit. See [Renderers](#renderers). |
 | Voiceover | **edge-tts** — Microsoft neural voices, free, no account (`tools/vo.py`) | Natural voices (Andrew, Ava, Hindi Swara…) **with word timings**, so visuals land on exact words. |
 | Music | Any track (e.g. **Mixkit**, free licence) + beat-grid fit (`tools/beatgrid.py`), or a built-in original soundtrack: `chill` or `drive` (with a drop and a final hit) (`tools/music.py`) | Cuts land on the beat. The fit measures the real tempo from the drums — never trust a listed BPM. |
 | Sound effects | Synthesised in **numpy** (`tools/mix.py`) | Whooshes, taps, pops, impacts, chimes — generated, no sample licences. Placed by `cue()` calls in the film. |
@@ -110,11 +110,11 @@ Every command is `node bin/reelwright.mjs <command> [project]` on any platform (
 | Platform | Status |
 |---|---|
 | **macOS** (Apple Silicon or Intel) | ✅ Supported. All the sample films were made on a Mac. |
-| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds the example film on Ubuntu (and macOS, Windows) for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
-| **Windows 10 / 11** | ✅ Native, no WSL. CI builds the example film on Windows for every commit; nobody has tried it on a real Windows machine yet, so reports welcome. Use `node bin/reelwright.mjs` where the docs say `./video.sh`. |
+| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds both example films on Ubuntu, macOS and Windows for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
+| **Windows 10 / 11** | ✅ Native, no WSL. CI builds both example films on Windows for every commit; nobody has tried it on a real Windows machine yet, so reports welcome. Use `node bin/reelwright.mjs` where the docs say `./video.sh`. |
 
-Fonts differ by platform: the samples use the system UI font, which is San Francisco on macOS and a
-fallback on Linux. For identical output everywhere, add a `.woff2` font to your project (see the playbook).
+Fonts: themed films use the bundled fonts in `fonts/`, so they look the same everywhere. Older samples without a
+`"style"` use the system UI font, which is San Francisco on macOS and a fallback elsewhere.
 
 ## Make the example film (~2 minutes)
 
@@ -224,6 +224,79 @@ compares them to the manifest — identical on the same machine. What can differ
 
 ---
 
+## Renderers
+
+`"renderer"` in `project.json` picks how frames are drawn. Everything else (voice, timing, music, mix, encode,
+captions, QA) is the same for both, and both run the same engine (`W`, `V`, `KIT.snap`, `cue`, themes, layouts).
+
+| | `"pvk"` (default) | `"hyperframes"` |
+|---|---|---|
+| Film lives in | `film/index.html` + `film/film.js` | `hf/index.html` + `hf/film.js` (a HyperFrames composition) |
+| Drawn by | Playwright pages calling `render(t)` | the vendored HyperFrames engine (`vendor/hyperframes/`) |
+| Use it for | screen recordings: phone/browser mock-ups, the recorded take, cursor, magnifier | motion-graphics films: titles, charts, catalog components (`reelwright add`) |
+| Re-renders | incremental: unchanged frames come from `.cache/frames/` | always the whole film |
+| Start one | `./video.sh new my-film` | `./video.sh new my-film --renderer hyperframes` |
+
+Pick pvk when the film is built around a recording of your product; pick HyperFrames when it's mostly type,
+shapes and data and you want catalog components. `projects/example` and `projects/example-hf` are the starters.
+
+## Themes, layouts and formats
+
+**Themes** — `"style": "<name>"` in `project.json` (or `--style <name>` for one build, output `<out>-<name>.mp4`)
+picks `themes/<name>.css`: colours, fonts, radius, shadows, caption style and motion (easing, tempo). Ten ship:
+editorial, brutalist, pastel, dark-tech, playful, retro, swiss, luxury, clean, neon (`./video.sh themes` lists
+them). The fonts are bundled in `fonts/` (SIL OFL, see [fonts/LICENSES.md](fonts/LICENSES.md)), so macOS, Windows
+and Linux render the same type. An optional `brand.json` in the project overrides colours, fonts and logo on top
+of the theme; `theme-from` drafts a theme from a site or image (see below).
+
+**Layouts** — `KIT.layout.split`, `fullBleed`, `bento`, `tiltedDevice`, `stat`, `quote`, `kinetic`
+(`tools/layouts.js`): ready-made scenes styled from the theme and sized to the safe area. `projects/layouts-hf`
+shows all of them; the playbook says when to use each.
+
+**Formats** — `--formats 16x9,9x16,1x1` on `film`, `all`, `stills`, `frames`, `encode` or `qa` builds 1920×1080,
+1080×1920 and 1080×1080 from one `film.js`: audio once, then `out/<name>-<fmt>.mp4`. `KIT.fmt`, `KIT.safe` and
+`KIT.u` let the edit adapt.
+
+**Languages** — add `"langs": { "es": { "voice": "es-ES-AlvaroNeural", "lines": { "<id>": "…" } } }` to
+`project.json`, then `./video.sh all my-film --lang es` → `<out>-es.mp4` with Spanish voice and captions. Every
+line needs a translation; on-screen copy in `film.js` stays as written.
+
+## Every command
+
+`./video.sh` (or `node bin/reelwright.mjs`) with no command prints this list. `[project]` is a folder name in
+`projects/` or a path, and defaults to `projects/example`.
+
+| Command | What it does |
+|---|---|
+| `new <name> [--renderer hyperframes]` | copy the example (or example-hf) into `projects/<name>` |
+| `add <component>` | copy a HyperFrames catalog component into `<project>/hf/blocks/` (then `KIT.block('<component>')`) |
+| `record` | run `record.mjs` → the screen take (`clips/`) + `film/clip.js` |
+| `vo` | voiceover from `project.json` lines → `vo/` (only changed lines regenerate) |
+| `beatgrid` | fit the beat grid of `music/track.mp3` → `music/grid.json` |
+| `sched` | place the VO lines on the timeline → `film/data.js` (`hf/kit-data.js`) |
+| `info` | `timeline.json`: duration and SFX cues |
+| `music` | `music/bed.wav` from your track or the built-in bed |
+| `mix` | `mix.wav`: voice + ducked music + SFX at the target loudness |
+| `stills [t,t,..]` | preview frames → `stills/` + `stills/sheet.jpg` |
+| `frames` | render every frame → `frames/` (`--no-cache` to skip the frame cache) |
+| `encode` | frames + `mix.wav` → the mp4, plus `.srt`, `.vtt` and `.manifest.json` beside it |
+| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable) and a variety line |
+| `verify` | inputs still match the manifest and a fresh render gives the same frames |
+| `preview` | live scrubber at http://localhost:4173 |
+| `remix` | stills in the 3 themes furthest from yours × 16x9, 9x16, 1x1 → `stills-remix/sheet.jpg` |
+| `clean` | delete `frames/`, `stills/`, `.cache/` and intermediate audio (keeps the mp4) |
+| `themes` | list the themes |
+| `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
+| `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
+| `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
+| `audio` | vo → sched → info → music → mix (after editing the script) |
+| `film` | sched → info → mix → frames → encode (after editing the edit) |
+
+Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1`, `--no-cache` (above). Environment:
+`PAGES=6` (parallel browser pages), `FPS`, `BROWSER=chrome|chromium`, `PYTHON`.
+
+---
+
 ## Other sources
 
 **A film from a URL** — only for sites you own or have the right to use:
@@ -301,21 +374,26 @@ tools/                      shared — you rarely edit these
   render.mjs                stills / frames / encode, through the renderer project.json picks
   renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
-vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog components, see VENDORED.md
+  layouts.js, theme.mjs     KIT.layout.* scenes; writes each film's theme.css from themes/ + brand.json
   vo.py, sched.py           voiceover + placing it on the timeline
   beatgrid.py, music.py     music tempo fit + music bed
   mix.py                    voice + ducked music + SFX → mix.wav
-  qa.py, sheet.py           checks and contact sheets
+  qa.py, qa_page.mjs, sheet.py   checks, QA gates and contact sheets
   preview.mjs, preview.html the live scrubber (reelwright preview)
   look.mjs                  a film's resolved look: remix's theme pick and the variety check
   manifest.mjs              <out>.manifest.json and reelwright verify
   capture_site.mjs, figma_export.py, browser.mjs
   from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
   smoke.mjs                 can this machine render? one frame each from Chromium and HyperFrames
+vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog components, see VENDORED.md
+themes/                     the ten themes (themes/<name>.css), plus any theme-from writes
+fonts/                      bundled OFL fonts and LICENSES.md (fetch.mjs re-downloads them)
 cloud/                      reelwright_colab.ipynb + colab_build.py: free rendering in Colab, files in Drive
 projects/
   example/                  the starter: app walkthrough (copy it with ./video.sh new <name>)
   example-hf/               HyperFrames starter (reelwright new <name> --renderer hyperframes)
+  layouts-hf/               every KIT.layout scene, in the editorial theme
+  qa-broken/                trips every QA gate on purpose (CI checks that it fails)
   teaser/ website/ stats/ dashboard/ reel/   the other sample films — each shows different techniques
 projects/<name>/
   project.json              script, voice, music, size, output path
@@ -348,6 +426,6 @@ Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more e
 
 Code: [MIT](LICENSE). The example app, script and sounds are original and covered by the same licence.
 Voices are generated by Microsoft Edge's online TTS through [edge-tts](https://github.com/rany2/edge-tts) —
-check Microsoft's terms for your use. `vendor/hyperframes/` is HyperFrames by HeyGen under
+check Microsoft's terms for your use. Third-party code, fonts and tools: [THIRD_PARTY.md](THIRD_PARTY.md) and [NOTICE](NOTICE). `vendor/hyperframes/` is HyperFrames by HeyGen under
 [Apache 2.0](vendor/hyperframes/LICENSE) ([what we took and changed](vendor/hyperframes/VENDORED.md)). Music you add is under its own licence (e.g. the
 [Mixkit licence](https://mixkit.co/license/)); it is never committed (see `.gitignore`).

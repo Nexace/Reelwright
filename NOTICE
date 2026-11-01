@@ -1,0 +1,15 @@
+Reelwright
+Copyright (c) 2026 Amogh Khairate
+Copyright (c) 2026 Arnavxy and product-video-kit contributors
+Licensed under the MIT License (see LICENSE).
+
+This product includes software developed by HeyGen as HyperFrames
+(https://github.com/heygen-com/hyperframes), licensed under the Apache License,
+Version 2.0. The copy is in vendor/hyperframes/ with its LICENSE and CREDITS.md;
+vendor/hyperframes/VENDORED.md lists the upstream commit and every change made.
+Catalog components copied into projects (hf/blocks/) carry a header naming their source.
+
+This product bundles fonts licensed under the SIL Open Font License 1.1, in fonts/
+(each family with its OFL.txt; fonts/LICENSES.md lists copyright holders and sources).
+
+See THIRD_PARTY.md for everything else Reelwright uses and under which license.

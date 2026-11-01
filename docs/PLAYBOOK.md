@@ -89,8 +89,22 @@ Read once before your first real film.
 - Use `KIT.show(el, opacity)` (also sets visibility) and `KIT.img(img, src)` (waits for decode).
 - An element with a `z-index` inside a flex container can paint over overlays — give overlays their own
   higher `z-index`.
-- Fonts: system fonts render offline. For a brand font, put the `.woff2` in the project and use `@font-face`
-  — the renderer waits for fonts before the first frame.
+- Fonts: use a theme (`"style"`) and its bundled fonts, or put a `.woff2` in the project and name it in
+  `brand.json` — the renderer waits for fonts before the first frame. System fonts differ by OS.
+
+## HyperFrames films (`"renderer": "hyperframes"`)
+
+- Same engine, same rules: `hf/film.js` hands its `render(t)` to `KIT.start`, and every time comes from `hf/kit-data.js`
+  (written by `sched`: VO words, music grid) through `W()`, `V()`, `KIT.snap()` — never seconds typed by hand,
+  never times in `data-start`/`data-duration` attributes.
+- Only seekable animation: HyperFrames renders frames out of order and in parallel, so anything that runs on a
+  clock (GSAP or anime.js timelines left playing, CSS animations and transitions, WAAPI, `requestAnimationFrame`,
+  `setTimeout`, `Date.now`, `Math.random`) breaks. The `seekable` QA gate catches most of these.
+- Catalog components (`reelwright add <name>`) are mounted with `KIT.block(name)` and driven through the CSS custom
+  properties their "Timeline integration" comment lists, from `render(t)`. Don't pull in blocks that need GSAP or
+  load fonts and scripts from a CDN: renders must work offline and give the same frames every time.
+- Keep the composition folder self-contained: assets go under `hf/` (HyperFrames serves only that folder; the
+  renderer copies the theme and fonts into `hf/kit/`).
 
 ## Scene layouts (`KIT.layout.*`, tools/layouts.js)
 

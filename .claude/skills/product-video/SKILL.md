@@ -9,30 +9,33 @@ Build films with the `pvk` wrapper in the repo root. It runs `video.sh` from any
 
 ## Commands
 
-- `pvk new <name>`: copy the example into `projects/<name>` to start a film.
-- `pvk audio <name>`: after script or voice changes (`vo` → `sched` → `info` → `music` → `mix`).
-- `pvk film <name>`: after `film/film.js` changes (`sched` → `info` → `mix` → `frames` → `encode`).
-- `pvk all <name>`: everything from recording to mp4. Renders take minutes, so run it in the background.
-- `pvk stills <name> [t,t,...]`: preview frames, for example `pvk stills my-film 3.2,7.8,15`.
-- `pvk qa <name>`: check for blank frames and jumpy cuts.
-- `pvk clean <name>`: delete frames and stills (gigabytes), keeping the mp4.
+`pvk <command> [name]` is the same as `./video.sh` (or `node bin/reelwright.mjs` on Windows). The default project is `projects/example`; `pvk` with no command prints every command (README → Every command).
 
-The default project is `projects/example`.
+- `pvk new <name>` (pvk renderer, screen recordings) or `pvk new <name> --renderer hyperframes` (motion graphics). README → Renderers says which.
+- `pvk from-url <url> <name>`: draft a HyperFrames film from a site you own; `pvk theme-from <url|image> <name>`: draft a theme.
+- `pvk themes`, then `"style"` in `project.json`; `pvk remix <name>` shows other themes and formats on one sheet.
+- `pvk audio <name>`: after script or voice changes. `pvk film <name>`: after edit changes.
+- `pvk all <name>`: everything from recording to mp4, ending with `qa`. Renders take minutes, so run it in the background.
+- `pvk stills <name> [t,t,...]`: preview frames. `pvk preview <name>`: live scrubber for the user.
+- `pvk qa <name>`: blank frames, jumps and the gates (loudness, captions, flash, illustrative, seekable). A FAIL exits 1.
+- `pvk verify <name>`: inputs and frames still match the manifest.
+- `pvk clean <name>`: delete frames, stills and the frame cache (gigabytes), keeping the mp4.
+- Options: `--style <name>`, `--formats 16x9,9x16,1x1`, `--lang <code>`, `--no-cache`.
 
 ## Workflow
 
 1. Ask for the audience, length, voice or music-only, and what must be shown. Write the VO lines into `projects/<name>/project.json` and show them to the user before building.
-2. `pvk new <name>`, then adapt `record.mjs` (the take) and `film/film.js` (the edit).
+2. `pvk new <name>` (with `--renderer hyperframes` for a motion-graphics film), then adapt `record.mjs` (the take) and `film/film.js` (or `hf/film.js`, the edit). Pick a theme.
 3. Iterate with `pvk stills <name>` and read `stills/sheet.jpg` before showing anything.
-4. `pvk all <name>`, then `pvk qa <name>`. Look at frames around every time QA flags.
+4. `pvk all <name>`. Fix every FAIL gate and look at frames around every time QA flags.
 5. Report the mp4 path from `project.json` → `out`. Then `pvk clean <name>`.
 
 ## Rules (from CLAUDE.md)
 
-- Every timing in `film.js` comes from `W()`, `V()`, `clip.filmAt()`, recorder marks, or `KIT.snap()`. Never hard-code seconds.
+- Every timing in `film.js` (pvk or `hf/`) comes from `W()`, `V()`, `clip.filmAt()`, recorder marks, or `KIT.snap()`. Never hard-code seconds.
 - `render(t)` must be a pure function of `t`. See `docs/PLAYBOOK.md`.
 - Never let a recording perform a real write (publish, pay, send). Mock it.
 - Label fake numbers "Illustrative data" unless the user says otherwise.
-- Don't change `tools/` for a single film. Put film-specific work in that project's `film.js`.
+- Never edit `vendor/hyperframes/` for a film. Don't change `tools/` for a single film. Put film-specific work in that project's `film.js`.
 
 Read `README.md` and `docs/PLAYBOOK.md` before a real film.

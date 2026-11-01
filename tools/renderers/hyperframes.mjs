@@ -15,7 +15,7 @@ import { encode } from "./pvk.mjs";
 const TOOLS = new URL("..", import.meta.url);
 
 // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
-function headlessShell() {
+export function headlessShell() {
   const full = chromium.executablePath();
   const m = full.match(/^(.*[\\/])chromium-(\d+)[\\/]/);
   const dir = m && path.join(m[1], `chromium_headless_shell-${m[2]}`);

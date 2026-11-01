@@ -1,0 +1,45 @@
+# Render a film on GitHub's free runners: Actions → Render → Run workflow, pick a project committed to the repo.
+# The mp4 (plus .srt, .vtt, manifest and qa.txt) comes back as the run's artifact.
+# Free minutes: public repos are free; private repos on GitHub Free get 2,000 Linux minutes a month (the example
+# takes about 10). Colab (cloud/reelwright_colab.ipynb) is the other free option and renders projects kept in Drive.
+name: Render
+on:
+  workflow_dispatch:
+    inputs:
+      project: { description: "Project folder under projects/", default: example, required: true }
+      args: { description: "Extra build options, e.g. --style editorial --lang es", default: "", required: false }
+  push:   # a change to this file renders the example once, so a branch can test it (dispatch needs it on main)
+    paths: [.github/workflows/render.yml]
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq ffmpeg
+          pip install -r requirements.txt
+          npm install
+          npx playwright install --with-deps chromium
+          node tools/smoke.mjs
+      - name: Build
+        env:
+          PAGES: 2
+          PROJECT: ${{ inputs.project || 'example' }}
+          ARGS: ${{ inputs.args }}
+        run: |
+          [[ "$PROJECT" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "bad project name"; exit 1; }
+          set -o pipefail
+          node bin/reelwright.mjs all "$PROJECT" $ARGS 2>&1 | tee build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.project || 'example' }}-film
+          path: |
+            projects/${{ inputs.project || 'example' }}/out/
+            build.log

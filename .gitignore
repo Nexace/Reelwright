@@ -33,3 +33,6 @@ scratch/
 
 # agent worktrees (Claude Code)
 .claude/worktrees/
+.node/
+.ms-playwright/
+drive/

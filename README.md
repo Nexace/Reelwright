@@ -264,6 +264,31 @@ reading order. View access is enough.
 
 ---
 
+## Render in the cloud (free)
+
+No fast computer? Two free options, both building the same way as `./video.sh all`.
+
+**Google Colab + Drive** ([cloud/reelwright_colab.ipynb](cloud/reelwright_colab.ipynb)). Drive stores files;
+Colab does the rendering.
+1. Open the notebook in Colab: File → Open notebook → GitHub (tick "Include private repos" while this repo is
+   private), or upload it to Drive and open it from there.
+2. While the repo is private, add a Colab secret `GITHUB_TOKEN` (🔑 in the left bar): a fine-grained GitHub token
+   with *Contents: read* on this repo only. The notebook sends it as a header; it isn't saved in the clone or printed.
+3. Put your project in `MyDrive/reelwright/projects/<name>/` (bundled projects like `example` need nothing), set
+   `PROJECT` in the first cell, then Runtime → Run all.
+4. The mp4, `.srt`, `.vtt`, manifest and `qa.txt` appear in `MyDrive/reelwright/projects/<name>/out/`.
+
+The first session downloads Node and Chromium into `MyDrive/reelwright/cache/` (a few minutes); later ones unpack
+from there. Colab disconnects idle sessions and caps session length (Google sets the free limits; no GPU needed).
+After a disconnect, Run all again: each step is saved to Drive as it finishes, so the screen take, voiceover and
+(pvk films) rendered frames are reused. HyperFrames films re-render their frames.
+
+**GitHub Actions** ([render.yml](.github/workflows/render.yml)): Actions → Render → Run workflow, pick a project
+committed to the repo and optional build options; download the film from the run's artifacts. Public repos are
+free; private repos on GitHub Free get 2,000 Linux minutes a month (the example takes about 10).
+
+HyperFrames' own cloud rendering (AWS Lambda) isn't used: it's paid.
+
 ## Folder layout
 
 ```
@@ -284,6 +309,8 @@ vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog 
   manifest.mjs              <out>.manifest.json and reelwright verify
   capture_site.mjs, figma_export.py, browser.mjs
   from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
+  smoke.mjs                 can this machine render? one frame each from Chromium and HyperFrames
+cloud/                      reelwright_colab.ipynb + colab_build.py: free rendering in Colab, files in Drive
 projects/
   example/                  the starter: app walkthrough (copy it with ./video.sh new <name>)
   example-hf/               HyperFrames starter (reelwright new <name> --renderer hyperframes)

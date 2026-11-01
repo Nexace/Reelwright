@@ -48,6 +48,13 @@ http.createServer((req, res) => {
   }
   const f = path.join(ROOT, decodeURIComponent(u.pathname));
   if (f !== ROOT && !f.startsWith(ROOT + path.sep)) { res.writeHead(403); return res.end(); }
+  if (hf() && f === path.join(DIR, "hf", "index.html") && fs.existsSync(f)) {
+    // the HyperFrames producer compiles this rule into the page it renders (injectTextRenderingRule); text metrics
+    // and glyph edges follow it, so the preview gets it too
+    res.writeHead(200, { "content-type": TYPES[".html"], "cache-control": "no-store" });
+    return res.end(fs.readFileSync(f, "utf8").replace(/<head[^>]*>/i,
+      (h) => h + "<style data-hyperframes-text-rendering>html,body,*{text-rendering:geometricPrecision}</style>"));
+  }
   fs.stat(f, (err, st) => {
     if (err || !st.isFile()) { res.writeHead(404); return res.end("not found"); }
     res.writeHead(200, { "content-type": TYPES[path.extname(f).toLowerCase()] || "application/octet-stream",

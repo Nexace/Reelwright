@@ -20,9 +20,14 @@ function fingerprint() {
     if (n.nodeType === 3) return out.push(n.data);
     if (n.nodeType !== 1) return;
     const cs = getComputedStyle(n);
-    // hidden and out of flow, so it moves nothing else: a caption shown later doesn't key every frame
+    // hidden and out of flow, so it moves nothing else: a caption shown later doesn't key every frame. What a hidden
+    // subtree can still lend to visible content stays in: <style> rules, and anything with an id (an SVG <symbol>,
+    // gradient, clipPath or filter used through <use href> or url(#…)).
     if (cs.display === "none" || /^(absolute|fixed)$/.test(cs.position) &&
-      (cs.opacity === "0" || cs.visibility === "hidden" && ![...n.querySelectorAll("*")].some(shown))) return;
+      (cs.opacity === "0" || cs.visibility === "hidden" && ![...n.querySelectorAll("*")].some(shown))) {
+      for (const e of [n, ...n.querySelectorAll("style, [id]")]) if (e.tagName === "STYLE" || e.id) out.push(e.outerHTML);
+      return;
+    }
     out.push("<" + n.tagName + [...n.attributes].map((a) => ` ${a.name}="${a.value}"`).join("") + ">");
     if (n.tagName === "VIDEO") out.push(n.currentTime);
     if (n.tagName === "CANVAS") out.push(n.toDataURL());
@@ -46,7 +51,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     let errors = 0;
     for (let i = 0; i < n; i++) {
       const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
-      p.on("request", (r) => { if (r.resourceType() !== "script") loaded.add(r.url()); });
+      p.on("request", (r) => loaded.add(r.url()));
       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
       await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href);
@@ -56,19 +61,23 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     }
     return { browser, pages, loaded };
   }
-  // Everything a frame depends on besides its fingerprint: the files the pages loaded (scripts left out: what they
-  // do shows up in the DOM), the stylesheets as parsed, the frame size, the browser and the screenshot settings.
+  // Everything a frame depends on besides its fingerprint: the files the pages loaded, the stylesheets as parsed, this
+  // renderer's own code, the frame size, platform, browser and screenshot settings. The film's own scripts are left
+  // out (what they do shows up in the DOM, so a film.js edit re-renders only what it changes); shared scripts such as
+  // tools/engine.js are in, since they can change pixels without changing the DOM.
   async function globalKey(browser, page, loaded) {
-    const files = [...loaded].sort().map((u) => {
-      if (!u.startsWith("file:")) return u;
+    const own = [fileURLToPath(import.meta.url), fileURLToPath(new URL("../browser.mjs", import.meta.url))];
+    const files = [...loaded, ...own.map((f) => pathToFileURL(f).href)].sort().flatMap((u) => {
+      if (!u.startsWith("file:")) return [u];
       const f = fileURLToPath(u);
-      return path.relative(DIR, f).split(path.sep).join("/") + " " + (fs.existsSync(f) ? sha(fs.readFileSync(f)) : "missing");
+      if (/\.m?js$/.test(f) && f.startsWith(DIR + path.sep)) return [];
+      return [path.relative(DIR, f).split(path.sep).join("/") + " " + (fs.existsSync(f) ? sha(fs.readFileSync(f)) : "missing")];
     });
     const css = await page.evaluate(() => [...document.styleSheets].map((s) => {
       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
     }).join("\n"));
-    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], browser: process.env.BROWSER || "",
-      version: browser.version(), shot: SHOT }));
+    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], platform: `${process.platform}-${process.arch}`,
+      browser: process.env.BROWSER || "", version: browser.version(), shot: SHOT }));
   }
   async function shot(p, t, file) {
     await p.evaluate((t) => window.render(t), t);
@@ -98,6 +107,8 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     const out = process.env.REELWRIGHT_FRAMES_DIR || path.join(DIR, "frames");   // verify renders elsewhere
     const name = (f) => path.join(out, "f" + String(f).padStart(5, "0") + ".jpg");
     fs.mkdirSync(out, { recursive: true });
+    // a full render of a film that got shorter: drop the old tail, so frames/ holds exactly this film
+    if (!a3 && !a4) for (const f of fs.readdirSync(out)) if (/^f\d{5}\.jpg$/.test(f) && Number(f.slice(1, 6)) >= to) fs.rmSync(path.join(out, f));
     const t0 = Date.now();
     let done = 0, todo = [];
     // each page takes a contiguous run of the list (frames rendered in order, like a single page would)

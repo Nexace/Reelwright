@@ -368,6 +368,7 @@ HyperFrames' own cloud rendering (AWS Lambda) isn't used: it's paid.
 
 ```
 bin/reelwright.mjs          every build step (video.sh is a wrapper for it)
+bin/pvk                     video.sh from any folder (adds Homebrew's ffmpeg to PATH)
 setup.mjs, setup.sh         one-time setup
 tools/                      shared — you rarely edit these
   engine.js, kit.css        the director engine (timing helpers, phone, clip player, subtitles, SFX cues)
@@ -405,6 +406,8 @@ projects/<name>/
   .cache/frames/            rendered frames by fingerprint (reused by frames; clean deletes it)
 docs/PLAYBOOK.md            what makes these films good — read before your first real one
 docs/REPRODUCIBLE.md        the manifest, verify, and what can differ across operating systems
+docs/archive/plans/         how this repo was built: the plan, phase specs and their status
+NOTICE, THIRD_PARTY.md      licenses of the vendored code, fonts and tools
 ```
 
 ## Troubleshooting

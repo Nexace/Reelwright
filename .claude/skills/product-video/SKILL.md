@@ -5,7 +5,7 @@ description: Make, edit, rebuild or render product videos with the reelwright (s
 
 # Reelwright
 
-Build films with the `pvk` wrapper in the repo root. It runs `video.sh` from any folder and puts Homebrew's ffmpeg on PATH. If `pvk` is not on PATH, run `./pvk` from the repo root.
+Build films with the `pvk` wrapper (`bin/pvk`). It runs `video.sh` from any folder and puts Homebrew's ffmpeg on PATH. If `pvk` is not on PATH, run `bin/pvk` from the repo root.
 
 ## Commands
 

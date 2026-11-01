@@ -1,6 +1,6 @@
 # Phase 5 spec: preview, speed and repeatability
 
-Branch `phase-5-preview-speed` (built on `phase-5-work`). Status: built; local exit test passed on macOS except the items marked open under "As built"; CI not run yet.
+Branch `phase-5-preview-speed` (built on `phase-5-work`). Status: built; local exit test passed on macOS (see "As built"); CI not run yet.
 
 ## 5a. Preview and speed
 
@@ -112,22 +112,28 @@ Incremental HF rendering via a vendored patch, audio caching (audio steps are al
   text face (example-hf: playful, swiss, editorial). The user's own `stills/` is parked and restored.
 - **Preview** reloads the whole page (iframe and waveform) on a change and returns to `#t=`; the "script changed"
   banner stays until data.js / kit-data.js changes (sched ran). Play uses WebAudio from the decoded `mix.wav`.
-  `?fit=0` shows the film at 100 % (the exit test screenshots it there).
+  `?fit=0` shows the film at 100 % (the exit test screenshots it there). For HyperFrames films the server adds the
+  producer's `html,body,*{text-rendering:geometricPrecision}` rule to hf/index.html (the producer compiles it into the
+  page it renders); without it glyph edges differed in 4–8k px per frame.
 - CI: one more step after the example build, `verify` and a cached `frames` re-run.
 
 ### Exit test (macOS, local)
 
-- Preview vs stills, `example` at 2, 6.5, 9.25, 15, 21 s: iframe screenshots byte-identical to `stills` (5/5).
+- Preview vs stills, `example` at 2, 6.5, 9.25, 15, 21 s: iframe screenshots byte-identical to `stills` (5/5, also
+  after the font fix).
   `example-hf` at 1, 3.5, 6, 8.2, 10.5 s, compared with the renderer's frames at those t (the PNGs stills are cut
-  from): before the font fix 1 of 5 matched (4220–39507 px off, the chart 5.5 px lower); after it: OPEN, see below.
+  from): 2 identical, 3 off by at most 2/255 with 0 px beyond framediff's noise threshold, so within tolerance. Before
+  the font fix and the text-rendering rule, 4 of 5 were off by 4220–39507 px.
 - Caption edit (`'Add in one tap'` → `'Add with one tap'`): `frames` re-rendered 260 frames in 1 shot, 367–626
   (6.12–10.45 s), 1118 from cache, 8 s; byte-identical to a clean `--no-cache` build (0 of 1378 differ).
-- Variety: a copy of example-hf (`reelwright new … --renderer hyperframes`) gives `WARN variety same theme
-  "dark-tech"` both ways; with the copy gone, `PASS`. Remix sheet: OPEN.
-- `verify example` passed twice in a row (248 inputs, 1378 frames identical, 1378 frames = 22.967 s vs mp4 22.952 s);
-  after appending a rule to `tools/kit.css` (the default theme of this no-style film) it failed with
-  `tools/kit.css (changed)`.
+  Re-run after the font fix: same result.
+- `remix example-hf`: playful 16x9 (yellow, rounded face), swiss 9x16 (white, red rule, grotesk), editorial 1x1
+  (cream, serif): three clearly different looks on `stills-remix/sheet.jpg`. The 50 % still catches the wipe as it
+  fades. Variety: a copy of example-hf (`reelwright new … --renderer hyperframes`) gives `WARN variety same theme
+  "dark-tech"` both ways; with the copy gone, `PASS`.
+- `verify example` passed twice in a row (248 inputs, 1378 frames identical, 1378 frames = 22.967 s vs mp4 22.952 s),
+  and once more after the font fix; after appending a rule to `tools/kit.css` (the default theme of this no-style
+  film) it failed with `tools/kit.css (changed)`.
+- Preview auto-reload: with preview.html open at 9.25 s, touching film.js reloaded the page back at `#t=9.250`,
+  frame 555, with identical iframe pixels.
 - `example`: 1378 frames, mp4 22.952 s. CI: not run (not pushed).
-- OPEN: the Playwright browser cache (`~/Library/Caches/ms-playwright`) disappeared from this machine mid-test, outside
-  this work, so the HF preview re-check after the font fix and the `remix example-hf` sheet still need a run:
-  `npx playwright install chromium`, then the commands above.

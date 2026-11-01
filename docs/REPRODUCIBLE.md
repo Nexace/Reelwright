@@ -5,8 +5,10 @@
 - **tools**: node, python, ffmpeg, Chromium, Playwright and edge-tts versions, and the vendored HyperFrames commit;
 - **inputs**: the sha256 of every file in the project except build output (`frames*`, `stills*`, `out/`, `.cache/`),
   the theme, and `tools/`. The fonts a theme uses are inlined into the project's generated `theme.css`, so they are
-  covered by its hash;
-- **output**: the mp4's duration, the frame count and the sha256 of every frame.
+  covered by its hash. Text files are hashed with LF line ends, so a Windows checkout with CRLF matches;
+- **output**: the mp4's duration and video frame count (for the record: `-shortest` and AAC packets can trim a
+  frame), the rendered frame count and the sha256 of every frame. verify compares the frame count, which at the
+  film's fps is the duration.
 
 `reelwright verify` checks the inputs first and names any that changed. Then it renders the frames again into a
 temp folder with the frame cache off and compares the count, the duration and every frame's hash. It never re-voices:
@@ -17,6 +19,10 @@ edge-tts is an online service and its mp3s are not byte-stable, so `vo/` is an i
 Frames must be identical, and are: a pvk frame is a pure function of t (the engine rebuilds the layout after each
 `render(t)`, so no tile rastered for an earlier frame survives into the next), and HyperFrames renders on Chromium's
 software path.
+
+`verify` always renders with the frame cache off. The cache (`frames` on pvk films) keys a frame by what it shows;
+it doesn't see Web Animations' currentTime, form input values or focus, `adoptedStyleSheets` or iframe contents, and a
+one-off render glitch stays cached until `--no-cache` or `clean`.
 
 ## Another OS (or another Chromium)
 

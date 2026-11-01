@@ -85,10 +85,19 @@ Incremental HF rendering via a vendored patch, audio caching (audio steps are al
   shown later (hidden elements stay in the DOM), so one caption edit re-rendered all 1378 frames. The fingerprint walks
   the body instead and leaves out `display: none` subtrees and out-of-flow (absolute/fixed) subtrees with opacity 0 or
   visibility hidden; in-flow hidden elements stay in, since they move their neighbours. Shadow roots are included.
-- **Scripts are not in the global key.** What film.js, data.js and clip.js do lands in the DOM, which is
+  What a skipped subtree can still lend to visible content is kept: the text of its `<style>` elements and the
+  outerHTML of anything in it with an id (an SVG `<symbol>`, gradient, clipPath or filter used through `<use href>`
+  or `url(#…)`). Regression fixture `scratch/fixture-symbol/` (a display:none `<symbol>` shown through `<use>`, its
+  colour edited in film.js): 10 of 10 frames re-render; without the fix 0 did (stale frames from the cache).
+- **The film's own scripts are not in the global key.** What film.js, data.js and clip.js do lands in the DOM, which is
   fingerprinted; if they were hashed, a film.js edit would re-render every frame. Everything else the pages request
-  (index.html, css, fonts, clip images) is hashed, plus the parsed CSSOM once per render (shortcut: CSS rules a film
-  inserts per frame from JS aren't seen; nothing does that today).
+  is hashed: index.html, css, fonts, clip images, and shared scripts outside the project (tools/engine.js,
+  layouts.js), plus the renderer's own code (pvk.mjs, browser.mjs), platform/arch, and the parsed CSSOM once per
+  render (shortcut: CSS rules a film inserts per frame from JS aren't seen; nothing does that today). Known blind
+  spots (README, REPRODUCIBLE.md): Web Animations currentTime, input values/focus, adoptedStyleSheets, iframe
+  contents; a one-off render glitch stays cached until `--no-cache` or `clean`.
+- A full-range pvk `frames` deletes `f*.jpg` at or past the film's last frame, so a film that got shorter leaves no
+  stale tail; the manifest counts only the renderer's own frame names (`f%05d.jpg` / `frame_%06d.png`).
 - **Theme fonts are inlined, and usable while the film loads.** The HF preview didn't match HyperFrames frames: film
   code that measures text at load (example-hf centres its chart with `offsetHeight`) got the fallback face in our
   pages (fonts `loading 0/4` when film.js ran: label 25 px vs 29, chart 596 vs 603) but the real one in the producer,
@@ -101,7 +110,10 @@ Incremental HF rendering via a vendored patch, audio caching (audio steps are al
   untested. example-hf renders 337 frames in 7–9 s, so this was left for Phase 7 (cloud rendering uses that API).
 - **Manifest** is `<out without .mp4>.manifest.json` (beside the `.srt`/`.vtt`), not `<out>.manifest.json`. Inputs
   are every project file except build output, the theme and all of `tools/`; fonts are covered through the inlined
-  `theme.css`. The duration is the mp4's (ffprobe format duration); verify accepts frames/fps within one frame of it.
+  `theme.css`; text files are hashed with LF line ends (a Windows autocrlf checkout matches), and Thumbs.db,
+  desktop.ini, .DS_Store and `__pycache__` are skipped. The manifest records the mp4's duration and video frame count
+  for the record (example: 22.952 s, 1377 frames: `-shortest` trims one), and verify compares the rendered frame
+  count (1378), which at the film's fps is the duration.
   Against a manifest from another platform or Chromium, verify applies framediff only when the original `frames/` is
   beside the manifest (the tolerance needs the pixels); otherwise it fails and says so. Notes: docs/REPRODUCIBLE.md.
 - **Variety check**: films with neither a theme nor brand.json are skipped (their look is in their own CSS, which the
@@ -114,7 +126,9 @@ Incremental HF rendering via a vendored patch, audio caching (audio steps are al
   banner stays until data.js / kit-data.js changes (sched ran). Play uses WebAudio from the decoded `mix.wav`.
   `?fit=0` shows the film at 100 % (the exit test screenshots it there). For HyperFrames films the server adds the
   producer's `html,body,*{text-rendering:geometricPrecision}` rule to hf/index.html (the producer compiles it into the
-  page it renders); without it glyph edges differed in 4–8k px per frame.
+  page it renders); without it glyph edges differed in 4–8k px per frame. The server answers only Host
+  `localhost:PORT` / `127.0.0.1:PORT` (403 otherwise, against DNS rebinding), returns 400 for a malformed URL, keeps
+  running when theme.css can't be written (a bad brand.json is printed, not fatal) and also watches `themes/*.css`.
 - CI: one more step after the example build, `verify` and a cached `frames` re-run.
 
 ### Exit test (macOS, local)
@@ -126,13 +140,14 @@ Incremental HF rendering via a vendored patch, audio caching (audio steps are al
   the font fix and the text-rendering rule, 4 of 5 were off by 4220–39507 px.
 - Caption edit (`'Add in one tap'` → `'Add with one tap'`): `frames` re-rendered 260 frames in 1 shot, 367–626
   (6.12–10.45 s), 1118 from cache, 8 s; byte-identical to a clean `--no-cache` build (0 of 1378 differ).
-  Re-run after the font fix: same result.
+  Re-run after the font fix and after the review fixes: same result.
 - `remix example-hf`: playful 16x9 (yellow, rounded face), swiss 9x16 (white, red rule, grotesk), editorial 1x1
   (cream, serif): three clearly different looks on `stills-remix/sheet.jpg`. The 50 % still catches the wipe as it
   fades. Variety: a copy of example-hf (`reelwright new … --renderer hyperframes`) gives `WARN variety same theme
   "dark-tech"` both ways; with the copy gone, `PASS`.
 - `verify example` passed twice in a row (248 inputs, 1378 frames identical, 1378 frames = 22.967 s vs mp4 22.952 s),
-  and once more after the font fix; after appending a rule to `tools/kit.css` (the default theme of this no-style
+  once more after the font fix, and twice after the review fixes (frame-count check; also with project.json and
+  tools/qa.py converted to CRLF: inputs still match); after appending a rule to `tools/kit.css` (the default theme of this no-style
   film) it failed with `tools/kit.css (changed)`.
 - Preview auto-reload: with preview.html open at 9.25 s, touching film.js reloaded the page back at `#t=9.250`,
   frame 555, with identical iframe pixels.

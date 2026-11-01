@@ -45,7 +45,7 @@ jobs:
         env: { PAGES: 2, PYTHON: python }
         run: |
           node bin/reelwright.mjs verify | grep -E "PASS|FAIL" | tee -a "$GITHUB_STEP_SUMMARY"
-          node bin/reelwright.mjs frames | tail -1 | tee -a "$GITHUB_STEP_SUMMARY"
+          node bin/reelwright.mjs frames | tail -1 | tee -a "$GITHUB_STEP_SUMMARY" | grep -q ": 0 rendered in 0 shots,"
       - uses: actions/upload-artifact@v4
         with:
           name: example-film-${{ matrix.os }}

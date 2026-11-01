@@ -39,6 +39,7 @@ process.chdir(ROOT);
 // Windows has `python`, not `python3`; PYTHONUTF8 stops cp1252 errors on our UTF-8 JSON and ▶ output.
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 process.env.PYTHONUTF8 = "1";
+process.env.REELWRIGHT_NODE = process.execPath;   // tools/qa.py runs its node checks with the same node
 
 const [cmd = "help", ...args] = process.argv.slice(2);
 const st = args.indexOf("--style");   // any command: build with themes/<name>.css, output <out>-<name>.mp4
@@ -139,19 +140,18 @@ const C = {
     const ts = [0.25, 0.5, 0.75].map((f) => +(f * dur).toFixed(2)).join(",");
     const out = path.join(proj, "stills-remix"), keep = path.join(proj, "stills-keep"), stills = path.join(proj, "stills");
     rm("stills-remix"); fs.mkdirSync(out);
-    if (fs.existsSync(stills)) fs.renameSync(stills, keep);   // the user's own stills come back after
+    // the user's own stills come back after, also when a step fails (run() exits the process)
+    const restore = () => { if (fs.existsSync(keep)) { rm("stills"); fs.renameSync(keep, stills); } };
+    if (fs.existsSync(stills)) { fs.renameSync(stills, keep); process.once("exit", restore); }
     const ENV = ["REELWRIGHT_STYLE", "REELWRIGHT_FORMAT", "REELWRIGHT_SIZE"], saved = ENV.map((k) => process.env[k]);
-    try {
-      looks.forEach(([s, f], i) => {
-        console.log(`\n\x1b[1;36m■ ${s} · ${f}\x1b[0m`);
-        Object.assign(process.env, { REELWRIGHT_STYLE: s, REELWRIGHT_FORMAT: f, REELWRIGHT_SIZE: SIZES[f] });
-        C.sched(); step("stills"); render("stills", ts);
-        fs.renameSync(stills, path.join(out, `${i + 1} ${s} · ${f}`));
-      });
-    } finally {
-      ENV.forEach((k, i) => (saved[i] === undefined ? delete process.env[k] : (process.env[k] = saved[i])));
-      if (fs.existsSync(keep)) { rm("stills"); fs.renameSync(keep, stills); }
-    }
+    looks.forEach(([s, f], i) => {
+      console.log(`\n\x1b[1;36m■ ${s} · ${f}\x1b[0m`);
+      Object.assign(process.env, { REELWRIGHT_STYLE: s, REELWRIGHT_FORMAT: f, REELWRIGHT_SIZE: SIZES[f] });
+      C.sched(); step("stills"); render("stills", ts);
+      fs.renameSync(stills, path.join(out, `${i + 1} ${s} · ${f}`));
+    });
+    ENV.forEach((k, i) => (saved[i] === undefined ? delete process.env[k] : (process.env[k] = saved[i])));
+    restore();
     C.sched();   // back to project.json's own size and look
     (await import("../tools/theme.mjs")).writeTheme(path.resolve(proj), project());
     py("sheet.py", "stills-remix");

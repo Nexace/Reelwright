@@ -212,7 +212,9 @@ Re-renders are incremental (pvk films): `frames` fingerprints what each frame sh
 video times, scroll offsets, canvas pixels, plus every file the page loaded) and copies frames it has seen
 before from `.cache/frames/`, so a caption edit re-renders only the frames that show it. It reports how many
 frames it rendered and where (`260 rendered in 1 shot: 367–626 (6.12–10.45 s)`). `--no-cache` renders every
-frame. HyperFrames films always render in full.
+frame. HyperFrames films always render in full. The fingerprint doesn't see Web Animations' currentTime, form input
+values or focus, `adoptedStyleSheets` or the inside of iframes (films driven by `render(t)` don't use them), and a
+one-off render glitch stays cached until `--no-cache` or `clean`.
 
 `encode` also writes `<out>.manifest.json`: tool versions, a hash of every input and of every frame, the
 duration. `verify` names any input that changed since, then re-renders the frames with the cache off and

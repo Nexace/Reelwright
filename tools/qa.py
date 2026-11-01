@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image, ImageChops, ImageStat
 
 proj = sys.argv[1]
+NODE = os.environ.get("REELWRIGHT_NODE", "node")   # bin/reelwright.mjs passes the node it runs on, as it uses for every step
 P = json.load(open(os.path.join(proj, "project.json")))
 fps = int(os.environ.get("FPS") or P.get("fps", 60))
 D = os.path.join(proj, "frames")
@@ -79,7 +80,7 @@ else:
              ([f"true peak {tp:.1f} dBTP (max −1)"] if tp > -1 else []), f"({i:.1f} LUFS, peak {tp:.1f} dBTP)")
 
 # page checks: captions + illustrative
-r = subprocess.run(["node", os.path.join(os.path.dirname(__file__), "qa_page.mjs"), proj], capture_output=True, text=True)
+r = subprocess.run([NODE, os.path.join(os.path.dirname(__file__), "qa_page.mjs"), proj], capture_output=True, text=True)
 if r.returncode:
     err = [l for l in r.stderr.splitlines() if l.startswith("Error")] or r.stderr.strip().splitlines()[-1:] or ["?"]
     gate("captions", ["page check failed: " + err[0]]); pg = None
@@ -127,6 +128,6 @@ for f in src:
 gate("seekable", hits)
 
 # variety: a WARN line when another film in projects/ looks the same (tools/look.mjs); never fails the build
-r = subprocess.run(["node", os.path.join(os.path.dirname(__file__), "look.mjs"), proj], capture_output=True, text=True)
+r = subprocess.run([NODE, os.path.join(os.path.dirname(__file__), "look.mjs"), proj], capture_output=True, text=True)
 print(r.stdout.rstrip() or f"  ?     variety  {r.stderr.strip()[-200:]}")
 sys.exit(1 if fails else 0)

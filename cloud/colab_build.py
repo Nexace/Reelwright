@@ -1,7 +1,7 @@
 # Build a reelwright film in a fresh Linux VM (Google Colab, or CI), keeping the slow parts in a Drive folder.
 # cloud/reelwright_colab.ipynb calls these; outside Colab, DRIVE is any folder (REELWRIGHT_DRIVE).
 #
-#   DRIVE/cache/     node tarball, Playwright browsers as a tarball, pip and npm caches (survive the VM)
+#   DRIVE/cache/     node tarball and Playwright browsers as a tarball (survive the VM)
 #   DRIVE/projects/<name>/   your project in; the whole project, its caches and out/ back after every step
 #
 # Resume: rerun build() after a disconnect. `record` is skipped when the take is already there (a new take would
@@ -31,10 +31,11 @@ def sh(cmd, check=True, log=None):
 
 
 def tools(drive):
-    """Node 22, Python libs, npm packages and Chromium; downloads land in DRIVE/cache once, later runs unpack."""
+    """Node 22, Python libs, npm packages and Chromium; Node and Chromium land in DRIVE/cache once, later runs unpack."""
     cache = os.path.join(drive, "cache"); os.makedirs(cache, exist_ok=True)
     t0 = time.time()
-    ENV.update(PIP_CACHE_DIR=os.path.join(cache, "pip"), npm_config_cache=os.path.join(cache, "npm"))
+    # only single big files live in Drive: npm/pip caches are thousands of small files, which Drive's FUSE mount
+    # serves so slowly that a cached `npm install` took minutes instead of ~25 s from the registry
     have = subprocess.run(["node", "--version"], capture_output=True, text=True, env=ENV).stdout.strip()
     if not have.startswith(("v22", "v23", "v24", "v25", "v26")):
         tgz = os.path.join(cache, f"node-{NODE}-linux-x64.tar.xz")

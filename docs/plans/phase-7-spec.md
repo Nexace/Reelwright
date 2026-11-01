@@ -13,7 +13,7 @@ are safe to re-run top to bottom:
    clone reads a GitHub token from Colab Secrets (`GITHUB_TOKEN`, a read-only fine-grained token you create; it never
    appears in the notebook or its output). Once Phase 8 makes the repo public, no token.
 3. **Tools, cached in Drive** (`MyDrive/reelwright/cache/`): Node 22 tarball, the Playwright browser folder as a
-   tarball (unpacked to local disk: Drive's FUSE mount can't run executables reliably), pip and npm caches. First run
+   tarball (unpacked to local disk: Drive's FUSE mount can't run executables reliably). (Built: pip and npm caches stay off Drive, see As built.) First run
    downloads (~5 min); later runs unpack (~1 min). ffmpeg and Python come with Colab; Chromium's system libraries
    via `playwright install-deps` (Colab runs as root).
 4. **Project.** Copies `MyDrive/reelwright/projects/<name>/` to `/content/reelwright/projects/<name>/`. You put your
@@ -38,7 +38,7 @@ branch can test it before merge (dispatch needs the file on `main`).
 
 ## Checks
 
-- CI job `colab-notebook` on `ubuntu-22.04` (Colab's OS) executes the notebook with `nbconvert`, `REELWRIGHT_DRIVE`
+- CI job `colab-notebook` on `ubuntu-24.04` (Colab's OS; it was 22.04 when the plan was written) executes the notebook with `nbconvert`, `REELWRIGHT_DRIVE`
   set to a temp folder: the example mp4 must appear in the fake Drive; then a second run must skip `record`, reuse
   the VO and take frames from the cache (asserted from its log), and give the same frame hashes (`verify`).
 - `render.yml` runs once on the branch and its artifact holds the example mp4.

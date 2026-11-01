@@ -108,9 +108,9 @@ jobs:
             projects/example-hf/out/*
             projects/layouts-hf/out/*.mp4
   colab-notebook:
-    # cloud/reelwright_colab.ipynb outside Colab, on Colab's OS: ./drive stands in for Google Drive. Run 1 builds the
+    # cloud/reelwright_colab.ipynb outside Colab, on Colab's OS (Ubuntu 24.04): ./drive stands in for Google Drive. Run 1 builds the
     # example into it; the project's generated files are then wiped (a fresh VM), and run 2 must resume from Drive.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4

@@ -1,4 +1,6 @@
 /// <reference types="@webgpu/types" />
+// Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): buildChromeArgs adds --disable-lcd-text, so text
+// antialiasing can't switch between LCD and greyscale from one render to the next (see VENDORED.md).
 /**
  * Browser Manager
  *
@@ -869,6 +871,9 @@ export function buildChromeArgs(options, config) {
         "--ignore-gpu-blocklist",
         ...getBrowserGpuArgs(browserGpuMode, platform),
         "--font-render-hinting=none",
+        // Reelwright: Chromium picks LCD (subpixel) or greyscale text antialiasing per compositing layer, and on
+        // Linux that choice varied between renders of the same frame. Greyscale everywhere keeps frames identical.
+        "--disable-lcd-text",
         "--force-color-profile=srgb",
         "--force-device-scale-factor=1",
         `--window-size=${options.width},${options.height}`,

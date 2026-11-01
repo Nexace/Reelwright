@@ -20,7 +20,8 @@ Third-party code inside: none in what we took. Third-party npm packages the vend
 ## What we changed
 
 - Every `package.json` under `producer/ engine/ core/ parsers/ lint/ studio-server/`: removed `devDependencies` and `scripts`. npm installs a `file:` package's devDependencies, which pulled in ~750 MB (AWS Lambda, ffprobe-static); the scripts are upstream's Bun build. JSON can't carry a header, so this line is the change note.
-- No source file is changed. If you change one, put this at its top, keeping upstream's copyright:
+- `engine/dist/services/browserManager.js`: `buildChromeArgs` adds `--disable-lcd-text`. Chromium chose LCD (subpixel) or greyscale text antialiasing per compositing layer, and on Linux CI two renders of example-hf drew the same caption differently (about 3,000 px over frames 109–160). Greyscale everywhere makes renders repeatable; macOS headless already drew greyscale, so its frames don't change.
+- No other source file is changed. If you change one, put this at its top, keeping upstream's copyright:
   `// Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): <what and why>`
 
 ## Updating

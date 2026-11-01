@@ -107,3 +107,39 @@ jobs:
           path: |
             projects/example-hf/out/*
             projects/layouts-hf/out/*.mp4
+  colab-notebook:
+    # cloud/reelwright_colab.ipynb outside Colab, on Colab's OS (Ubuntu 24.04): ./drive stands in for Google Drive. Run 1 builds the
+    # example into it; the project's generated files are then wiped (a fresh VM), and run 2 must resume from Drive.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install what Colab already has (ffmpeg, rsync, Jupyter) and Chromium's system libraries
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq ffmpeg rsync
+          pip install -q nbconvert ipykernel
+          sudo npx -y playwright install-deps chromium   # Colab runs as root, so the notebook does this itself there
+      - name: "Run 1: build the example into ./drive"
+        env: { PAGES: 2, REELWRIGHT_DRIVE: "${{ github.workspace }}/drive", REELWRIGHT_CODE: "${{ github.workspace }}" }
+        run: |
+          jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=3000 --output run1.ipynb cloud/reelwright_colab.ipynb
+          ls -l drive/projects/example/out/ | tee -a "$GITHUB_STEP_SUMMARY"
+          test -s drive/projects/example/out/tidy-example.mp4
+      - name: "Run 2: fresh project folder, resume from ./drive"
+        env: { PAGES: 2, REELWRIGHT_DRIVE: "${{ github.workspace }}/drive", REELWRIGHT_CODE: "${{ github.workspace }}" }
+        run: |
+          git clean -fdXq projects/example
+          jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=3000 --output run2.ipynb cloud/reelwright_colab.ipynb
+          grep -o 'record: skipped[^"\\]*' cloud/run2.ipynb | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -o 'frames 0–[0-9]* done[^"\\]*' cloud/run2.ipynb | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -q ': 0 rendered in 0 shots' cloud/run2.ipynb
+          test -s drive/projects/example/out/tidy-example.mp4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: colab-notebook-runs
+          path: |
+            cloud/run*.ipynb
+            drive/projects/example/out/

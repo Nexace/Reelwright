@@ -1,6 +1,6 @@
 # Reelwright plan: bring in HyperFrames and make it better than both source repos
 
-Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–6 done; later phases not started. This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
+Repo: `~/projects/reelwright` (private: Nexace/reelwright). All 8 phases done; v0.1.0 released 2026-11-01. Archived in docs/archive/plans/ This is the streamlined version: **8 phases**, each one milestone. A phase with marked checkpoints (a, b) can span two chats if it runs long, but still counts as one phase.
 
 ## Progress
 
@@ -13,7 +13,7 @@ Repo: `~/projects/reelwright` (private: Nexace/reelwright). Phases 1–6 done; l
 | 5 | Preview, speed and repeatability: scrubber, incremental rendering, remix, reproducible builds | ☑ Done |
 | 6 | Film from a URL and style from a reference | ☑ Done |
 | 7 | Free cloud rendering (Colab + Drive) | ☑ Done |
-| 8 | Docs, licensing, release | ☐ Not started |
+| 8 | Docs, licensing, release | ☑ Done |
 
 Mark a phase ☑ Done in this table (and in `docs/plans/STATUS.md`) when its exit test passes. Do the phases in order unless a phase says otherwise.
 
@@ -183,7 +183,7 @@ Start prompt template (fill in N and the name):
 
 ---
 
-## Phase 8: Docs, licensing, release ☐
+## Phase 8: Docs, licensing, release ☑
 
 **Branch:** `phase-8-release` · **Needs:** Phases 1–7
 

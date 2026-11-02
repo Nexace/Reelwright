@@ -17,6 +17,98 @@
     in: (p) => p * p * p,
     outBack: (p) => { const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
   };
+  // Easing families equivalent to GSAP's. Each is defined once as `out`; mk derives in and inOut from it.
+  // `outIO` is the out curve inOut is built from (elastic's inOut has its own default period).
+  // p is clamped to [0, 1] once here, so no family returns NaN or a wrong branch out of range.
+  const mk = (o, oIO = o) => {
+    const out = (p) => o(K.clamp(p)), outIO = (p) => oIO(K.clamp(p));
+    return { out, in: (p) => 1 - out(1 - p),
+      inOut: (p) => (p < 0.5 ? (1 - outIO(1 - 2 * p)) / 2 : (outIO(2 * p - 1) + 1) / 2) };
+  };
+  const elastic = (amp, period) => {
+    const a = Math.max(amp, 1), per = amp < 1 ? period / amp : period;   // a < 1 stretches the period instead
+    return (p) => (p <= 0 ? 0 : p >= 1 ? 1 : a * Math.pow(2, -10 * p) * Math.sin((p - per / (2 * Math.PI) * Math.asin(1 / a)) * 2 * Math.PI / per) + 1);
+  };
+  const bounce = (p) => {
+    const n = 7.5625, d = 2.75;
+    return p < 1 / d ? n * p * p : p < 2 / d ? n * (p -= 1.5 / d) * p + 0.75 : p < 2.5 / d ? n * (p -= 2.25 / d) * p + 0.9375 : n * (p -= 2.625 / d) * p + 0.984375;
+  };
+  const FAM = {
+    __proto__: null,
+    none: () => (p) => K.clamp(p),
+    sine: () => mk((p) => Math.sin(p * Math.PI / 2)),
+    circ: () => mk((p) => Math.sqrt(1 - (p - 1) * (p - 1))),
+    expo: () => mk((p) => 1 - (Math.pow(2, -10 * p) * (1 - p) + Math.pow(1 - p, 6) * p)),  // blended, exactly 1 at p=1
+    back: (s = 1.70158) => mk((p) => { const q = p - 1; return q * q * ((s + 1) * q + s) + 1; }),
+    elastic: (a = 1, per) => mk(elastic(a, per || 0.3), elastic(a, per || 0.45)),
+    bounce: () => mk(bounce),
+    steps: (n) => Number.isInteger(n) && n > 0 && ((p) => Math.floor((n + 1) * K.clamp(p, 0, 1 - 1e-9)) / n),   // jumps at k/(n+1), unlike CSS steps()
+  };
+  [['power1', 'quad'], ['power2', 'cubic'], ['power3', 'quart'], ['power4', 'quint']].forEach((names, i) => {
+    for (const n of names) FAM[n] = () => mk((p) => 1 - Math.pow(1 - p, i + 2));
+  });
+  // 'power3.inOut', 'back.out(1.7)', 'elastic.out(1, .3)', 'steps(4)', 'none', or an old K.E key ('outExpo', 'premium'…)
+  K.easing = (name) => {
+    name = String(name).trim();
+    if (Object.prototype.hasOwnProperty.call(K.E, name)) return K.E[name];
+    const m = /^([a-z0-9]+)(?:\.(in|out|inOut))?(?:\(([^)]*)\))?$/.exec(name);
+    const args = m && m[3] && m[3].trim() ? m[3].split(',').map(Number) : [];
+    const f = m && FAM[m[1]] && FAM[m[1]](...args);
+    const e = typeof f === 'function' ? f : f && f[m[2]];
+    if (!e || args.some(isNaN)) throw new Error(`unknown easing "${name}"`);
+    return e;
+  };
+  // cubic-bezier(x1, y1, x2, y2) as an easing. Newton from s=p (fixed 8 steps), else fixed bisection: stateless.
+  K.bezier = (x1, y1, x2, y2) => {
+    const B = (a, b, s) => 3 * (1 - s) * (1 - s) * s * a + 3 * (1 - s) * s * s * b + s * s * s;
+    const dB = (a, b, s) => 3 * (1 - s) * (1 - s) * a + 6 * (1 - s) * s * (b - a) + 3 * s * s * (1 - b);
+    return (p) => {
+      if (p <= 0) return 0; if (p >= 1) return 1;
+      let s = p;
+      for (let i = 0; i < 8; i++) {
+        const e = B(x1, x2, s) - p, d = dB(x1, x2, s);
+        if (Math.abs(e) < 1e-10 || Math.abs(d) < 1e-6) break;
+        s -= e / d;
+      }
+      if (!(s >= 0 && s <= 1) || Math.abs(B(x1, x2, s) - p) > 1e-9) {
+        let lo = 0, hi = 1; s = p;
+        for (let i = 0; i < 50; i++) { s = (lo + hi) / 2; if (B(x1, x2, s) < p) lo = s; else hi = s; }
+      }
+      return B(y1, y2, s);
+    };
+  };
+  Object.assign(K.E, { premium: K.bezier(0.4, 0, 0.2, 1), corporate: K.bezier(0.2, 0, 0, 1), emphasized: K.bezier(0.05, 0.7, 0.1, 1),
+    accel: K.bezier(0.3, 0, 1, 1), settle: K.bezier(0.175, 0.885, 0.32, 1.275) });
+  // Damped spring from `from` to `to`, closed form in seconds (rest at the start). Like Remotion, damping ratio >= 1
+  // uses the critical formula (no true overdamped branch: spring({damping:200}) is a fast critical curve, not a crawl).
+  const springXV = ({ mass = 1, damping = 10, stiffness = 100 } = {}) => {
+    const w0 = Math.sqrt(stiffness / mass), z = damping / (2 * Math.sqrt(stiffness * mass));
+    if (z >= 1) return (t) => { const e = Math.exp(-w0 * t); return [1 - e * (1 + w0 * t), w0 * w0 * t * e]; };
+    const a = z * w0, w1 = w0 * Math.sqrt(1 - z * z);
+    return (t) => { const e = Math.exp(-a * t); return [1 - e * (Math.cos(w1 * t) + a / w1 * Math.sin(w1 * t)), e * w0 * w0 / w1 * Math.sin(w1 * t)]; };
+  };
+  K.spring = (o = {}) => {
+    const { from = 0, to = 1 } = o, xv = springXV(o);
+    return (t) => (t <= 0 ? from : from + (to - from) * xv(t)[0]);
+  };
+  // seconds until value and velocity stay within 0.005 of rest: fixed 1/240 s scan, capped at 10 s
+  K.springDur = (o = {}) => {
+    const { from = 0, to = 1 } = o, xv = springXV(o), k = Math.abs(to - from); let last = 0;
+    for (let i = 0; i <= 2400; i++) { const [x, v] = xv(i / 240); if (k * Math.abs(1 - x) >= 0.005 || k * Math.abs(v) >= 0.005) last = i + 1; }
+    return Math.min(10, last / 240);
+  };
+  // piecewise value over [[t0, v0], [t1, v1], …] with one ease per segment (default: the theme's), clamped outside
+  K.keys = (t, pts, eases = []) => {
+    if (t <= pts[0][0]) return pts[0][1];
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (t >= pts[i + 1][0]) continue;
+      const e = eases[i] || K.ease;
+      return K.lerp(pts[i][1], pts[i + 1][1], (typeof e === 'string' ? K.easing(e) : e)(K.seg(t, pts[i][0], pts[i + 1][0])));
+    }
+    return pts[pts.length - 1][1];
+  };
+  K.stagger = (i, n, total) => (n < 2 ? 0 : total * i / (n - 1));   // start offset of item i of n spread over `total`
+  K.local = (t, from, dur, rate = 1) => K.clamp((t - from) * rate, 0, dur);   // time inside a sequence slot
   // fade in over [a, a+fi], hold, fade out over [b-fo, b]
   K.win = (t, a, b, fi = 0.4, fo = 0.4) => Math.min(K.seg(t, a, a + fi), 1 - K.seg(t, b - fo, b));
 
@@ -105,8 +197,11 @@
   const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue('--kit-' + n).trim();
   K.token = tok;
   K.theme = tok('theme').replace(/"/g, '');
-  K.ease = K.E[tok('ease')] || K.E.out;            // the theme's default easing
+  K.ease = (() => { try { return K.easing(tok('ease')); } catch { if (tok('ease')) console.error('unknown ease in theme: ' + tok('ease')); return K.E.out; } })();   // the theme's default easing (any name K.easing takes)
   K.dur = (s) => s * (Number(tok('tempo')) || 1);  // scale a duration by the theme's tempo
+  K.easeIn = (() => { try { return K.easing(tok('ease-in')); } catch { if (tok('ease-in')) console.error('unknown ease in theme: ' + tok('ease-in')); return K.E.in; } })();   // the theme's exit easing
+  K.staggerStep = K.dur(Number(tok('stagger')) || 0.08);   // seconds between items in a staggered group
+  K.settle = K.dur(Number(tok('settle')) || 0.6);   // seconds for a settle (overshoot and rest)
   // load every declared font now (not on first use), so no frame renders with a fallback face;
   // document.fonts.ready, which READY and HyperFrames wait on, then covers them
   for (const f of document.fonts) f.load().catch(() => console.error('font failed:', f.family, f.weight));

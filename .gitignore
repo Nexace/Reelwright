@@ -36,3 +36,6 @@ scratch/
 .node/
 .ms-playwright/
 drive/
+
+# subagent-driven-development working files
+.superpowers/

@@ -10,6 +10,6 @@
   --kit-radius: 2px; --kit-border: 1px solid #16130f; --kit-shadow: 0 1px 0 #16130f, 0 24px 60px rgba(22,19,15,.12); --kit-space: 28px;
   --kit-sub-bg: transparent; --kit-sub-ink: rgba(22,19,15,.45); --kit-sub-said: #16130f;
   --kit-sub-font: italic 400 34px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: underline 2px #c8102e;
-  --kit-ease: inOut; --kit-tempo: 1.25;
+  --kit-ease: premium; --kit-tempo: 1.25; --kit-ease-in: accel; --kit-stagger: .08; --kit-settle: .8;
 }
 .kit-subrow { text-underline-offset: 8px; }

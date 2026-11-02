@@ -10,6 +10,6 @@
   --kit-radius: 0px; --kit-border: 6px solid #000; --kit-shadow: 14px 14px 0 #000; --kit-space: 24px;
   --kit-sub-bg: #000; --kit-sub-ink: rgba(255,255,255,.6); --kit-sub-said: #000;
   --kit-sub-font: 700 30px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
-  --kit-ease: outExpo; --kit-tempo: 0.7;
+  --kit-ease: expo.out; --kit-tempo: 0.7; --kit-ease-in: expo.in; --kit-stagger: .03; --kit-settle: .3;
 }
 .kit-subrow .said { background: #ffe600; }

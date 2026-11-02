@@ -24,6 +24,13 @@ Sample films, scripts, the demo apps, synthesised music and sound effects are or
 | [NumPy](https://numpy.org) | BSD-3-Clause | audio |
 | [Pillow](https://python-pillow.org) | MIT-CMU (HPND) | contact sheets, QA |
 
+## Reference material (no code copied)
+
+- [LottieFiles/motion-design-skill](https://github.com/LottieFiles/motion-design-skill) (MIT): motion archetypes, cubic-bezier curves and stagger budgets, rewritten as theme tokens and PLAYBOOK guidance.
+- [greensock/gsap-skills](https://github.com/greensock/gsap-skills) (MIT): the GSAP guidance in the PLAYBOOK.
+- GSAP ease formulas: re-implemented from their published math; GSAP itself is not shipped (Webflow "Standard No Charge" license).
+- [Remotion](https://github.com/remotion-dev/skills) (no license on the skills repo; Remotion custom license): only the standard damped-spring maths, no code.
+
 ## Not included
 
 - Music you add (e.g. from Mixkit) keeps its own license and is never committed (`.gitignore`).

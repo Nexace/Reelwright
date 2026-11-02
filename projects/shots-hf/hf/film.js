@@ -6,14 +6,14 @@
 const { V, W, snap, cue, seg, W_, H_, u } = KIT, S = KIT.shot;
 const IDS = ['push', 'crash', 'whip', 'orbit', 'crane'];
 const DUR = window.PROJECT.speechEnd + window.PROJECT.tail;
-const IN = IDS.map((id, i) => (i ? snap(V(id).start - 0.45) : 0));
+const IN = IDS.map((id, i) => (i ? snap(V(id).start - KIT.dur(0.45)) : 0));
 IN.slice(1).forEach((t) => cue(t, 'whoosh', 0.5));
 
 const el = (tag, cls, html = '', css = '') => { const e = document.createElement(tag); e.className = cls; e.innerHTML = html; e.style.cssText = css; return e; };
 const at = (x, y) => `left:${x}px;top:${y}px`;
 // a scene: wrap (shown while it is on) > cam (the filmed layer, frame-sized, with a bleed floor) + overlay (not filmed)
-const scene = (html, overlay = '') => {
-  const wrap = el('div', 'scene'), cam = el('div', 'cam', `<div class="bleed"></div>${html}`);
+const scene = (html, overlay = '', floor = '') => {
+  const wrap = el('div', 'scene'), cam = el('div', 'cam', `<div class="bleed" style="${floor}"></div>${html}`);
   wrap.append(cam); if (overlay) wrap.append(el('div', 'scene', overlay));
   KIT.stage.append(wrap); return { wrap, cam };
 };
@@ -39,7 +39,8 @@ cue(HIT, 'impact', 0.7);
 // 3. whip pan from the first card to the second, 1.5 frame widths to the right
 const card = (x, n, title) => `<div class="at card idea" style="${at(x, H_ / 2)};width:${CW * 0.7}px"><b>IDEA ${n}</b><div class="big">${title}</div>
   <div class="rows"><i></i><i style="width:80%"></i><i style="width:55%"></i></div></div>`;
-const whip = scene(card(W_ / 2, '01', 'Script') + card(W_ / 2 + 1.5 * W_, '02', 'Shots'));
+// the floor reaches 1.5 frame widths further right (dir 1), so the grid stays under the destination card
+const whip = scene(card(W_ / 2, '01', 'Script') + card(W_ / 2 + 1.5 * W_, '02', 'Shots'), '', 'right:-190%');
 const whipShot = S.whipPan({ at: snap(W('whip', 'next')) - KIT.dur(4 / 30), dir: 1 });
 
 // 4. orbit around the mock product
@@ -70,6 +71,6 @@ function render(t) {
     KIT.show(s.wrap, on ? 1 : 0);
     if (on) KIT.shoot(s.cam, shots[i](t));
   });
-  KIT.stage.style.opacity = 1 - seg(t, DUR - 0.6, DUR);
+  KIT.stage.style.opacity = 1 - seg(t, DUR - KIT.dur(0.6), DUR);
 }
 KIT.start({ dur: DUR, render });

@@ -213,8 +213,9 @@ Grammar:
 - Blur only in the fast part: `whipPan` adds speed blur by itself; don't blur a push or an orbit.
 - Hand-held is a low drift under a slow shot, not a move of its own.
 - Orbit, dutch roll and crane tilt the layer, so its edges come into view: give the filmed layer a floor bigger than the
-  frame (a child at `inset: -40%` with the background) or film a card on a still background. Push, pull, crash and whip
-  never show an edge.
+  frame (a child at `inset: -40%` with the background) or film a card on a still background. Whip pan travels 1.5 frame
+  widths: lay out the destination content and extend the floor 1.5 widths in `dir` (shots-hf: `right: -190%`). Push, pull
+  and crash never show an edge.
 
 ```js
 const cam = document.querySelector('.cam');                        // frame-sized layer: floor (inset -40%) + content

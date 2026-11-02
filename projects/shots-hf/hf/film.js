@@ -27,7 +27,7 @@ const push = scene(`<div class="at" style="${at(W_ / 2, H_ * 0.5)}">
 const pushShot = S.pushIn({ t0: snap(V('push').start), t1: V('push').end + KIT.dur(0.3), from: 1, to: 1.14, x: W_ / 2, y: H_ * 0.5 });
 let underline;   // built at the first frame, after fonts load, so it measures the real word width
 
-// 2. crash zoom onto the number; the label stays put outside the filmed layer
+// 2. crash zoom onto the number; only the "Illustrative data" note stays put outside the filmed layer
 const NY = H_ * 0.48;
 const crash = scene(`<div class="at" style="${at(W_ / 2, NY - 150 * u)}"><div class="kick">renders per hour</div></div>
   <div class="at big" style="${at(W_ / 2, NY)};font-size:${220 * u}px;color:var(--kit-accent)">3×</div>`,

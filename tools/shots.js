@@ -4,7 +4,8 @@
 // Every preset is closed-form in t and holds its start state before its window and its end state after, so stillness
 // after a move is automatic. Shape constants are frame counts at 30 fps, written f(n) = n/30 s and scaled by KIT.dur
 // (the theme's tempo); start/end times always come from the caller (W/V/KIT.snap), never from here.
-// Sizes in px (shake, drift) are multiplied by KIT.u so 9x16 and 1x1 keep the same proportions.
+// Only the preset internals scale px by KIT.u (so 9x16 and 1x1 keep the same proportions); `handheld`/`shake` amplitudes passed by
+// the caller and the blur caps are in px.
 'use strict';
 (function () {
   const K = window.KIT, S = {};
@@ -108,11 +109,11 @@
     const pos = (t) => K.cam3({ x: K.W_ / 2 + dx(t) });
     return (t) => Object.assign(pos(t), { blur: K.speedBlur(pos, t, blur) });
   };
-  // fake dolly zoom, a layer preset: the hero stays put, the background scales 1 → 2.25 and blurs 0 → 3.5 px on bezier(.4,0,.3,1).
+  // fake dolly zoom, a layer preset: the hero stays put, the background scales 1 → `to` (default 2.25) and blurs 0 → 3.5 px on bezier(.4,0,.3,1).
   // Returns { bg, hero }: shoot the background layer with bg and leave the hero alone (hero is the identity state).
   S.dollyZoom = (o = {}) => {
-    const [t0, t1] = win(o, 95), { zoom = 1.25, blur = 3.5 } = o, e = BZ(0.4, 0, 0.3, 1);
-    return (t) => { const p = e(K.seg(t, t0, t1)); return { bg: K.cam3({ z: 1 + zoom * p, blur: blur * p }), hero: K.cam3() }; };
+    const [t0, t1] = win(o, 95), { to = 2.25, blur = 3.5 } = o, e = BZ(0.4, 0, 0.3, 1);
+    return (t) => { const p = e(K.seg(t, t0, t1)); return { bg: K.cam3({ z: K.lerp(1, to, p), blur: blur * p }), hero: K.cam3() }; };
   };
   // orbit: rotateY sweeps -18° → +18° (power2.out) with perspective 1100, z 1.1. Holds -18° before t0. The far edge of a frame-sized
   // layer comes into view (covering it needs z ≈ 1.47 in 16x9): orbit a card, or give the layer a floor at inset -40 % (shots-hf).

@@ -1,6 +1,7 @@
 // Hand-drawn helpers: KIT.doodle. Loaded after engine.js (like layouts.js / shots.js); the doodle theme uses them, any film may.
 // Everything is a pure function of t and a string id: a stroke's look comes from hash(id), never from Math.random or frame numbers
 // (marks without an `id` and without an element id get an auto id that follows creation order, so pass `id` to pin the look), so scrubbing backwards and --formats / other fps give the same drawing. Points are [x, y] pairs in px.
+// (`wobble` and `boil` options are px amplitudes.)
 //   wobble  static hand shake (same for the same id)      boil   re-jitters every 1/hz s (--kit-boil; 0 = still)
 //   path    Catmull-Rom → cubic Bézier `d`                 sample points along an SVG path (do it once, at load)
 //   drawOn  stroke-dashoffset draw-on; exactly drawn at p ≥ 1, hidden at p ≤ 0   schedule  per-stroke time windows by length (+ 9 px per pen lift)

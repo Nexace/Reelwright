@@ -187,7 +187,7 @@ Rules:
 A shot moves a virtual camera over one layer: `KIT.shot.<name>(opts)` → `t => state`, and `KIT.shoot(el, state(t))` in
 `render(t)` films `el` (a frame-sized layer holding the scene). Times come from the caller (`t0`/`t1` or `at`, from
 `W()`/`V()`/`KIT.snap()`); shape constants are frames at 30 fps × `KIT.dur`. Every shot holds its start state before its
-window and its end state after it, so the stillness after a move is built in. Load with `<script src="kit/shots.js">`
+window and its end state after it (`dutchRoll` drifts until `at`), so the stillness after a move is built in. Load with `<script src="kit/shots.js">`
 (hf) or `../../../tools/shots.js` (pvk) after engine.js.
 
 | Shot | Use it for | Energy |
@@ -196,7 +196,7 @@ window and its end state after it, so the stillness after a move is built in. Lo
 | `pullBack({ t0, t1, x, y })` | The reveal: from a detail out to the whole (1.14 → 1, decelerating). | low |
 | `crashZoom({ at, x, y, zoom, variant })` | One number or word that must land: 1 → 2.6 in 6 frames, then a shake (`'stop'`) or a small settle (`'rebound'`). | high |
 | `whipPan({ at, dir, variant })` | Changing topic: the camera swings 1.5 frame widths in 8 frames with speed blur; put the next thing there. `'brake'` slows into it. | high |
-| `dollyZoom({ t0, t1 })` → `{ bg, hero }` | A moment of realisation: shoot the background layer with `bg`, leave the hero still. | medium |
+| `dollyZoom({ t0, t1, to })` → `{ bg, hero }` | A moment of realisation: shoot the background layer with `bg`, leave the hero still (`to`: the background's final zoom, default 2.25). | medium |
 | `orbit({ t0, t1, ry })` | Showing a product as an object: rotateY −18° → +18°. | medium |
 | `craneRise({ t0, t1 })` | The ending: rise from below, tilted and zoomed, to the logo, level. | medium |
 | `dutchRoll({ at })` | Something was off, now it's fixed: tilted −10°, rolls to level at `at`. | medium |
@@ -214,8 +214,8 @@ Grammar:
 - Hand-held is a low drift under a slow shot, not a move of its own.
 - Orbit, dutch roll and crane tilt the layer, so its edges come into view: give the filmed layer a floor bigger than the
   frame (a child at `inset: -40%` with the background) or film a card on a still background. Whip pan travels 1.5 frame
-  widths: lay out the destination content and extend the floor 1.5 widths in `dir` (shots-hf: `right: -190%`). Push, pull
-  and crash never show an edge.
+  widths: lay out the destination content and extend the floor 1.5 widths in `dir` (shots-hf: `right: -190%`, the 40% bleed plus 150%). Push, pull
+  and crash never show an edge as long as the focal point stays at least W/(2·z) from the layer's edge; otherwise give it a floor.
 
 ```js
 const cam = document.querySelector('.cam');                        // frame-sized layer: floor (inset -40%) + content
@@ -240,8 +240,8 @@ calm `settle` ease. `tools/doodle.js` (load it after engine.js, like shots.js) d
   themes leave it 0, so the marks hold still.
 - Determinism: a mark's wobble comes from `hash(id)` and its boil from `floor(t × boil)` — never `Math.random` or frame
   numbers — so scrubbing, `--formats` and other fps give the same drawing. Give each mark its own `id`.
-- Marks measure their element once, when built: build them after fonts load (for example at the first `render`
-  call) if the element is text.
+- Marks measure their element once, when built: build them in the first render after `document.fonts.ready` if the element is text (renders and preview wait for it;
+  `index.html#t` URLs don't).
 
 ## GSAP (optional)
 

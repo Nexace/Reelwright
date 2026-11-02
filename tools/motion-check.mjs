@@ -205,6 +205,7 @@ group('shots: purity, start/end states, camCSS, helpers', (t) => {
   t(mk.whipPan()(t0 + 4 / 30).blur > 20 && mk.whipPan()(t0 - 1).blur === 0 && mk.whipPan()(100).blur === 0 && mk.whipPan()(t0 + 0.001).blur < 5, 'whipPan blurs only while it moves fast');
   const wb = mk.whipBrake(); t(near(wb(t0 + 8 / 30).x - W / 2, 0.7 * 1.5 * W, 1e-9), 'whipPan brake: 70 % of the distance in the swing');
   const dz = K.shot.dollyZoom({ t0, t1 })(t1); t(near(dz.bg.z, 2.25, 1e-9) && near(dz.bg.blur, 3.5, 1e-9) && same(dz.hero, id), 'dollyZoom: bg 2.25 + 3.5 px blur, hero pinned');
+  t(near(K.shot.dollyZoom({ t0, t1, to: 3 })(t1).bg.z, 3, 1e-9) && near(K.shot.dollyZoom({ t0, t1, to: 3 })(t0).bg.z, 1, 1e-9), 'dollyZoom: absolute `to`');
   t(mk.orbit()(t0).ry === -18 && near(mk.orbit()(t1).ry, 18, 1e-9), 'orbit ±18°');
   t(near(mk.craneRise()(t1).y, H / 2, 1e-9) && mk.craneRise()(t1).rx === 0 && mk.craneRise()(t0).y > H / 2, 'craneRise lifts to level');
   const dr = mk.dutchRoll(); t(Math.abs(dr(0).rz + 10) <= 0.8 + 1e-9 && dr(t0 + 14 / 30).rz > 1.19 && dr(100).rz === 0 && dr(100).y === H / 2 && dr(100).z === 1.08, 'dutchRoll -10° → +1.2° → 0°');

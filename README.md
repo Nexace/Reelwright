@@ -91,7 +91,7 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 | Encode | **ffmpeg** (H.264 + AAC) | Plays everywhere: WhatsApp, Slack, Drive, YouTube, Keynote. |
 | QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked. Contact sheet of stills to review the whole film at a glance. |
 
-Optional: **Claude Code** in this folder does all of the above from plain English — see [CLAUDE.md](CLAUDE.md).
+Optional: a coding agent in this folder (Claude Code, Codex, Antigravity, OpenCode, …) does all of the above from plain English; its instructions are in [AGENTS.md](AGENTS.md) (`CLAUDE.md` imports it).
 
 ---
 

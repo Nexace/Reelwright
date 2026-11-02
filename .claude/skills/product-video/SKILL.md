@@ -30,7 +30,7 @@ Build films with the `pvk` wrapper (`bin/pvk`). It runs `video.sh` from any fold
 4. `pvk all <name>`. Fix every FAIL gate and look at frames around every time QA flags.
 5. Report the mp4 path from `project.json` → `out`. Then `pvk clean <name>`.
 
-## Rules (from CLAUDE.md)
+## Rules (from AGENTS.md)
 
 - Every timing in `film.js` (pvk or `hf/`) comes from `W()`, `V()`, `clip.filmAt()`, recorder marks, or `KIT.snap()`. Never hard-code seconds.
 - `render(t)` must be a pure function of `t`. See `docs/PLAYBOOK.md`.

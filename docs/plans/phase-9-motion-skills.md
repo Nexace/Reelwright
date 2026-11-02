@@ -1,6 +1,7 @@
-# Phase 9 plan: motion skills from nine open-source repos, plus optional generation connectors
+# Phase 9 plan: motion skills from nine open-source repos, plus an optional Higgsfield connector
 
-Status: **plan, waiting for the owner's OK.** Nothing here is built yet. Written 2026-11-02.
+Status: **plan, waiting for the owner's OK.** Nothing here is built yet. Written 2026-11-02; revised the same day:
+the Firefly connector was dropped (owner's decision), Firefly is manual import like Adobe Express.
 
 The research notes behind every claim below are in `scratch/phase9/` (git-ignored; one file per repo group:
 `manim.md`, `remotion-gsap.md`, `doodle-lottie.md`, `shots-motion.md`, `providers.md`). Repos were read via
@@ -133,19 +134,20 @@ Exit test: `reelwright all math-hf` passes QA with axes, a plot, a morph and one
 `reelwright beats import scratch/beats.csv` round-trips through `beats export` (diff shows only prompt columns kept
 verbatim); `qa projects/qa-broken` trips each new check; pvk `example` unchanged; CI green.
 
-### 9d — Optional generation connectors (Higgsfield, Adobe Firefly)
+### 9d — Optional generation connector (Higgsfield) and manual import (Firefly, Express)
 **Branch:** `phase-9d-connectors` · **Repos:** 7, 8 (paid parts)
 
-Files: new `tools/gen.mjs` + `tools/gen/firefly.mjs`, `tools/gen/higgsfield.mjs`, `tools/gen/mock.mjs`,
+Files: new `tools/gen.mjs` + `tools/gen/higgsfield.mjs`, `tools/gen/mock.mjs`,
 `bin/reelwright.mjs` (`gen`), `tools/engine.js` (`KIT.aiLabel`), `tools/qa.py` (AI-label gate), `.gitignore`,
 `docs/CONNECTORS.md`, `scratch/gen-test.mjs`.
 
-**Command.** `reelwright gen [project] --provider firefly|higgsfield [--model <id>] [--kind image|video] "<prompt>"
+**Command.** `reelwright gen [project] --provider higgsfield [--model <id>] [--kind image|video] "<prompt>"
 --out assets/<file>`. Off by default: without `--provider` nothing loads, and no core command imports `tools/gen/`.
 
 **Provider interface** (one file per provider): `{ name, envKeys: [...], async submit({prompt, kind, model, opts},
 creds) → job, async poll(job, creds) → { status, urls[] } }`. `gen.mjs` does credentials, caching, download, manifest
-and polling with backoff (honours `Retry-After`); adding a provider is one file.
+and polling with backoff (honours `Retry-After`); adding a provider later is one file. Higgsfield is the only
+provider in this phase.
 
 **What the providers actually offer (official docs, read 2026-11-02; details in `scratch/phase9/providers.md`):**
 - Higgsfield: REST API at `api.higgsfield.ai`, header `Authorization: Key <id>:<secret>` (keys from the Higgsfield
@@ -154,17 +156,18 @@ and polling with backoff (honours `Retry-After`); adding a provider is one file.
   published (**UNVERIFIED**, not quoted). Its MIT CLI needs browser login and "a paid Higgsfield subscription", so the
   connector uses REST, not the CLI. Terms: no restriction on commercial use of outputs; disclose AI output where law
   requires; Higgsfield may train on inputs and outputs without an Enterprise Agreement.
-- Adobe Firefly API (Firefly Services): `firefly-api.adobe.io`, OAuth server-to-server `client_credentials` at Adobe
-  IMS, async jobs, images (`/v3` and `/v4/images/generate-async`) and video (`/v3/videos/generate`), outputs carry
-  Content Credentials. **Access is not shown as part of Creative Cloud Pro:** the official docs assume an Adobe
-  representative and an enterprise admin or developer role, and the consumer plan pages mention no API. So the Firefly
-  connector works only for enterprise-entitled accounts; a CC Pro individual uses the manual import below. Terms forbid
-  removing Content Credentials. Pricing and an individual/trial path: **UNVERIFIED**.
+- Adobe Firefly: **no connector (dropped).** The Firefly API (Firefly Services) is not shown as part of Creative
+  Cloud Pro: the official docs assume an Adobe representative and an enterprise admin or developer role, and the
+  consumer plan pages mention no API, so it would not work for the owner's subscription. **Manual only:** generate in
+  the Firefly app, download PNG or MP4, drop it into `projects/<name>/assets/`. Firefly outputs carry Content
+  Credentials and its terms forbid removing them: keep the downloaded file as delivered.
 - Adobe Express: no individual generation API (its REST API automates documents). **Manual only:** export PNG or MP4
-  from Express, drop it into `projects/<name>/assets/`, use it like any image or clip; documented in CONNECTORS.md.
+  from Express into `projects/<name>/assets/`, use it like any image or clip.
+- Manual imports: `reelwright gen --import <file> --source firefly|express "<prompt or note>"` records the file in the
+  same manifest (provider, note, date, sha256, no network), so it gets the AI label check and `verify` like a
+  generated asset. CONNECTORS.md documents both manual workflows.
 
-**Credentials.** Environment variables only (`HIGGSFIELD_API_KEY_ID`, `HIGGSFIELD_API_KEY_SECRET`,
-`FIREFLY_CLIENT_ID`, `FIREFLY_CLIENT_SECRET`) or a git-ignored `.reelwright/credentials.json` (added to `.gitignore`
+**Credentials.** Environment variables only (`HIGGSFIELD_API_KEY_ID`, `HIGGSFIELD_API_KEY_SECRET`) or a git-ignored `.reelwright/credentials.json` (added to `.gitignore`
 in this checkpoint). Never written to the repo, project.json, logs, stdout or manifests; errors print the variable
 name, never the value. A missing key: one clear message naming the variables, exit code 2, no files touched.
 
@@ -175,18 +178,20 @@ and offline. `reelwright verify` checks gen assets against their sha256 like any
 
 **Label.** `KIT.aiLabel(el, text = 'AI-generated')` puts a small label in the safe area; a new QA gate warns when a
 film loads a file listed in `gen.json` with no AI label on screen (same pattern as the "Illustrative data" lint).
-Firefly images keep their Content Credentials as delivered (never stripped); the video re-encode dropping them is
-listed under Risks.
+Imported Firefly files keep their Content Credentials as delivered (never stripped); the video re-encode dropping
+them is listed under Risks.
 
-Exit test: `node scratch/gen-test.mjs` runs both providers against `tools/gen/mock.mjs` (mocked submit/poll/download
+Exit test: `node scratch/gen-test.mjs` runs the Higgsfield provider against `tools/gen/mock.mjs` (mocked submit/poll/download
 from the documented shapes) and checks: cache hit makes zero calls, manifest has no key/secret/signed URL (grep), a
-missing key exits 2 with no file changes (`git status` clean), 429 + Retry-After is honoured. CI runs it with **no
+missing key exits 2 with no file changes (`git status` clean), 429 + Retry-After is honoured, and `--import` of a
+local file writes a manifest entry with no network call. CI runs it with **no
 keys**. **No real call is made in this checkpoint unless the owner asks for one and approves the cost.**
 
 ### 9e — Release and cleanup
 **Branch:** `phase-9e-release`
 
-1. Update README (new commands `gen`, `beats`; shots, doodle, math; connectors marked **optional**, with a "works
+1. Update README (new commands `gen`, `beats`; shots, doodle, math; the Higgsfield connector marked **optional**,
+   Firefly/Express manual import; with a "works
    without any connector" list), AGENTS.md, docs/PLAYBOOK.md, `.claude/skills/product-video/SKILL.md`,
    THIRD_PARTY.md (credits: video-shotcraft, anidoodle, motion-design-skill, gsap-skills, Remotion skills as
    references; KaTeX if vendored) and NOTICE (KaTeX if vendored). Bump `package.json` to 0.2.0 and tag `v0.2.0`.
@@ -216,10 +221,10 @@ Paste into a new chat opened in the repo. Replace `<X>` with the checkpoint lett
   source: take only math that is standard (spring ODE, interpolation).
 - **Secrets leaking.** Keys could reach logs, manifests or error messages. Mitigation: env/git-ignored file only,
   redaction in errors, a test that greps outputs for the key values, never store signed URLs.
-- **Provider terms and access changing.** Higgsfield and Adobe can change endpoints, pricing and terms; Firefly API
-  access may not be available to an individual at all. The connectors are optional and cached, so films never depend
-  on a live service. Higgsfield may train on inputs/outputs; Firefly forbids removing Content Credentials, and our
-  video re-encode may drop them (open legal question for the owner).
+- **Provider terms and access changing.** Higgsfield can change endpoints, pricing and terms; the connector is
+  optional and cached, so films never depend on a live service. Higgsfield may train on inputs/outputs. Firefly
+  (manual import) forbids removing Content Credentials, and our video re-encode may drop them (open legal question
+  for the owner).
 - **Repo size.** KaTeX adds ~4 MB unpacked (fonts included); handwriting fonts add a little. Generated assets live in
   project folders — large clips should stay git-ignored unless the owner wants them committed.
 - **Windows.** New code is Node and browser-side only; no Python/Cairo/LaTeX (the reason Manim CE is not chosen).

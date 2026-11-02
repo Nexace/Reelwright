@@ -193,7 +193,10 @@ The KIT helpers above cover most films. GSAP is for label-based choreography, st
   across forward, shuffled and reverse seeks in fresh pages and browsers. Call `gsap.ticker.lagSmoothing(0)` as well.
 - Use `fromTo()` everywhere. `.from()` and relative `"+="` values read their start state on first render; that was not verified here.
 - Never `play()`, `repeat: -1`, `gsap.utils.random()`, or callbacks that change state. Times come from `W()`/`V()`/`KIT.snap()`; add labels per VO line.
-- HyperFrames' adapter seeks timelines registered on `window.__timelines`; register the master timeline there.
+- Don't register your GSAP timeline on `window.__timelines`: the engine registers `main` as a shim that calls `render(t)`, and
+  `render(t)` is the only thing that moves your paused timeline (`tl.totalTime(t)`).
+
+Unrendered sketch (not run):
 
 ```js
 gsap.ticker.lagSmoothing(0);
@@ -201,7 +204,6 @@ const tl = gsap.timeline({ paused: true });
 const a = KIT.snap(KIT.V('intro').start);
 tl.fromTo('#title', { y: 60, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: KIT.dur(0.6), ease: 'power3.out' }, a);
 tl.fromTo('.tag', { scale: 0.8, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: KIT.dur(0.4), stagger: KIT.staggerStep, ease: 'back.out(1.7)' }, a + KIT.dur(0.3));
-window.__timelines = window.__timelines || {}; window.__timelines.main = tl;
 function render(t) { tl.totalTime(t); }
 ```
 

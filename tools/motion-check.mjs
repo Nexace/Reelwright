@@ -15,6 +15,7 @@ const ctx = vm.createContext({
 });
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./engine.js', import.meta.url)), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./shots.js', import.meta.url)), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./doodle.js', import.meta.url)), 'utf8'), ctx);
 const K = window.KIT;
 
 let bad = 0;
@@ -230,6 +231,52 @@ group('shots: purity, start/end states, camCSS, helpers', (t) => {
   threw = false; try { K.remap(0, [[1, 0], [1, 1]]); } catch { threw = true; } t(threw, 'remap rejects non-ascending');
   const sb = K.speedBlur((x) => K.cam3({ x: 100 * x }), 1, 24);
   t(near(sb, 0.15, 1e-6) && K.speedBlur((x) => K.cam3({ x: 1e6 * x }), 1, 24) === 24 && K.speedBlur(() => K.cam3(), 1) === 0, 'speedBlur: proportional, capped, 0 when still');
+});
+
+group('doodle: hash, rng, wobble, boil, path, schedule, drawOn', (t) => {
+  const D = K.doodle, same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  // FNV-1a 32-bit published vectors; UTF-8 bytes for non-ASCII
+  t(D.hash('') === 0x811c9dc5 && D.hash('a') === 0xe40c292c && D.hash('foobar') === 0xbf9cf968, `fnv1a: ${D.hash('a').toString(16)}`);
+  let h8 = 0x811c9dc5; for (const b of [0xc3, 0xa9]) h8 = Math.imul(h8 ^ b, 0x01000193) >>> 0; t(D.hash('é') === h8, 'hash non-ASCII = FNV-1a over UTF-8 bytes');
+  // mulberry32 against an independent bit-by-bit reference
+  const ref = (seed) => { let a = seed | 0; return () => { a = (a + 0x6d2b79f5) | 0; let x = Math.imul(a ^ (a >>> 15), 1 | a); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; };
+  for (const sd of [0, 1, 42, 0xdeadbeef, 2 ** 40 + 5]) { const a = D.rng(sd), b = ref(sd); for (let i = 0; i < 50; i++) if (a() !== b()) { t(false, `rng seed ${sd} differs at ${i}`); break; } }
+  const r0 = D.rng(0); t(near(r0(), 0.26642920868471265, 1e-15) && near(r0(), 0.0003297457005828619, 1e-15), 'rng(0) first values');
+  const r1 = D.rng(7); t([...Array(1000)].every(() => { const v = r1(); return v >= 0 && v < 1; }), 'rng in [0,1)');
+  // wobble: static per id, bounded by amp, different ids differ
+  const pts = [[0, 0], [10, 5], [20, 0], [30, 8]];
+  t(same(D.wobble('a', pts, 1), D.wobble('a', pts, 1)) && !same(D.wobble('a', pts, 1), D.wobble('b', pts, 1)), 'wobble seeded by id');
+  t(D.wobble('a', pts, 1.5).every(([x, y], i) => Math.abs(x - pts[i][0]) <= 1.5 && Math.abs(y - pts[i][1]) <= 1.5) && same(D.wobble('a', pts, 0), pts), 'wobble bounded by amp');
+  // boil: pure in (id, t), changes only when floor(t*hz) changes, hz 0 = still
+  const w = D.wobble('s', pts, 1), hz = 8, bo = (x) => JSON.stringify(D.boil('s', w, x, 0.6, hz));
+  const ts = Array.from({ length: 200 }, (_, i) => i * 0.0173), fwd = ts.map(bo);
+  const order = ts.map((_, i) => i).sort((a, b) => ((a * 7919) % 211) - ((b * 7919) % 211)), got = [];
+  for (const i of order) got[i] = bo(ts[i]);
+  t(got.every((g, i) => g === fwd[i]), 'boil: same (id, t) → same points in any call order');
+  t(ts.every((x, i) => i === 0 || (Math.floor(x * hz + 1e-6) === Math.floor(ts[i - 1] * hz + 1e-6)) === (fwd[i] === fwd[i - 1])), 'boil changes exactly when floor(t*hz) changes');
+  t(bo(0.375) !== bo(0.374) && bo(0.375) === bo(0.4999) && bo(0.375 - 1e-12) === bo(0.375), 'boil bucket edge 3/8 s is float-stable');
+  t(same(D.boil('s', w, 3, 0.6, 0), w) && D.boil('s', w, 3, 0.6, 0) !== w && same(D.boil('s', w, 3, 0.6), w), 'hz 0 (and the default token) = no boil, copies');
+  t(D.boil('s', w, 1, 0.6, 8).every(([x, y], i) => Math.abs(x - w[i][0]) <= 0.6 && Math.abs(y - w[i][1]) <= 0.6) && !same(D.boil('s', w, 1, 0.6, 8), D.boil('s', w, 1, 0.6, 8).map((p) => [p[0] + 1, p[1]])), 'boil bounded by amp');
+  // path: starts at p0, ends at pn, one C per segment; straight line stays straight
+  const d = D.path(pts); t(d.startsWith('M0 0C') && d.endsWith('30 8') && (d.match(/C/g) || []).length === 3, 'path: ' + d);
+  t(D.path([[0, 0], [5, 5], [10, 10]]) === 'M0 0C0.83 0.83 3.33 3.33 5 5C6.67 6.67 9.17 9.17 10 10', 'collinear points → handles on the line');
+  t(D.path(pts, true).endsWith('Z') && (D.path(pts, true).match(/C/g) || []).length === 4 && D.path([[1, 1]]) === '', 'closed path / degenerate');
+  // sample
+  const line = { getTotalLength: () => 100, getPointAtLength: (l) => ({ x: l, y: 0 }) };
+  const sm = D.sample(line, 25); t(sm.length === 5 && sm[0][0] === 0 && sm[4][0] === 100 && sm[2][0] === 50, 'sample spacing');
+  // schedule: ordered, inside [t0, t1], proportional to length + 9, rests between
+  const L = [100, 400, 40], sc = D.schedule(L, 2, 6, 0.1);
+  t(sc.length === 3 && sc[0][0] === 2 && sc[2][1] === 6, 'schedule spans [t0, t1] exactly');
+  t(sc.every(([s, e], i) => e > s && (i === 0 || near(s - sc[i - 1][1], 0.1, 1e-12))), 'schedule: ordered, 0.1 s rests');
+  t(sc.every(([s, e], i) => near((e - s) / (L[i] + 9), (sc[0][1] - sc[0][0]) / 109, 1e-12)), 'schedule: duration ∝ length + 9');
+  t(D.schedule([], 0, 1).length === 0 && same(D.schedule([50], 1, 3), [[1, 3]]), 'schedule: none / single');
+  let threw = false; try { D.schedule([1, 2, 3], 0, 0.15, 0.1); } catch { threw = true; } t(threw, 'schedule rejects a window too short for the rests');
+  // drawOn
+  const st = {}, el = { style: st, setAttribute(k, v) { this[k] = v; } };
+  D.drawOn(el, 0.25); t(el.pathLength === '1' && st.strokeDasharray === '1 1' && st.strokeDashoffset === '0.75', 'drawOn 0.25');
+  D.drawOn(el, 1); t(st.strokeDashoffset === '0', 'drawOn 1 → offset exactly 0');
+  D.drawOn(el, 1 - 1e-17); D.drawOn(el, 1.0000001); t(st.strokeDashoffset === '0', 'drawOn ≥ 1 → exactly 0');
+  D.drawOn(el, -3); t(st.strokeDashoffset === '1', 'drawOn ≤ 0 → offset 1');
 });
 
 process.exit(bad ? 1 : 0);

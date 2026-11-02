@@ -33,7 +33,7 @@ stroke draw-on or seeded "boil", no math primitives or equations, no beat-sheet 
 | 2 | remotion-dev/skills | Remotion agent rules: spring, interpolate, sequencing, transitions, audio sync, captions | VO timing, captions, beat sync | **None** in the repo; Remotion itself is a custom license (free for individuals and small teams, paid company license) | Re-implement the math natively (spring, keyframes, local time, transition overlap rule); vendor nothing | S | 9a |
 | 3 | alexgreensh/anidoodle | Hand-drawn Canvas animation: seeded jitter, boil, pressure ribbons, draw-on, stroke timing by length | nothing doodle; determinism rule is the same as ours | Apache-2.0 | Re-implement as SVG (works in both renderers): doodle theme + draw-on + seeded boil; no vendoring | M | 9b |
 | 4 | LottieFiles/motion-design-skill | Motion principles, cubic-bezier tables, 4 personality archetypes, spring ranges, stagger budgets (no Lottie code) | `--kit-ease`, `--kit-tempo` | MIT | Adopt as docs + per-theme easing/timing tokens (rewrite as tokens; credit in THIRD_PARTY.md) | S–M | 9a |
-| 5 | sfgdfgd/-skill (fork of Vincentwei1021/video-shotcraft) | ~25 camera/time shots (push-in, pull-back, crash zoom, whip pan, orbit, crane, fake dolly zoom, dutch roll, handheld, speed ramp) as Remotion cards | `camAt` (zoom + focal point) only | Apache-2.0 (bundled audio is Mixkit / untraceable: not taken) | Re-implement as a named shot library (closed-form in t); credit in THIRD_PARTY.md | M (8 shots), L (all) | 9b |
+| 5 | sfgdfgd/-skill (fork of Vincentwei1021/video-shotcraft; 0 commits ahead, 37 behind upstream, also Apache-2.0 — 9b reads upstream) | ~25 camera/time shots (push-in, pull-back, crash zoom, whip pan, orbit, crane, fake dolly zoom, dutch roll, handheld, speed ramp) as Remotion cards | `camAt` (zoom + focal point) only | Apache-2.0 (bundled audio is Mixkit / untraceable: not taken) | Re-implement as a named shot library (closed-form in t); credit in THIRD_PARTY.md | M (8 shots), L (all) | 9b |
 | 6 | adithya-s-k/manim_skill | Manim CE / ManimGL API rules for agents | nothing math | MIT root and CE part; **ManimGL part CC BY-NC-SA 4.0** (non-commercial: not used) | Use as the list of primitives users expect; native math primitives (decision below) | M | 9c |
 | 7 | cth9191/motion-design | Higgsfield workflow; `presets.json` timeline `{start_s,end_s,label}`, review checklist, prompt guidance | sections via VO lines | **None** (ATTRIBUTION.md: prompts belong to Higgsfield article authors) | Free parts rewritten as docs; generation only via the optional connector | S | 9c (free), 9d (paid) |
 | 8 | docusphere/claude-skill-motion-graphics | Beat-sheet CSV (`Scene,Beat Label,VO Script,VO Length,Clip Duration,SHOT,MOTION,TEXT ON SCREEN,SFX,IMG PROMPT,VID PROMPT`), VO punctuation tips; generation via Higgsfield CLI | script in project.json | **None** (README says MIT, but no LICENSE file; API 404) | Rewrite a CSV importer/exporter (free); generation only via the optional connector | S–M | 9c (free), 9d (paid) |
@@ -45,7 +45,7 @@ stroke draw-on or seeded "boil", no math primitives or equations, no beat-sheet 
 
 | | (a) native math primitives in the engine | (b) Manim CE as optional third renderer |
 |---|---|---|
-| Install | nothing new for plots/axes; KaTeX (MIT, ~4 MB unpacked) only for equations | Python + Manim CE + Cairo/Pango + ffmpeg + LaTeX. macOS: pycairo has no macOS wheels (needs `brew install cairo pkg-config` + source build); Windows may need MSVC Build Tools; LaTeX (MacTeX/MiKTeX) runs to gigabytes (exact sizes **UNVERIFIED**) and Manim's number mobjects need it |
+| Install | nothing new for plots/axes; KaTeX (MIT, ~4 MB unpacked) only for equations | Python + Manim CE + Cairo/Pango + ffmpeg + LaTeX. macOS: pycairo has no macOS wheels (needs `brew install cairo pkg-config` + source build); Windows may need MSVC Build Tools; LaTeX downloads (verified by HTTP HEAD 2026-11-02): MacTeX 6.9 GB, BasicTeX 140 MB, MiKTeX basic 149 MB, TinyTeX 67 MB (macOS) / 74 MB (Windows), and Manim's number mobjects need it. Python wheels on top: manim 0.7 MB, numpy 12 MB, scipy 29–37 MB, av 19–28 MB, manimpango 6–8 MB, skia-pathops 2–3 MB (download sizes; installed sizes **UNVERIFIED**) |
 | Determinism | closed-form in t, frames out of order and in parallel like today | Manim plays scenes in order and mutates state; its docs and CLI offer no "render the frame at time t", so it breaks parallel out-of-order frames, the frame cache, `verify`, and beat timing (would need Python-side timing from kit data) |
 | License | KaTeX MIT; our code MIT | Manim CE MIT (verified); pycairo LGPL-2.1-only OR MPL-1.1; LaTeX distributions mixed |
 | Fit | theme tokens, formats, captions and layouts work unchanged in pvk and hyperframes | tokens hand-translated to Manim colors/fonts; each format a separate render; captions/layouts not shared |
@@ -81,8 +81,10 @@ Files: `tools/engine.js`, `themes/*.css`, `tools/kit.css` (new tokens only), `do
    playful → Playful (bounce settle, 10–20 % overshoot); luxury/editorial/pastel/retro → Premium (bezier .4,0,.2,1);
    clean/swiss → Corporate (bezier .2,0,0,1); brutalist/neon/dark-tech → Energetic (expo). Use the skill's UI
    durations as ratios only. `KIT.ease`/`KIT.dur` keep working.
-4. PLAYBOOK: a **GSAP section** (allowed only as a paused timeline driven by `tl.totalTime(t)` from `render(t)`; no
-   `repeat:-1`, no `random()`, no rAF; HyperFrames' adapter already seeks `window.__timelines`; GSAP is not bundled,
+4. PLAYBOOK: a **GSAP section** (allowed only as a paused timeline driven by `tl.totalTime(t)` from `render(t)` —
+   verified byte-identical in a scratch test: gsap 3.15.0, 24 seek times × 4 passes in shuffled order across pages and
+   browser processes, with and without `lagSmoothing(0)`/`ticker.sleep()`; use `fromTo`, since `.from()` and relative
+   `"+="` values read the start state on first render and were not tested; no `repeat:-1`, no `random()`, no rAF; HyperFrames' adapter already seeks `window.__timelines`; GSAP is not bundled,
    so a film using it must ship a local copy under `hf/` and keep Webflow's notice), motion rules (never linear for
    spatial moves, ≤ 1/3 screen per move without a keyframe, morph over fade, dim others to ~0.25 to focus, on-screen
    text is labels and numbers not the narration), stagger budgets, transition overlap rule (total = sum − overlaps).
@@ -105,8 +107,9 @@ Files: new `tools/shots.js` (loaded like `layouts.js`; the HF renderer copies it
 2. `KIT.rng(seed)` (seeded PRNG keyed by element id), `KIT.draw(svgPath, p)` (stroke draw-on: `pathLength=1`,
    `stroke-dashoffset = 1 − p`), `KIT.boil(el, t)` (re-jitter control points ±0.55 px on `floor(t × 8)`, so pvk and
    hyperframes match), stroke timing by length (cost = length + 9 per stroke, time shared by cost, from anidoodle).
-3. `themes/doodle.css`: paper tile (static, procedural), ink palette, handwriting display font — candidate OFL fonts
-   (Caveat, Patrick Hand) to be fetched with `fonts/fetch.mjs` and their OFL read before use (**UNVERIFIED** today).
+3. `themes/doodle.css`: paper tile (static, procedural), ink palette, handwriting display font, both verified SIL OFL 1.1 in
+   google/fonts: Caveat (variable, weights 400–700, "Copyright 2014 The Caveat Project Authors") for display and
+   Patrick Hand (static 400, "Copyright (c) 2010-2012 Patrick Wagesreiter") for text; fetched with `fonts/fetch.mjs`.
 4. PLAYBOOK: camera grammar (≤ 2 big moves per film, one mover per segment, stillness after a move, blur only in the
    fast part).
 
@@ -126,9 +129,12 @@ Files: new `tools/math.js`, `vendor/katex/` (only with the owner's OK: LICENSE, 
    sent anywhere. Export writes the same header from a project. Also `timeline[]` (`{start_s,end_s,label}`) import.
 3. QA (warnings first, never failing existing films): on-screen text overlap, text below a minimum height per format,
    more than 6 words of on-screen text that duplicate the narration, long dark stretches.
-4. Lottie: document only. The vendored HyperFrames runtime already has a Lottie adapter (`data-lottie-src`,
-   `window.lottie`); lottie-web (MIT) is not bundled and byte-identical seeking is **UNVERIFIED**, so PLAYBOOK says
-   "export to MP4/PNG sequence and use it as a clip"; revisit only on request.
+4. Lottie: documented, opt-in. The vendored HyperFrames runtime already has a Lottie adapter (`data-lottie-src`,
+   `window.lottie`). Seeking is verified deterministic in a scratch test (lottie-web 5.13.0, MIT; svg and canvas
+   renderers; `goToAndStop(t*1000, false)` and frame-based seeks give identical pixels; 24 times × 4 shuffled passes
+   all byte-identical; keep `setSubframe(true)`, the default, for 60 fps). Not tested: masks, mattes, gradients,
+   effects, expressions. lottie-web is not bundled: PLAYBOOK shows how to drop a local copy into `hf/` and drive it from
+   `render(t)`; bundling it is the owner's call (vendoring rule).
 
 Exit test: `reelwright all math-hf` passes QA with axes, a plot, a morph and one KaTeX equation visible in stills;
 `reelwright beats import scratch/beats.csv` round-trips through `beats export` (diff shows only prompt columns kept
@@ -152,8 +158,12 @@ provider in this phase.
 **What the providers actually offer (official docs, read 2026-11-02; details in `scratch/phase9/providers.md`):**
 - Higgsfield: REST API at `api.higgsfield.ai`, header `Authorization: Key <id>:<secret>` (keys from the Higgsfield
   console), async (submit → `request_id`/`status_url` → poll until completed/failed/nsfw/canceled), results as
-  `images[].url` / `video.url` kept 7 days. Billing is pay-as-you-go balance per the docs; per-model prices are not
-  published (**UNVERIFIED**, not quoted). Its MIT CLI needs browser login and "a paid Higgsfield subscription", so the
+  `images[].url` / `video.url` until `expires_at` (7 days by default). Billing is a prepaid pay-as-you-go balance;
+  **no official page publishes per-model prices** — the only source is the authenticated `POST /estimate/<model>`
+  endpoint, so `gen` shows that estimate and asks before submitting. Concurrency limits are shown only in the console;
+  a full queue returns 429 (`account_queue_full`) with `Retry-After`. Insufficient balance is **403** (not 402), bad
+  keys 401. Polling per the docs: start at 2 s, ×1.5 up to 10 s, with jitter. Webhooks exist but a local CLI polls.
+  No SDK needed (plain `fetch`; the JS SDK repo has no LICENSE file). Its MIT CLI needs browser login and "a paid Higgsfield subscription", so the
   connector uses REST, not the CLI. Terms: no restriction on commercial use of outputs; disclose AI output where law
   requires; Higgsfield may train on inputs and outputs without an Enterprise Agreement.
 - Adobe Firefly: **no connector (dropped).** The Firefly API (Firefly Services) is not shown as part of Creative
@@ -183,7 +193,8 @@ them is listed under Risks.
 
 Exit test: `node scratch/gen-test.mjs` runs the Higgsfield provider against `tools/gen/mock.mjs` (mocked submit/poll/download
 from the documented shapes) and checks: cache hit makes zero calls, manifest has no key/secret/signed URL (grep), a
-missing key exits 2 with no file changes (`git status` clean), 429 + Retry-After is honoured, and `--import` of a
+missing key exits 2 with no file changes (`git status` clean), 429 + Retry-After and 403 (no balance) are handled,
+the cost estimate is shown and a 'no' cancels with zero submits, and `--import` of a
 local file writes a manifest entry with no network call. CI runs it with **no
 keys**. **No real call is made in this checkpoint unless the owner asks for one and approves the cost.**
 
@@ -246,4 +257,4 @@ Paste into a new chat opened in the repo. Replace `<X>` with the checkpoint lett
 | claude-skill-motion-graphics | none (README claims MIT; no LICENSE file) | rewrite the CSV importer from the header format |
 | gsap-skills | MIT | docs guidance; GSAP library itself is Webflow Standard No Charge license, not bundled |
 | KaTeX (candidate) | MIT | vendor only with the owner's OK |
-| lottie-web | MIT | not bundled; document only |
+| lottie-web | MIT | not bundled; documented opt-in (seeking verified deterministic) |

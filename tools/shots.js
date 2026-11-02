@@ -114,7 +114,8 @@
     const [t0, t1] = win(o, 95), { zoom = 1.25, blur = 3.5 } = o, e = BZ(0.4, 0, 0.3, 1);
     return (t) => { const p = e(K.seg(t, t0, t1)); return { bg: K.cam3({ z: 1 + zoom * p, blur: blur * p }), hero: K.cam3() }; };
   };
-  // orbit: rotateY sweeps -18° → +18° (power2.out) with perspective 1100; z 1.1 hides the exposed edges. Holds -18° before t0.
+  // orbit: rotateY sweeps -18° → +18° (power2.out) with perspective 1100, z 1.1. Holds -18° before t0. The far edge of a frame-sized
+  // layer comes into view (covering it needs z ≈ 1.47 in 16x9): orbit a card, or give the layer a floor at inset -40 % (shots-hf).
   S.orbit = (o = {}) => {
     const [t0, t1] = win(o, 34), { ry = [-18, 18], rx = 0, z = 1.1, persp = 1100 } = o, e = E('power2.out');
     return (t) => K.cam3({ x: o.x ?? K.W_ / 2, y: o.y ?? K.H_ / 2, z, rx, persp, ry: K.lerp(ry[0], ry[1], e(K.seg(t, t0, t1))) });
@@ -125,7 +126,8 @@
     return (t) => { const q = 1 - e(K.seg(t, t0, t1)); return K.cam3({ x: K.W_ / 2, y: K.H_ / 2 + lift * K.H_ * q, z: K.lerp(1, zoom, q), rx: tilt * q }); };
   };
   // dutch roll to level: tilted -10° with a ±0.8° slow drift and 2 px vertical drift until `at`, then 14 f (power3.out) to +1.2°, 10 f
-  // (power2.inOut) to 0°; zoom 1.15 → 1.08 over the roll hides the corners; the drift fades over 6 f. Never identity: it starts tilted.
+  // (power2.inOut) to 0°; zoom 1.15 → 1.08 over the roll; the drift fades over 6 f. Never identity: it starts tilted. At -10° a
+  // frame-sized layer shows its corners (covering them needs z ≈ 1.32 in 16x9 / 9x16): give it a floor at inset -40 % (shots-hf).
   S.dutchRoll = (o = {}) => {
     const t0 = o.at ?? o.t0 ?? 0, a = t0 + f(14), b = a + f(10), { from = -10, over = 1.2, z0 = 1.15, z1 = 1.08 } = o;
     const e1 = E('power3.out'), e2 = E('power2.inOut');

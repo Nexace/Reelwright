@@ -1,0 +1,22 @@
+{
+  "title": "Reelwright — camera shots",
+  "renderer": "hyperframes",
+  "style": "dark-tech",
+  "out": "out/shots-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.8,
+  "tail": 2.4,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 2 },
+  "lines": [
+    { "id": "push",  "gap": 0.0, "text": "Push in on what matters." },
+    { "id": "crash", "gap": 0.8, "text": "Hit the number hard." },
+    { "id": "whip",  "gap": 0.8, "text": "Whip to the next idea." },
+    { "id": "orbit", "gap": 0.8, "text": "Circle the product." },
+    { "id": "crane", "gap": 0.8, "text": "Rise to the logo." }
+  ]
+}

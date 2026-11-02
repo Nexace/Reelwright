@@ -182,6 +182,66 @@ Rules:
 - Stagger budget: a group's whole stagger (`KIT.stagger`'s `total`, or `staggerStep × (n − 1)`) stays under about 0.5 s; for many items shrink the step.
 - Overlapping scenes: film length = sum of scene lengths − sum of overlaps. Compute scene `in`/`out` from `V()`/`KIT.snap()` as in Scene layouts, so the VO still lines up.
 
+## Camera shots (`KIT.shot.*`, `KIT.shoot`, tools/shots.js)
+
+A shot moves a virtual camera over one layer: `KIT.shot.<name>(opts)` → `t => state`, and `KIT.shoot(el, state(t))` in
+`render(t)` films `el` (a frame-sized layer holding the scene). Times come from the caller (`t0`/`t1` or `at`, from
+`W()`/`V()`/`KIT.snap()`); shape constants are frames at 30 fps × `KIT.dur`. Every shot holds its start state before its
+window and its end state after it, so the stillness after a move is built in. Load with `<script src="kit/shots.js">`
+(hf) or `../../../tools/shots.js` (pvk) after engine.js.
+
+| Shot | Use it for | Energy |
+|---|---|---|
+| `pushIn({ t0, t1, x, y, from, to })` | Leaning in on what matters: a word, a number, a button (1 → 1.14, accelerating). | low |
+| `pullBack({ t0, t1, x, y })` | The reveal: from a detail out to the whole (1.14 → 1, decelerating). | low |
+| `crashZoom({ at, x, y, zoom, variant })` | One number or word that must land: 1 → 2.6 in 6 frames, then a shake (`'stop'`) or a small settle (`'rebound'`). | high |
+| `whipPan({ at, dir, variant })` | Changing topic: the camera swings 1.5 frame widths in 8 frames with speed blur; put the next thing there. `'brake'` slows into it. | high |
+| `dollyZoom({ t0, t1 })` → `{ bg, hero }` | A moment of realisation: shoot the background layer with `bg`, leave the hero still. | medium |
+| `orbit({ t0, t1, ry })` | Showing a product as an object: rotateY −18° → +18°. | medium |
+| `craneRise({ t0, t1 })` | The ending: rise from below, tilted and zoomed, to the logo, level. | medium |
+| `dutchRoll({ at })` | Something was off, now it's fixed: tilted −10°, rolls to level at `at`. | medium |
+
+Helpers: `KIT.shot.track([{ at, shot }])` sequences shots on one layer (hard cut between them); `KIT.handheld(t, amp, seed)` →
+`{ x, y }` drift to add to a state (amp 2–4 × `KIT.u` reads as hand-held, more as nervous); `KIT.shake(t, t0, amp)` an impact
+shake; `KIT.remap(t, [[tOut, tSrc], …])` speed ramps and freezes; `KIT.speedBlur(shot, t)` blur from how fast a shot moves.
+
+Grammar:
+- At most two big moves (crash, whip) per film; the other scenes push, pull or sit still. A shot reel like projects/shots-hf
+  is the exception.
+- One mover per segment: while the camera moves, the content holds — no layout entrance or count-up at the same time.
+- Stillness after a move: let the frame rest at least a beat before the next move or cut, or the eye has nothing to read.
+- Blur only in the fast part: `whipPan` adds speed blur by itself; don't blur a push or an orbit.
+- Hand-held is a low drift under a slow shot, not a move of its own.
+- Orbit, dutch roll and crane tilt the layer, so its edges come into view: give the filmed layer a floor bigger than the
+  frame (a child at `inset: -40%` with the background) or film a card on a still background. Push, pull, crash and whip
+  never show an edge.
+
+```js
+const cam = document.querySelector('.cam');                        // frame-sized layer: floor (inset -40%) + content
+const hit = KIT.W('crash', 'hard');
+const shot = KIT.shot.crashZoom({ at: hit - KIT.dur(6 / 30), x: KIT.W_ / 2, y: KIT.H_ * 0.48 });   // lands on "hard"
+KIT.cue(hit, 'impact');
+function render(t) { KIT.shoot(cam, shot(t)); }
+```
+
+projects/shots-hf is the worked example: push-in with hand-held, crash zoom, whip pan, orbit and crane rise.
+
+## Doodle (`"style": "doodle"`, `KIT.doodle.*`, tools/doodle.js)
+
+The doodle theme is a notebook page: warm paper with a static grain, Caveat and Patrick Hand, marker red and blue, a
+calm `settle` ease. `tools/doodle.js` (load it after engine.js, like shots.js) draws hand-made marks; any theme may use it.
+
+- Draw-on: `KIT.doodle.underline(el, { in, draw, out, id })` and `KIT.doodle.circle(el, …)` build an SVG mark inside `el` once;
+  call `.set(t)` in `render(t)`. `in` is when the pen starts, `draw` how long it takes (default `KIT.dur(0.5)`), `out`
+  (optional) fades it like a layout. Put `in` on the spoken word: `in: KIT.W('push', 'matters')`. For your own paths,
+  `KIT.doodle.drawOn(pathEl, p)` and `KIT.doodle.schedule(lengths, t0, t1)` time several strokes one after another.
+- Boil: `--kit-boil` (doodle: 8) re-jitters every line that many times a second, like redrawn animation frames; other
+  themes leave it 0, so the marks hold still.
+- Determinism: a mark's wobble comes from `hash(id)` and its boil from `floor(t × boil)` — never `Math.random` or frame
+  numbers — so scrubbing, `--formats` and other fps give the same drawing. Give each mark its own `id`.
+- Marks measure their element once, when built: build them after fonts load (for example at the first `render`
+  call) if the element is text.
+
 ## GSAP (optional)
 
 The KIT helpers above cover most films. GSAP is for label-based choreography, staggers over many elements, or its SVG/text plugins.

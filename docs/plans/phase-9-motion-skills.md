@@ -1,6 +1,6 @@
 # Phase 9 plan: motion skills from nine open-source repos, plus an optional Higgsfield connector
 
-Status: **plan, waiting for the owner's OK.** Nothing here is built yet. Written 2026-11-02; revised the same day:
+Status: **plan approved by the owner 2026-11-02.** Nothing here is built yet; start with 9a. Written 2026-11-02; revised the same day:
 the Firefly connector was dropped (owner's decision), Firefly is manual import like Adobe Express.
 
 The research notes behind every claim below are in `scratch/phase9/` (git-ignored; one file per repo group:

@@ -274,9 +274,10 @@ group('doodle: hash, rng, wobble, boil, path, schedule, drawOn', (t) => {
   // drawOn
   const st = {}, el = { style: st, setAttribute(k, v) { this[k] = v; } };
   D.drawOn(el, 0.25); t(el.pathLength === '1' && st.strokeDasharray === '1 1' && st.strokeDashoffset === '0.75', 'drawOn 0.25');
-  D.drawOn(el, 1); t(st.strokeDashoffset === '0', 'drawOn 1 → offset exactly 0');
+  D.drawOn(el, 1); t(st.strokeDashoffset === '0' && st.visibility === 'visible', 'drawOn 1 → offset exactly 0, visible');
   D.drawOn(el, 1 - 1e-17); D.drawOn(el, 1.0000001); t(st.strokeDashoffset === '0', 'drawOn ≥ 1 → exactly 0');
-  D.drawOn(el, -3); t(st.strokeDashoffset === '1', 'drawOn ≤ 0 → offset 1');
+  D.drawOn(el, -3); t(st.strokeDashoffset === '1' && st.visibility === 'hidden', 'drawOn ≤ 0 → offset 1, hidden (no round-cap dot)');
+  D.drawOn(el, 0); t(st.visibility === 'hidden', 'drawOn 0 hidden'); D.drawOn(el, 0.001); t(st.visibility === 'visible', 'drawOn > 0 visible');
 });
 
 process.exit(bad ? 1 : 0);

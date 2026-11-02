@@ -5,6 +5,12 @@
 //   path    Catmull-Rom → cubic Bézier `d`                 sample points along an SVG path (do it once, at load)
 //   drawOn  stroke-dashoffset draw-on, exactly 1 at p ≥ 1  schedule  per-stroke time windows by length (+ 9 px per pen lift)
 //   underline / circle  build an SVG overlay inside an element once; .set(t) in render(t)
+// underline/circle options follow KIT.layout: { in, draw, out, id, color, width, ease, wobble, boil, pad }
+//   in = when the draw-on starts; draw = draw-on duration (default KIT.dur(0.5)); out (optional) = when the mark has left: it fades over
+//   the 0.45 s before `out` with KIT.easeIn, as layouts do; without `out` it stays drawn. Hidden before `in`.
+//   The overlay is an <svg> child of the element: it follows the element's transforms but is clipped by an `overflow:hidden`
+//   ancestor, and its size (offsetWidth/Height) is measured once, at load. Marks wobble by id (default: the element's id, else a
+//   counter), so give each mark on the same element its own `id` to make them differ.
 'use strict';
 (function () {
   const K = window.KIT, D = (K.doodle = {});
@@ -49,6 +55,7 @@
 
   D.drawOn = (el, p) => {
     p = K.clamp(p);   // NaN-safe is the caller's job; ≥ 1 is exactly 1 so the last frame matches the finished drawing
+    el.style.visibility = p > 0 ? 'visible' : 'hidden';   // at p = 0 a round cap would still dot the path end
     el.setAttribute('pathLength', '1');
     el.style.strokeDasharray = '1 1';
     el.style.strokeDashoffset = String(p >= 1 ? 0 : 1 - p);
@@ -74,15 +81,16 @@
     svg.setAttribute('style', 'position:absolute;left:0;top:0;overflow:visible;pointer-events:none');
     for (const [k, v] of Object.entries({ fill: 'none', stroke: o.color || 'var(--kit-accent)', 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) path.setAttribute(k, v);
     svg.appendChild(path); el.appendChild(svg);
-    const base = D.wobble(id, pts, o.wobble), t0 = o.in ?? 0, t1 = o.out ?? t0 + K.dur(0.5);
+    const base = D.wobble(id, pts, o.wobble), t0 = o.in ?? 0, t1 = t0 + (o.draw ?? K.dur(0.5));
     let lastK;
     return { path, set(t) {
       const k = Math.floor(t * HZ + 1e-6);
       if (k !== lastK) { path.setAttribute('d', D.path(D.boil(id, base, t, o.boil), closed)); lastK = k; }   // new d only when the bucket changes
       D.drawOn(path, ease(K.seg(t, t0, t1)));
+      svg.style.opacity = String(o.out == null ? 1 : 1 - K.easeIn(K.seg(t, o.out - K.dur(0.45), o.out)));
     } };
   };
-  // opts: { in, out (the draw-on window, s), id, color, width, ease, wobble, boil, pad }
+  // opts: see the header; pad = px beyond the element's box
   D.underline = (el, o = {}) => {
     const w = el.offsetWidth, h = el.offsetHeight, pad = o.pad ?? 4 * K.u;
     return mark(el, o, [[-pad, h * 0.93], [w * 0.25, h * 0.97], [w * 0.55, h * 0.92], [w * 0.8, h * 0.96], [w + pad, h * 0.9]]);

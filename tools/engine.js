@@ -40,9 +40,9 @@
     circ: () => mk((p) => Math.sqrt(1 - (p - 1) * (p - 1))),
     expo: () => mk((p) => 1 - (Math.pow(2, -10 * p) * (1 - p) + Math.pow(1 - p, 6) * p)),  // blended, exactly 1 at p=1
     back: (s = 1.70158) => mk((p) => { const q = p - 1; return q * q * ((s + 1) * q + s) + 1; }),
-    elastic: (a = 1, per) => mk(elastic(a, per ?? 0.3), elastic(a, per ?? 0.45)),
+    elastic: (a = 1, per) => mk(elastic(a, per || 0.3), elastic(a, per || 0.45)),
     bounce: () => mk(bounce),
-    steps: (n) => n > 0 && ((p) => Math.floor((n + 1) * K.clamp(p, 0, 1 - 1e-9)) / n),   // jumps at k/(n+1), unlike CSS steps()
+    steps: (n) => Number.isInteger(n) && n > 0 && ((p) => Math.floor((n + 1) * K.clamp(p, 0, 1 - 1e-9)) / n),   // jumps at k/(n+1), unlike CSS steps()
   };
   [['power1', 'quad'], ['power2', 'cubic'], ['power3', 'quart'], ['power4', 'quint']].forEach((names, i) => {
     for (const n of names) FAM[n] = () => mk((p) => 1 - Math.pow(1 - p, i + 2));
@@ -197,9 +197,9 @@
   const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue('--kit-' + n).trim();
   K.token = tok;
   K.theme = tok('theme').replace(/"/g, '');
-  K.ease = (() => { try { return K.easing(tok('ease')); } catch { return K.E.out; } })();   // the theme's default easing (any name K.easing takes)
+  K.ease = (() => { try { return K.easing(tok('ease')); } catch { if (tok('ease')) console.error('unknown ease in theme: ' + tok('ease')); return K.E.out; } })();   // the theme's default easing (any name K.easing takes)
   K.dur = (s) => s * (Number(tok('tempo')) || 1);  // scale a duration by the theme's tempo
-  K.easeIn = (() => { try { return K.easing(tok('ease-in')); } catch { return K.E.in; } })();   // the theme's exit easing
+  K.easeIn = (() => { try { return K.easing(tok('ease-in')); } catch { if (tok('ease-in')) console.error('unknown ease in theme: ' + tok('ease-in')); return K.E.in; } })();   // the theme's exit easing
   K.staggerStep = K.dur(Number(tok('stagger')) || 0.08);   // seconds between items in a staggered group
   K.settle = K.dur(Number(tok('settle')) || 0.6);   // seconds for a settle (overshoot and rest)
   // load every declared font now (not on first use), so no frame renders with a fallback face;

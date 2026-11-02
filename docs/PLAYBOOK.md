@@ -142,12 +142,12 @@ All pure functions of `t`, the same in both renderers. Durations still come from
 - `KIT.easing(name)` → `p => p`. Takes GSAP-style names: `power1`..`power4` (also `quad`, `cubic`, `quart`, `quint`), `sine`, `circ`,
   `expo`, `back`, `elastic`, `bounce`, each with `.in` / `.out` / `.inOut` (`'power3.inOut'`, `'back.out(1.7)'`,
   `'elastic.out(1, .3)'`); `steps(4)`; `none`; and the `KIT.E` keys (`out`, `in`, `inOut`, `outExpo`, `outBack`, `premium`,
-  `corporate`, `emphasized`, `accel`, `settle`). Unknown names throw. `steps(n)` is not CSS `steps()`: it jumps at k/(n+1).
+  `corporate`, `emphasized`, `accel`, `settle`). Unknown family names and malformed names throw; extra arguments are ignored. `steps(n)` is not CSS `steps()`: it jumps at k/(n+1).
 - `KIT.bezier(x1, y1, x2, y2)` → easing from a CSS-style cubic-bezier. The named ones: `premium` (.4,0,.2,1), `corporate` (.2,0,0,1),
   `emphasized` (.05,.7,.1,1), `accel` (.3,0,1,1), `settle` (.175,.885,.32,1.275, overshoots).
 - `KIT.spring({ from = 0, to = 1, mass = 1, damping = 10, stiffness = 100 })` → `t => value`, with `t` in seconds since the
   start (it returns `from` for `t <= 0`). Closed form, so scrubbing is safe. `damping` at or above critical gives a fast
-  non-bouncing curve (`damping: 200` is a quick push, not a crawl). `KIT.springDur(sameOptions)` → seconds until it is
+  non-bouncing curve (`damping: 200` is a quick push, not a crawl). `mass` and `stiffness` must be > 0. `KIT.springDur(sameOptions)` → seconds until it is
   within 0.005 of rest (capped at 10 s): use it to time what follows.
 - `KIT.keys(t, [[t0, v0], [t1, v1], …], eases)` → value across keyframes, held before the first and after the last. `eases[i]`
   is the easing (function or name) of segment i; default is the theme's `KIT.ease`.
@@ -157,7 +157,7 @@ All pure functions of `t`, the same in both renderers. Durations still come from
 ```js
 const x   = KIT.keys(t, [[a, -400], [a + KIT.dur(0.5), 0], [b, 0], [b + KIT.dur(0.3), 120]], [null, null, KIT.easeIn]);
 const pop = KIT.spring({ damping: 12 })(t - a);                       // 0 → 1, overshoots, settles
-cards.forEach((c, i) => c.style.opacity = KIT.easing('power2.out')(KIT.seg(t - KIT.stagger(i, cards.length, 0.4), a, a + KIT.dur(0.4))));
+cards.forEach((c, i) => c.style.opacity = KIT.easing('power2.out')(KIT.seg(t - KIT.stagger(i, cards.length, KIT.dur(0.4)), a, a + KIT.dur(0.4))));
 ```
 
 **Theme motion tokens** (`--kit-*`, set in themes/*.css, defaults in tools/kit.css): `--kit-ease` → `KIT.ease` (entrances), `--kit-ease-in` →
@@ -187,7 +187,8 @@ Rules:
 The KIT helpers above cover most films. GSAP is for label-based choreography, staggers over many elements, or its SVG/text plugins.
 
 - GSAP is not bundled and is not MIT: it is under Webflow's "Standard No Charge" license (gsap.com/standard-license). A film that
-  uses it ships its own copy of `gsap.min.js` under `hf/` (or `film/`), installed from the npm package, and keeps its notice. Don't add it to
+  uses it ships its own copy of `gsap.min.js` under `hf/` (or `film/`), and keeps its notice. Get a local copy without adding a dependency: run `npm pack gsap@3.15.0` in a temp folder and copy
+  `package/dist/gsap.min.js` into the film's `hf/` (or `film/`) folder; never `npm install` it into the repo (3.15.0 is the verified version). Don't add it to
   `vendor/` or commit it for other films to share.
 - Verified (scratch/phase9/seektest, gsap 3.15.0): a paused timeline driven by `tl.totalTime(t)` from `render(t)` gave byte-identical frames
   across forward, shuffled and reverse seeks in fresh pages and browsers. Call `gsap.ticker.lagSmoothing(0)` as well.

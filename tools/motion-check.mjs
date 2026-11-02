@@ -112,8 +112,7 @@ group('spring vs RK4', (t) => {
     }
     return out;
   };
-  const cases = [['underdamped', { mass: 1, damping: 10, stiffness: 100 }], ['critical', { mass: 1, damping: 20, stiffness: 100 }],
-  ];
+  const cases = [['underdamped', { mass: 1, damping: 10, stiffness: 100 }], ['critical', { mass: 1, damping: 20, stiffness: 100 }]];
   for (const [n, o] of cases) {
     const s = K.spring(o);
     for (const [x, y] of rk4(o, 2)) t(near(s(x), y, 1e-3), `${n}: t=${x} got ${s(x)}, want ${y}`);
@@ -135,9 +134,31 @@ group('keys, stagger, local, easing errors', (t) => {
   t(K.keys(1.5, k) === 10 + 10 * K.ease(0.5), 'default ease is KIT.ease');
   t(K.stagger(0, 4, 3) === 0 && K.stagger(3, 4, 3) === 3 && K.stagger(1, 4, 3) === 1 && K.stagger(0, 1, 3) === 0, 'stagger');
   t(K.local(0, 2, 3) === 0 && K.local(3, 2, 3) === 1 && K.local(9, 2, 3) === 3 && K.local(3, 2, 3, 2) === 2, 'local');
-  for (const bad of ['nope', 'power9.out', 'power2', 'back.sideways', 'steps', 'back.out(x)', '', 'constructor.out'])
+  for (const bad of ['nope', 'power9.out', 'power2', 'back.sideways', 'steps', 'back.out(x)', '', 'constructor.out', 'steps(0)', 'steps(-2)', 'steps(2.5)', 'steps(x)'])
     { let threw = false; try { K.easing(bad); } catch { threw = true; } t(threw, `easing("${bad}") should throw`); }
   t(K.easing('back.out(1.7)')(0.5) !== K.easing('back.out')(0.5), 'args are applied');
+});
+
+group('closed-form spot values', (t) => {
+  const c = (n, p, want) => t(near(K.easing(n)(p), want, 1e-9), `${n}(${p}) = ${K.easing(n)(p)}, want ${want}`);
+  c('power1.out', 0.5, 0.75); c('power1.out', 0.25, 1 - 0.75 ** 2);
+  c('power2.out', 0.5, 0.875); c('power3.out', 0.5, 0.9375); c('power4.out', 0.5, 0.96875); c('power4.out', 0.25, 1 - 0.75 ** 5);
+  c('sine.out', 0.5, Math.sin(Math.PI / 4)); c('sine.out', 0.25, Math.sin(Math.PI / 8));
+  c('circ.out', 0.5, Math.sqrt(0.75)); c('circ.out', 0.25, Math.sqrt(1 - 0.5625));
+  c('expo.out', 0.5, 1 - (2 ** -5 * 0.5 + 0.5 ** 6 * 0.5)); c('expo.out', 0.25, 1 - (2 ** -2.5 * 0.75 + 0.75 ** 6 * 0.25));
+  c('back.out(1.7)', 0.5, 1.0875); c('power2.in', 0.5, 0.125); c('power2.inOut', 0.25, 0.0625);
+  t(Number.isFinite(K.easing('elastic.out(1,0)')(0.5)) && K.easing('elastic.out(1,0)')(0.5) === K.easing('elastic.out(1,.3)')(0.5), 'elastic period 0 = default');
+});
+
+group('theme --kit-ease / --kit-ease-in values all parse', (t) => {
+  const dir = fileURLToPath(new URL('../themes/', import.meta.url));
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.css')))
+    for (const k of ['ease', 'ease-in']) {
+      const v = (fs.readFileSync(dir + f, 'utf8').match(new RegExp(`--kit-${k}:\\s*([^;]+);`)) || [])[1];
+      if (!v) continue;
+      try { const e = K.easing(v.trim()); t(near(e(0), 0, 1e-9) && near(e(1), 1, 1e-9), `${f} ${k}: ${v} endpoints`); }
+      catch (e) { t(false, `${f} --kit-${k}: ${v} throws`); }
+    }
 });
 
 group('theme motion tokens fall back to the documented defaults', (t) => {

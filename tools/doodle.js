@@ -1,9 +1,9 @@
 // Hand-drawn helpers: KIT.doodle. Loaded after engine.js (like layouts.js / shots.js); the doodle theme uses them, any film may.
-// Everything is a pure function of t and a string id: a stroke's look comes from hash(id), never from DOM order, Math.random or
-// frame numbers, so scrubbing backwards and --formats / other fps give the same drawing. Points are [x, y] pairs in px.
+// Everything is a pure function of t and a string id: a stroke's look comes from hash(id), never from Math.random or frame numbers
+// (marks without an `id` and without an element id get an auto id that follows creation order, so pass `id` to pin the look), so scrubbing backwards and --formats / other fps give the same drawing. Points are [x, y] pairs in px.
 //   wobble  static hand shake (same for the same id)      boil   re-jitters every 1/hz s (--kit-boil; 0 = still)
 //   path    Catmull-Rom → cubic Bézier `d`                 sample points along an SVG path (do it once, at load)
-//   drawOn  stroke-dashoffset draw-on, exactly 1 at p ≥ 1  schedule  per-stroke time windows by length (+ 9 px per pen lift)
+//   drawOn  stroke-dashoffset draw-on; exactly drawn at p ≥ 1, hidden at p ≤ 0   schedule  per-stroke time windows by length (+ 9 px per pen lift)
 //   underline / circle  build an SVG overlay inside an element once; .set(t) in render(t)
 // underline/circle options follow KIT.layout: { in, draw, out, id, color, width, ease, wobble, boil, pad }
 //   in = when the draw-on starts; draw = draw-on duration (default KIT.dur(0.5)); out (optional) = when the mark has left: it fades over
@@ -55,7 +55,7 @@
 
   D.drawOn = (el, p) => {
     p = K.clamp(p);   // NaN-safe is the caller's job; ≥ 1 is exactly 1 so the last frame matches the finished drawing
-    el.style.visibility = p > 0 ? 'visible' : 'hidden';   // at p = 0 a round cap would still dot the path end
+    el.style.visibility = p > 0 ? '' : 'hidden';   // '' (not 'visible') so a hidden ancestor still hides it; at p = 0 a round cap would still dot the path end
     el.setAttribute('pathLength', '1');
     el.style.strokeDasharray = '1 1';
     el.style.strokeDashoffset = String(p >= 1 ? 0 : 1 - p);

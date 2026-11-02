@@ -10,7 +10,8 @@ const window = {};
 const ctx = vm.createContext({
   window, console, Math,
   document: { getElementById: () => null, documentElement: el(), body: el(), fonts: Object.assign([], { add() {}, ready: Promise.resolve() }),
-    styleSheets: [], createElement: el },
+    styleSheets: [], createElement: el,
+    createElementNS: () => ({ style: {}, attrs: {}, kids: [], setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.kids.push(c); } }) },
   getComputedStyle: () => style,   // every token reads ''
 });
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./engine.js', import.meta.url)), 'utf8'), ctx);
@@ -274,10 +275,29 @@ group('doodle: hash, rng, wobble, boil, path, schedule, drawOn', (t) => {
   // drawOn
   const st = {}, el = { style: st, setAttribute(k, v) { this[k] = v; } };
   D.drawOn(el, 0.25); t(el.pathLength === '1' && st.strokeDasharray === '1 1' && st.strokeDashoffset === '0.75', 'drawOn 0.25');
-  D.drawOn(el, 1); t(st.strokeDashoffset === '0' && st.visibility === 'visible', 'drawOn 1 → offset exactly 0, visible');
+  D.drawOn(el, 1); t(st.strokeDashoffset === '0' && st.visibility === '', 'drawOn 1 → offset exactly 0, visibility cleared');
   D.drawOn(el, 1 - 1e-17); D.drawOn(el, 1.0000001); t(st.strokeDashoffset === '0', 'drawOn ≥ 1 → exactly 0');
   D.drawOn(el, -3); t(st.strokeDashoffset === '1' && st.visibility === 'hidden', 'drawOn ≤ 0 → offset 1, hidden (no round-cap dot)');
-  D.drawOn(el, 0); t(st.visibility === 'hidden', 'drawOn 0 hidden'); D.drawOn(el, 0.001); t(st.visibility === 'visible', 'drawOn > 0 visible');
+  D.drawOn(el, 0); t(st.visibility === 'hidden', 'drawOn 0 hidden'); D.drawOn(el, 0.001); t(st.visibility === '', 'drawOn > 0 clears visibility (no override of a hidden ancestor)');
+});
+
+group('doodle marks: underline/circle timing (in, draw, out)', (t) => {
+  const D = K.doodle, host = () => ({ id: '', style: {}, offsetWidth: 200, offsetHeight: 50, kids: [], appendChild(c) { this.kids.push(c); } });
+  for (const kind of ['underline', 'circle']) {
+    const h = host(), m = D[kind](h, { in: 1, draw: 1, out: 4 }), svg = h.kids[0], path = svg.kids[0];
+    const at = (x) => { m.set(x); return { vis: path.style.visibility, off: +path.style.strokeDashoffset, op: +svg.style.opacity }; };
+    t([0, 0.5, 0.999, 1].every((x) => at(x).vis === 'hidden'), `${kind}: hidden up to in`);
+    t(at(1.001).vis === '' && at(1.001).off < 1, `${kind}: visible once drawing`);
+    let prev = 1, rising = true;
+    for (let x = 1.05; x <= 2; x += 0.05) { const o = at(x).off; rising = rising && o <= prev && near(o, 1 - K.ease(K.seg(x, 1, 2)), 1e-12); prev = o; }
+    t(rising, `${kind}: drawn fraction follows the theme ease over [in, in+draw]`);
+    t([2, 2.5, 3, 3.55].every((x) => at(x).off === 0 && at(x).op === 1 && at(x).vis === ''), `${kind}: fully drawn and opaque 2 .. 3.55`);
+    const want = 1 - K.easeIn(K.seg(3.8, 4 - K.dur(0.45), 4));
+    t(near(at(3.8).op, want, 1e-12) && want > 0 && want < 1, `${kind}: opacity at 3.8 = ${at(3.8).op}, want ${want}`);
+    t(at(4).op === 0 && at(9).op === 0, `${kind}: opacity 0 from out`);
+    const free = host(), f = D[kind](free, { in: 1, draw: 1 }); f.set(50);
+    t(free.kids[0].style.opacity === '1' && free.kids[0].kids[0].style.strokeDashoffset === '0', `${kind}: without out it stays drawn`);
+  }
 });
 
 process.exit(bad ? 1 : 0);

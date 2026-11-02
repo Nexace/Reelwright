@@ -14,6 +14,7 @@ const ctx = vm.createContext({
   getComputedStyle: () => style,   // every token reads ''
 });
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./engine.js', import.meta.url)), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./shots.js', import.meta.url)), 'utf8'), ctx);
 const K = window.KIT;
 
 let bad = 0;
@@ -164,6 +165,71 @@ group('theme --kit-ease / --kit-ease-in values all parse', (t) => {
 group('theme motion tokens fall back to the documented defaults', (t) => {
   t(grid.every((p) => K.easeIn(p) === K.E.in(p)), 'easeIn defaults to in');
   t(K.staggerStep === 0.08 && K.settle === 0.6, `staggerStep ${K.staggerStep}, settle ${K.settle}`);
+});
+
+group('shots: purity, start/end states, camCSS, helpers', (t) => {
+  const W = 1920, H = 1080, id = K.cam3(), same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const t0 = 2, t1 = 6, keys = ['z', 'x', 'y', 'rx', 'ry', 'rz', 'persp', 'blur'];
+  const mk = {
+    pushIn: () => K.shot.pushIn({ t0, t1 }), pullBack: () => K.shot.pullBack({ t0, t1 }), crashZoom: () => K.shot.crashZoom({ at: t0, variant: 'stop' }),
+    crashRebound: () => K.shot.crashZoom({ at: t0, variant: 'rebound' }), whipPan: () => K.shot.whipPan({ at: t0 }), whipBrake: () => K.shot.whipPan({ at: t0, variant: 'brake' }),
+    dollyZoom: () => { const s = K.shot.dollyZoom({ t0, t1 }); return (x) => s(x).bg; }, orbit: () => K.shot.orbit({ t0, t1 }),
+    craneRise: () => K.shot.craneRise({ t0, t1 }), dutchRoll: () => K.shot.dutchRoll({ at: t0 }),
+  };
+  t(K.shot.names.every((n) => typeof K.shot[n] === 'function') && K.shot.names.length === 8, 'shot.names are all presets');
+  const times = Array.from({ length: 400 }, (_, i) => i * 0.025);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const [n, make] of Object.entries(mk)) {
+    const a = make(), fwd = times.map((x) => JSON.stringify(a(x)));
+    for (let r = 0; r < 50; r++) {   // pure: any evaluation order, any fresh instance, same states
+      const b = r % 2 ? a : make(), order = times.map((_, i) => i).sort(() => rnd() - 0.5), got = [];
+      for (const i of order) got[i] = JSON.stringify(b(times[i]));
+      if (!got.every((g, i) => g === fwd[i])) { t(false, `${n}: state depends on evaluation order`); break; }
+    }
+    for (const x of times) { const c = K.camCSS(a(x)); if (/NaN|undefined|Infinity/.test(c.transform + c.transformOrigin + c.filter)) { t(false, `${n}: bad camCSS at ${x}`); break; } }
+    t(same(a(t0 - 1), a(t0 - 0.5)) || n === 'dutchRoll', `${n}: not still before t0`);
+    t(same(a(t1 + 5), a(t1 + 50)) || n === 'dutchRoll', `${n}: not still after the end`);
+  }
+  // identity before the window (presets that start at the frame) and the documented end states
+  for (const n of ['pushIn', 'crashZoom', 'crashRebound', 'whipPan', 'whipBrake', 'dollyZoom']) t(same(mk[n]()(t0 - 1), id), `${n}: identity before t0`);
+  t(near(mk.pushIn()(t1).z, 1.14, 1e-9) && mk.pushIn()(t0).z === 1 && mk.pushIn()(4).z < 1.07, 'pushIn 1 → 1.14, accelerating');
+  t(near(mk.pullBack()(t0).z, 1.14, 1e-9) && near(mk.pullBack()(t1).z, 1, 1e-9) && mk.pullBack()(4).z < 1.07, 'pullBack 1.14 → 1, decelerating');
+  const cz = mk.crashZoom(), dur = 6 / 30;
+  t(near(cz(t0 + dur).z, 2.6, 1e-9) && cz(t0 + dur / 2).z < 2.6 && cz(t0 + 1).z === 2.6, 'crashZoom reaches 2.6 in 6 frames');
+  t(near(cz(t0 + dur).x - W / 2, 14, 1e-9) && Math.abs(cz(t0 + dur).y - H / 2) <= 14, 'crashZoom shake starts at 14 px');
+  t(same(cz(t0 + 1), { ...id, z: 2.6 }) && same(cz(100), cz(t0 + 1)), 'crashZoom z=2.6 and centred after the shake decays');
+  t(near(mk.crashRebound()(100).z, 2.45, 1e-9) && mk.crashRebound()(t0 + dur).z === 2.6, 'crashZoom rebound 2.6 → 2.45');
+  t(near(mk.whipPan()(100).x, W / 2 + 1.5 * W, 1e-9) && near(mk.whipBrake()(100).x, W / 2 + 1.5 * W, 1e-9), 'whipPan travels 1.5 frame widths');
+  t(mk.whipPan()(t0 + 4 / 30).blur > 20 && mk.whipPan()(t0 - 1).blur === 0 && mk.whipPan()(100).blur === 0 && mk.whipPan()(t0 + 0.001).blur < 5, 'whipPan blurs only while it moves fast');
+  const wb = mk.whipBrake(); t(near(wb(t0 + 8 / 30).x - W / 2, 0.7 * 1.5 * W, 1e-9), 'whipPan brake: 70 % of the distance in the swing');
+  const dz = K.shot.dollyZoom({ t0, t1 })(t1); t(near(dz.bg.z, 2.25, 1e-9) && near(dz.bg.blur, 3.5, 1e-9) && same(dz.hero, id), 'dollyZoom: bg 2.25 + 3.5 px blur, hero pinned');
+  t(mk.orbit()(t0).ry === -18 && near(mk.orbit()(t1).ry, 18, 1e-9), 'orbit ±18°');
+  t(near(mk.craneRise()(t1).y, H / 2, 1e-9) && mk.craneRise()(t1).rx === 0 && mk.craneRise()(t0).y > H / 2, 'craneRise lifts to level');
+  const dr = mk.dutchRoll(); t(Math.abs(dr(0).rz + 10) <= 0.8 + 1e-9 && dr(t0 + 14 / 30).rz > 1.19 && dr(100).rz === 0 && dr(100).y === H / 2 && dr(100).z === 1.08, 'dutchRoll -10° → +1.2° → 0°');
+  t(Math.max(...times.map((x) => dr(x).rz)) > 1.19 && Math.max(...times.map((x) => dr(x).rz)) <= 1.2 + 1e-9, 'dutchRoll overshoots to +1.2° and no further');
+  // track: latest started shot wins, holds its end state, identity before the first
+  const tr = K.shot.track([{ at: 8, shot: K.shot.pushIn({ t0: 8, t1: 9 }) }, { at: 1, shot: K.shot.dutchRoll({ at: 1 }) }]);
+  t(same(tr(0), id) && tr(5).rz === 0 && tr(8.5).z > 1 && near(tr(20).z, 1.14, 1e-9), 'track picks by time and holds');
+  // camCSS
+  const css = K.camCSS({ z: 1.5, x: 1000, y: 400, ry: 20, rz: 3, blur: 4 });
+  t(css.transformOrigin === '1000px 400px' && css.transform === 'translate(-40px, 140px) perspective(1200px) rotateY(20deg) rotateX(0deg) rotateZ(3deg) scale(1.5)' && css.filter === 'blur(4px)', 'camCSS strings: ' + css.transform);
+  t(K.camCSS().filter === 'none' && !/perspective/.test(K.camCSS().transform), 'identity camCSS');
+  let threw = false; try { K.cam3({ z: NaN }); } catch { threw = true; } t(threw, 'cam3 rejects NaN');
+  const st = { transform: '' }; K.shoot({ style: st }, { z: 2 }); t(st.transform.endsWith('scale(2)'), 'shoot writes style');
+  // helpers
+  for (const sd of [0, 1, 'a', 'hero']) {
+    let m = 0, ok = true;
+    for (let x = 0; x < 30; x += 0.013) { const h = K.handheld(x, 5, sd); ok = ok && Number.isFinite(h.x) && Number.isFinite(h.y); m = Math.max(m, Math.abs(h.x), Math.abs(h.y)); }
+    t(ok && m <= 5 + 1e-9 && m > 3, `handheld seed ${sd}: finite, bounded by amp (max ${m})`);
+  }
+  t(same(K.handheld(1.234, 4, 'x'), K.handheld(1.234, 4, 'x')) && !same(K.handheld(1.234, 4, 'x'), K.handheld(1.234, 4, 'y')), 'handheld seeded');
+  t(near(K.handheld(1, 1, 0).x, (Math.sin(9.3) + 0.6 * Math.sin(24.9 + 1.7)) / 1.6, 1e-12), 'handheld seed 0 = source phases');
+  t(K.shake(1, 2, 14, 0.06).x === 0 && near(K.shake(2, 2, 14, 0.06).x, 14, 1e-9) && Math.abs(K.shake(2.06, 2, 14, 0.06).x) <= 14 / Math.E + 1e-9 && K.shake(3, 2, 14, 0.06).y === 0, 'shake decays and ends');
+  const rm = [[0, 0], [1, 2], [2, 2], [3, 5]];
+  t(K.remap(-1, rm) === 0 && K.remap(0, rm) === 0 && K.remap(0.5, rm) === 1 && K.remap(1.5, rm) === 2 && K.remap(3, rm) === 5 && K.remap(9, rm) === 5, 'remap endpoints, ramp, freeze');
+  threw = false; try { K.remap(0, [[1, 0], [1, 1]]); } catch { threw = true; } t(threw, 'remap rejects non-ascending');
+  const sb = K.speedBlur((x) => K.cam3({ x: 100 * x }), 1, 24);
+  t(near(sb, 0.15, 1e-6) && K.speedBlur((x) => K.cam3({ x: 1e6 * x }), 1, 24) === 24 && K.speedBlur(() => K.cam3(), 1) === 0, 'speedBlur: proportional, capped, 0 when still');
 });
 
 process.exit(bad ? 1 : 0);

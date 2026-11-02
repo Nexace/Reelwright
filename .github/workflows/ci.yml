@@ -44,7 +44,7 @@ jobs:
       - name: Syntax checks
         run: |
           for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
-          for f in tools/engine.js tools/layouts.js tools/from_url/film.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
+          for f in tools/engine.js tools/layouts.js tools/shots.js tools/from_url/film.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
           node tools/motion-check.mjs
           python -m py_compile tools/*.py
       - name: "From a URL: draft a project and a theme from the local demo site (offline)"

@@ -199,6 +199,9 @@
   K.theme = tok('theme').replace(/"/g, '');
   K.ease = (() => { try { return K.easing(tok('ease')); } catch { return K.E.out; } })();   // the theme's default easing (any name K.easing takes)
   K.dur = (s) => s * (Number(tok('tempo')) || 1);  // scale a duration by the theme's tempo
+  K.easeIn = (() => { try { return K.easing(tok('ease-in')); } catch { return K.E.in; } })();   // the theme's exit easing
+  K.staggerStep = K.dur(Number(tok('stagger')) || 0.08);   // seconds between items in a staggered group
+  K.settle = K.dur(Number(tok('settle')) || 0.6);   // seconds for a settle (overshoot and rest)
   // load every declared font now (not on first use), so no frame renders with a fallback face;
   // document.fonts.ready, which READY and HyperFrames wait on, then covers them
   for (const f of document.fonts) f.load().catch(() => console.error('font failed:', f.family, f.weight));

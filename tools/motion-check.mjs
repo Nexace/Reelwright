@@ -140,4 +140,9 @@ group('keys, stagger, local, easing errors', (t) => {
   t(K.easing('back.out(1.7)')(0.5) !== K.easing('back.out')(0.5), 'args are applied');
 });
 
+group('theme motion tokens fall back to the documented defaults', (t) => {
+  t(grid.every((p) => K.easeIn(p) === K.E.in(p)), 'easeIn defaults to in');
+  t(K.staggerStep === 0.08 && K.settle === 0.6, `staggerStep ${K.staggerStep}, settle ${K.settle}`);
+});
+
 process.exit(bad ? 1 : 0);

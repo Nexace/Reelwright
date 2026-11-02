@@ -11,6 +11,6 @@
   --kit-radius: 20px; --kit-border: 1px solid #e2e8f0; --kit-shadow: 0 24px 60px rgba(15,23,42,.10); --kit-space: 28px;
   --kit-sub-bg: #ffffff; --kit-sub-ink: rgba(15,23,42,.4); --kit-sub-said: #2563eb;
   --kit-sub-font: 700 30px var(--kit-font-text); --kit-sub-radius: 16px; --kit-sub-deco: none;
-  --kit-ease: out; --kit-tempo: 1;
+  --kit-ease: corporate; --kit-tempo: 1; --kit-ease-in: accel; --kit-stagger: .05; --kit-settle: .45;
 }
 .kit-subrow { box-shadow: 0 12px 30px rgba(15,23,42,.10); }

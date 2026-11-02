@@ -12,6 +12,6 @@
   --kit-radius: 12px; --kit-border: 1px solid rgba(255,255,255,.1); --kit-shadow: 0 30px 90px rgba(0,0,0,.6); --kit-space: 24px;
   --kit-sub-bg: rgba(21,26,32,.85); --kit-sub-ink: rgba(238,241,244,.45); --kit-sub-said: #5eead4; --kit-sub-now: #ffffff;
   --kit-sub-font: 500 30px var(--kit-font-mono); --kit-sub-radius: 10px; --kit-sub-deco: none;
-  --kit-ease: outExpo; --kit-tempo: 0.9;
+  --kit-ease: expo.out; --kit-tempo: 0.9; --kit-ease-in: expo.in; --kit-stagger: .03; --kit-settle: .3;
 }
 #stage { background-size: 64px 64px; }

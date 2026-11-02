@@ -9,7 +9,7 @@
   const px = (n) => n * K.u + 'px';
   // eased 0→1 entrance starting `delay` s (theme tempo) after t0
   const ent = (t, t0, delay = 0, d = 0.7) => K.ease(K.seg(t, t0 + K.dur(delay), t0 + K.dur(delay + d)));
-  const rise = (els, t, t0, delay = 0, step = 0.08, dy = 40) => els.forEach((e, i) => {
+  const rise = (els, t, t0, delay = 0, step = K.staggerStep / K.dur(1), dy = 40) => els.forEach((e, i) => {
     const p = ent(t, t0, delay + i * step);
     e.style.opacity = p; e.style.transform = `translateY(${px(dy * (1 - p))})`;
   });
@@ -18,7 +18,7 @@
     const el = K.el('div', `kit-lay kit-lay-${name} kit-fmt-${K.fmt}`, o.parent || K.stage);
     if (o.note) K.el('div', 'kit-lay-note', el).textContent = o.note;
     return { el, frame(t) {
-      const z = o.out == null ? 0 : K.ease(K.seg(t, o.out - K.dur(0.45), o.out));
+      const z = o.out == null ? 0 : K.easeIn(K.seg(t, o.out - K.dur(0.45), o.out));
       K.show(el, t < o.in ? 0 : 1 - z);
       el.style.transform = `translateY(${px(-30 * z)})`;
     } };

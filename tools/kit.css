@@ -12,7 +12,8 @@
   --kit-sub-bg: rgba(20,20,20,.72); --kit-sub-ink: rgba(255,255,255,.55); --kit-sub-said: #fff;
   --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 14px; --kit-sub-deco: none;
   --kit-sub-now: var(--kit-sub-said);   /* karaoke: the word being spoken */
-  --kit-ease: out; --kit-tempo: 1;   /* motion: KIT.ease is KIT.E[--kit-ease]; KIT.dur(s) = s × --kit-tempo */
+  --kit-ease: out; --kit-tempo: 1;   /* motion: KIT.ease is KIT.easing(--kit-ease); KIT.dur(s) = s × --kit-tempo */
+  --kit-ease-in: in; --kit-stagger: 0.08; --kit-settle: 0.6;   /* exit easing; seconds between items; seconds for a settle (× tempo) */
   --kit-logo: none;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -11,5 +11,5 @@
   --kit-radius: 36px; --kit-border: none; --kit-shadow: 0 30px 80px rgba(120,90,200,.18); --kit-space: 32px;
   --kit-sub-bg: rgba(255,255,255,.85); --kit-sub-ink: rgba(59,51,85,.45); --kit-sub-said: #7a5cff;
   --kit-sub-font: 700 32px var(--kit-font-text); --kit-sub-radius: 999px; --kit-sub-deco: none;
-  --kit-ease: inOut; --kit-tempo: 1.15;
+  --kit-ease: premium; --kit-tempo: 1.15; --kit-ease-in: accel; --kit-stagger: .08; --kit-settle: .8;
 }

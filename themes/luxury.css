@@ -11,6 +11,6 @@
   --kit-radius: 0px; --kit-border: 1px solid rgba(201,169,97,.6); --kit-shadow: 0 40px 120px rgba(0,0,0,.7); --kit-space: 32px;
   --kit-sub-bg: transparent; --kit-sub-ink: rgba(241,233,216,.4); --kit-sub-said: #c9a961;
   --kit-sub-font: 400 24px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
-  --kit-ease: inOut; --kit-tempo: 1.4;
+  --kit-ease: premium; --kit-tempo: 1.4; --kit-ease-in: accel; --kit-stagger: .08; --kit-settle: .8;
 }
 .kit-subrow { letter-spacing: .22em; text-transform: uppercase; }

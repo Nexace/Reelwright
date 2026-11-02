@@ -12,5 +12,5 @@
   --kit-radius: 18px; --kit-border: 4px solid #3d2416; --kit-shadow: 8px 8px 0 #e2711d; --kit-space: 28px;
   --kit-sub-bg: #3d2416; --kit-sub-ink: rgba(244,228,193,.5); --kit-sub-said: #f6a04d;
   --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 999px; --kit-sub-deco: none;
-  --kit-ease: inOut; --kit-tempo: 1.1;
+  --kit-ease: premium; --kit-tempo: 1.1; --kit-ease-in: accel; --kit-stagger: .08; --kit-settle: .8;
 }

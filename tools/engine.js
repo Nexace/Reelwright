@@ -19,14 +19,15 @@
   };
   // Easing families equivalent to GSAP's. Each is defined once as `out`; mk derives in and inOut from it.
   // `outIO` is the out curve inOut is built from (elastic's inOut has its own default period).
-  const mk = (out, outIO = out) => ({
-    out, in: (p) => 1 - out(1 - p),
-    inOut: (p) => (p < 0.5 ? (1 - outIO(1 - 2 * p)) / 2 : (outIO(2 * p - 1) + 1) / 2),
-  });
-  const elastic = (a, per) => (p) => {
-    if (p <= 0) return 0; if (p >= 1) return 1;
-    if (a < 1) { per /= a; a = 1; }
-    return a * Math.pow(2, -10 * p) * Math.sin((p - per / (2 * Math.PI) * Math.asin(1 / a)) * 2 * Math.PI / per) + 1;
+  // p is clamped to [0, 1] once here, so no family returns NaN or a wrong branch out of range.
+  const mk = (o, oIO = o) => {
+    const out = (p) => o(K.clamp(p)), outIO = (p) => oIO(K.clamp(p));
+    return { out, in: (p) => 1 - out(1 - p),
+      inOut: (p) => (p < 0.5 ? (1 - outIO(1 - 2 * p)) / 2 : (outIO(2 * p - 1) + 1) / 2) };
+  };
+  const elastic = (amp, period) => {
+    const a = Math.max(amp, 1), per = amp < 1 ? period / amp : period;   // a < 1 stretches the period instead
+    return (p) => (p <= 0 ? 0 : p >= 1 ? 1 : a * Math.pow(2, -10 * p) * Math.sin((p - per / (2 * Math.PI) * Math.asin(1 / a)) * 2 * Math.PI / per) + 1);
   };
   const bounce = (p) => {
     const n = 7.5625, d = 2.75;
@@ -34,7 +35,7 @@
   };
   const FAM = {
     __proto__: null,
-    none: () => (p) => p,
+    none: () => (p) => K.clamp(p),
     sine: () => mk((p) => Math.sin(p * Math.PI / 2)),
     circ: () => mk((p) => Math.sqrt(1 - (p - 1) * (p - 1))),
     expo: () => mk((p) => 1 - (Math.pow(2, -10 * p) * (1 - p) + Math.pow(1 - p, 6) * p)),  // blended, exactly 1 at p=1
@@ -48,8 +49,9 @@
   });
   // 'power3.inOut', 'back.out(1.7)', 'elastic.out(1, .3)', 'steps(4)', 'none', or an old K.E key ('outExpo', 'premium'…)
   K.easing = (name) => {
+    name = String(name).trim();
     if (Object.prototype.hasOwnProperty.call(K.E, name)) return K.E[name];
-    const m = /^([a-z0-9]+)(?:\.(in|out|inOut))?(?:\(([^)]*)\))?$/.exec(String(name).trim());
+    const m = /^([a-z0-9]+)(?:\.(in|out|inOut))?(?:\(([^)]*)\))?$/.exec(name);
     const args = m && m[3] && m[3].trim() ? m[3].split(',').map(Number) : [];
     const f = m && FAM[m[1]] && FAM[m[1]](...args);
     const e = typeof f === 'function' ? f : f && f[m[2]];

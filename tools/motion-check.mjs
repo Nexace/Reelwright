@@ -62,6 +62,17 @@ group('in/out symmetry, inOut halves', (t) => {
   t(!near(K.easing('elastic.inOut')(0.3), K.easing('elastic.inOut(1,.3)')(0.3), 1e-3), 'elastic.inOut default period');
 });
 
+group('out-of-range p is clamped (finite, equals the clamped value)', (t) => {
+  const names = ['none', 'steps(4)'];
+  for (const f of ['power1', 'power2', 'power3', 'power4', 'quad', 'cubic', 'quart', 'quint', 'sine', 'circ', 'expo', 'back', 'elastic', 'bounce'])
+    for (const d of ['in', 'out', 'inOut']) names.push(`${f}.${d}`);
+  for (const n of names) {
+    const e = K.easing(n);
+    for (const p of [-0.5, -0.1, 1.1, 1.5]) { const v = e(p), c = e(p < 0 ? 0 : 1); t(Number.isFinite(v) && v === c, `${n}(${p}) = ${v}, clamped ${c}`); }
+  }
+  t(K.easing(' outExpo ') === K.E.outExpo && K.easing(' power2.out ')(0.5) === 0.875, 'names are trimmed');
+});
+
 group('old KIT.E outputs unchanged', (t) => {
   const old = {
     inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
@@ -101,13 +112,15 @@ group('spring vs RK4', (t) => {
     }
     return out;
   };
-  const cases = [['underdamped', { mass: 1, damping: 10, stiffness: 100 }, {}], ['critical', { mass: 1, damping: 20, stiffness: 100 }, {}],
-    // ratio > 1 uses the critical formula (Remotion), so it matches the ODE with damping clamped to critical
-    ['overdamped (critical formula)', { mass: 1, damping: 200, stiffness: 100 }, { damping: 20 }]];
-  for (const [n, o, ode] of cases) {
+  const cases = [['underdamped', { mass: 1, damping: 10, stiffness: 100 }], ['critical', { mass: 1, damping: 20, stiffness: 100 }],
+  ];
+  for (const [n, o] of cases) {
     const s = K.spring(o);
-    for (const [x, y] of rk4({ ...o, ...ode }, 2)) t(near(s(x), y, 1e-3), `${n}: t=${x} got ${s(x)}, want ${y}`);
+    for (const [x, y] of rk4(o, 2)) t(near(s(x), y, 1e-3), `${n}: t=${x} got ${s(x)}, want ${y}`);
   }
+  // ratio >= 1 uses the critical formula (Remotion parity): damping 200 is the same curve as damping 20, not a true overdamped one
+  const crit = K.spring({ damping: 20 }), over = K.spring({ damping: 200 });
+  for (const x of [0, 0.1, 0.3, 0.7, 1.5]) t(over(x) === crit(x), `ratio >= 1 is critical: t=${x}`);
   const s = K.spring({ from: 2, to: 5 });
   t(s(0) === 2 && s(-1) === 2 && near(s(10), 5, 1e-3), 'from/to');
   const d = K.springDur({ mass: 1, damping: 10, stiffness: 100 });

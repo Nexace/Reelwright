@@ -72,9 +72,21 @@ Read once before your first real film.
   viewers), **illustrative** (numbers like 40% or $12 need the label on screen), **seekable** (no clock,
   randomness, timers or CSS transitions in the film's code). Fix the film; turn a gate off only for a reason,
   e.g. `"qa": { "illustrative": false }` when the numbers are real. `projects/qa-broken` trips every gate.
+  Four more checks only print `WARN` lines and never fail the build (turn one off the same way, e.g.
+  `"qa": { "tiny-text": false }`): **overlap** (two on-screen texts sitting on each other, sampled every 0.5 s;
+  crossfades and wipes pass), **tiny-text** (rendered font under 24 px × `KIT.u`; the "Illustrative data" label
+  and "Source:" credits are exempt), **wordy** (a label of 7+ words that repeats the VO line playing: show the
+  keywords, not the narration), **dark** (over 2 s of near-black frames with no voiceover).
   Screenshots count too: give an `<img>` of a page `data-qa-text="<the text it shows>"` and the gate reads its
   numbers; real figures from a real site pass with a visible "Source: …" credit instead of the label
   (`from-url` films do both). Version numbers (v8.3.4, 3.10.2) aren't data.
+- **Beat sheets.** A script planned in a spreadsheet comes in with `./video.sh beats <project> import sheet.csv`
+  and goes back out with `beats <project> export` (add `--replace` to overwrite lines, or an existing csv, that are already there). The CSV
+  needs a `VO Script` column; both common headers work, `Scene, Beat Label, VO Script, VO Length, Clip Duration, SHOT,
+  MOTION, TEXT ON SCREEN` followed by `SFX, IMG PROMPT, VID PROMPT` or by `AUDIO, Source, Status`. `VO Script` becomes
+  each line's `text`, `Beat Label` its `id`; the rest goes to `beats` in project.json as notes for you (`VO Length` as
+  the target seconds). Prompt and other unknown columns are kept word for word so export can write them back; nothing
+  reads them or sends them anywhere. A `{ "timeline": [{ "start_s", "end_s", "label" }] }` JSON adds only beat sections.
 - `encode` writes `<out>.srt` and `<out>.vtt` beside the mp4 for players and upload sites.
 - Re-recorded the take? Re-run `sched` and `info` — anchors and SFX times derive from the take's marks;
   stale ones give blank white frames.
@@ -242,6 +254,34 @@ calm `settle` ease. `tools/doodle.js` (load it after engine.js, like shots.js) d
   numbers — so scrubbing, `--formats` and other fps give the same drawing. Give each mark its own `id`.
 - Marks measure their element once, when built: build them in the first render after `document.fonts.ready` if the element is text (renders and preview wait for it;
   `index.html#t` URLs don't).
+
+## Math (`KIT.math.*`, tools/math.js)
+
+Charts, curves, shapes that turn into other shapes, typeset formulas: the explainer moves Manim is known for, built as
+SVG/HTML once at load and driven by `.set(t)`. Use them when the film explains a number, a trend or an idea; a feature
+tour doesn't need them. Load `kit/doodle.js`, then `kit/katex/katex.min.js` (only for equations), then `kit/math.js`
+after engine.js, plus `kit/katex/katex.min.css` in `<head>`; the HyperFrames renderer copies both folders into `hf/kit/`.
+Options work like a layout's: `in` (start), `draw`/`dur` (how long), `out` (optional; fades over the 0.45 s before it).
+
+| Call | Gives you |
+|---|---|
+| `axes({ x: [min, max, step], y: [...], box, grid, labels, in, draw, out })` | Two axes with ticks and labels that draw on. `.c2p(x, y)` turns graph units into stage px. |
+| `numberLine({ range: [min, max, step], box, labels, in, draw, out })` | One axis across the middle of the safe area. |
+| `plot(axes, f, { x: [x0, x1], samples, in, draw, out, color, width })` | The curve of `f`, drawn from left to right. `.progress(t)` is how far it has drawn; `.pointAt(p)` is the point that far along, for a dot on the tip. |
+| `morph(pathA, pathB, { in, dur, n })` | Path A reshaped into path B (an element or a `d` string). One subpath each, both drawn the same way round. |
+| `equation(tex, { in, step, out, size, x, y, display, parent })` | KaTeX-typeset formula whose glyphs rise in one by one, `step` apart. |
+| `ease.smooth`, `ease.thereAndBack` | Manim's smoothstep, and a go-and-return curve for a pulse. |
+
+- When one thing becomes another, morph it; a fade-out and fade-in hides the change you are trying to show.
+- To point at one part, dim everything else to about 0.25 opacity rather than hiding it, so the viewer keeps the context.
+- On-screen text is labels, terms and numbers. The narration says the sentence; the picture should not repeat it.
+- Put the draw on the word: a curve starts on "curve", a formula on "writes". A dot riding the tip (`pointAt(progress(t))`)
+  makes the drawing feel live. Made-up data on a chart still gets "Illustrative data".
+- Equations: KaTeX covers most of LaTeX math (fractions, roots, `\left( … \right)`, `\text{}`, matrices) but no packages
+  (`\newcommand` and `\def` inside the formula work). It runs with `throwOnError`, so a bad formula stops the film at load, not on a blank frame.
+  Check the reveal in stills: glyphs come in reading order, delimiters and the fraction bar included.
+
+projects/math-hf is the worked example.
 
 ## GSAP (optional)
 

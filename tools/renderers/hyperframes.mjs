@@ -33,7 +33,8 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
   const HF = path.join(DIR, "hf");
   // the kit travels with the composition: HyperFrames serves only the composition folder
   fs.mkdirSync(path.join(HF, "kit"), { recursive: true });
-  for (const f of ["engine.js", "kit.css", "layouts.js", "shots.js", "doodle.js"]) fs.copyFileSync(new URL(f, TOOLS), path.join(HF, "kit", f));
+  for (const f of ["engine.js", "kit.css", "layouts.js", "shots.js", "doodle.js", "math.js"]) fs.copyFileSync(new URL(f, TOOLS), path.join(HF, "kit", f));
+  fs.cpSync(new URL("../vendor/katex", TOOLS), path.join(HF, "kit", "katex"), { recursive: true });   // KIT.math.equation; css finds fonts/ beside it
   Object.assign(process.env, { DO_NOT_TRACK: "1", HYPERFRAMES_NO_TELEMETRY: "1" });
   process.env.PRODUCER_BROWSER_GPU_MODE ||= "software";
   process.env.HYPERFRAMES_BROWSER_PATH ||= headlessShell();

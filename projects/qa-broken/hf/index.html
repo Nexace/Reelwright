@@ -8,6 +8,10 @@
 <style>
   body { background: var(--kit-bg); }
   .strobe { inset: 0; background: #fff; }
+  .lbl { left: 10%; font: 700 48px var(--kit-font-text); color: var(--kit-ink); }
+  .lbl.a { top: 60%; } .lbl.b { top: calc(60% + 14px); }
+  .tiny { top: 80%; font-size: 14px; } .wordy { top: 70%; }
+  .veil { inset: 0; background: #000; }
   .stat { left: 50%; top: 30%; transform: translateX(-50%); font: 800 220px var(--kit-font-display); color: var(--kit-ink);
     transition: opacity .3s; }   /* broken: a CSS transition can't be seeked (seekable gate) */
 </style>

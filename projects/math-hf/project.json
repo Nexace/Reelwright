@@ -1,0 +1,21 @@
+{
+  "title": "Reelwright — math primitives",
+  "renderer": "hyperframes",
+  "style": "swiss",
+  "out": "out/math-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.8,
+  "tail": 2.4,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 2 },
+  "lines": [
+    { "id": "axes",     "gap": 0.0, "text": "Every chart starts with an axis." },
+    { "id": "plot",     "gap": 0.8, "text": "Plot the curve as you say it." },
+    { "id": "morph",    "gap": 0.8, "text": "Shapes morph instead of fading." },
+    { "id": "equation", "gap": 0.8, "text": "And the maths writes itself." }
+  ]
+}

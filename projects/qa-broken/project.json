@@ -5,7 +5,7 @@
   "fps": 30,
   "voice": "en-US-AndrewNeural",
   "lead": 0.5,
-  "tail": 1.0,
+  "tail": 3.5,
   "loudness": -6,
   "music": { "bpm": 120, "style": "drive", "drop_bar": 1 },
   "lines": [

@@ -293,7 +293,7 @@ The KIT helpers above cover most films. GSAP is for label-based choreography, st
   uses it ships its own copy of `gsap.min.js` under `hf/` (or `film/`), and keeps its notice. Get a local copy without adding a dependency: run `npm pack gsap@3.15.0` in a temp folder and copy
   `package/dist/gsap.min.js` into the film's `hf/` (or `film/`) folder; never `npm install` it into the repo (3.15.0 is the verified version). Don't add it to
   `vendor/` or commit it for other films to share.
-- Verified (scratch/phase9/seektest, gsap 3.15.0): a paused timeline driven by `tl.totalTime(t)` from `render(t)` gave byte-identical frames
+- Verified (docs/archive/plans/phase-9-research/seektest-RESULTS.md, gsap 3.15.0): a paused timeline driven by `tl.totalTime(t)` from `render(t)` gave byte-identical frames
   across forward, shuffled and reverse seeks in fresh pages and browsers. Call `gsap.ticker.lagSmoothing(0)` as well.
 - Use `fromTo()` everywhere. `.from()` and relative `"+="` values read their start state on first render; that was not verified here.
 - Never `play()`, `repeat: -1`, `gsap.utils.random()`, or callbacks that change state. Times come from `W()`/`V()`/`KIT.snap()`; add labels per VO line.

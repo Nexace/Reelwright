@@ -3,9 +3,9 @@
 Status: **built through 9e (version 0.2.0).** Plan approved by the owner 2026-11-02. Written 2026-11-02; revised the same day:
 the Firefly connector was dropped (owner's decision), Firefly is manual import like Adobe Express.
 
-The research notes behind every claim below are in `scratch/phase9/` (git-ignored; one file per repo group:
+The research notes behind every claim below are in [`phase-9-research/`](phase-9-research/) (archived from the git-ignored `phase-9-research/`; one file per repo group:
 `manim.md`, `remotion-gsap.md`, `doodle-lottie.md`, `shots-motion.md`, `providers.md`). Repos were read via
-`gh api` and shallow clones in `scratch/phase9/src/`. Claims we could not check are marked **UNVERIFIED**.
+`gh api` and shallow clones in `phase-9-research/src/` (not kept). Claims we could not check are marked **UNVERIFIED**.
 
 ## Rules for this phase
 
@@ -90,7 +90,7 @@ Files: `tools/engine.js`, `themes/*.css`, `tools/kit.css` (new tokens only), `do
    text is labels and numbers not the narration), stagger budgets, transition overlap rule (total = sum − overlaps).
 
 Exit test: `node scratch/ease-check.mjs` compares every ease against reference values recorded from gsap 3.15.0 (in
-`scratch/phase9/remotion-gsap.md`) within 1e-6 and the spring against a numeric ODE; pvk `example` stills byte-identical
+`phase-9-research/remotion-gsap.md`) within 1e-6 and the spring against a numeric ODE; pvk `example` stills byte-identical
 to `main` (`cmp`); `example-hf` built in playful vs luxury shows different settle timing in stills; CI green.
 
 ### 9b — Named shot library and the doodle theme
@@ -103,7 +103,7 @@ Files: new `tools/shots.js` (loaded like `layouts.js`; the HF renderer copies it
    `pullBack`, `crashZoom` (1 → 2.6 in 6 frames + 14 px decaying shake), `whipPan` (+ brake variant, motion blur by
    speed), `dollyZoom` (fake: subject pinned, background scales), `orbit`, `craneRise`, `dutchRoll` (−10° → +1.2° → 0),
    `handheld` (seeded noise on `floor(t × 24)`), `remap` (speed ramp / freeze). Zoom via CSS `zoom` where text must stay
-   sharp. Parameters from `scratch/phase9/shots-motion.md` table 1.4.
+   sharp. Parameters from `phase-9-research/shots-motion.md` table 1.4.
 2. `KIT.rng(seed)` (seeded PRNG keyed by element id), `KIT.draw(svgPath, p)` (stroke draw-on: `pathLength=1`,
    `stroke-dashoffset = 1 − p`), `KIT.boil(el, t)` (re-jitter control points ±0.55 px on `floor(t × 8)`, so pvk and
    hyperframes match), stroke timing by length (cost = length + 9 per stroke, time shared by cost, from anidoodle).
@@ -155,7 +155,7 @@ creds) → job, async poll(job, creds) → { status, urls[] } }`. `gen.mjs` does
 and polling with backoff (honours `Retry-After`); adding a provider later is one file. Higgsfield is the only
 provider in this phase.
 
-**What the providers actually offer (official docs, read 2026-11-02; details in `scratch/phase9/providers.md`):**
+**What the providers actually offer (official docs, read 2026-11-02; details in `phase-9-research/providers.md`):**
 - Higgsfield: REST API at `api.higgsfield.ai`, header `Authorization: Key <id>:<secret>` (keys from the Higgsfield
   console), async (submit → `request_id`/`status_url` → poll until completed/failed/nsfw/canceled), results as
   `images[].url` / `video.url` until `expires_at` (7 days by default). Billing is a prepaid pay-as-you-go balance;
@@ -218,9 +218,9 @@ Exit test: CI green on macOS, Windows and Ubuntu with no keys; a fresh clone bui
 
 Paste into a new chat opened in the repo. Replace `<X>` with the checkpoint letter.
 
-> Read `AGENTS.md`, `docs/plans/phase-9-motion-skills.md`, `docs/archive/plans/STATUS.md` and
+> Read `AGENTS.md`, `docs/archive/plans/phase-9-motion-skills.md`, `docs/archive/plans/STATUS.md` and
 > `graphify-out/GRAPH_REPORT.md`. Run checkpoint 9<X> only, on its branch. The research notes are in
-> `scratch/phase9/` if they still exist. Write a short spec first and wait for my OK before coding. Keep the core
+> `phase-9-research/` if they still exist. Write a short spec first and wait for my OK before coding. Keep the core
 > free and offline; ask before adding a dependency, vendoring, deleting files, or any paid call. At the end: exit
 > test passes, commit, update STATUS.md (Phase 9 row) and run `/graphify --update`.
 

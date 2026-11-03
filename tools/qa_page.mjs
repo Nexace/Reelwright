@@ -95,7 +95,8 @@ try {
       if (shot && !label && !credit) out.illustrative.push(`${t2(t)}s "${shot}" in a screenshot (data-qa-text), no label or Source credit`);
     }
 
-    // ── WARN checks (overlap, tiny-text, wordy) ──
+    // ── WARN checks (overlap, tiny-text, wordy): isolated, so a throw here can never fail the gates above ──
+    try {
     const opacity = (e) => { let o = 1; for (; e && e.nodeType === 1; e = e.parentElement) o *= Number(getComputedStyle(e).opacity); return o; };
     const words = (s) => (s.toLowerCase().match(/[\p{L}\p{N}']+/gu) || []);
     const runs = {};   // check -> key -> { first, last, detail }, so a stretch reports once
@@ -138,9 +139,9 @@ try {
         const ix = Math.min(a.b.right, b.b.right) - Math.max(a.b.left, b.b.left), iy = Math.min(a.b.bottom, b.b.bottom) - Math.max(a.b.top, b.b.top);
         if (ix < 6 * K.u || iy < 0.3 * Math.min(a.b.height, b.b.height)) continue;
         if (ix * iy < 0.15 * Math.min(a.b.width * a.b.height, b.b.width * b.b.height)) continue;
-        // whoever is on top at the middle of the overlap must not be an opaque card (a wipe, a panel) hiding the other
+        // whoever is on top at the middle of the overlap must not be an opaque card (a wipe, a panel) hiding the other; a hit on neither text still counts as overlap
         const h = document.elementFromPoint(Math.max(a.b.left, b.b.left) + ix / 2, Math.max(a.b.top, b.b.top) + iy / 2), top = h && (a.e.contains(h) ? a : b.e.contains(h) ? b : null);
-        if (!top || (() => { const low = top === a ? b : a; for (let x = h; x && x !== K.stage && !x.contains(low.e); x = x.parentElement) if (rgba(getComputedStyle(x).backgroundColor)[3] > 0.9) return true; })()) continue;
+        if (top && (() => { const low = top === a ? b : a; for (let x = h; x && x !== K.stage && !x.contains(low.e); x = x.parentElement) if (rgba(getComputedStyle(x).backgroundColor)[3] > 0.9) return true; })()) continue;
         note('overlap', a.s + '|' + b.s, t, `"${a.s.slice(0, 24)}" over "${b.s.slice(0, 24)}"`);
       }
       const line = Object.values(VO).find((v) => t >= v.start && t < v.end);
@@ -156,6 +157,7 @@ try {
     const span = (r) => (r.last > r.first ? `${t2(r.first)}–${t2(r.last)}s` : `${t2(r.first)}s`);
     for (const [c, k] of [['tiny', 'tiny'], ['overlap', 'overlap'], ['wordy', 'wordy']])
       out[k] = Object.values(runs[c] || {}).map((r) => `${span(r)} ${r.detail}`);
+    } catch (err) { out.overlap = []; out.tiny = []; out.wordy = []; out.warnError = String(err && err.message || err); }
     return out;
   });
   console.log(JSON.stringify(res));

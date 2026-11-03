@@ -136,6 +136,7 @@ def warn(name, lines):
         for x in lines[:8]: print(f"  WARN  {name}: {x}")
         if len(lines) > 8: print(f"  WARN  {name}: … {len(lines) - 8} more")
 if pg is not None:
+    if pg.get("warnError"): print(f"  WARN  qa-page: {pg['warnError']}")
     warn("overlap", pg.get("overlap", [])); warn("tiny-text", pg.get("tiny", [])); warn("wordy", pg.get("wordy", []))
     # dark: >2 s where the whole frame is near-black (mean relative luminance < 0.005) and no VO line is playing
     vo = pg.get("vo", [])

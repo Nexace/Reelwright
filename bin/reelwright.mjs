@@ -26,6 +26,9 @@
 //   theme-from <url|image> [name]   draft themes/<name>.css from a page's colours and fonts (nearest bundled OFL
 //                    font when the real one isn't bundled) or an image's colours; use with "style": "<name>"
 //                    Only capture sites you own or have the right to use.
+//   gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image|video] [--yes]
+//                    opt-in paid generation (key in env or .reelwright/credentials.json): shows the estimate, asks, saves to assets/
+//   gen [project] --import <file> --source firefly|express "<note>"   register a file made in Firefly / Express (offline)
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
 //   film             sched → info → mix → frames → encode   (after editing film.js)
@@ -161,6 +164,7 @@ const C = {
   themes() { import("../tools/theme.mjs").then((m) => console.log(m.themes().join("\n"))); },
   verify() { step("verify"); render("verify"); },
   preview() { run(process.execPath, path.join("tools", "preview.mjs"), proj); },
+  gen() { run(process.execPath, path.join("tools", "gen.mjs"), proj, ...args); },
   async remix() {
     const { furthest, variety } = await import("../tools/look.mjs");
     const looks = furthest(proj).map((s, i) => [s, Object.keys(SIZES)[i]]);

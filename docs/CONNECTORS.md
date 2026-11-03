@@ -38,7 +38,7 @@ Three sources, one manifest (`projects/<name>/assets/gen.json`):
 
 **Estimate, then confirm.** Higgsfield publishes no per-model prices, only an estimate endpoint that needs your
 key. So `gen` asks it first, prints the estimate for your account, and waits for `y` before it submits anything.
-`--yes` skips the question. Anything but `y` cancels with nothing submitted.
+`--yes` skips the question. `y` or `yes` submits; anything else cancels with nothing submitted.
 
 **Cache.** The result is stored in `assets/.gen/`, keyed by provider, model, kind and prompt. Running the same
 command again copies the cached file, makes no call, needs no key and costs nothing, so a film rebuilds the same
@@ -46,6 +46,10 @@ offline. Change the prompt and you pay again.
 
 **Manifest.** `assets/gen.json` lists each asset: file, provider, model, kind, prompt, date, sha256 and the host
 the file came from. No keys, no signed URLs.
+
+`reelwright verify` covers gen assets. The build manifest hashes every project file except build output, so
+`assets/*`, `assets/gen.json` and `assets/.gen/*` are checked like any other input, and `verify` names a file that
+changed. It compares against `out/<name>.manifest.json`, so it works only after an encode.
 
 **Errors.**
 - 401: the key was rejected. Check both variables.

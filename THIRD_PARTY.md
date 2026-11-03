@@ -8,7 +8,7 @@ Reelwright's own code is [MIT](LICENSE). This page lists what comes from elsewhe
 |---|---|---|---|
 | HyperFrames render packages (`producer`, `engine`, `core`, `parsers`, `lint`, `studio-server`) 0.8.217 | `vendor/hyperframes/` | Apache 2.0, [LICENSE](vendor/hyperframes/LICENSE) | Copyright HeyGen. Upstream commit, what we took and what we changed: [VENDORED.md](vendor/hyperframes/VENDORED.md). Upstream's attributions: [CREDITS.md](vendor/hyperframes/CREDITS.md). Upstream has no `NOTICE` file. |
 | HyperFrames catalog components | `vendor/hyperframes/registry/components/`; copies in `projects/*/hf/blocks/` | Apache 2.0 | Copies made by `reelwright add` start with a header naming the source; otherwise unchanged. |
-| 17 font families (Playfair Display, Source Serif 4, Archivo Black, Space Mono, Quicksand, Nunito, Space Grotesk, JetBrains Mono, Fredoka, Shrikhand, Work Sans, Inter Tight, Inter, Cormorant Garamond, Montserrat, Manrope, Syne) | `fonts/<family>/` | SIL OFL 1.1, `OFL.txt` in each folder | Copyright holders and sources: [fonts/LICENSES.md](fonts/LICENSES.md). |
+| 19 font families (Playfair Display, Source Serif 4, Archivo Black, Space Mono, Quicksand, Nunito, Space Grotesk, JetBrains Mono, Fredoka, Shrikhand, Work Sans, Inter Tight, Inter, Cormorant Garamond, Montserrat, Manrope, Syne, Caveat, Patrick Hand) | `fonts/<family>/` | SIL OFL 1.1, `OFL.txt` in each folder | Copyright holders and sources: [fonts/LICENSES.md](fonts/LICENSES.md). |
 | Original product-video-kit code | throughout | MIT | By Arnavxy and contributors; notice kept in [LICENSE](LICENSE). |
 
 Sample films, scripts, the demo apps, synthesised music and sound effects are original and MIT.
@@ -29,6 +29,8 @@ Sample films, scripts, the demo apps, synthesised music and sound effects are or
 - [LottieFiles/motion-design-skill](https://github.com/LottieFiles/motion-design-skill) (MIT): motion archetypes, cubic-bezier curves and stagger budgets, rewritten as theme tokens and PLAYBOOK guidance.
 - [greensock/gsap-skills](https://github.com/greensock/gsap-skills) (MIT): the GSAP guidance in the PLAYBOOK.
 - GSAP ease formulas: re-implemented from their published math; GSAP itself is not shipped (Webflow "Standard No Charge" license).
+- [Vincentwei1021/video-shotcraft](https://github.com/Vincentwei1021/video-shotcraft) (Apache 2.0): camera shot parameters (zoom amounts, frame counts, curves), rewritten as `KIT.shot.*` in tools/shots.js.
+- [alexgreensh/anidoodle](https://github.com/alexgreensh/anidoodle) (Apache 2.0): doodle mechanics (seeded wobble, line boil, draw-on), rewritten as `KIT.doodle.*` in tools/doodle.js and the doodle theme.
 - [Remotion](https://github.com/remotion-dev/skills) (no license on the skills repo; Remotion custom license): only the standard damped-spring maths, no code.
 
 ## Not included

@@ -1,7 +1,7 @@
 # Bundled fonts
 
 Every family here is licensed under the SIL Open Font License 1.1; its full text is in that family's `OFL.txt`.
-Files are the latin-subset `.woff2` that Google Fonts serves, fetched 2026-10-31 by
+Files are the latin-subset `.woff2` that Google Fonts serves, fetched 2026-11-02 by
 `node fonts/fetch.mjs`. The OFL allows bundling and redistribution with software; the fonts may not be sold on their own.
 
 | Family | Folder | Weights | License | Copyright | Source |
@@ -23,3 +23,5 @@ Files are the latin-subset `.woff2` that Google Fonts serves, fetched 2026-10-31
 | Montserrat | `fonts/montserrat/` | 400, 600 | SIL OFL 1.1 | Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git) | [Google Fonts](https://fonts.google.com/specimen/Montserrat) |
 | Manrope | `fonts/manrope/` | 400, 700, 800 | SIL OFL 1.1 | Copyright 2018 The Manrope Project Authors (https://github.com/googlefonts/manrope) | [Google Fonts](https://fonts.google.com/specimen/Manrope) |
 | Syne | `fonts/syne/` | 700, 800 | SIL OFL 1.1 | Copyright 2017 The Syne Project Authors (https://gitlab.com/bonjour-monde/fonderie/syne-typeface) | [Google Fonts](https://fonts.google.com/specimen/Syne) |
+| Caveat | `fonts/caveat/` | 400, 700 | SIL OFL 1.1 | Copyright 2014 The Caveat Project Authors (https://github.com/googlefonts/caveat) | [Google Fonts](https://fonts.google.com/specimen/Caveat) |
+| Patrick Hand | `fonts/patrick-hand/` | 400 | SIL OFL 1.1 | Copyright (c) 2010-2012 Patrick Wagesreiter (mail@patrickwagesreiter.at) | [Google Fonts](https://fonts.google.com/specimen/Patrick+Hand) |

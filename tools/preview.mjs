@@ -10,7 +10,7 @@ import { writeTheme } from "./theme.mjs";
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const DIR = path.resolve(process.argv[2] || "projects/example");
 const PORT = Number(process.env.PORT || 4173);
-const KIT = ["engine.js", "kit.css", "layouts.js"];
+const KIT = ["engine.js", "kit.css", "layouts.js", "shots.js", "doodle.js"];
 const posix = (p) => p.split(path.sep).join("/");
 const project = () => JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8"));
 const hf = () => project().renderer === "hyperframes";

@@ -243,8 +243,8 @@ shapes and data and you want catalog components. `projects/example` and `project
 ## Themes, layouts and formats
 
 **Themes** — `"style": "<name>"` in `project.json` (or `--style <name>` for one build, output `<out>-<name>.mp4`)
-picks `themes/<name>.css`: colours, fonts, radius, shadows, caption style and motion (easing, tempo). Ten ship:
-editorial, brutalist, pastel, dark-tech, playful, retro, swiss, luxury, clean, neon (`./video.sh themes` lists
+picks `themes/<name>.css`: colours, fonts, radius, shadows, caption style and motion (easing, tempo). Eleven ship:
+editorial, brutalist, pastel, dark-tech, playful, retro, swiss, luxury, clean, neon, doodle (`./video.sh themes` lists
 them). The fonts are bundled in `fonts/` (SIL OFL, see [fonts/LICENSES.md](fonts/LICENSES.md)), so macOS, Windows
 and Linux render the same type. An optional `brand.json` in the project overrides colours, fonts and logo on top
 of the theme; `theme-from` drafts a theme from a site or image (see below).
@@ -387,13 +387,14 @@ tools/                      shared — you rarely edit these
   from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
   smoke.mjs                 can this machine render? one frame each from Chromium and HyperFrames
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog components, see VENDORED.md
-themes/                     the ten themes (themes/<name>.css), plus any theme-from writes
+themes/                     the eleven themes (themes/<name>.css), plus any theme-from writes
 fonts/                      bundled OFL fonts and LICENSES.md (fetch.mjs re-downloads them)
 cloud/                      reelwright_colab.ipynb + colab_build.py: free rendering in Colab, files in Drive
 projects/
   example/                  the starter: app walkthrough (copy it with ./video.sh new <name>)
   example-hf/               HyperFrames starter (reelwright new <name> --renderer hyperframes)
   layouts-hf/               every KIT.layout scene, in the editorial theme
+  shots-hf/                 camera shots (KIT.shot.*) and a doodle underline, in the dark-tech theme
   qa-broken/                trips every QA gate on purpose (CI checks that it fails)
   teaser/ website/ stats/ dashboard/ reel/   the other sample films — each shows different techniques
 projects/<name>/

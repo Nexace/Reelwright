@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- Shots test film: one KIT.shot preset per VO line (tools/shots.js) plus a KIT.doodle underline (tools/doodle.js);
+     all timings from hf/kit-data.js (tools/sched.py). Preview in a browser: open hf/index.html#4.2 or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  body { background: var(--kit-bg); }
+  .scene, .cam { position: absolute; inset: 0; }
+  /* the filmed layer's floor: the theme grid, 40 % bigger than the frame on every side so orbit/crane never show its edge */
+  .bleed { position: absolute; inset: -40%; background: var(--kit-bg); background-image: var(--kit-bg-image); background-size: calc(64 * var(--kit-u)) calc(64 * var(--kit-u)); }
+  .at { position: absolute; transform: translate(-50%, -50%); text-align: center; }
+  .kick { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-muted); white-space: nowrap; }
+  .big { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking); color: var(--kit-ink); line-height: 1; white-space: nowrap; }
+  .card { background: var(--kit-surface); border: var(--kit-border); border-radius: var(--kit-radius); box-shadow: var(--kit-shadow); overflow: hidden; }
+  .rows { display: flex; flex-direction: column; gap: calc(18 * var(--kit-u)); }
+  .rows i { display: block; height: calc(14 * var(--kit-u)); border-radius: calc(7 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 10%, transparent); }
+  .note { position: absolute; left: var(--kit-safe-x); top: var(--kit-safe-y); font-family: var(--kit-label-font); font-size: calc(20 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-muted); }
+  .idea { padding: calc(56 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(24 * var(--kit-u)); text-align: left; }
+  .idea b { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em; color: var(--kit-accent); }
+  .idea .big { font-size: calc(96 * var(--kit-u)); }
+  /* orbit's mock product UI; colours from the theme's tokens */
+  .mock { display: flex; }
+  .mock-side { width: 24%; padding: calc(32 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(20 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 4%, transparent); }
+  .mock-side i, .mock-h, .mock-kpis i { display: block; border-radius: calc(8 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 12%, transparent); }
+  .mock-side i { height: calc(16 * var(--kit-u)); }
+  .mock-side i:first-child { background: var(--kit-accent); width: 60%; margin-bottom: calc(16 * var(--kit-u)); }
+  .mock-main { flex: 1; padding: calc(40 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(28 * var(--kit-u)); }
+  .mock-h { height: calc(30 * var(--kit-u)); width: 42%; background: color-mix(in srgb, var(--kit-ink) 70%, transparent); }
+  .mock-kpis { display: flex; gap: calc(20 * var(--kit-u)); }
+  .mock-kpis i { flex: 1; height: calc(96 * var(--kit-u)); }
+  .mock-chart { flex: 1; display: flex; align-items: flex-end; gap: calc(16 * var(--kit-u)); }
+  .mock-chart i { flex: 1; display: block; background: var(--kit-accent); border-radius: calc(4 * var(--kit-u)); }
+  .mock-chart i:nth-child(odd) { background: var(--kit-accent-2); }
+  .logo { display: flex; align-items: center; gap: calc(36 * var(--kit-u)); }
+  .logo i { width: calc(120 * var(--kit-u)); height: calc(120 * var(--kit-u)); border-radius: calc(28 * var(--kit-u)); background: var(--kit-accent);
+    color: var(--kit-on-accent); font-style: normal; font-size: calc(56 * var(--kit-u)); display: flex; align-items: center; justify-content: center; }
+  .strip { display: flex; gap: calc(24 * var(--kit-u)); }
+  .strip i { width: calc(150 * var(--kit-u)); height: calc(96 * var(--kit-u)); border-radius: calc(10 * var(--kit-u)); border: var(--kit-border); background: color-mix(in srgb, var(--kit-ink) 6%, transparent); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>     <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>   <!-- copied from tools/ by the renderer -->
+<script src="kit/shots.js"></script>    <!-- KIT.shot.*, KIT.shoot, KIT.handheld -->
+<script src="kit/doodle.js"></script>   <!-- KIT.doodle.underline -->
+<script src="film.js"></script>
+</body>
+</html>

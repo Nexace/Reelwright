@@ -18,6 +18,7 @@ const FAMILIES = {
   "Cormorant Garamond": [500, 700], "Montserrat": [400, 600],
   "Manrope": [400, 700, 800],
   "Syne": [700, 800],
+  "Caveat": [400, 700], "Patrick Hand": [400],
 };
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 const slug = (f) => f.toLowerCase().replace(/\s+/g, "-");

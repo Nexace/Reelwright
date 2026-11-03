@@ -15,6 +15,7 @@
   --kit-ease: out; --kit-tempo: 1;   /* motion: KIT.ease is KIT.easing(--kit-ease); KIT.dur(s) = s × --kit-tempo */
   --kit-ease-in: in; --kit-stagger: 0.08; --kit-settle: 0.6;   /* exit easing; seconds between items; seconds for a settle (× tempo) */
   --kit-logo: none;
+  --kit-boil: 0;   /* hand-drawn line re-jitter rate, Hz (KIT.doodle); 0 = still. Only the doodle theme sets it */
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { overflow: hidden; }   /* size set by engine.js from project.json width/height */

@@ -1,0 +1,20 @@
+/* doodle: notebook margin. Warm paper with a static grain, graphite ink, marker red and blue; handwriting type;
+   calm settle easing; lines that boil (KIT.doodle re-jitters them 8 times a second via --kit-boil).
+   Captions on a paper slip with the spoken word in marker red. */
+:root {
+  --kit-theme: "doodle";
+  --kit-bg: #f6f0e0;
+  /* static grain: one feTurbulence tile rasterised once (nothing animates), a few % ink */
+  --kit-bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' seed='21'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .17 0 0 0 0 .18 0 0 0 3 -1'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");
+  --kit-ink: #2b2b30; --kit-muted: #7a7466;
+  --kit-accent: #ee4b35; --kit-accent-2: #2f6fe0; --kit-on-accent: #fffdf6; --kit-surface: #fffdf7;
+  --kit-font-display: "Caveat", cursive; --kit-font-text: "Patrick Hand", cursive;
+  --kit-font-mono: "Patrick Hand", cursive; --kit-label-font: "Patrick Hand", cursive;
+  --kit-display-weight: 700; --kit-display-tracking: 0; --kit-display-case: none;
+  --kit-radius: 18px; --kit-border: 3px solid #2b2b30; --kit-shadow: 4px 6px 0 #2b2b30; --kit-space: 28px;
+  --kit-sub-bg: #fffdf7; --kit-sub-ink: rgba(43,43,48,.4); --kit-sub-said: #ee4b35;
+  --kit-sub-font: 400 36px var(--kit-font-text); --kit-sub-radius: 14px; --kit-sub-deco: none;
+  --kit-ease: settle; --kit-tempo: 1; --kit-ease-in: power2.in; --kit-stagger: .07; --kit-settle: .55;
+  --kit-boil: 8;
+}
+.kit-subrow { border: 3px solid #2b2b30; box-shadow: 3px 4px 0 #2b2b30; }

@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- Math test film: one KIT.math primitive per VO line (tools/math.js), all timings from hf/kit-data.js (tools/sched.py).
+     Preview in a browser: open hf/index.html#4.2 (a moment) or #play (rough real-time playback). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="kit/katex/katex.min.css">   <!-- vendor/katex, copied by the renderer -->
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .note { position: absolute; font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em;
+    text-transform: uppercase; color: var(--kit-muted); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>          <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>        <!-- copied from tools/ by the renderer -->
+<script src="kit/doodle.js"></script>        <!-- KIT.doodle.drawOn (math.js needs it) -->
+<script src="kit/katex/katex.min.js"></script>
+<script src="kit/math.js"></script>          <!-- KIT.math.* -->
+<script src="film.js"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ const ctx = vm.createContext({
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./engine.js', import.meta.url)), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./shots.js', import.meta.url)), 'utf8'), ctx);
 vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./doodle.js', import.meta.url)), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(fileURLToPath(new URL('./math.js', import.meta.url)), 'utf8'), ctx);
 const K = window.KIT;
 
 let bad = 0;
@@ -299,6 +300,29 @@ group('doodle marks: underline/circle timing (in, draw, out)', (t) => {
     const free = host(), f = D[kind](free, { in: 1, draw: 1 }); f.set(50);
     t(free.kids[0].style.opacity === '1' && free.kids[0].kids[0].style.strokeDashoffset === '0', `${kind}: without out it stays drawn`);
   }
+});
+
+group('math: smooth / thereAndBack, ticks, coords (c2p), polyline, align', (t) => {
+  const { smooth, thereAndBack: tb } = K.math.ease, M = K.math;
+  t(smooth(0) === 0 && smooth(1) === 1 && smooth(0.5) === 0.5 && smooth(-1) === 0 && smooth(2) === 1, 'smooth endpoints, midpoint, clamped');
+  t(grid.every((p) => near(smooth(p) + smooth(1 - p), 1, 1e-12)), 'smooth point-symmetric about (.5, .5)');
+  t(grid.every((p) => near(smooth(p), 3 * p * p - 2 * p ** 3, 1e-12)), 'smooth = 3p² − 2p³');
+  t(tb(0) === 0 && tb(1) === 0 && tb(0.5) === 1, 'thereAndBack 0 → 1 at .5 → 0');
+  t(grid.every((p) => near(tb(p), tb(1 - p), 1e-12)), 'thereAndBack mirrored about .5');
+  t(JSON.stringify(M.ticks([-1, 1, 0.5])) === '[-1,-0.5,0,0.5,1]' && M.ticks([0, 1, 0.1]).length === 11 && M.ticks([0, 1, 0.1])[3] === 0.3, 'ticks: inclusive, no float drift');
+  const c2p = M.coords([-5, 5], [0, 10], { x: 100, y: 50, w: 1000, h: 500 });
+  t(JSON.stringify(c2p(-5, 0)) === '[100,550]' && JSON.stringify(c2p(5, 10)) === '[1100,50]' && JSON.stringify(c2p(0, 5)) === '[600,300]', 'c2p: corners and centre, y up');
+  const nl = M.coords([0, 4], null, { x: 0, y: 200, w: 400, h: 0 });
+  t(JSON.stringify(nl(1)) === '[100,200]', 'number line c2p: on the middle line');
+  const pl = M.polyline([[0, 0], [10, 0], null, [10, 10], [10, 30]]);
+  t(pl.d === 'M0 0L10 0M10 10L10 30' && pl.len === 30, `polyline: gap starts a new subpath, length skips the jump (${pl.d}, ${pl.len})`);
+  t(JSON.stringify(pl.at(0)) === '[0,0]' && JSON.stringify(pl.at(0.5)) === '[10,15]' && JSON.stringify(pl.at(1)) === '[10,30]' && JSON.stringify(pl.at(2)) === '[10,30]', 'polyline.at follows the drawn length');
+  const ring = (k, n = 8) => Array.from({ length: n }, (_, i) => [Math.cos((2 * Math.PI * (i + k)) / n), Math.sin((2 * Math.PI * (i + k)) / n)]);
+  const a = ring(0), b = ring(3).map(([x, y]) => [x * 2, y * 2]);   // same ring, scaled, start index shifted by 3
+  const al = M.align(a, b, true);
+  t(al.every((q, i) => near(q[0], 2 * a[i][0], 1e-12) && near(q[1], 2 * a[i][1], 1e-12)), 'align closed: rotation undoes the shifted start');
+  const line = [[0, 0], [1, 0], [2, 0]], rev = M.align(line, [[2, 1], [1, 1], [0, 1]], false);
+  t(JSON.stringify(rev) === '[[0,1],[1,1],[2,1]]' && JSON.stringify(M.align(line, [[0, 1], [1, 1], [2, 1]], false)) === '[[0,1],[1,1],[2,1]]', 'align open: reversed only when closer');
 });
 
 process.exit(bad ? 1 : 0);

@@ -26,6 +26,11 @@
 //   theme-from <url|image> [name]   draft themes/<name>.css from a page's colours and fonts (nearest bundled OFL
 //                    font when the real one isn't bundled) or an image's colours; use with "style": "<name>"
 //                    Only capture sites you own or have the right to use.
+//   beats [project] import <file.csv|timeline.json> [--replace] | export [file.csv] [--replace]   beat-sheet CSV <-> project.json
+//                    lines + beats (docusphere headers, both variants); only those keys of project.json change.
+//                    --replace overwrites existing lines/beats but keeps extra fields (gap, langs, …) of same-id lines,
+//                    and prints which lines were kept, dropped, added; rows with an empty VO Script are skipped.
+//                    export refuses to overwrite an existing csv unless --replace
 //   gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image|video] [--yes]
 //                    opt-in paid generation (key in env or .reelwright/credentials.json): shows the estimate, asks, saves to assets/
 //   gen [project] --import <file> --source firefly|express "<note>"   register a file made in Firefly / Express (offline)
@@ -162,6 +167,7 @@ const C = {
   encode() { step("encode"); render("encode"); },
   qa() { step("qa"); py("qa.py"); },
   themes() { import("../tools/theme.mjs").then((m) => console.log(m.themes().join("\n"))); },
+  beats() { import("../tools/beats.mjs").then((m) => m.cli(proj, args)).catch((e) => { console.error(e.message); process.exit(1); }); },
   verify() { step("verify"); render("verify"); },
   preview() { run(process.execPath, path.join("tools", "preview.mjs"), proj); },
   gen() { run(process.execPath, path.join("tools", "gen.mjs"), proj, ...args); },

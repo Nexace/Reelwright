@@ -280,7 +280,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `stills [t,t,..]` | preview frames → `stills/` + `stills/sheet.jpg` |
 | `frames` | render every frame → `frames/` (`--no-cache` to skip the frame cache) |
 | `encode` | frames + `mix.wav` → the mp4, plus `.srt`, `.vtt` and `.manifest.json` beside it |
-| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable) and a variety line |
+| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable), WARN checks (overlap, tiny-text, wordy, dark) and a variety line |
 | `verify` | inputs still match the manifest and a fresh render gives the same frames |
 | `preview` | live scrubber at http://localhost:4173 |
 | `remix` | stills in the 3 themes furthest from yours × 16x9, 9x16, 1x1 → `stills-remix/sheet.jpg` |
@@ -288,6 +288,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `themes` | list the themes |
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
+| `beats [project] import <csv\|json>` / `export [csv]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; `--replace` to overwrite (on export: an existing csv) |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
 | `film` | sched → info → mix → frames → encode (after editing the edit) |

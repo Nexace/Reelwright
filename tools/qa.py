@@ -9,6 +9,8 @@
 #                 pass with that label or a "Source: …" credit (tools/qa_page.mjs)
 #   ai-label      WARN only: a `reelwright gen` image/video on screen with no KIT.aiLabel / "AI-generated" text (tools/qa_page.mjs)
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
+# WARN lines, never failures, skippable the same way ("qa": {"overlap": false}): overlap, tiny-text, wordy (tools/qa_page.mjs),
+# dark (stretches over 2 s of flat near-black frames with no VO playing).
 # Then a variety line (WARN, never a failure) when another film in projects/ has the same theme or look (tools/look.mjs).
 import json, os, re, subprocess, sys
 import numpy as np
@@ -134,6 +136,29 @@ for f in src:
         if line.lstrip().startswith("//"): continue
         hits += [f"{f}:{n}: {why}" for rx, why in BAD if re.search(rx, line)]
 gate("seekable", hits)
+
+# ── WARN-only checks (kept apart from the gates above; they never touch the exit code) ──
+def warn(name, lines):
+    if Q.get(name) is not False:
+        for x in lines[:8]: print(f"  WARN  {name}: {x}")
+        if len(lines) > 8: print(f"  WARN  {name}: … {len(lines) - 8} more")
+if pg is not None:
+    if pg.get("warnError"): print(f"  WARN  qa-page: {pg['warnError']}")
+    warn("overlap", pg.get("overlap", [])); warn("tiny-text", pg.get("tiny", [])); warn("wordy", pg.get("wordy", []))
+    # dark: >2 s where the whole frame is near-black (mean relative luminance < 0.005) and no VO line is playing
+    vo = pg.get("vo", [])
+    try:
+        flats = {round(t * fps) for t in flat}   # near-black AND flat: a dark theme with content on screen isn't a hole
+        dk, run = [], None
+        for i, l in enumerate(lums + [[1]]):
+            t = i / fps
+            bad = l[0] < 0.005 and i in flats and not any(a <= t < b for a, b in vo)
+            if bad and run is None: run = t
+            if not bad and run is not None:
+                if t - run > 2: dk.append(f"{run:.2f}–{t:.2f}s near-black, no voiceover")
+                run = None
+        warn("dark", dk)
+    except Exception as e: print(f"  WARN  dark: {e}")
 
 # variety: a WARN line when another film in projects/ looks the same (tools/look.mjs); never fails the build
 r = subprocess.run([NODE, os.path.join(os.path.dirname(__file__), "look.mjs"), proj], capture_output=True, text=True)

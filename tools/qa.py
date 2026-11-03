@@ -7,6 +7,7 @@
 #   flash         ≤ 3 flashes in any 1 s, over the whole frame or any quarter (WCAG 2.3.1 general flash; red flash not checked)
 #   illustrative  numbers on screen come with an "Illustrative data" label; numbers in a screenshot's data-qa-text
 #                 pass with that label or a "Source: …" credit (tools/qa_page.mjs)
+#   ai-label      WARN only: a `reelwright gen` image/video on screen with no KIT.aiLabel / "AI-generated" text (tools/qa_page.mjs)
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
 # Then a variety line (WARN, never a failure) when another film in projects/ has the same theme or look (tools/look.mjs).
 import json, os, re, subprocess, sys
@@ -107,6 +108,10 @@ gate("flash", worst)
 
 if pg is not None:
     gate("illustrative", pg["illustrative"])
+    if Q.get("ai-label") is not False:   # a WARN, never a FAIL
+        ai = pg.get("ai", [])
+        print("  WARN  ai-label" if ai else "  PASS  ai-label")
+        for x in ai[:8]: print(f"          {x}")
 
 # seekable: the film's own code (not tools/, not generated data)
 hf = P.get("renderer") == "hyperframes"

@@ -223,6 +223,15 @@
   };
   K.css = (e, o) => { for (const k in o) e.style[k] = o[k]; };
   K.show = (e, op) => { e.style.opacity = op; e.style.visibility = op > 0.001 ? 'visible' : 'hidden'; };
+  // Label for generated media (`reelwright gen`): bottom-left of KIT.safe on the stage, else inset in `el`. It is a child of `el`, so it shows and hides with it.
+  K.aiLabel = (el = K.stage, text = 'AI-generated') => {
+    if (/^(IMG|VIDEO)$/.test(el.tagName)) throw new Error('KIT.aiLabel: <' + el.tagName.toLowerCase() + '> cannot hold a label; pass the element that contains it');
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';   // the label positions against el
+    const l = K.el('div', 'kit-ai-label', el); l.textContent = text;
+    const onStage = el === K.stage, i = 12 * K.u;
+    K.css(l, onStage ? { left: K.safe.x + 'px', bottom: (K.H_ - K.safe.y - K.safe.h) + 'px' } : { left: i + 'px', bottom: i + 'px' });
+    return l;
+  };
   // Image swaps must finish decoding before the screenshot, so render() awaits them.
   const pending = [];
   K.img = (imgEl, src) => {

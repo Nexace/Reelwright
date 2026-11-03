@@ -1,0 +1,14 @@
+{
+  "title": "Claude — 10 s ad (music only)",
+  "renderer": "hyperframes",
+  "style": "editorial",
+  "out": "out/claude-ad.mp4",
+  "fps": 30,
+  "width": 1280,
+  "height": 720,
+  "lead": 0,
+  "tail": 0,
+  "loudness": -14,
+  "music": { "bpm": 96, "style": "chill" },
+  "lines": []
+}

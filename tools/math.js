@@ -143,9 +143,16 @@
     K.css(el, { position: 'absolute', left: (o.x ?? s.x + s.w / 2) + 'px', top: (o.y ?? s.y + s.h / 2) + 'px', transform: 'translate(-50%, -50%)',
       whiteSpace: 'nowrap', color: o.color || 'var(--kit-ink)', fontSize: (o.size ?? 56) * K.u + 'px' });
     for (const d of el.querySelectorAll('.katex-display')) d.style.margin = '0';
-    // glyphs in reading order: text leaves, plus rules and stretchy svgs (fraction bars, radicals)
-    const glyphs = [...el.querySelectorAll('.katex-html *')].filter((e) => e.tagName.toLowerCase() === 'svg' ||
-      /(^| )(frac-line|overline-line|underline-line|hline|rule)( |$)/.test(e.getAttribute('class') || '') || (!e.childElementCount && e.textContent.trim()));
+    // glyphs in reading order: text leaves, plus rules and stretchy svgs (fraction bars, radicals). KaTeX lists a .vlist's
+    // rows bottom to top (a fraction is denominator, bar, numerator), so those are walked in reverse: top to bottom.
+    const isGlyph = (e) => e.tagName.toLowerCase() === 'svg' ||
+      /(^| )(frac-line|overline-line|underline-line|hline|rule)( |$)/.test(e.getAttribute('class') || '') || (!e.childElementCount && e.textContent.trim());
+    const glyphs = [], walk = (e) => {
+      const kids = [...e.children];
+      if (e.classList.contains('vlist')) kids.reverse();
+      for (const k of kids) if (isGlyph(k)) glyphs.push(k); else walk(k);
+    };
+    walk(el.querySelector('.katex-html'));
     for (const g of glyphs) if (getComputedStyle(g).display === 'inline') g.style.display = 'inline-block';   // transforms skip inline boxes
     return { el, glyphs, set(t) {
       K.show(el, t >= t0 ? fade(o, t) : 0);

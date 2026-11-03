@@ -32,6 +32,9 @@ Sample films, scripts, the demo apps, synthesised music and sound effects are or
 - GSAP ease formulas: re-implemented from their published math; GSAP itself is not shipped (Webflow "Standard No Charge" license).
 - [Vincentwei1021/video-shotcraft](https://github.com/Vincentwei1021/video-shotcraft) (Apache 2.0): camera shot parameters (zoom amounts, frame counts, curves), rewritten as `KIT.shot.*` in tools/shots.js.
 - [alexgreensh/anidoodle](https://github.com/alexgreensh/anidoodle) (Apache 2.0): doodle mechanics (seeded wobble, line boil, draw-on), rewritten as `KIT.doodle.*` in tools/doodle.js and the doodle theme.
+- [albertobarnabo/manim-craft](https://github.com/albertobarnabo/manim-craft) (no license): craft ideas (morph instead of fade, dim the rest, labels not narration) and the idea of the QA WARN checks, rewritten in our own words in the PLAYBOOK and tools/qa; no text or code copied.
+- [adithya-s-k/manim_skill](https://github.com/adithya-s-k/manim_skill) (MIT, the Manim CE part only): used as a list of the primitives and easings people expect (axes, plot, number line, draw-on, write, transform, smooth, there-and-back), built from scratch as `KIT.math.*` in tools/math.js.
+- [cth9191/motion-design](https://github.com/cth9191/motion-design) and [docusphere/claude-skill-motion-graphics](https://github.com/docusphere/claude-skill-motion-graphics) (no license): only their file formats (the beat-sheet CSV headers and the `timeline[]` JSON) for `reelwright beats`; no text, prompts or code copied.
 - [Remotion](https://github.com/remotion-dev/skills) (no license on the skills repo; Remotion custom license): only the standard damped-spring maths, no code.
 
 ## Not included

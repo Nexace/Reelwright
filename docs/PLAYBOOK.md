@@ -81,7 +81,7 @@ Read once before your first real film.
   numbers; real figures from a real site pass with a visible "Source: …" credit instead of the label
   (`from-url` films do both). Version numbers (v8.3.4, 3.10.2) aren't data.
 - **Beat sheets.** A script planned in a spreadsheet comes in with `./video.sh beats <project> import sheet.csv`
-  and goes back out with `beats <project> export` (add `--replace` to overwrite lines that are already there). The CSV
+  and goes back out with `beats <project> export` (add `--replace` to overwrite lines, or an existing csv, that are already there). The CSV
   needs a `VO Script` column; both common headers work, `Scene, Beat Label, VO Script, VO Length, Clip Duration, SHOT,
   MOTION, TEXT ON SCREEN` followed by `SFX, IMG PROMPT, VID PROMPT` or by `AUDIO, Source, Status`. `VO Script` becomes
   each line's `text`, `Beat Label` its `id`; the rest goes to `beats` in project.json as notes for you (`VO Length` as
@@ -278,7 +278,7 @@ Options work like a layout's: `in` (start), `draw`/`dur` (how long), `out` (opti
 - Put the draw on the word: a curve starts on "curve", a formula on "writes". A dot riding the tip (`pointAt(progress(t))`)
   makes the drawing feel live. Made-up data on a chart still gets "Illustrative data".
 - Equations: KaTeX covers most of LaTeX math (fractions, roots, `\left( … \right)`, `\text{}`, matrices) but no packages
-  or macros of your own. It runs with `throwOnError`, so a bad formula stops the film at load, not on a blank frame.
+  (`\newcommand` and `\def` inside the formula work). It runs with `throwOnError`, so a bad formula stops the film at load, not on a blank frame.
   Check the reveal in stills: glyphs come in reading order, delimiters and the fraction bar included.
 
 projects/math-hf is the worked example.

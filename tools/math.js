@@ -147,7 +147,7 @@
     // walked by their style top, highest first (a fraction's DOM order is denominator, bar, numerator); a matrix (.mtable,
     // one vlist per column) is walked row by row, left to right. Ordered once at load.
     const isGlyph = (e) => e.tagName.toLowerCase() === 'svg' ||
-      /(^| )(frac-line|overline-line|underline-line|hline|rule)( |$)/.test(e.getAttribute('class') || '') || (!e.childElementCount && e.textContent.trim());
+      /(^| )(frac-line|overline-line|underline-line|hline|rule)( |$)/.test(e.getAttribute('class') || '') || (!e.childElementCount && e.textContent.replace(/\u200b/g, '').trim());   // zero-width spaces (empty fraction slots) aren't glyphs
     const rows = (v) => [...v.children].sort((a, b) => (parseFloat(a.style.top) || 0) - (parseFloat(b.style.top) || 0));
     const glyphs = [], walk = (e) => {
       if (e.classList.contains('mtable')) {   // shortcut: column separators (|) aren't glyphs, so they show with the table

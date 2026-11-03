@@ -115,6 +115,7 @@ jobs:
           if node bin/reelwright.mjs qa qa-broken > qa-broken.txt; then echo "qa-broken passed QA"; exit 1; fi
           cat qa-broken.txt
           test "$(grep -c '^  FAIL' qa-broken.txt)" = 5
+          for w in overlap tiny-text wordy dark; do grep -q "WARN  $w:" qa-broken.txt || { echo "qa-broken lacks WARN $w"; exit 1; }; done
       - uses: actions/upload-artifact@v4
         with:
           name: example-hf-film-${{ matrix.os }}

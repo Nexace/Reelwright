@@ -10,11 +10,11 @@ export const HEADER_OLD = ["Scene", "Beat Label", "VO Script", "VO Length", "Cli
 const FIELD = { "scene": "scene", "beat label": "label", "vo length": "target", "clip duration": "clip", "shot": "shot",
   "motion": "motion", "text on screen": "onScreen", "sfx": "sfx" };
 
-// RFC 4180: quoted fields, "" escapes, newlines inside quotes, CRLF or LF. Skips fully blank rows.
+// RFC 4180: quoted fields, "" escapes, newlines inside quotes, CRLF or LF. Drops rows with no non-empty field.
 export function parseCSV(text) {
   const rows = []; let row = [], f = "", q = false, i = 0;
   if (text.charCodeAt(0) === 0xfeff) i = 1;
-  const endRow = () => { row.push(f); f = ""; if (row.length > 1 || row[0] !== "") rows.push(row); row = []; };
+  const endRow = () => { row.push(f); f = ""; if (row.some(Boolean)) rows.push(row); row = []; };
   for (; i < text.length; i++) {
     const c = text[i];
     if (q) { if (c !== '"') f += c; else if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
@@ -61,7 +61,7 @@ export function importCSV(p, text, { replace = false } = {}) {
   const beats = keep.map((i) => all[i]), texts = keep.map((i) => allT[i]);
   const old = new Map((p.lines || []).map((l) => [l.id, l]));
   p.lines = texts.map((t, i) => {
-    const b = beats[i]; let id = slug(b.label || "") || `s${b.scene || i + 1}`, n = 2;
+    const b = beats[i]; let id = old.has(b.label) ? b.label : slug(b.label || "") || `s${b.scene || i + 1}`, n = 2;   // an existing id survives verbatim
     for (const base = id; seen.has(id); n++) id = `${base}-${n}`;
     seen.add(id);
     const o = old.get(id) || {};
@@ -79,8 +79,11 @@ export function importTimeline(p, text, { replace = false } = {}) {
   needReplace(p, ["beats", "beatsHeader"], replace);
   const tl = JSON.parse(text).timeline;
   if (!Array.isArray(tl)) throw new Error('JSON needs { "timeline": [{ "start_s", "end_s", "label" }] }');
+  tl.forEach((s, i) => { if (!Number.isFinite(s?.start_s) || !Number.isFinite(s?.end_s)) throw new Error(`timeline[${i}] needs numeric start_s and end_s`); });
   p.beats = tl.map((s, i) => ({ scene: String(i + 1), label: s.label ?? "", target: +(s.end_s - s.start_s).toFixed(3), raw: {} }));
-  return { msg: `${p.beats.length} beat sections from timeline[] (label + target seconds; lines untouched)`, keys: ["beats"] };
+  const keys = ["beats"];
+  if (p.beatsHeader != null) { p.beatsHeader = null; keys.push("beatsHeader"); }   // the old sheet's columns no longer describe these beats
+  return { msg: `${p.beats.length} beat sections from timeline[] (label + target seconds; lines untouched)`, keys };
 }
 
 // Top-level members of a JSON object text: key -> [value start, value end, key start]. Strings and nesting are skipped.
@@ -107,14 +110,14 @@ const ser = (v) => (Array.isArray(v) && v.length && typeof v[0] === "object" ? "
 
 // Write only `keys` of p into the original JSON text; every other byte stays as it was.
 export function splice(text, p, keys) {
-  const sp = topSpans(text), edits = []; let add = "";
-  let end = Math.max(...Object.values(sp).map((x) => x[1]));
+  const sp = topSpans(text), edits = [], nl = text.includes("\r\n") ? "\r\n" : "\n", empty = !Object.keys(sp).length; let add = "";
+  const end = empty ? text.indexOf("{") + 1 : Math.max(...Object.values(sp).map((x) => x[1]));
   for (const k of keys) {
     if (sp[k]) edits.push([sp[k][0], sp[k][1], ser(p[k])]);
-    else add += `,\n  ${JSON.stringify(k)}: ${ser(p[k])}`;
+    else add += `${add || !empty ? "," : ""}\n  ${JSON.stringify(k)}: ${ser(p[k])}`;
   }
-  if (add) edits.push([end, end, add]);
-  return edits.sort((x, y) => y[0] - x[0]).reduce((t, [a, b, r]) => t.slice(0, a) + r + t.slice(b), text);
+  if (add) edits.push([end, empty ? text.lastIndexOf("}") : end, empty ? add + "\n" : add]);   // empty {} (or whitespace only): fill it
+  return edits.sort((x, y) => y[0] - x[0]).reduce((t, [a, b, r]) => t.slice(0, a) + r.replace(/\n/g, nl) + t.slice(b), text);
 }
 
 export function exportCSV(p) {
@@ -150,6 +153,13 @@ function selfCheck() {
     let threw = false; try { importCSV(p, csv); } catch { threw = true; }
     assert(threw, "no refuse without replace");
   }
+  assert(splice("{}", { beats: [] }, ["beats"]) === '{\n  "beats": []\n}' && splice(" {\n }\n", { a: 1, b: [] }, ["a", "b"]).replace(/\s+/g, "") === '{"a":1,"b":[]}', "splice empty object");
+  assert(splice('{"a":1,\r\n"b":2}', { a: 1, b: 2, c: 3 }, ["c"]) === '{"a":1,\r\n"b":2,\r\n  "c": 3}', "splice keeps CRLF");
+  const ex = { lines: [{ id: "Foo_Bar", text: "old", gap: 0.5 }] }; importCSV(ex, toCSV([HEADER_NEW, ["1", "Foo_Bar", "new", "", "", "", "", "", "", "", ""]]), { replace: true });
+  assert(ex.lines[0].id === "Foo_Bar" && ex.lines[0].gap === 0.5, "non-slug id survives");
+  let bad = false; try { importTimeline({}, '{"timeline":[{"end_s":2}]}'); } catch (e) { bad = /timeline\[0\]/.test(e.message); }
+  assert(bad, "timeline entry validated");
+  const h = { beatsHeader: HEADER_OLD }; assert(importTimeline(h, '{"timeline":[]}', { replace: true }).keys.includes("beatsHeader") && h.beatsHeader === null, "timeline clears beatsHeader");
   const t = {}; importTimeline(t, '{"timeline":[{"start_s":0,"end_s":2.5,"label":"A"}]}');
   assert(t.beats[0].target === 2.5 && t.beats[0].label === "A", "timeline");
   const proj = fileURLToPath(new URL("../projects/layouts-hf/project.json", import.meta.url));
@@ -167,7 +177,7 @@ function selfCheck() {
   console.log("beats self-check ok");
 }
 
-// CLI body for bin/reelwright.mjs: beats <project> import <file.csv|file.json> [--replace] | export [file]
+// CLI body for bin/reelwright.mjs: beats <project> import <file.csv|file.json> [--replace] | export [file] [--replace]
 export function cli(projDir, args) {
   const replace = args.includes("--replace"), [sub, file] = args.filter((a) => !a.startsWith("--")), pj = `${projDir}/project.json`;
   const text = fs.readFileSync(pj, "utf8"), p = JSON.parse(text);
@@ -175,13 +185,17 @@ export function cli(projDir, args) {
   if (sub === "import" && file) {
     const src = fs.readFileSync(file, "utf8");
     const { msg, keys } = file.toLowerCase().endsWith(".json") ? importTimeline(p, src, { replace }) : importCSV(p, src, { replace });
-    fs.writeFileSync(pj, splice(text, p, keys));
+    const out = splice(text, p, keys);
+    let same = false; try { same = JSON.stringify(JSON.parse(out)) === JSON.stringify(p); } catch {}
+    if (!same) throw new Error("beats: splice mismatch, project.json not written");
+    fs.writeFileSync(pj, out);
     console.log(msg);
   } else if (sub === "export") {
     const dest = file || `${projDir}/beats.csv`;
+    if (fs.existsSync(dest) && !replace) throw new Error(`${dest} already exists; pass --replace to overwrite it`);
     fs.writeFileSync(dest, exportCSV(p));
     console.log(`${dest}: ${Math.max(p.lines?.length || 0, p.beats?.length || 0)} rows, header ${(p.beatsHeader || HEADER_NEW).slice(8).join("/")}`);
-  } else throw new Error("usage: beats [project] import <file.csv|file.json> [--replace] | beats [project] export [file.csv]");
+  } else throw new Error("usage: beats [project] import <file.csv|file.json> [--replace] | beats [project] export [file.csv] [--replace]");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === "--self-check") selfCheck();

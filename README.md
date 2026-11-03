@@ -288,7 +288,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `themes` | list the themes |
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
-| `beats [project] import <csv\|json>` / `export [csv]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; `--replace` to overwrite |
+| `beats [project] import <csv\|json>` / `export [csv]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; `--replace` to overwrite (on export: an existing csv) |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
 | `film` | sched → info → mix → frames → encode (after editing the edit) |

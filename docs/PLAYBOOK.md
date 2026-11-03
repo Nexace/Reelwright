@@ -28,6 +28,8 @@ Read once before your first real film.
   a real test account's ID on screen.
 - **Never let a recording really publish, pay, post or message.** Mock write calls (Playwright
   `page.route('**/api/**', …)` answering non-GET requests with a fake success) or use a demo build.
+- AI-generated stills and clips (`reelwright gen`, Firefly, Express) get `KIT.aiLabel(el)` on screen; `qa` warns
+  without it. See [CONNECTORS.md](CONNECTORS.md).
 
 ## Picture
 

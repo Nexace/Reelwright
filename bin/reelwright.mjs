@@ -27,7 +27,9 @@
 //                    font when the real one isn't bundled) or an image's colours; use with "style": "<name>"
 //                    Only capture sites you own or have the right to use.
 //   beats [project] import <file.csv|timeline.json> [--replace] | export [file.csv]   beat-sheet CSV <-> project.json
-//                    lines + beats (docusphere headers, both variants); a spreadsheet round trip
+//                    lines + beats (docusphere headers, both variants); only those keys of project.json change.
+//                    --replace overwrites existing lines/beats but keeps extra fields (gap, langs, …) of same-id lines
+//                    and prints which lines were kept, dropped, added; rows with an empty VO Script are skipped
 //   all              record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa
 //   audio            vo → sched → info → music → mix   (after editing the script)
 //   film             sched → info → mix → frames → encode   (after editing film.js)

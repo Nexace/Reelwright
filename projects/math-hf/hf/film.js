@@ -5,8 +5,8 @@
 const { V, W, snap, cue, seg } = KIT, M = KIT.math, S = KIT.safe, u = KIT.u;
 const IDS = ['axes', 'plot', 'morph', 'equation'];
 const DUR = window.PROJECT.speechEnd + window.PROJECT.tail;
-const IN = IDS.map((id, i) => (i ? snap(V(id).start - 0.45) : 0));
-const OUT = (i) => (i < IDS.length - 1 ? IN[i + 1] + KIT.dur(0.45) : DUR - 0.2);
+const IN = IDS.map((id, i) => (i ? snap(V(id).start - KIT.dur(0.45)) : 0));
+const OUT = (i) => (i < IDS.length - 1 ? IN[i + 1] + KIT.dur(0.45) : DUR - KIT.dur(0.2));
 IN.slice(1).forEach((t) => cue(t, 'whoosh', 0.6));
 
 // axes + plot share one chart (scenes 0–1); the axis finishes drawing as "axis" is spoken
@@ -53,6 +53,6 @@ function render(t) {
   KIT.show(svg, sIn * (1 - sOut));
   svg.style.transform = `scale(${0.9 + 0.1 * sIn})`; svg.style.transformOrigin = `${cx}px ${cy}px`;
   eq.set(t);
-  KIT.stage.style.opacity = 1 - seg(t, DUR - 0.6, DUR);
+  KIT.stage.style.opacity = 1 - seg(t, DUR - KIT.dur(0.6), DUR);
 }
 KIT.start({ dur: DUR, render });

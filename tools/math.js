@@ -143,13 +143,19 @@
     K.css(el, { position: 'absolute', left: (o.x ?? s.x + s.w / 2) + 'px', top: (o.y ?? s.y + s.h / 2) + 'px', transform: 'translate(-50%, -50%)',
       whiteSpace: 'nowrap', color: o.color || 'var(--kit-ink)', fontSize: (o.size ?? 56) * K.u + 'px' });
     for (const d of el.querySelectorAll('.katex-display')) d.style.margin = '0';
-    // glyphs in reading order: text leaves, plus rules and stretchy svgs (fraction bars, radicals). KaTeX lists a .vlist's
-    // rows bottom to top (a fraction is denominator, bar, numerator), so those are walked in reverse: top to bottom.
+    // glyphs in reading order: text leaves, plus rules and stretchy svgs (fraction bars, radicals). A .vlist's rows are
+    // walked by their style top, highest first (a fraction's DOM order is denominator, bar, numerator); a matrix (.mtable,
+    // one vlist per column) is walked row by row, left to right. Ordered once at load.
     const isGlyph = (e) => e.tagName.toLowerCase() === 'svg' ||
       /(^| )(frac-line|overline-line|underline-line|hline|rule)( |$)/.test(e.getAttribute('class') || '') || (!e.childElementCount && e.textContent.trim());
+    const rows = (v) => [...v.children].sort((a, b) => (parseFloat(a.style.top) || 0) - (parseFloat(b.style.top) || 0));
     const glyphs = [], walk = (e) => {
-      const kids = [...e.children];
-      if (e.classList.contains('vlist')) kids.reverse();
+      if (e.classList.contains('mtable')) {   // shortcut: column separators (|) aren't glyphs, so they show with the table
+        const cols = [...e.children].map((c) => c.querySelector('.vlist')).filter(Boolean).map(rows);
+        for (let r = 0; r < Math.max(0, ...cols.map((c) => c.length)); r++) for (const c of cols) if (c[r]) walk(c[r]);
+        return;
+      }
+      const kids = e.classList.contains('vlist') ? rows(e) : [...e.children];
       for (const k of kids) if (isGlyph(k)) glyphs.push(k); else walk(k);
     };
     walk(el.querySelector('.katex-html'));

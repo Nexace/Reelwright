@@ -93,6 +93,24 @@ try {
   assert.deepEqual(fs.readFileSync(path.join(F, "assets", "ff.png")), png); assert.equal(m.calls.length, c1);
   ok("import: manifest entry with sha256, byte-identical copy, zero calls");
 
+  // more than one positional (typo'd project name + prompt, or unquoted prompt): rejected before anything
+  const G = mkproj(), tg = tree(G), c2 = m.calls.length;
+  r = await gen(G, [...base, "one", "two"], { url: m.url });
+  assert.equal(r.code, 1); assert.match(r.err, /quote the prompt/); assert.match(r.err, /project name/);
+  assert.equal(m.calls.length, c2); assert.equal(tree(G), tg);
+  ok("two positionals: rejected, zero calls, no files");
+
+  // a key with a newline: refused up front, the value is never printed
+  const L = mkproj(), tl = tree(L);
+  r = await gen(L, [...base, "x"], { url: m.url, keys: { HIGGSFIELD_API_KEY_ID: "test-key-id", HIGGSFIELD_API_KEY_SECRET: "zq9sec\nzq9ret" }, stdin: "y\n" });
+  assert.equal(r.code, 2); assert.match(r.err, /HIGGSFIELD_API_KEY_SECRET/); assert.ok(!(r.out + r.err).includes("zq9"));
+  assert.equal(m.calls.length, c2); assert.equal(tree(L), tl);
+  ok("invalid characters in a key: exit 2, names the variable, value not printed");
+
+  // --out may not be the manifest
+  r = await gen(L, ["--provider", "higgsfield", "--out", "assets/gen.json", "x"], { url: m.url }); assert.equal(r.code, 1);
+  ok("--out assets/gen.json rejected");
+
   // usage / unknown provider
   r = await gen(F, []); assert.equal(r.code, 1); assert.match(r.err, /usage/);
   r = await gen(F, ["--provider", "nope", "x", "--out", "assets/x.png"]); assert.equal(r.code, 1); assert.match(r.err, /higgsfield/);
@@ -112,6 +130,17 @@ try {
   } finally { await q.close(); }
 }
 
+// 401 bad key
+{
+  const q = await startMock({ scenario: "bad-key" });
+  try {
+    const P = mkproj(), t0 = tree(P);
+    const r = await gen(P, [...base, "nope"], { url: q.url, stdin: "y\n" });
+    assert.notEqual(r.code, 0); assert.match(r.err, /credentials/); assert.equal(tree(P), t0);
+    ok("401: non-zero exit, credentials message, no files");
+  } finally { await q.close(); }
+}
+
 // 6. 403 no balance
 {
   const q = await startMock({ scenario: "no-balance" });
@@ -126,6 +155,6 @@ try {
 
 // 3 (again, now that every run is in). The mock's URLs were port-bound; the key/secret/signature checks cover all runs.
 const all = seen.join("\n");
-for (const bad of ["test-key-secret", "X-Amz-Signature", "status_url"]) assert.ok(!all.includes(bad), `leaked ${bad}`);
+for (const bad of ["test-key-id", "test-key-secret", "zq9", "X-Amz-Signature", "status_url"]) assert.ok(!all.includes(bad), `leaked ${bad}`);
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log("all gen tests passed");

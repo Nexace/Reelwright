@@ -32,13 +32,14 @@ for (let i = 0; i < argv.length; i++) {
   if (VAL.has(a)) o[a.slice(2)] = argv[++i]; else if (a === "--yes") o.yes = true;
   else if (a.startsWith("--")) die(`unknown option ${a}\n${USAGE}`); else pos.push(a);
 }
-const prompt = pos.join(" ");
+if (pos.length > 1) die(`quote the prompt: got ${pos.length} words/arguments; is "${pos[0]}" meant to be a project name?\n${USAGE}`);
+const prompt = pos[0] || "";
 if (!o.provider && !o.import) die(USAGE);
 
 function outPath() {
   if (!o.out) return null;
   const f = path.resolve(DIR, o.out);
-  if (!f.startsWith(ASSETS + path.sep) || f.startsWith(CACHE + path.sep)) die(`--out must be inside ${path.relative(process.cwd(), ASSETS) || "assets"}/ (e.g. --out assets/hero.png)`);
+  if (!f.startsWith(ASSETS + path.sep) || f.startsWith(CACHE + path.sep) || f === MANIFEST) die(`--out must be inside ${path.relative(process.cwd(), ASSETS) || "assets"}/ (e.g. --out assets/hero.png)`);
   return f;
 }
 
@@ -64,7 +65,6 @@ if (o.import) {
   process.exit(0);
 }
 
-
 if (!PROVIDERS.includes(o.provider)) die(`unknown provider "${o.provider}" — available: ${PROVIDERS.join(", ")}`);
 const P = (await import(`./gen/${o.provider}.mjs`)).default;
 const kind = o.kind || "image", out = outPath();
@@ -76,7 +76,7 @@ const key = crypto.createHash("sha256").update(JSON.stringify({ provider: P.name
 const stamp = { key, provider: P.name, model, kind, prompt };
 
 // cache hit: no key, no network
-const hit = fs.existsSync(CACHE) && fs.readdirSync(CACHE).find((f) => f.startsWith(key + "."));
+const hit = fs.existsSync(CACHE) && fs.readdirSync(CACHE).find((f) => f.startsWith(key + ".") && !f.endsWith(".tmp"));
 if (hit) {
   const prev = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, "utf8")).assets.find((a) => a.key === key) : null;
   fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -87,15 +87,18 @@ if (hit) {
 }
 
 let file = {};
-try { file = JSON.parse(fs.readFileSync(process.env.REELWRIGHT_CREDENTIALS || path.join(ROOT, ".reelwright", "credentials.json"), "utf8")); } catch {}
+const CREDS = process.env.REELWRIGHT_CREDENTIALS || path.join(ROOT, ".reelwright", "credentials.json");
+try { file = JSON.parse(fs.readFileSync(CREDS, "utf8")); } catch {}
 const creds = Object.fromEntries(P.envKeys.map((k) => [k, process.env[k] || file[k]]));
 const missing = P.envKeys.filter((k) => !creds[k]);
-if (missing.length) die(`missing ${missing.join(" and ")}: set the environment variable(s) or put them in .reelwright/credentials.json (git-ignored, repo root)`, 2);
+if (missing.length) die(`missing ${missing.join(" and ")}: set the environment variable(s) or put them in ${CREDS} (git-ignored)`, 2);
+// a value with CR/LF/NUL makes fetch throw an error that echoes it; name the variable only
+for (const k of P.envKeys) if (!/^[\x21-\x7e]+$/.test(creds[k])) die(`${k} contains invalid characters (printable ASCII without spaces expected)`, 2);
 
 const label = P.name[0].toUpperCase() + P.name.slice(1);
 try {
   const { usd } = await P.estimate(req, creds);
-  console.log(`${label} estimate for your account: $${usd}`);
+  console.log(`${label} estimate for your account: $${usd}\n  project ${dir}, out ${relFile(out)}, ${kind}, model ${model}\n  prompt: ${prompt}`);
   if (!o.yes) {
     process.stdout.write("Submit? [y/N] ");
     const rl = readline.createInterface({ input: process.stdin });
@@ -109,9 +112,9 @@ try {
     if (Date.now() > end) die(`timed out after 15 min; request ${job.id} may still finish (and be charged)`);
     await sleep(wait + Math.random() * 500); wait = Math.min(wait * 1.5, 10000);
     r = await P.poll(job, creds);
-    if (!["queued", "in_progress"].includes(r.status)) break;
+    if (!["queued", "in_progress"].includes(r.status)) break;   // anything else is terminal (an unknown status is reported, not looped on)
   }
-  if (r.status !== "completed") die(`${label}: request ${job.id} ${r.status}${r.error ? ` (${r.error})` : ""}${r.status === "canceled" ? "" : " — not charged"}`);
+  if (r.status !== "completed") die(`${label}: request ${job.id} ${["failed", "nsfw", "canceled"].includes(r.status) ? r.status : `ended with unexpected status ${r.status ?? "(none)"}`}${r.error ? ` (${r.error})` : ""}${["failed", "nsfw"].includes(r.status) ? " — not charged" : ""}`);
   if (!r.urls[0]) die(`${label}: request ${job.id} completed without a result URL`);
   const dl = await fetch(r.urls[0]);   // plain fetch: the CDN gets no credentials
   if (!dl.ok) die(`download failed (HTTP ${dl.status}); request ${job.id} completed, the result link may have expired`);
@@ -121,7 +124,8 @@ try {
     || (kind === "video" ? ".mp4" : ".png");
   fs.mkdirSync(CACHE, { recursive: true });
   const cached = path.join(CACHE, key + ext);
-  fs.writeFileSync(cached, Buffer.from(await dl.arrayBuffer()));
+  fs.writeFileSync(cached + ".tmp", Buffer.from(await dl.arrayBuffer()));
+  fs.renameSync(cached + ".tmp", cached);   // a killed run must not leave a truncated cache hit
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.copyFileSync(cached, out);
   record({ file: relFile(out), ...stamp, date: new Date().toISOString(), sha256: sha(out), sourceUrlHost: new URL(r.urls[0]).host });

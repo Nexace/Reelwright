@@ -23,10 +23,13 @@ async function call(method, url, creds, body, idem) {
       r = await fetch(url, { method, headers, body: body && JSON.stringify(body) });
       j = await r.json().catch(() => ({}));
     } catch (e) {
-      if (e5++ >= 3) throw new Error(`Higgsfield: network error (${e.cause?.code || e.message})`);
+      if (e5++ >= 3) throw new Error(`Higgsfield: network error (${e.cause?.code || "fetch failed"})`);   // never e.message: undici can echo the header values
       await sleep(1000 * 2 ** e5); continue;
     }
-    if (r.status === 429 && q++ < 5) { await sleep(1000 * (Number(r.headers.get("retry-after")) || j.retry_after_seconds || 30)); continue; }
+    if (r.status === 429 && q++ < 5) {
+      const ra = r.headers.get("retry-after");
+      await sleep(1000 * (ra !== null && ra.trim() !== "" && Number.isFinite(Number(ra)) ? Number(ra) : j.retry_after_seconds ?? 30)); continue;
+    }
     if (r.status >= 500 && e5++ < 3) { await sleep(1000 * 2 ** e5); continue; }
     if (r.ok) return j;
     throw new Error(fail(r.status, j));
@@ -45,7 +48,7 @@ export default {
   async submit(req, creds) {
     const j = await call("POST", `${base()}/${req.model}`, creds, bodyOf(req), crypto.randomUUID());
     // the key is sent only to the host we were configured for
-    if (new URL(j.status_url, base()).origin !== new URL(base()).origin) throw new Error("Higgsfield: status URL points at another host, refusing to send credentials");
+    if (new URL(j.status_url, base()).origin !== new URL(base()).origin) throw new Error(`Higgsfield: status URL for request ${j.request_id} points at another host, refusing to send credentials`);
     return { id: j.request_id, statusUrl: new URL(j.status_url, base()).href };
   },
   async poll(job, creds) {

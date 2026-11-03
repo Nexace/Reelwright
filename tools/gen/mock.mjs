@@ -21,7 +21,9 @@ export async function startMock({ scenario = "ok" } = {}) {
     const origin = `http://${req.headers.host}`;
     const status = u.pathname.match(/^\/requests\/([^/]+)\/status$/);
     if (req.method === "GET" && status) {
-      const j = jobs[status[1]], k = ++j.polls, s = k === 1 ? "queued" : k === 2 ? "in_progress" : "completed";
+      const j = jobs[status[1]];
+      if (!j) return send(404, { detail: "Not found" });
+      const k = ++j.polls, s = k === 1 ? "queued" : k === 2 ? "in_progress" : "completed";
       c.status = s;
       if (s !== "completed") return send(200, { status: s, request_id: j.id });
       const ext = j.model.includes("video") ? "mp4" : "png", url = `${origin}/dl/${j.id}.${ext}?X-Amz-Signature=abc123&Expires=1999999999`;

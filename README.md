@@ -292,9 +292,14 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
 | `film` | sched → info → mix → frames → encode (after editing the edit) |
+| `gen [project] --provider higgsfield "<prompt>" --out assets/<file>` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
+| `gen [project] --import <file> --source firefly\|express "<note>"` | register a file made in Firefly or Express in `assets/gen.json` (offline) |
 
 Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1`, `--no-cache` (above). Environment:
 `PAGES=6` (parallel browser pages), `FPS`, `BROWSER=chrome|chromium`, `PYTHON`.
+
+`gen` is off by default and needs a key for Higgsfield; setup, costs and the manual Firefly/Express route are in
+[docs/CONNECTORS.md](docs/CONNECTORS.md).
 
 ---
 

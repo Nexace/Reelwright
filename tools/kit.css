@@ -69,6 +69,9 @@ html, body { overflow: hidden; }   /* size set by engine.js from project.json wi
 .kit-lay-title { font-size: calc(80 * var(--kit-u)); }
 .kit-lay-body { font-size: calc(34 * var(--kit-u)); line-height: 1.35; color: var(--kit-muted); }
 .kit-lay-note { position: absolute; left: 0; top: 100%; margin-top: calc(20 * var(--kit-u)); font-size: calc(18 * var(--kit-u)); color: var(--kit-muted); }
+.kit-ai-label { position: absolute; z-index: 5; font-family: var(--kit-label-font); font-size: calc(18 * var(--kit-u)); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--kit-ink); background: color-mix(in srgb, var(--kit-bg) 85%, transparent);
+  padding: calc(6 * var(--kit-u)) calc(12 * var(--kit-u)); border-radius: calc(6 * var(--kit-u)); white-space: nowrap; }
 .kit-lay-accent { color: var(--kit-accent); }
 /* split */
 .kit-lay-split { display: flex; gap: calc(80 * var(--kit-u)); align-items: center; }

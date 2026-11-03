@@ -43,11 +43,13 @@ jobs:
           npx playwright install $([ "$RUNNER_OS" = Linux ] && echo --with-deps) chromium
       - name: Syntax checks
         run: |
-          for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs projects/*/record.mjs; do node --check "$f"; done
+          for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs tools/gen/*.mjs projects/*/record.mjs; do node --check "$f"; done
           for f in tools/engine.js tools/layouts.js tools/shots.js tools/doodle.js tools/math.js tools/from_url/film.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
           node tools/motion-check.mjs
           node tools/beats.mjs --self-check
           python -m py_compile tools/*.py
+      - name: "Generation connector: mocked test (no keys, no network)"
+        run: node tools/gen/test.mjs
       - name: "From a URL: draft a project and a theme from the local demo site (offline)"
         run: |
           u="file://$(node -e 'console.log(require("url").pathToFileURL("projects/website/site/index.html").pathname)')"

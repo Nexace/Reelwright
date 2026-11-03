@@ -39,3 +39,6 @@ drive/
 
 # subagent-driven-development working files
 .superpowers/
+
+# paid-generation credentials (tools/gen.mjs)
+.reelwright/

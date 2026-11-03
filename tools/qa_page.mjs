@@ -31,7 +31,8 @@ try {
   if (!(await p.evaluate(() => window.READY).catch(() => false)))
     throw new Error(`${path.relative(process.cwd(), page)} failed to load: ${errs.join("; ") || "READY never resolved"}`);
   const res = await p.evaluate(async (gen) => {
-    const K = window.KIT, VO = window.VO || {}, out = { captions: [], illustrative: [], ai: [], hasCaptions: false };
+    const K = window.KIT, VO = window.VO || {}, out = { captions: [], illustrative: [], hasCaptions: false };
+    out.ai = [];
     const rgba = (c) => { const m = c.match(/[\d.]+/g) || [0, 0, 0, 0]; return m.length < 4 ? [...m.map(Number), 1] : m.map(Number); };
     const over = (top, bot) => top.slice(0, 3).map((v, i) => v * top[3] + bot[i] * (1 - top[3]));
     const lum = (c) => { const l = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };

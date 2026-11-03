@@ -72,6 +72,11 @@ Read once before your first real film.
   viewers), **illustrative** (numbers like 40% or $12 need the label on screen), **seekable** (no clock,
   randomness, timers or CSS transitions in the film's code). Fix the film; turn a gate off only for a reason,
   e.g. `"qa": { "illustrative": false }` when the numbers are real. `projects/qa-broken` trips every gate.
+  Four more checks only print `WARN` lines and never fail the build (turn one off the same way, e.g.
+  `"qa": { "tiny-text": false }`): **overlap** (two on-screen texts sitting on each other, sampled every 0.5 s;
+  crossfades and wipes pass), **tiny-text** (rendered font under 24 px × `KIT.u`; the "Illustrative data" label
+  and "Source:" credits are exempt), **wordy** (a label of 7+ words that repeats the VO line playing: show the
+  keywords, not the narration), **dark** (over 2 s of near-black frames with no voiceover).
   Screenshots count too: give an `<img>` of a page `data-qa-text="<the text it shows>"` and the gate reads its
   numbers; real figures from a real site pass with a visible "Source: …" credit instead of the label
   (`from-url` films do both). Version numbers (v8.3.4, 3.10.2) aren't data.

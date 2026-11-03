@@ -280,7 +280,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `stills [t,t,..]` | preview frames → `stills/` + `stills/sheet.jpg` |
 | `frames` | render every frame → `frames/` (`--no-cache` to skip the frame cache) |
 | `encode` | frames + `mix.wav` → the mp4, plus `.srt`, `.vtt` and `.manifest.json` beside it |
-| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable) and a variety line |
+| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable), WARN checks (overlap, tiny-text, wordy, dark) and a variety line |
 | `verify` | inputs still match the manifest and a fresh render gives the same frames |
 | `preview` | live scrubber at http://localhost:4173 |
 | `remix` | stills in the 3 themes furthest from yours × 16x9, 9x16, 1x1 → `stills-remix/sheet.jpg` |

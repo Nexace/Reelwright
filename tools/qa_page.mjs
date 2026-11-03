@@ -7,6 +7,10 @@
 //                 1,200, 4.8), an "Illustrative data" label is visible too. A visible <img data-qa-text="…"> (a
 //                 screenshot, with the text it shows) counts the same, but there a "Source: …" credit also passes:
 //                 real numbers from a real site, credited
+// plus WARN-only checks, every 0.5 s, over visible text outside the captions (qa.py prints them; they never fail):
+//   overlap   two texts whose boxes overlap by more than a sliver (both at least 60% opaque, so a crossfade passes)
+//   tiny-text rendered font size below 24 px × KIT.u (24 px on a 1080 short side)
+//   wordy     more than 6 words, mostly the words of the VO line playing: a label that repeats the narration
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -26,7 +30,7 @@ try {
   if (!(await p.evaluate(() => window.READY).catch(() => false)))
     throw new Error(`${path.relative(process.cwd(), page)} failed to load: ${errs.join("; ") || "READY never resolved"}`);
   const res = await p.evaluate(async () => {
-    const K = window.KIT, VO = window.VO || {}, out = { captions: [], illustrative: [], hasCaptions: false };
+    const K = window.KIT, VO = window.VO || {}, out = { captions: [], illustrative: [], hasCaptions: false, overlap: [], tiny: [], wordy: [], vo: Object.values(VO).map((v) => [v.start, v.end]) };
     const rgba = (c) => { const m = c.match(/[\d.]+/g) || [0, 0, 0, 0]; return m.length < 4 ? [...m.map(Number), 1] : m.map(Number); };
     const over = (top, bot) => top.slice(0, 3).map((v, i) => v * top[3] + bot[i] * (1 - top[3]));
     const lum = (c) => { const l = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
@@ -90,6 +94,68 @@ try {
       if (num && !label) out.illustrative.push(`${t2(t)}s "${num.slice(0, 30)}"`);
       if (shot && !label && !credit) out.illustrative.push(`${t2(t)}s "${shot}" in a screenshot (data-qa-text), no label or Source credit`);
     }
+
+    // ── WARN checks (overlap, tiny-text, wordy) ──
+    const opacity = (e) => { let o = 1; for (; e && e.nodeType === 1; e = e.parentElement) o *= Number(getComputedStyle(e).opacity); return o; };
+    const words = (s) => (s.toLowerCase().match(/[\p{L}\p{N}']+/gu) || []);
+    const runs = {};   // check -> key -> { first, last, detail }, so a stretch reports once
+    const note = (check, key, t, detail) => { const r = ((runs[check] ??= {})[key] ??= { first: t, detail }); r.last = t; };
+    const minPx = 24 * K.u;
+    for (let t = 0; t < dur; t += 0.5) {
+      await window.render(t);
+      const items = [], walk = document.createTreeWalker(K.stage, NodeFilter.SHOW_TEXT);
+      for (let n; (n = walk.nextNode());) {
+        const s = n.textContent.replace(/\s+/g, ' ').trim(), e = n.parentElement;
+        if (!/[\p{L}\p{N}]/u.test(s) || e.closest('.kit-subs, .kit-subrow, script, style') || !visible(e)) continue;
+        const rg = document.createRange(); rg.selectNodeContents(n);
+        let b = rg.getBoundingClientRect(); if (!b.width || !b.height) continue;
+        const lh = parseFloat(getComputedStyle(e).lineHeight);   // a tight line-height makes glyph boxes taller than the line the text sits in
+        if (lh && lh < b.height) b = { left: b.left, right: b.right, width: b.width, top: b.top + (b.height - lh) / 2, bottom: b.bottom - (b.height - lh) / 2, height: lh };
+        // shortcut: a clip-path / mask ancestor (a wipe) hides text without opacity; only there, shrink the box to the grid points that hit-test as this text. Other clipping (overflow) isn't checked
+        let box = b;
+        const clipped = (() => { for (let x = e; x && x.nodeType === 1; x = x.parentElement) { const c = getComputedStyle(x); if ((c.clipPath && c.clipPath !== 'none') || (c.maskImage && c.maskImage !== 'none')) return true; } return false; })();
+        if (clipped) {
+          const cw = b.width / 8, ch = b.height / 4, xs = [], ys = [];
+          for (let i = 0; i < 8; i++) for (let j = 0; j < 4; j++) {
+            const h = document.elementFromPoint(b.left + (i + 0.5) * cw, b.top + (j + 0.5) * ch);
+            if (h && e.contains(h)) { xs.push(i); ys.push(j); }
+          }
+          if (!xs.length) continue;
+          box = { left: b.left + Math.min(...xs) * cw, right: b.left + (Math.max(...xs) + 1) * cw, top: b.top + Math.min(...ys) * ch, bottom: b.top + (Math.max(...ys) + 1) * ch, width: 0, height: 0 };
+          box.width = box.right - box.left; box.height = box.bottom - box.top;
+        }
+        items.push({ s, e, b: box, op: opacity(e) });
+      }
+      for (const { s, e, b } of items) {
+        if (/^(illustrative|source\b)/i.test(s)) continue;   // the required small label / credit
+        const sc = e.offsetWidth ? e.getBoundingClientRect().width / e.offsetWidth : 1;   // a scaled box shows a scaled font
+        const px = parseFloat(getComputedStyle(e).fontSize) * (sc || 1);
+        if (px < minPx - 0.5) note('tiny', s.slice(0, 30) + '|' + Math.round(px), t, `"${s.slice(0, 30)}" at ${px.toFixed(0)} px (min ${Math.round(minPx)})`);
+      }
+      for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+        const a = items[i], b = items[j];
+        if (a.s === b.s || a.op < 0.6 || b.op < 0.6) continue;   // identical stacked text reads as one; a crossfade never has both above 0.6
+        const ix = Math.min(a.b.right, b.b.right) - Math.max(a.b.left, b.b.left), iy = Math.min(a.b.bottom, b.b.bottom) - Math.max(a.b.top, b.b.top);
+        if (ix < 6 * K.u || iy < 0.3 * Math.min(a.b.height, b.b.height)) continue;
+        if (ix * iy < 0.15 * Math.min(a.b.width * a.b.height, b.b.width * b.b.height)) continue;
+        // whoever is on top at the middle of the overlap must not be an opaque card (a wipe, a panel) hiding the other
+        const h = document.elementFromPoint(Math.max(a.b.left, b.b.left) + ix / 2, Math.max(a.b.top, b.b.top) + iy / 2), top = h && (a.e.contains(h) ? a : b.e.contains(h) ? b : null);
+        if (!top || (() => { const low = top === a ? b : a; for (let x = h; x && x !== K.stage && !x.contains(low.e); x = x.parentElement) if (rgba(getComputedStyle(x).backgroundColor)[3] > 0.9) return true; })()) continue;
+        note('overlap', a.s + '|' + b.s, t, `"${a.s.slice(0, 24)}" over "${b.s.slice(0, 24)}"`);
+      }
+      const line = Object.values(VO).find((v) => t >= v.start && t < v.end);
+      if (line) {
+        const said = new Set(words(line.text));
+        for (const { s } of items) {
+          const w = words(s);
+          if (w.length > 6 && w.filter((x) => said.has(x)).length / w.length >= 0.6)
+            note('wordy', s, t, `"${s.slice(0, 40)}" repeats the VO line`);
+        }
+      }
+    }
+    const span = (r) => (r.last > r.first ? `${t2(r.first)}–${t2(r.last)}s` : `${t2(r.first)}s`);
+    for (const [c, k] of [['tiny', 'tiny'], ['overlap', 'overlap'], ['wordy', 'wordy']])
+      out[k] = Object.values(runs[c] || {}).map((r) => `${span(r)} ${r.detail}`);
     return out;
   });
   console.log(JSON.stringify(res));

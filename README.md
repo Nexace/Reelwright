@@ -74,6 +74,28 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 
 ---
 
+## What's new in 0.2
+
+- **Motion vocabulary.** `KIT.easing('power3.out')` (GSAP-style names), `KIT.bezier`, a closed-form `KIT.spring`, `KIT.keys`
+  keyframes, `KIT.stagger` and `KIT.local`. Each theme sets motion tokens (ease, tempo, stagger, settle), so swapping
+  `"style"` changes how everything moves. [PLAYBOOK → Motion](docs/PLAYBOOK.md#motion-kiteasing-kitbezier-kitspring-kitkeys-toolsenginejs)
+- **Camera shots.** `KIT.shot.pushIn`, `pullBack`, `crashZoom`, `whipPan`, `dollyZoom`, `orbit`, `craneRise`, `dutchRoll`,
+  plus hand-held drift and speed ramps, filmed onto a layer with `KIT.shoot`. Example: `projects/shots-hf`.
+- **Doodle theme.** A notebook-page look (Caveat, Patrick Hand, marker colours) and `KIT.doodle.underline`, `circle` and
+  `drawOn`: hand-drawn marks that draw on a spoken word and boil like redrawn frames. `"style": "doodle"`.
+- **Math and equations.** `KIT.math.axes`, `numberLine`, `plot`, `morph` and `equation` (typeset by the vendored
+  [KaTeX](vendor/katex/VENDORED.md)). Example: `projects/math-hf`.
+- **Beat sheets.** `reelwright beats import` / `export` moves a script between a spreadsheet CSV (or a `timeline` JSON) and
+  `project.json`.
+- **More QA.** `qa` adds `WARN` checks that never fail a build: overlapping text, tiny text, labels that repeat the voiceover,
+  long dark stretches, and AI-generated media shown without a label.
+- **Optional generation connector.** `reelwright gen` for AI stills and clips, off by default; see
+  [Connectors](#connectors-optional).
+
+Nothing in 0.2 changes how an existing film builds.
+
+---
+
 ## The tools
 
 | Job | Tool | Why this one |
@@ -82,14 +104,14 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 | Capture a website | **Playwright** (`tools/capture_site.mjs`) | Scrolls first so scroll-animations fire, then saves each section, the full page and every image, plus the page's text, headings, colours and fonts (`site.json`). Read-only: form posts and other writes never leave the browser. |
 | Film or theme from a URL | `reelwright from-url`, `reelwright theme-from` (`tools/from_url.mjs`, `tools/theme_from.mjs`) | Drafts a whole project (script, look, screenshots) or a theme from a page, by rules — no AI service, no key. |
 | Use Figma designs | **Figma REST API** (`tools/figma_export.py`) | Exports every screen frame in a section as PNG — make a film from designs before the app exists. |
-| Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Plus anything CSS, SVG or 3D transforms can draw. |
+| Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Camera shots (`tools/shots.js`), hand-drawn marks (`tools/doodle.js`) and charts, curves and equations (`tools/math.js`) load on top. Plus anything CSS, SVG or 3D transforms can draw. |
 | Render | **Playwright** (headless Chrome) → JPEG frames (`tools/renderers/pvk.mjs`), or **HyperFrames** (vendored, `tools/renderers/hyperframes.mjs`) | Deterministic, 60 fps, parallel pages. 16x9, 9x16 or 1x1 from one edit. See [Renderers](#renderers). |
 | Voiceover | **edge-tts** — Microsoft neural voices, free, no account (`tools/vo.py`) | Natural voices (Andrew, Ava, Hindi Swara…) **with word timings**, so visuals land on exact words. |
 | Music | Any track (e.g. **Mixkit**, free licence) + beat-grid fit (`tools/beatgrid.py`), or a built-in original soundtrack: `chill` or `drive` (with a drop and a final hit) (`tools/music.py`) | Cuts land on the beat. The fit measures the real tempo from the drums — never trust a listed BPM. |
 | Sound effects | Synthesised in **numpy** (`tools/mix.py`) | Whooshes, taps, pops, impacts, chimes — generated, no sample licences. Placed by `cue()` calls in the film. |
 | Mix | **numpy + ffmpeg loudnorm** (`tools/mix.py`) | Music ducks under the voice automatically; output normalised to −14 LUFS (YouTube/Instagram level). |
 | Encode | **ffmpeg** (H.264 + AAC) | Plays everywhere: WhatsApp, Slack, Drive, YouTube, Keynote. |
-| QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked. Contact sheet of stills to review the whole film at a glance. |
+| QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked; plus `WARN` checks that never fail. Contact sheet of stills to review the whole film at a glance. |
 
 Optional: a coding agent in this folder (Claude Code, Codex, Antigravity, OpenCode, …) does all of the above from plain English; its instructions are in [AGENTS.md](AGENTS.md) (`CLAUDE.md` imports it).
 
@@ -288,11 +310,11 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `themes` | list the themes |
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
-| `beats [project] import <csv\|json>` / `export [csv]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; `--replace` to overwrite (on export: an existing csv) |
+| `beats [project] import <file.csv\|timeline.json> [--replace] \| export [file.csv] [--replace]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; only those keys change; `--replace` overwrites (on export: an existing csv) |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
 | `film` | sched → info → mix → frames → encode (after editing the edit) |
-| `gen [project] --provider higgsfield "<prompt>" --out assets/<file>` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
+| `gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image\|video] [--yes]` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
 | `gen [project] --import <file> --source firefly\|express "<note>"` | register a file made in Firefly or Express in `assets/gen.json` (offline) |
 
 Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1`, `--no-cache` (above). Environment:
@@ -343,6 +365,27 @@ reading order. View access is enough.
 
 ---
 
+## Connectors (optional)
+
+Reelwright can pull AI-generated stills and clips into a film. It is **off by default**: no build step calls it, and
+without it nothing needs a key, an account or a network beyond what the core already uses.
+
+- **Higgsfield** (`reelwright gen --provider higgsfield`): needs your own API key and a paid balance. `gen` first asks
+  Higgsfield for the price, prints the estimate and waits for a yes before it submits anything. The result is saved in
+  `assets/` and cached in `assets/.gen/`, so rebuilding the film later makes no call and works offline.
+- **Adobe Firefly and Adobe Express**: manual import only. Make the image or clip in the app, then register it with
+  `reelwright gen --import <file> --source firefly|express "<note>"` (offline; the file is copied into `assets/`).
+- Everything generated goes in `assets/gen.json`, and `KIT.aiLabel(el)` puts an "AI-generated" label on screen; `qa` warns
+  when a generated file is shown without one.
+
+Keys, costs, errors, terms and how to add a provider: [docs/CONNECTORS.md](docs/CONNECTORS.md).
+
+**Works without any connector:** `new`, `add`, `record`, `vo`, `beatgrid`, `sched`, `info`, `music`, `mix`, `stills`, `frames`,
+`encode`, `qa`, `verify`, `preview`, `remix`, `clean`, `themes`, `from-url`, `theme-from`, `beats`, `all`, `audio` and `film`.
+Only `gen` is optional. (`vo` and `from-url` use the internet as before: edge-tts, and the page you point it at.)
+
+---
+
 ## Render in the cloud (free)
 
 No fast computer? Two free options, both building the same way as `./video.sh all`.
@@ -382,6 +425,10 @@ tools/                      shared — you rarely edit these
   renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
   layouts.js, theme.mjs     KIT.layout.* scenes; writes each film's theme.css from themes/ + brand.json
+  shots.js, doodle.js, math.js   KIT.shot.* camera moves, KIT.doodle.* hand-drawn marks, KIT.math.* charts and equations
+  beats.mjs                 reelwright beats: beat-sheet CSV / timeline JSON <-> project.json
+  gen.mjs, gen/             reelwright gen: optional generation connector (Higgsfield) and manual import; off by default
+  motion-check.mjs          self-check of the easing, spring, doodle and math code (node tools/motion-check.mjs)
   vo.py, sched.py           voiceover + placing it on the timeline
   beatgrid.py, music.py     music tempo fit + music bed
   mix.py                    voice + ducked music + SFX → mix.wav
@@ -393,6 +440,7 @@ tools/                      shared — you rarely edit these
   from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
   smoke.mjs                 can this machine render? one frame each from Chromium and HyperFrames
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog components, see VENDORED.md
+vendor/katex/               KaTeX (MIT), typesets KIT.math.equation, see VENDORED.md
 themes/                     the eleven themes (themes/<name>.css), plus any theme-from writes
 fonts/                      bundled OFL fonts and LICENSES.md (fetch.mjs re-downloads them)
 cloud/                      reelwright_colab.ipynb + colab_build.py: free rendering in Colab, files in Drive
@@ -401,6 +449,7 @@ projects/
   example-hf/               HyperFrames starter (reelwright new <name> --renderer hyperframes)
   layouts-hf/               every KIT.layout scene, in the editorial theme
   shots-hf/                 camera shots (KIT.shot.*) and a doodle underline, in the dark-tech theme
+  math-hf/                  axes, a plotted curve, a morph and a typeset equation (KIT.math.*)
   qa-broken/                trips every QA gate on purpose (CI checks that it fails)
   teaser/ website/ stats/ dashboard/ reel/   the other sample films — each shows different techniques
 projects/<name>/
@@ -412,6 +461,7 @@ projects/<name>/
   demo-app/                 (example only) the fake app being filmed
   .cache/frames/            rendered frames by fingerprint (reused by frames; clean deletes it)
 docs/PLAYBOOK.md            what makes these films good — read before your first real one
+docs/CONNECTORS.md          the optional generation connector: keys, costs, manual Firefly / Express import
 docs/REPRODUCIBLE.md        the manifest, verify, and what can differ across operating systems
 docs/archive/plans/         how this repo was built: the plan, phase specs and their status
 NOTICE, THIRD_PARTY.md      licenses of the vendored code, fonts and tools

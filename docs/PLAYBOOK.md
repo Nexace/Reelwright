@@ -74,8 +74,8 @@ Read once before your first real film.
   viewers), **illustrative** (numbers like 40% or $12 need the label on screen), **seekable** (no clock,
   randomness, timers or CSS transitions in the film's code). Fix the film; turn a gate off only for a reason,
   e.g. `"qa": { "illustrative": false }` when the numbers are real. `projects/qa-broken` trips every gate.
-  Four more checks only print `WARN` lines and never fail the build (turn one off the same way, e.g.
-  `"qa": { "tiny-text": false }`): **overlap** (two on-screen texts sitting on each other, sampled every 0.5 s;
+  Five more checks only print `WARN` lines and never fail the build (turn one off the same way, e.g.
+  `"qa": { "tiny-text": false }`; the fifth, **ai-label**, is under Truthfulness): **overlap** (two on-screen texts sitting on each other, sampled every 0.5 s;
   crossfades and wipes pass), **tiny-text** (rendered font under 24 px × `KIT.u`; the "Illustrative data" label
   and "Source:" credits are exempt), **wordy** (a label of 7+ words that repeats the VO line playing: show the
   keywords, not the narration), **dark** (over 2 s of near-black frames with no voiceover).
@@ -185,6 +185,8 @@ cards.forEach((c, i) => c.style.opacity = KIT.easing('power2.out')(KIT.seg(t - K
 | corporate | clean, swiss | `corporate` / `accel` | .05 / .45 |
 | energetic | brutalist, neon, dark-tech | `expo.out` / `expo.in` | .03 / .3 |
 
+`doodle` uses the playful curves (`settle` / `power2.in`) with stagger .07 and settle .55.
+
 Use `KIT.ease`, `KIT.easeIn`, `KIT.staggerStep` and `KIT.settle` instead of naming eases, so a theme swap changes the feel with no edits.
 
 Rules:
@@ -274,9 +276,7 @@ Options work like a layout's: `in` (start), `draw`/`dur` (how long), `out` (opti
 | `equation(tex, { in, step, out, size, x, y, display, parent })` | KaTeX-typeset formula whose glyphs rise in one by one, `step` apart. |
 | `ease.smooth`, `ease.thereAndBack` | Manim's smoothstep, and a go-and-return curve for a pulse. |
 
-- When one thing becomes another, morph it; a fade-out and fade-in hides the change you are trying to show.
-- To point at one part, dim everything else to about 0.25 opacity rather than hiding it, so the viewer keeps the context.
-- On-screen text is labels, terms and numbers. The narration says the sentence; the picture should not repeat it.
+- The Motion rules apply: morph one thing into another instead of cross-fading, dim the rest to about 0.25 opacity to point at one part, and keep on-screen text to labels, terms and numbers.
 - Put the draw on the word: a curve starts on "curve", a formula on "writes". A dot riding the tip (`pointAt(progress(t))`)
   makes the drawing feel live. Made-up data on a chart still gets "Illustrative data".
 - Equations: KaTeX covers most of LaTeX math (fractions, roots, `\left( … \right)`, `\text{}`, matrices) but no packages
@@ -293,7 +293,7 @@ The KIT helpers above cover most films. GSAP is for label-based choreography, st
   uses it ships its own copy of `gsap.min.js` under `hf/` (or `film/`), and keeps its notice. Get a local copy without adding a dependency: run `npm pack gsap@3.15.0` in a temp folder and copy
   `package/dist/gsap.min.js` into the film's `hf/` (or `film/`) folder; never `npm install` it into the repo (3.15.0 is the verified version). Don't add it to
   `vendor/` or commit it for other films to share.
-- Verified (scratch/phase9/seektest, gsap 3.15.0): a paused timeline driven by `tl.totalTime(t)` from `render(t)` gave byte-identical frames
+- Verified (docs/archive/plans/phase-9-research/seektest-RESULTS.md, gsap 3.15.0): a paused timeline driven by `tl.totalTime(t)` from `render(t)` gave byte-identical frames
   across forward, shuffled and reverse seeks in fresh pages and browsers. Call `gsap.ticker.lagSmoothing(0)` as well.
 - Use `fromTo()` everywhere. `.from()` and relative `"+="` values read their start state on first render; that was not verified here.
 - Never `play()`, `repeat: -1`, `gsap.utils.random()`, or callbacks that change state. Times come from `W()`/`V()`/`KIT.snap()`; add labels per VO line.

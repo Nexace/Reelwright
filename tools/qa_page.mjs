@@ -96,7 +96,8 @@ try {
       if (num && !label) out.illustrative.push(`${t2(t)}s "${num.slice(0, 30)}"`);
       if (shot && !label && !credit) out.illustrative.push(`${t2(t)}s "${shot}" in a screenshot (data-qa-text), no label or Source credit`);
       for (const m of gen.length && !aiLab ? K.stage.querySelectorAll('img, video') : []) {
-        const src = decodeURIComponent((m.currentSrc || m.src || '').split(/[?#]/)[0]), f = gen.find((g) => src.endsWith('/' + g));
+        let src = (m.currentSrc || m.src || '').split(/[?#]/)[0]; try { src = decodeURIComponent(src); } catch {}   // a bare % (data: URIs) must not kill the page check
+        const f = gen.find((g) => src.endsWith('/' + g));
         if (f && visible(m) && !aiSeen.has(f)) { aiSeen.add(f); out.ai.push(`${t2(t)}s ${f} on screen with no AI label`); }
       }
     }

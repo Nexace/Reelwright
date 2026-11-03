@@ -112,6 +112,8 @@ if pg is not None:
         ai = pg.get("ai", [])
         print("  WARN  ai-label" if ai else "  PASS  ai-label")
         for x in ai[:8]: print(f"          {x}")
+    else:
+        print("  SKIP  ai-label  (project.json qa.ai-label = false)")
 
 # seekable: the film's own code (not tools/, not generated data)
 hf = P.get("renderer") == "hyperframes"

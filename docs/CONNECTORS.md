@@ -32,7 +32,7 @@ Three sources, one manifest (`projects/<name>/assets/gen.json`):
    ./video.sh gen myfilm --provider higgsfield --kind video "slow dolly past a laptop" --out assets/b-roll.mp4
    ./video.sh gen myfilm --provider higgsfield --model <id> "..." --out assets/x.png --yes
    ```
-   Quote the prompt. `--out` must be inside the project's `assets/`. `--kind` is `image` (default) or `video`.
+   Quote the prompt. Without a project name, `gen` targets `projects/example` like every other command. `--out` must be inside the project's `assets/`. `--kind` is `image` (default) or `video`.
    `--model` is the endpoint path of a Higgsfield model; the defaults are `higgsfield-ai/soul/standard` for images
    and `kling-video/v2.5-turbo/pro/text-to-video` for video.
 
@@ -72,7 +72,9 @@ KIT.aiLabel(el, 'AI-generated') // text is optional
 KIT.aiLabel()                   // no element: the label goes in the stage's safe area
 ```
 
-It cannot go on an `<img>` or `<video>` itself, so pass the wrapper. `qa` warns (`ai-label`, a warning, never a
+It cannot go on an `<img>` or `<video>` itself, so pass the wrapper. Each call appends a new label, so call it once
+while you build the scene, never inside `render(t)`. `qa` only looks at `<img>` and `<video>` elements, not CSS
+backgrounds or a canvas, so label those yourself. `qa` warns (`ai-label`, a warning, never a
 failure) when a file listed in `gen.json` is on screen and no `AI-generated` label is. To turn the check off, set
 `"ai-label": false` in `qa` in `project.json`.
 
@@ -84,9 +86,10 @@ Creative Cloud Pro, so Reelwright has no Firefly provider.
 1. Generate in the Firefly app and download the PNG or MP4.
 2. Register it:
    ```bash
-   ./video.sh gen myfilm --import ~/Downloads/hero.png --source firefly "paper plane, soft light"
+   ./video.sh gen myfilm --import /Users/you/Downloads/hero.png --source firefly "paper plane, soft light"
    ```
-   The file is copied byte for byte into `assets/` (use `--out assets/<file>` to rename). No network.
+   Use an absolute path for `--import`: a relative one resolves from the repo root, and `~` is not expanded in cmd or
+   PowerShell. The file is copied byte for byte into `assets/` (use `--out assets/<file>` to rename). No network.
 3. Use it like any image or clip, and add `KIT.aiLabel`.
 
 Firefly files carry Content Credentials, and Adobe's terms forbid removing them. `gen --import` does not touch the
@@ -98,7 +101,7 @@ credentials stay on the source file you keep; the label on screen is how the fil
 Express has no generation API for individuals. Export a PNG or MP4 from Express, then:
 
 ```bash
-./video.sh gen myfilm --import ~/Downloads/card.png --source express "title card"
+./video.sh gen myfilm --import /Users/you/Downloads/card.png --source express "title card"
 ```
 
 Same copy, same manifest, same label.

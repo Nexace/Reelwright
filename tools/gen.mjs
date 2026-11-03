@@ -38,8 +38,8 @@ if (!o.provider && !o.import) die(USAGE);
 
 function outPath() {
   if (!o.out) return null;
-  const f = path.resolve(DIR, o.out);
-  if (!f.startsWith(ASSETS + path.sep) || f.startsWith(CACHE + path.sep) || f === MANIFEST) die(`--out must be inside ${path.relative(process.cwd(), ASSETS) || "assets"}/ (e.g. --out assets/hero.png)`);
+  const f = path.resolve(DIR, o.out), n = (p) => process.platform === "win32" || process.platform === "darwin" ? p.toLowerCase() : p;   // case-insensitive file systems
+  if (!n(f).startsWith(n(ASSETS + path.sep)) || n(f).startsWith(n(CACHE + path.sep)) || n(f) === n(MANIFEST)) die(`--out must be inside ${path.relative(process.cwd(), ASSETS) || "assets"}/ (e.g. --out assets/hero.png)`);
   return f;
 }
 
@@ -88,7 +88,10 @@ if (hit) {
 
 let file = {};
 const CREDS = process.env.REELWRIGHT_CREDENTIALS || path.join(ROOT, ".reelwright", "credentials.json");
-try { file = JSON.parse(fs.readFileSync(CREDS, "utf8")); } catch {}
+let raw = null;
+try { raw = fs.readFileSync(CREDS, "utf8"); } catch (e) { if (e.code !== "ENOENT") die(`${CREDS} can't be read (${e.code})`, 2); }
+// only a missing file counts as absent; a BOM (PowerShell 5.1) is fine, UTF-16 or junk is an error that never prints the contents
+if (raw !== null) try { file = JSON.parse(raw.replace(/^\uFEFF/, "")); if (!file || typeof file !== "object") throw 0; } catch { die(`${CREDS} is not valid JSON (save it as UTF-8)`, 2); }
 const creds = Object.fromEntries(P.envKeys.map((k) => [k, process.env[k] || file[k]]));
 const missing = P.envKeys.filter((k) => !creds[k]);
 if (missing.length) die(`missing ${missing.join(" and ")}: set the environment variable(s) or put them in ${CREDS} (git-ignored)`, 2);
@@ -96,8 +99,10 @@ if (missing.length) die(`missing ${missing.join(" and ")}: set the environment v
 for (const k of P.envKeys) if (!/^[\x21-\x7e]+$/.test(creds[k])) die(`${k} contains invalid characters (printable ASCII without spaces expected)`, 2);
 
 const label = P.name[0].toUpperCase() + P.name.slice(1);
+let job;   // set once submitted, so every later error can name the (possibly charged) request
 try {
   const { usd } = await P.estimate(req, creds);
+  if (usd == null || usd === "" || !Number.isFinite(Number(usd))) die(`${label}: no estimate returned; nothing was submitted`);
   console.log(`${label} estimate for your account: $${usd}\n  project ${dir}, out ${relFile(out)}, ${kind}, model ${model}\n  prompt: ${prompt}`);
   if (!o.yes) {
     process.stdout.write("Submit? [y/N] ");
@@ -105,7 +110,7 @@ try {
     let ans = ""; for await (const l of rl) { ans = l; break; } rl.close();
     if (!/^y(es)?$/i.test(ans.trim())) die("cancelled");
   }
-  const job = await P.submit(req, creds);
+  job = await P.submit(req, creds);
   console.log(`submitted (request ${job.id}), waiting…`);
   let wait = 2000, r; const end = Date.now() + 15 * 60e3;
   for (;;) {
@@ -130,4 +135,4 @@ try {
   fs.copyFileSync(cached, out);
   record({ file: relFile(out), ...stamp, date: new Date().toISOString(), sha256: sha(out), sourceUrlHost: new URL(r.urls[0]).host });
   console.log(`wrote ${relFile(out)} and registered it in assets/gen.json\nlabel it on screen with KIT.aiLabel(el)`);
-} catch (e) { die(e.message); }
+} catch (e) { die(e.message + (job ? `; request ${job.id} may still finish (and be charged)` : "")); }

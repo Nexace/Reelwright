@@ -28,7 +28,7 @@ async function call(method, url, creds, body, idem) {
     }
     if (r.status === 429 && q++ < 5) {
       const ra = r.headers.get("retry-after");
-      await sleep(1000 * (ra !== null && ra.trim() !== "" && Number.isFinite(Number(ra)) ? Number(ra) : j.retry_after_seconds ?? 30)); continue;
+      await sleep(1000 * Math.min(120, ra !== null && ra.trim() !== "" && Number.isFinite(Number(ra)) ? Number(ra) : j.retry_after_seconds ?? 30)); continue;   // capped at 2 min
     }
     if (r.status >= 500 && e5++ < 3) { await sleep(1000 * 2 ** e5); continue; }
     if (r.ok) return j;

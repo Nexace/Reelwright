@@ -21,8 +21,10 @@ const git = () => spawnSync("git", ["status", "--porcelain"], { cwd: ROOT, encod
 const manifest = (d) => JSON.parse(fs.readFileSync(path.join(d, "assets", "gen.json"), "utf8"));
 const sub = (m) => m.calls.filter((c) => c.method === "POST" && !c.path.startsWith("/estimate/"));
 
-function gen(proj, args, { url, keys = KEYS, stdin = "" } = {}) {
-  const env = { ...process.env, REELWRIGHT_CREDENTIALS: path.join(tmp, "no-such-credentials.json"), ...(url && { REELWRIGHT_HIGGSFIELD_URL: url }) };
+process.on("exit", () => fs.rmSync(tmp, { recursive: true, force: true }));   // also after a failed assert
+// url defaults to a dead port so a test that forgets the mock can never reach the real host
+function gen(proj, args, { url = "http://127.0.0.1:9", keys = KEYS, stdin = "", creds = path.join(tmp, "no-such-credentials.json") } = {}) {
+  const env = { ...process.env, REELWRIGHT_CREDENTIALS: creds, REELWRIGHT_HIGGSFIELD_URL: url };
   delete env.HIGGSFIELD_API_KEY_ID; delete env.HIGGSFIELD_API_KEY_SECRET;
   return new Promise((res) => {
     const p = spawn(process.execPath, [GEN, proj, ...args], { env: { ...env, ...keys } });
@@ -107,6 +109,17 @@ try {
   assert.equal(m.calls.length, c2); assert.equal(tree(L), tl);
   ok("invalid characters in a key: exit 2, names the variable, value not printed");
 
+  // credentials file: a BOM (PowerShell 5.1) is accepted; UTF-16 / junk is an error that never prints the contents
+  const bom = path.join(tmp, "bom.json"), junk = path.join(tmp, "junk.json");
+  fs.writeFileSync(bom, "\uFEFF" + JSON.stringify(KEYS)); fs.writeFileSync(junk, Buffer.from("zq8-contents " + JSON.stringify(KEYS), "utf16le"));
+  const H = mkproj(), c3 = m.calls.length;
+  r = await gen(H, [...base, "from file"], { url: m.url, keys: {}, creds: bom, stdin: "n\n" });
+  assert.match(r.out, /estimate/); assert.match(r.err, /cancelled/); assert.equal(m.calls.length, c3 + 1);   // keys came from the BOM file
+  r = await gen(H, [...base, "from junk"], { url: m.url, keys: {}, creds: junk, stdin: "y\n" });
+  assert.equal(r.code, 2); assert.match(r.err, /not valid JSON/); assert.ok(!(r.out + r.err).includes("zq8") && !(r.out + r.err).includes("test-key"));
+  assert.equal(m.calls.length, c3 + 1);
+  ok("credentials file: BOM accepted, UTF-16/junk -> exit 2, contents not printed");
+
   // --out may not be the manifest
   r = await gen(L, ["--provider", "higgsfield", "--out", "assets/gen.json", "x"], { url: m.url }); assert.equal(r.code, 1);
   ok("--out assets/gen.json rejected");
@@ -156,5 +169,4 @@ try {
 // 3 (again, now that every run is in). The mock's URLs were port-bound; the key/secret/signature checks cover all runs.
 const all = seen.join("\n");
 for (const bad of ["test-key-id", "test-key-secret", "zq9", "X-Amz-Signature", "status_url"]) assert.ok(!all.includes(bad), `leaked ${bad}`);
-fs.rmSync(tmp, { recursive: true, force: true });
 console.log("all gen tests passed");

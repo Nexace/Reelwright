@@ -9,6 +9,10 @@ Version 2.0. The copy is in vendor/hyperframes/ with its LICENSE and CREDITS.md;
 vendor/hyperframes/VENDORED.md lists the upstream commit and every change made.
 Catalog components copied into projects (hf/blocks/) carry a header naming their source.
 
+This product includes KaTeX (https://katex.org), Copyright (c) 2013-2020 Khan Academy and
+other contributors, licensed under the MIT License. The copy is in vendor/katex/ with its LICENSE;
+vendor/katex/VENDORED.md lists the version and files taken (unchanged).
+
 This product bundles fonts licensed under the SIL Open Font License 1.1, in fonts/
 (each family with its OFL.txt; fonts/LICENSES.md lists copyright holders and sources).
 

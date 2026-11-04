@@ -1,6 +1,6 @@
 # Phase 10 plan: all-in-one — equal or better than HyperFrames and the nine repos
 
-Status: **plan, waiting for the owner's OK.** Nothing here is built yet. Written 2026-11-05.
+Status: **plan approved by the owner 2026-11-05.** Nothing here is built yet; start with 10.0.
 
 ## Goal (owner, 2026-11-05)
 

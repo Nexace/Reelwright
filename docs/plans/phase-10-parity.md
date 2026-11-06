@@ -1,6 +1,6 @@
 # Phase 10 plan: all-in-one — equal or better than HyperFrames and the nine repos
 
-Status: **plan approved by the owner 2026-11-05.** Nothing here is built yet; start with 10.0.
+Status: **plan approved by the owner 2026-11-05.** 10.0 merged 2026-11-06; Wave 1 next.
 
 ## Goal (owner, 2026-11-05)
 

@@ -43,11 +43,13 @@ jobs:
           npx playwright install $([ "$RUNNER_OS" = Linux ] && echo --with-deps) chromium
       - name: Syntax checks
         run: |
-          for f in bin/*.mjs setup.mjs tools/*.mjs tools/renderers/*.mjs tools/gen/*.mjs projects/*/record.mjs; do node --check "$f"; done
-          for f in tools/engine.js tools/layouts.js tools/shots.js tools/doodle.js tools/math.js tools/from_url/film.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
+          for f in bin/*.mjs setup.mjs tools/*.mjs tools/*/*.mjs projects/*/record.mjs; do [ -e "$f" ] || continue; node --check "$f"; done
+          for f in tools/*.js tools/from_url/film.js projects/*/film/film.js projects/*/hf/film.js; do node --check "$f"; done   # node --check takes one file
           node tools/motion-check.mjs
           node tools/beats.mjs --self-check
-          python -m py_compile tools/*.py
+          python -m py_compile tools/*.py $(ls tools/checks/*.py 2>/dev/null)
+      - name: "Self-checks (every tools/selfcheck/*.mjs)"
+        run: for f in tools/selfcheck/*.mjs; do [ -e "$f" ] || continue; echo "▶ $f"; node "$f" || exit 1; done
       - name: "Generation connector: mocked test (no keys, no network)"
         run: node tools/gen/test.mjs
       - name: "From a URL: draft a project and a theme from the local demo site (offline)"
@@ -118,6 +120,13 @@ jobs:
           cat qa-broken.txt
           test "$(grep -c '^  FAIL' qa-broken.txt)" = 5
           for w in overlap tiny-text wordy dark; do grep -q "WARN  $w:" qa-broken.txt || { echo "qa-broken lacks WARN $w"; exit 1; }; done
+      - name: 'Demo films: every project with "ci": true in project.json, end to end'
+        env: { PAGES: 2, PYTHON: python }
+        run: |
+          for p in projects/*/project.json; do
+            node -e 'process.exit(require("./"+process.argv[1]).ci===true?0:1)' "$p" || continue
+            d=$(dirname "$p"); echo "▶ $d" | tee -a "$GITHUB_STEP_SUMMARY"; node bin/reelwright.mjs all "$d" || exit 1
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: example-hf-film-${{ matrix.os }}

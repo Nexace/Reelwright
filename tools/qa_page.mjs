@@ -13,6 +13,7 @@
 //   overlap   two texts whose boxes overlap by more than a sliver (both at least 60% opaque, so a crossfade passes)
 //   tiny-text rendered font size below 24 px × KIT.u (24 px on a 1080 short side)
 //   wordy     more than 6 words, mostly the words of the VO line playing: a label that repeats the narration
+// plus plug-in page checks, tools/checks/*.page.mjs (see the end of this file), under "checks"
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -172,5 +173,14 @@ try {
     } catch (err) { out.overlap = []; out.tiny = []; out.wordy = []; out.warnError = String(err && err.message || err); }
     return out;
   }, gen);
+  // plug-in page checks: tools/checks/<name>.page.mjs with `export const kind = "gate" | "warn"` (default "warn") and a
+  // default async (page, { DIR, P, W, H }) → problem lines; the page is loaded, seek it with window.render(t)
+  const CH = new URL("./checks/", import.meta.url);
+  res.checks = {};
+  for (const f of fs.existsSync(CH) ? fs.readdirSync(CH).filter((x) => x.endsWith(".page.mjs")).sort() : []) {
+    const name = f.slice(0, -".page.mjs".length);
+    try { const m = await import(new URL(f, CH).href); res.checks[name] = { kind: m.kind || "warn", lines: [...(await m.default(p, { DIR, P, W, H }))] }; }
+    catch (e) { res.checks[name] = { kind: "gate", lines: [`check failed: ${e.message}`] }; }   // a broken check is loud
+  }
   console.log(JSON.stringify(res));
 } finally { await browser.close(); }

@@ -43,10 +43,12 @@
 //   --formats 16x9,9x16,1x1   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080):
 //                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
+//
+// Plug-in commands (tools/commands/<name>.mjs; each file's header comment is its help, listed below):
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 process.chdir(ROOT);
@@ -234,8 +236,16 @@ if (formats && Object.hasOwn(PER_FORMAT, cmd)) {
   }
   delete process.env.REELWRIGHT_FORMAT; delete process.env.REELWRIGHT_SIZE;
   if (PER_FORMAT[cmd].includes("sched")) C.sched();   // leave the data file at project.json's own size
+} else if (/^[\w-]+$/.test(cmd) && fs.existsSync(path.join("tools", "commands", cmd + ".mjs"))) {
+  // a plug-in command (wins over a built-in of the same name): default export gets what the built-ins use
+  const m = await import(pathToFileURL(path.join(ROOT, "tools", "commands", cmd + ".mjs")).href);
+  await m.default({ proj, args, ROOT, PY, run, py, render, step, project, rm });
 } else if (Object.hasOwn(C, cmd)) C[cmd]();
 else {
-  const lines = fs.readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1);
-  console.log(lines.slice(0, lines.findIndex((l) => !l.startsWith("//"))).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"));
+  // help: this file's header, then each plug-in's header (tools/commands/*.mjs)
+  const header = (f) => { const l = fs.readFileSync(f, "utf8").split("\n").filter((x, i) => i || !x.startsWith("#!"));
+    return l.slice(0, l.findIndex((x) => !x.startsWith("//"))).map((x) => x.replace(/^\/\/ ?/, "")); };
+  const cmds = path.join("tools", "commands");
+  const plug = fs.existsSync(cmds) ? fs.readdirSync(cmds).filter((f) => f.endsWith(".mjs")).sort() : [];
+  console.log([...header(fileURLToPath(import.meta.url)), ...plug.flatMap((f) => header(path.join(cmds, f)).map((x) => "  " + x))].join("\n"));
 }

@@ -19,7 +19,7 @@ import { trackChildProcess } from "../utils/processTracker.js";
 import { ManagedChildProcess, } from "../utils/managedChildProcess.js";
 import { existsSync, mkdirSync, statSync } from "fs";
 import { dirname } from "path";
-import { getCachedGpuEncoder, getGpuEncoderName, buildVideoToolboxRateControlArgs, mapPresetForGpuEncoder, } from "../utils/gpuEncoder.js";
+import { getCachedGpuEncoder, getCachedNvencPresets, getGpuEncoderName, buildVideoToolboxRateControlArgs, mapPresetForGpuEncoder, } from "../utils/gpuEncoder.js";
 import { ffmpegStatsReader, formatFfmpegError, isExternalFfmpegInterruption, } from "../utils/runFfmpeg.js";
 import { getFfmpegBinary } from "../utils/ffmpegBinaries.js";
 import { getHdrEncoderColorParams, hdrFrameTagsFilter } from "../utils/hdr.js";
@@ -98,7 +98,7 @@ export function createFrameReorderBuffer(startFrame, endFrame) {
  * Exported so unit tests can assert on the constructed CLI without spawning
  * FFmpeg — see streamingEncoder.test.ts.
  */
-export function buildStreamingArgs(options, outputPath, gpuEncoder = null) {
+export function buildStreamingArgs(options, outputPath, gpuEncoder = null, nvencPresets) {
     const { fps, codec = "h264", preset = "medium", quality = 23, bitrate, pixelFormat = "yuv420p", vp9CpuUsed, useGpu = false, imageFormat = "jpeg", } = options;
     // Input args: pipe from stdin
     const args = [];
@@ -119,8 +119,17 @@ export function buildStreamingArgs(options, outputPath, gpuEncoder = null) {
         const inputCodec = imageFormat === "png" ? "png" : "mjpeg";
         args.push("-f", "image2pipe", "-vcodec", inputCodec, "-framerate", fpsToFfmpegArg(fps), "-i", "-");
     }
+    if (options.videoLayer)
+        args.push(...options.videoLayer.inputArgs);
     args.push("-r", fpsToFfmpegArg(fps));
     const shouldUseGpu = useGpu && gpuEncoder !== null;
+    if (options.videoLayer &&
+        (imageFormat !== "png" ||
+            options.rawInputFormat ||
+            shouldUseGpu ||
+            (codec !== "h264" && codec !== "h265"))) {
+        throw new Error("videoLayer needs software h264/h265 and PNG frames");
+    }
     appendRateCapArgs(args, options);
     if (codec === "h264" || codec === "h265") {
         if (shouldUseGpu) {
@@ -128,7 +137,7 @@ export function buildStreamingArgs(options, outputPath, gpuEncoder = null) {
             args.push("-c:v", encoderName);
             switch (gpuEncoder) {
                 case "nvenc":
-                    args.push("-preset", mapPresetForGpuEncoder("nvenc", preset));
+                    args.push("-preset", mapPresetForGpuEncoder("nvenc", preset, nvencPresets));
                     if (bitrate)
                         args.push("-b:v", bitrate);
                     else
@@ -266,6 +275,11 @@ export function buildStreamingArgs(options, outputPath, gpuEncoder = null) {
                 args[vfIdx + 1] = `${frameFilter},${args[vfIdx + 1]}`;
             }
         }
+        else if (options.videoLayer) {
+            const video = `[1:v]${options.videoLayer.filters.join(",")},format=gbrp[v]`;
+            const tail = withEvenDimensionPad(SDR_RGB_TO_TAGGED_BT709_FILTER, pixelFormat, options.width, options.height);
+            args.push("-filter_complex", `${video};[0:v]format=rgba[o];[v][o]overlay=eof_action=endall:format=gbrp,${tail}[vout]`, "-map", "[vout]");
+        }
         else {
             // Pad odd dimensions up to even so 4:2:0 encoders (software and
             // nvenc/videotoolbox/qsv/amf) don't abort with "height not divisible by 2".
@@ -288,14 +302,29 @@ export function buildStreamingArgs(options, outputPath, gpuEncoder = null) {
  * Spawn a streaming FFmpeg encoder that accepts frame buffers on stdin.
  */
 export async function spawnStreamingEncoder(outputPath, options, signal, config) {
-    const outputDir = dirname(outputPath);
-    if (!existsSync(outputDir))
-        mkdirSync(outputDir, { recursive: true });
     let gpuEncoder = null;
     if (options.useGpu) {
         gpuEncoder = await getCachedGpuEncoder();
     }
-    const args = buildStreamingArgs(options, outputPath, gpuEncoder);
+    const nvencPresets = gpuEncoder === "nvenc" ? await getCachedNvencPresets() : undefined;
+    const args = buildStreamingArgs(options, outputPath, gpuEncoder, nvencPresets);
+    const checksJpeg = !options.rawInputFormat && (options.imageFormat ?? "jpeg") === "jpeg";
+    return spawnFfmpegStream(outputPath, args, {
+        signal,
+        config,
+        checkFrame: checksJpeg
+            ? (frame, index) => {
+                const error = jpegInputError(frame);
+                if (error)
+                    throw new Error(`Invalid JPEG input at frame ${index}: ${error}`);
+            }
+            : undefined,
+    });
+}
+export function spawnFfmpegStream(outputPath, args, { signal, config, checkFrame, }) {
+    const outputDir = dirname(outputPath);
+    if (!existsSync(outputDir))
+        mkdirSync(outputDir, { recursive: true });
     const ffmpeg = spawn(getFfmpegBinary(), args, {
         stdio: ["pipe", "pipe", "pipe"],
         // See runFfmpeg.ts: keeps a console window off the user's desktop on Windows.
@@ -376,6 +405,7 @@ export async function spawnStreamingEncoder(outputPath, options, signal, config)
         }
     };
     let inputFrameIndex = 0;
+    let drainWaitMs = 0;
     const encoder = {
         writeFrame: async (buffer) => {
             const stdin = ffmpeg.stdin;
@@ -396,11 +426,7 @@ export async function spawnStreamingEncoder(outputPath, options, signal, config)
             // so without this copy the pipe would read partially-overwritten data
             // and flicker.
             const copy = Buffer.from(buffer);
-            if (!options.rawInputFormat && (options.imageFormat ?? "jpeg") === "jpeg") {
-                const error = jpegInputError(copy);
-                if (error)
-                    throw new Error(`Invalid JPEG input at frame ${inputFrameIndex}: ${error}`);
-            }
+            checkFrame?.(copy, inputFrameIndex);
             const accepted = stdin.write(copy);
             inputFrameIndex++;
             // Reset inactivity timer immediately ONLY on `accepted === true`. `true`
@@ -417,7 +443,9 @@ export async function spawnStreamingEncoder(outputPath, options, signal, config)
                 managed.markActivity();
                 return true;
             }
+            const drainStart = Date.now();
             const drainResult = await waitForDrainOrExit(stdin);
+            drainWaitMs += Date.now() - drainStart;
             if (drainResult !== "drain" || exitStatus !== "running") {
                 return false;
             }
@@ -476,7 +504,7 @@ export async function spawnStreamingEncoder(outputPath, options, signal, config)
                 };
             }
             const fileSize = existsSync(outputPath) ? statSync(outputPath).size : 0;
-            return { success: true, durationMs, fileSize };
+            return { success: true, durationMs, fileSize, drainWaitMs };
         },
         getExitStatus: () => exitStatus,
         getExitError: () => {

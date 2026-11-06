@@ -13,7 +13,7 @@ import {
   splitElementInHtml,
   unwrapElementsFromHtml,
   wrapElementsInHtml
-} from "../chunk-OF4B2ILS.js";
+} from "../chunk-REQUL5L4.js";
 export {
   dedupeClonedCompositionId,
   findTargetElement,

@@ -1,3 +1,4 @@
+import { isWebKit } from "./mediaClock.js";
 /** Drift a playing element may carry before sync pulls it back onto the playhead. */
 export const MEDIA_SYNC_TOLERANCE_SECONDS = 0.04;
 export const MEDIA_HARD_SYNC_SECONDS = 0.5;
@@ -11,13 +12,27 @@ const MEDIA_STEER_RELEASE_SECONDS = 0.01;
 // Audio never steers past 10%, where speech changes tempo; a lag held past 100 ms is seeked instead.
 const AUDIO_MAX_STEER = 0.1;
 const AUDIO_STEER_LIMIT_SECONDS = 0.1;
+const WEBKIT_AUDIO_START_LAG_SECONDS = 0.65;
 /** Direction (+1 fast, -1 slow) an element is being steered in; absent when it plays at its authored rate. */
 const steering = new WeakMap();
+/** Started or seeked, not yet moving in tolerance: its lag is its own output latency, which a seek only renews. */
+const catchingUp = new WeakSet();
+export function markMediaRestarted(el) {
+    catchingUp.add(el);
+}
 /** Rate or seek for media `offset` s behind (+) or ahead (-); a lag still growing (`settled` false) never seeks. */
 export function steerMedia(el, offset, baseRate, settled, audioOnly = el.tagName === "AUDIO") {
     const lag = Math.abs(offset);
-    if (audioOnly && settled && lag > AUDIO_STEER_LIMIT_SECONDS) {
+    if (audioOnly && isWebKit()) {
         steering.delete(el);
+        return { rate: baseRate, seek: settled && lag > WEBKIT_AUDIO_START_LAG_SECONDS };
+    }
+    if (settled && lag <= MEDIA_SYNC_TOLERANCE_SECONDS)
+        catchingUp.delete(el);
+    const seekable = !catchingUp.has(el) || lag > MEDIA_HARD_SYNC_SECONDS;
+    if (audioOnly && settled && lag > AUDIO_STEER_LIMIT_SECONDS && seekable) {
+        steering.delete(el);
+        catchingUp.add(el);
         return { rate: baseRate, seek: true };
     }
     const direction = Math.sign(offset);
@@ -35,6 +50,7 @@ export function steerMedia(el, offset, baseRate, settled, audioOnly = el.tagName
 /** Drop `el`'s steering: it was seeked, paused or replaced, so its old offset says nothing. */
 export function forgetSteering(el) {
     steering.delete(el);
+    catchingUp.delete(el);
 }
 export function isSteering(el) {
     return steering.has(el);

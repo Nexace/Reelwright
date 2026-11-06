@@ -1,6 +1,6 @@
 import {
   probeAudioTrack
-} from "./chunk-X73QTST2.js";
+} from "./chunk-Y6EZUBYR.js";
 import {
   resolveWithinProject
 } from "./chunk-QF7MFJJU.js";
@@ -277,30 +277,24 @@ function audioNormalizationPlan(referenceTrack, targetTrack) {
   }
   const referenceLufs = referenceTrack.integratedLufs + gainDb(referenceTrack.volume);
   const targetLufs = targetTrack.integratedLufs + gainDb(targetTrack.volume);
-  const wantedGainDb = referenceLufs - targetTrack.integratedLufs;
-  if (wantedGainDb > MAX_AUDIO_GAIN_DB + 1e-9) {
-    throw new Error(
-      `Matching #${targetTrack.id} needs ${wantedGainDb.toFixed(1)} dB, beyond the +${MAX_AUDIO_GAIN_DB} dB authoring ceiling. A gap this large belongs in the source file, not the mixer: mixer gain raises the noise floor with the signal. Normalize ${targetTrack.id}'s asset offline (e.g. ffmpeg loudnorm), or lower #${referenceTrack.id} instead.`
-    );
-  }
-  const volume = 10 ** (wantedGainDb / 20);
-  const projectedTruePeakDbfs = targetTrack.truePeakDbfs + wantedGainDb;
-  if (projectedTruePeakDbfs > 0) {
-    throw new Error(
-      `Matching #${targetTrack.id} would clip at +${projectedTruePeakDbfs.toFixed(1)} dBFS; limit or preprocess the source first`
-    );
-  }
+  const previousGainDb = gainDb(targetTrack.volume);
+  const { appliedGainDb, limitedBy } = fittedGain(
+    referenceLufs - targetTrack.integratedLufs,
+    targetTrack.truePeakDbfs,
+    previousGainDb
+  );
   return {
     referenceId: referenceTrack.id,
     targetId: targetTrack.id,
     referenceLufs,
     targetLufs,
     previousVolume: targetTrack.volume,
-    volume,
-    gainDb: wantedGainDb,
-    changeDb: wantedGainDb - gainDb(targetTrack.volume),
-    projectedLufs: targetTrack.integratedLufs + wantedGainDb,
-    projectedTruePeakDbfs
+    volume: 10 ** (appliedGainDb / 20),
+    gainDb: appliedGainDb,
+    changeDb: appliedGainDb - previousGainDb,
+    projectedLufs: targetTrack.integratedLufs + appliedGainDb,
+    projectedTruePeakDbfs: targetTrack.truePeakDbfs + appliedGainDb,
+    limitedBy
   };
 }
 function updateAudioVolume(html, id, volume) {
@@ -363,17 +357,12 @@ function absoluteLoudnessPlan(track, targetLufs = DEFAULT_TARGET_LUFS) {
   if (track.integratedLufs <= SILENCE_LUFS) {
     throw new Error(`#${track.id} is silent in the played window; there is nothing to normalize`);
   }
-  const wantedGainDb = targetLufs - track.integratedLufs;
-  const peakRoomDb = NORMALIZE_TRUE_PEAK_CEILING_DBFS - track.truePeakDbfs;
-  const limits = [
-    [null, wantedGainDb],
-    ["gain-ceiling", MAX_AUDIO_GAIN_DB],
-    ["true-peak", peakRoomDb]
-  ];
-  const [limitedBy, appliedGainDb] = limits.reduce(
-    (lowest, candidate) => candidate[1] < lowest[1] - 1e-9 ? candidate : lowest
-  );
   const previousGainDb = track.volume > 0 ? gainDb(track.volume) : 0;
+  const { appliedGainDb, limitedBy } = fittedGain(
+    targetLufs - track.integratedLufs,
+    track.truePeakDbfs,
+    previousGainDb
+  );
   return {
     targetId: track.id,
     targetLufs,
@@ -386,6 +375,22 @@ function absoluteLoudnessPlan(track, targetLufs = DEFAULT_TARGET_LUFS) {
     projectedTruePeakDbfs: track.truePeakDbfs + appliedGainDb,
     limitedBy
   };
+}
+function fittedGain(wantedGainDb, truePeakDbfs, previousGainDb) {
+  const limits = [
+    [null, wantedGainDb],
+    ["gain-ceiling", MAX_AUDIO_GAIN_DB],
+    ["true-peak", NORMALIZE_TRUE_PEAK_CEILING_DBFS - truePeakDbfs]
+  ];
+  const [limitedBy, limitedGainDb] = limits.reduce(
+    (lowest, candidate) => candidate[1] < lowest[1] - 1e-9 ? candidate : lowest
+  );
+  const appliedGainDb = wantedGainDb > previousGainDb ? Math.max(limitedGainDb, previousGainDb) : limitedGainDb;
+  return { appliedGainDb, limitedBy };
+}
+function absoluteOutcome(plan, tolerance) {
+  if (Math.abs(plan.changeDb) > tolerance) return "change";
+  return Math.abs(plan.projectedLufs - plan.targetLufs) <= tolerance ? "matched" : "held";
 }
 
 export {
@@ -403,5 +408,6 @@ export {
   requiredFfmpeg,
   DEFAULT_TARGET_LUFS,
   NORMALIZE_TRUE_PEAK_CEILING_DBFS,
-  absoluteLoudnessPlan
+  absoluteLoudnessPlan,
+  absoluteOutcome
 };

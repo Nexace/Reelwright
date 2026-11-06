@@ -9,7 +9,7 @@ import { frameSequencePath } from "./extractedFrameIndex.js";
 import { closeSync, copyFileSync, existsSync, ftruncateSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, statSync, writeFileSync, writeSync, } from "fs";
 import { join, dirname, extname, resolve } from "path";
 import { DEFAULT_CONFIG } from "../config.js";
-import { getCachedGpuEncoder, getGpuEncoderName, buildVideoToolboxRateControlArgs, mapPresetForGpuEncoder, } from "../utils/gpuEncoder.js";
+import { getCachedGpuEncoder, getCachedNvencPresets, getGpuEncoderName, buildVideoToolboxRateControlArgs, mapPresetForGpuEncoder, } from "../utils/gpuEncoder.js";
 import { getHdrEncoderColorParams, hdrFrameTagsFilter } from "../utils/hdr.js";
 import { withEvenDimensionPad } from "../utils/evenDimensions.js";
 import { SDR_CAPTURE_TO_BT709_FILTER, SDR_RGB_TO_TAGGED_BT709_FILTER, } from "../utils/sdrCaptureColor.js";
@@ -169,7 +169,7 @@ export function appendRateCapArgs(args, options) {
     }
     args.push("-maxrate", String(Math.round(cap)), "-bufsize", String(Math.round(buffer)));
 }
-export function buildEncoderArgs(options, inputArgs, outputPath, gpuEncoder = null) {
+export function buildEncoderArgs(options, inputArgs, outputPath, gpuEncoder = null, nvencPresets) {
     const { fps, codec = "h264", preset = "medium", quality = 23, bitrate, pixelFormat = "yuv420p", vp9CpuUsed, useGpu = false, } = options;
     // libx264 cannot encode HDR. If a caller passes hdr with codec=h264 we'd
     // produce a "half-HDR" file (BT.2020 container tags but a BT.709 VUI block
@@ -190,7 +190,7 @@ export function buildEncoderArgs(options, inputArgs, outputPath, gpuEncoder = nu
             args.push("-c:v", encoderName);
             switch (gpuEncoder) {
                 case "nvenc":
-                    args.push("-preset", mapPresetForGpuEncoder("nvenc", preset));
+                    args.push("-preset", mapPresetForGpuEncoder("nvenc", preset, nvencPresets));
                     if (bitrate)
                         args.push("-b:v", bitrate);
                     else
@@ -437,7 +437,8 @@ export async function encodeFramesFromDir(framesDir, framePattern, outputPath, o
     }
     const inputPath = frameSequencePath(framesDir, framePattern);
     const inputArgs = ["-framerate", fpsToFfmpegArg(options.fps), "-i", inputPath];
-    const args = buildEncoderArgs(options, inputArgs, outputPath, gpuEncoder);
+    const nvencPresets = gpuEncoder === "nvenc" ? await getCachedNvencPresets() : undefined;
+    const args = buildEncoderArgs(options, inputArgs, outputPath, gpuEncoder, nvencPresets);
     const encodeTimeout = config?.ffmpegEncodeTimeout ?? DEFAULT_CONFIG.ffmpegEncodeTimeout;
     let framesRead = 0;
     const result = await runFfmpeg(args, {
@@ -587,7 +588,8 @@ export async function encodeFramesChunkedConcat(framesDir, framePattern, outputP
         let gpuEncoder = null;
         if (options.useGpu)
             gpuEncoder = await getCachedGpuEncoder();
-        const args = buildEncoderArgs(options, inputArgs, chunkPath, gpuEncoder);
+        const nvencPresets = gpuEncoder === "nvenc" ? await getCachedNvencPresets() : undefined;
+        const args = buildEncoderArgs(options, inputArgs, chunkPath, gpuEncoder, nvencPresets);
         const encodeTimeout = config?.ffmpegEncodeTimeout ?? DEFAULT_CONFIG.ffmpegEncodeTimeout;
         let framesRead = 0;
         const processResult = await runFfmpeg(args, {

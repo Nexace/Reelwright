@@ -1,6 +1,6 @@
 import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
 import { isRuntimeElementVisibleAt } from "./runtime/timeline.js";
-import { STUDIO_PREVIEW_MARK_META } from "./studioPreviewMark.js";
+import { defersMediaIn } from "./studioPreviewMark.js";
 export const FIRST_FRAME_READINESS_SCOPE = "first-frame";
 // HTMLMediaElement.HAVE_FUTURE_DATA per spec, used as a literal because not
 // every DOM implementation defines the named static (e.g. happy-dom leaves
@@ -37,7 +37,6 @@ function isActiveAtFirstFrame(element, resolver, timelineRegistry) {
                 currentTime: 0,
                 compositionDuration: Number.POSITIVE_INFINITY,
                 canonicalFps: 30,
-                exportRenderSeek: false,
                 timelineRegistry,
                 resolver,
             }))
@@ -60,8 +59,8 @@ export function scanPendingCompositionAssets(doc, { scope = "all" } = {}) {
         timelineRegistry: runtimeWindow?.__timelines,
         includeAuthoredTimingAttrs: true,
     });
-    // Studio's preview buffers a clip off the first frame only once it comes due, as with a lazy image.
-    const defersMedia = doc.querySelector(`meta[name="${STUDIO_PREVIEW_MARK_META}"]`) !== null;
+    // Studio's preview and the player buffer a clip off the first frame only once it comes due, as with a lazy image.
+    const defersMedia = defersMediaIn(doc);
     const pendingMedia = Array.from(doc.querySelectorAll("video, audio"))
         .filter(isRealmHtmlMediaElement)
         .filter((el) => shouldIncludeAsset(el, defersMedia && el.preload !== "auto" ? FIRST_FRAME_READINESS_SCOPE : scope, resolver, runtimeWindow?.__timelines ?? {}))

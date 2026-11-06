@@ -34,7 +34,25 @@ function normalizeAuthoredRootIdSelector(selector, authoredRootId) {
 function compositionBoxSelector(scope) {
     return `${scope}:not(:has([${INNER_ROOT_ATTR}])), ${scope} > [${INNER_ROOT_ATTR}]`;
 }
+function dropRootCompositionIdAttr(selector, authoredRootId, compositionId) {
+    const trimmed = authoredRootId?.trim();
+    if (!trimmed)
+        return selector;
+    const authored = escapeRegExp(`[${AUTHORED_ROOT_ID_ATTR}="${escapeCssAttributeValue(trimmed)}"]`);
+    const quotedCompId = escapeRegExp(compositionId);
+    const comp = String.raw `\[\s*data-composition-id\s*=\s*(?:"${quotedCompId}"|'${quotedCompId}')\s*\]`;
+    return selector.replace(new RegExp(`(${authored})${comp}|${comp}(${authored})`, "g"), "$1$2");
+}
 function scopeSelector(selector, scope, compositionId, authoredRootId, compoundAuthoredRoot, scopeRootSelectors) {
+    const authored = normalizeAuthoredRootIdSelector(selector, authoredRootId);
+    const wrapperAlone = dropRootCompositionIdAttr(authored, authoredRootId, compositionId);
+    const scopeOnce = (text) => scopeSelectorOnce(text, scope, compositionId, authoredRootId, compoundAuthoredRoot, scopeRootSelectors);
+    if (wrapperAlone === authored)
+        return scopeOnce(selector);
+    // A named host carries the id, the preserved inner root the authored id; an anonymous host's wrapper carries both.
+    return `${scopeOnce(authored).trim()}, ${scopeOnce(wrapperAlone).trim()}`;
+}
+function scopeSelectorOnce(selector, scope, compositionId, authoredRootId, compoundAuthoredRoot, scopeRootSelectors) {
     const selectorWithoutAuthoredRootId = normalizeAuthoredRootIdSelector(selector, authoredRootId);
     const selectorWithoutRootTiming = normalizeCompositionRootSelector(selectorWithoutAuthoredRootId, scope, compositionId);
     const trimmed = selectorWithoutRootTiming.trim();

@@ -14,35 +14,50 @@ var isCompositionSource = (html) => /data-composition-id\s*=/.test(html);
 var STAMP_RECORD = join(".hyperframes", "hf-ids-stamped.json");
 var contentHash = (text) => createHash("sha1").update(text).digest("base64url");
 function stampProjectHfIds(projectDir) {
+  const pass = stampPass(projectDir);
+  while (!pass.next().done) ;
+}
+async function stampProjectHfIdsAsync(projectDir) {
+  const pass = stampPass(projectDir);
+  while (!pass.next().done) await new Promise((resolve) => setImmediate(resolve));
+}
+function* stampPass(projectDir) {
   const recordPath = join(projectDir, STAMP_RECORD);
-  let last = {};
-  try {
-    last = JSON.parse(readFileSync(recordPath, "utf-8"));
-  } catch {
-  }
+  const last = readStampRecord(recordPath);
   const next = {};
   for (const file of walkDir(projectDir)) {
     if (!file.endsWith(".html") || isInHiddenOrVendorDir(file)) continue;
-    const absPath = join(projectDir, file);
-    let html;
-    try {
-      html = readFileSync(absPath, "utf-8");
-    } catch {
-      continue;
-    }
-    let hash = contentHash(html);
-    if (last[file] !== hash && isCompositionSource(html)) {
-      const stamped = stampFileHfIds(absPath);
-      if (stamped === null) continue;
-      hash = contentHash(stamped);
-    }
-    next[file] = hash;
+    const hash = hashAfterStamp(join(projectDir, file), last[file]);
+    if (hash !== null) next[file] = hash;
+    yield;
   }
+  writeStampRecord(projectDir, recordPath, next);
+}
+function readStampRecord(recordPath) {
+  try {
+    return JSON.parse(readFileSync(recordPath, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+function writeStampRecord(projectDir, recordPath, next) {
   try {
     mkdirWithinProject(projectDir, dirname(recordPath));
     writeFileSync(recordPath, JSON.stringify(next));
   } catch {
   }
+}
+function hashAfterStamp(absPath, recorded) {
+  let html;
+  try {
+    html = readFileSync(absPath, "utf-8");
+  } catch {
+    return null;
+  }
+  const hash = contentHash(html);
+  if (recorded === hash || !isCompositionSource(html)) return hash;
+  const stamped = stampFileHfIds(absPath);
+  return stamped === null ? null : contentHash(stamped);
 }
 function openNoFollow(filePath, flags) {
   const noFollow = constants.O_NOFOLLOW ?? 0;
@@ -93,5 +108,6 @@ function stampFileHfIds(filePath) {
 export {
   isCompositionSource,
   stampProjectHfIds,
+  stampProjectHfIdsAsync,
   stampFileHfIds
 };

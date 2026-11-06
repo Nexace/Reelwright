@@ -35,3 +35,5 @@ and list the change here.
 `npm pack katex@<version>` in a scratch folder, copy `dist/katex.min.js`, `dist/katex.min.css`, `dist/fonts/*.woff2`
 and `LICENSE` over these, update the version, integrity and sizes above, run `node tools/motion-check.mjs` and a film
 that uses `KIT.math.equation`.
+
+`kit.json` is ours, not upstream: it marks this folder for copying into `hf/kit/katex/` (tools/kit_files.mjs). Keep it when updating.

@@ -11,6 +11,7 @@
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
 # WARN lines, never failures, skippable the same way ("qa": {"overlap": false}): overlap, tiny-text, wordy (tools/qa_page.mjs),
 # dark (stretches over 2 s of flat near-black frames with no VO playing).
+# Plug-in checks: tools/checks/<name>.py and tools/checks/<name>.page.mjs, each a gate or a WARN (see below).
 # Then a variety line (WARN, never a failure) when another film in projects/ has the same theme or look (tools/look.mjs).
 import json, os, re, subprocess, sys
 import numpy as np
@@ -137,6 +138,22 @@ for f in src:
         hits += [f"{f}:{n}: {why}" for rx, why in BAD if re.search(rx, line)]
 gate("seekable", hits)
 
+# plug-in checks, each a file: tools/checks/<name>.py with KIND = "gate" | "warn" (default "warn") and check(ctx) → problem
+# lines, plus the tools/checks/<name>.page.mjs ones tools/qa_page.mjs ran. Skippable the same way ("qa": {"<name>": false}).
+import glob, importlib.util
+CTX = dict(proj=proj, P=P, fps=fps, frames=[os.path.join(D, f) for f in files], lums=lums, flat=flat, diffs=diffs, page=pg, mp4=mp4)
+plug = []
+for f in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "checks", "*.py"))):
+    name, kind = os.path.basename(f)[:-3], "gate"   # a check that can't load or throws is loud: a FAIL
+    try:
+        spec = importlib.util.spec_from_file_location("check_" + name, f); m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m); kind = getattr(m, "KIND", "warn")
+        plug.append((name, kind, list(m.check(CTX)) if Q.get(name) is not False else []))
+    except Exception as e: plug.append((name, kind, [f"check failed: {e}"]))
+plug += [(n, c["kind"], c["lines"]) for n, c in ((pg or {}).get("checks") or {}).items()]
+for name, kind, lines in plug:
+    if kind == "gate": gate(name, lines)
+
 # ── WARN-only checks (kept apart from the gates above; they never touch the exit code) ──
 def warn(name, lines):
     if Q.get(name) is not False:
@@ -159,6 +176,9 @@ if pg is not None:
                 run = None
         warn("dark", dk)
     except Exception as e: print(f"  WARN  dark: {e}")
+
+for name, kind, lines in plug:
+    if kind != "gate": warn(name, lines)
 
 # variety: a WARN line when another film in projects/ looks the same (tools/look.mjs); never fails the build
 r = subprocess.run([NODE, os.path.join(os.path.dirname(__file__), "look.mjs"), proj], capture_output=True, text=True)

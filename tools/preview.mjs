@@ -6,11 +6,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeTheme } from "./theme.mjs";
+import { copyKit, kitFiles } from "./kit_files.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const DIR = path.resolve(process.argv[2] || "projects/example");
 const PORT = Number(process.env.PORT || 4173);
-const KIT = ["engine.js", "kit.css", "layouts.js", "shots.js", "doodle.js", "math.js"];
 const posix = (p) => p.split(path.sep).join("/");
 const project = () => JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8"));
 const hf = () => project().renderer === "hyperframes";
@@ -23,11 +23,7 @@ function prepare() {
   try {
     const P = project();
     writeTheme(DIR, P);
-    if (P.renderer === "hyperframes") {
-      fs.mkdirSync(path.join(DIR, "hf", "kit"), { recursive: true });
-      for (const f of KIT) fs.copyFileSync(path.join(ROOT, "tools", f), path.join(DIR, "hf", "kit", f));
-      fs.cpSync(path.join(ROOT, "vendor", "katex"), path.join(DIR, "hf", "kit", "katex"), { recursive: true });
-    }
+    if (P.renderer === "hyperframes") copyKit(path.join(DIR, "hf"));
   } catch (e) { console.error(e.message); } finally { process.exit = exit; }
 }
 prepare();
@@ -93,5 +89,5 @@ function changed(rel) {
   }, 150);
 }
 fs.watch(DIR, { recursive: true }, (_, f) => changed(f && posix(f)));
-fs.watch(path.join(ROOT, "tools"), (_, f) => KIT.includes(f) && changed("tools/" + f));
+fs.watch(path.join(ROOT, "tools"), (_, f) => kitFiles().includes(f) && changed("tools/" + f));
 fs.watch(path.join(ROOT, "themes"), (_, f) => f && f.endsWith(".css") && changed("themes/" + f));

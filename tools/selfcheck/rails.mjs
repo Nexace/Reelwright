@@ -42,7 +42,7 @@ try {
   fs.writeFileSync(path.join(P, "film", "index.html"), `<body><script>window.KIT={token:()=>"#000",safe:{x:0,w:64},stage:document.body,u:1};` +
     `window.VO={};window.FILM={DUR:1};window.render=async()=>{};window.READY=Promise.resolve(true);</script></body>`);
   r = spawnSync(PY, [at("tools", "qa.py"), P], { cwd: ROOT, encoding: "utf8", env: { ...process.env, REELWRIGHT_NODE: process.execPath } });
-  assert.match(r.stdout, /FAIL {2}zz_rails\n {10}dummy gate on 2 frames/, r.stdout + r.stderr);
+  assert.match(r.stdout, /FAIL {2}zz_rails\r?\n {10}dummy gate on 2 frames/, r.stdout + r.stderr);
   assert.match(r.stdout, /WARN {2}zz-rails: page dummy function/, r.stdout + r.stderr);
   assert.equal(r.status, 1);
   console.log("rails self-check: command, help, kit module, kit library, python check, page check — all picked up");

@@ -17,7 +17,8 @@ const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/cs
   ".otf": "font/otf", ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".m4a": "audio/mp4",
   ".wav": "audio/wav", ".txt": "text/plain" };
 const TEXT = new Set([".html", ".css", ".svg"]);
-const rel = (f) => path.relative(ROOT, f).split(path.sep).join("/");
+let BASE = ROOT;   // asset keys are paths below this: the repo, or the folder holding a project that lives elsewhere
+const rel = (f) => path.relative(BASE, f).split(path.sep).join("/");
 const uri = (f, buf = fs.readFileSync(f)) => `data:${TYPES[path.extname(f).toLowerCase()] || "application/octet-stream"};base64,${buf.toString("base64")}`;
 const local = (u) => !/^(data:|blob:|https?:|about:|#|\/\/)/i.test(u);
 const noClose = (s) => s.replace(/<\/script/gi, "<\\/script");
@@ -149,7 +150,7 @@ async function sweep(page, fps) {
     const step = 1 / Math.min(fps, 30);
     for (let t = 0; t <= dur + 1e-6; t += step) await p.evaluate((x) => window.render(x), t);
   } finally { await browser.close(); }
-  return [...seen].filter((f) => f.startsWith(ROOT + path.sep) && fs.existsSync(f) && fs.statSync(f).isFile());
+  return [...seen].filter((f) => f.startsWith(BASE + path.sep) && fs.existsSync(f) && fs.statSync(f).isFile());
 }
 
 // the written page in a browser: it must become ready, and play with no network request
@@ -184,6 +185,8 @@ async function verify(out) {
 }
 
 export async function embed(dir, { out } = {}) {
+  dir = path.resolve(dir);
+  BASE = dir.startsWith(ROOT + path.sep) ? ROOT : path.dirname(dir);
   const P = JSON.parse(fs.readFileSync(path.join(dir, "project.json"), "utf8"));
   const hf = P.renderer === "hyperframes";
   const page = path.join(dir, hf ? "hf/index.html" : "film/index.html");

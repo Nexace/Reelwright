@@ -1,14 +1,15 @@
 # Vendored: HyperFrames
 
 - Upstream: https://github.com/heygen-com/hyperframes
-- Version: **0.8.217**, commit `4e2a1c215a42c6d262b8c635df9d5edff80e8830` (tag `v0.8.217`, 2026-10-29)
+- Version: **0.9.19**, commit `b4cc674f7f312e77ded32e0b53006cc0bad6723b` (tag `v0.9.19`, 2026-11-06). Updated from 0.8.217 in
+  Phase 10a; example-hf rendered byte-identical frames before and after (macOS).
 - License: Apache 2.0, see [LICENSE](LICENSE). Upstream has no `NOTICE` file. [CREDITS.md](CREDITS.md) is upstream's attribution list, kept as is.
 
 ## What we took
 
 | Folder | From | Why |
 |---|---|---|
-| `producer/`, `engine/`, `core/`, `parsers/`, `lint/`, `studio-server/` | the published npm tarballs `@hyperframes/<name>@0.8.217` (`npm pack`), which are upstream's own unminified esbuild output of `packages/<name>/src` at the commit above | the render chain `tools/renderers/hyperframes.mjs` calls (`createRenderRequest` → `executeRenderJob`) |
+| `producer/`, `engine/`, `core/`, `parsers/`, `lint/`, `studio-server/` | the published npm tarballs `@hyperframes/<name>@0.9.19` (`npm pack`), which are upstream's own unminified esbuild output of `packages/<name>/src` at the commit above | the render chain `tools/renderers/hyperframes.mjs` calls (`createRenderRequest` → `executeRenderJob`) |
 | `registry/components/` | `registry/components/` at the commit above: each component's `registry-item.json` and its one `.html` file, plus `CATALOG.md` | `reelwright add <component>` copies one into a project |
 
 Why the published builds and not `src/`: upstream builds with Bun and runtime-bundling scripts we don't run. The published `dist/` files are readable JavaScript and need no build step. To edit one, edit the `dist/` file and add a header (below).
@@ -26,7 +27,7 @@ Third-party code inside: none in what we took. Third-party npm packages the vend
 
 ## Updating
 
-1. `npm pack @hyperframes/{producer,engine,core,parsers,lint,studio-server}@<version>`, unpack each `package/` over its folder here, delete `*.d.ts` and `*.map`, strip `devDependencies` and `scripts` again.
+1. `npm pack @hyperframes/{producer,engine,core,parsers,lint,studio-server}@<version>`, unpack each `package/` over its folder here, delete `*.d.ts`, `*.d.cts` and `*.map`, strip `devDependencies` and `scripts` again.
 2. Re-copy `registry/components/*/{registry-item.json,<name>.html}` from the matching upstream tag.
 3. Update the version and commit above, re-apply any changes listed here, run CI.
 

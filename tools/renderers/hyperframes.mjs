@@ -16,6 +16,7 @@ import { launch } from "../browser.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { encode, blurOf, TRANSPARENT } from "./pvk.mjs";
 import { copyKit } from "../kit_files.mjs";
+import { shaderPass } from "./shader_pass.mjs";
 
 // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
 export function headlessShell() {
@@ -104,6 +105,7 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
     const SF = 10, out = path.join(DIR, "stills");
     fs.rmSync(out, { recursive: true, force: true });
     const seq = await hfRender(path.join(out, "_seq"), SF);
+    await shaderPass(path.join(HF, "index.html"), P.width || 1920, P.height || 1080, seq.map((f, i) => ({ t: i / SF, file: path.join(out, "_seq", f) })));
     const dur = seq.length / SF;
     const ts = a3 ? a3.split(",").map(Number) : Array.from({ length: 12 }, (_, i) => +((i + 0.5) * dur / 12).toFixed(2));
     for (const t of ts) {
@@ -117,7 +119,9 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
     if (a3) console.log("hyperframes renders the whole film; frame range ignored");
     const t0 = Date.now();
     if (HDR) fs.mkdirSync(path.dirname(hdrFile), { recursive: true });
-    const n = (await hfRender(HDR ? hdrFile : process.env.REELWRIGHT_FRAMES_DIR || path.join(DIR, "frames"), FPS, true)).length;
+    const fdir = HDR ? hdrFile : process.env.REELWRIGHT_FRAMES_DIR || path.join(DIR, "frames"), seq = await hfRender(fdir, FPS, true), n = seq.length;
+    // KIT.shader windows (not on the HDR path: that mp4 comes straight from the producer)
+    if (!HDR) await shaderPass(path.join(HF, "index.html"), P.width || 1920, P.height || 1080, seq.map((f, i) => ({ t: i / FPS, file: path.join(fdir, f) })));
     console.log(HDR ? `HDR mp4 in ${((Date.now() - t0) / 1000).toFixed(0)}s` : `${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   } else if (mode === "encode") {
     if (HDR) hdrMux();

@@ -14,6 +14,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
+import { shaderPass } from "./shader_pass.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
@@ -133,6 +134,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     fs.mkdirSync(out, { recursive: true });
     try { for (const t of ts) await shot(pages[0], t, path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg")); }
     finally { await browser.close(); }
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })));
     console.log("stills →", out, ts.join(", "));
   } else if (mode === "frames") {
     const { browser, pages, loaded } = await openPages(N, ALPHA);
@@ -177,6 +179,8 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
         for (const f of all) if (!miss.has(f)) fs.copyFileSync(key(f), name(f));
       }
     } finally { await browser.close(); }
+    // KIT.shader windows: always recomposited after the cache step (the cache holds the crossfade)
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })));
     const shots = [];   // runs of consecutive re-rendered frames
     for (const f of todo) { const s = shots[shots.length - 1]; if (s && s[1] === f - 1) s[1] = f; else shots.push([f, f]); }
     const list = shots.slice(0, 8).map(([a, b]) => `${a}–${b} (${(a / FPS).toFixed(2)}–${((b + 1) / FPS).toFixed(2)} s)`).join(", ");

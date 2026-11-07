@@ -1,0 +1,16 @@
+/* hf-bold: night-club poster. Near-black violet ground with a faint violet glow, hot-pink accent, cyan second voice;
+   condensed all-caps display; fast expo cuts with a little overshoot; captions on a dark violet slip, spoken word in pink.
+   Ported from HyperFrames theme pack "bold" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "hf-bold";
+  --kit-bg: #080611; --kit-bg-image: radial-gradient(ellipse at 85% 0%, rgba(124,92,255,.22), transparent 55%); --kit-ink: #fff8ff; --kit-muted: #b6a9ca;
+  --kit-accent: #ff3d81; --kit-accent-2: #00d4ff; --kit-on-accent: #080611; --kit-surface: #1b1230;
+  --kit-font-display: "Bebas Neue", Impact, sans-serif; --kit-font-text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "JetBrains Mono", Consolas, monospace; --kit-label-font: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: 0.01em; --kit-display-case: uppercase;
+  --kit-radius: 15px; --kit-border: 1px solid #493668; --kit-shadow: 0 30px 80px rgba(0,0,0,.5); --kit-space: 28px;
+  --kit-sub-bg: #1b1230; --kit-sub-ink: rgba(255,248,255,.6); --kit-sub-said: #ff3d81;
+  --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 15px; --kit-sub-deco: none;
+  --kit-ease: expo.out; --kit-tempo: 0.8; --kit-ease-in: expo.in; --kit-stagger: .05; --kit-settle: .45;
+}
+.kit-subrow { border: 1px solid #493668; }

@@ -1,0 +1,15 @@
+/* hf-neutral: quiet product UI. Cool grey ground, near-black ink, sky-blue accent with a royal-blue second; Inter throughout;
+   rounded cards with a hairline border; smooth cubic ease-outs; captions on a dark slip, spoken word in white.
+   Ported from HyperFrames theme pack "neutral" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "hf-neutral";
+  --kit-bg: #f3f4f6; --kit-bg-image: none; --kit-ink: #111318; --kit-muted: #626873;
+  --kit-accent: #0284c7; --kit-accent-2: #1d4ed8; --kit-on-accent: #ffffff; --kit-surface: #fcfcfd;
+  --kit-font-display: "Inter", "Helvetica Neue", Arial, sans-serif; --kit-font-text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "JetBrains Mono", Consolas, monospace; --kit-label-font: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-display-weight: 600; --kit-display-tracking: -0.025em; --kit-display-case: none;
+  --kit-radius: 26px; --kit-border: 1px solid #d7dbe2; --kit-shadow: 0 24px 60px rgba(17,19,24,.1); --kit-space: 26px;
+  --kit-sub-bg: rgba(17,19,24,.88); --kit-sub-ink: rgba(255,255,255,.6); --kit-sub-said: #ffffff;
+  --kit-sub-font: 600 32px var(--kit-font-text); --kit-sub-radius: 26px; --kit-sub-deco: none;
+  --kit-ease: power3.out; --kit-tempo: 1; --kit-ease-in: power2.in; --kit-stagger: .07; --kit-settle: .55;
+}

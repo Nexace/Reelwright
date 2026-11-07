@@ -1,0 +1,16 @@
+/* hf-editorial: warm paper. Sand ground, deep green-black ink, one teal accent and a bronze second; serif everywhere;
+   slow power2-style glides; captions on a pale paper slip with a thin rule, spoken word underlined in teal.
+   Ported from HyperFrames theme pack "editorial" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "hf-editorial";
+  --kit-bg: #e9e1d2; --kit-bg-image: none; --kit-ink: #202725; --kit-muted: #6c746f;
+  --kit-accent: #246b63; --kit-accent-2: #8a6549; --kit-on-accent: #f8f1e5; --kit-surface: #f8f1e5;
+  --kit-font-display: "Libre Baskerville", Georgia, serif; --kit-font-text: "EB Garamond", Georgia, serif;
+  --kit-font-mono: "IBM Plex Mono", Consolas, monospace; --kit-label-font: "EB Garamond", Georgia, serif;
+  --kit-display-weight: 400; --kit-display-tracking: -0.015em; --kit-display-case: none;
+  --kit-radius: 10px; --kit-border: 1px solid #c9bfad; --kit-shadow: 0 20px 50px rgba(32,39,37,.1); --kit-space: 24px;
+  --kit-sub-bg: #f8f1e5; --kit-sub-ink: rgba(32,39,37,.55); --kit-sub-said: #202725;
+  --kit-sub-font: 400 38px var(--kit-font-text); --kit-sub-radius: 10px; --kit-sub-deco: underline 2px #246b63;
+  --kit-ease: power2.out; --kit-tempo: 1.2; --kit-ease-in: power2.in; --kit-stagger: .09; --kit-settle: .75;
+}
+.kit-subrow { border: 1px solid #c9bfad; text-underline-offset: 7px; }

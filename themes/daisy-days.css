@@ -1,0 +1,18 @@
+/* daisy-days: picture-book stickers. Warm cream, charcoal outlines, hard offset shadows, candy coral, butter and turquoise;
+   round Fredoka headlines with Quicksand text; generous radii; bouncy overshoot motion;
+   captions on a rounded cream card with a coral candy chip on the spoken word.
+   Ported from HyperFrames frame preset "daisy-days" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "daisy-days";
+  --kit-bg: #f5f0e6; --kit-bg-image: none; --kit-ink: #2d2d2d; --kit-muted: #6b6b6b;
+  --kit-accent: #e5483f; --kit-accent-2: #7ecdc0; --kit-on-accent: #fffdf8; --kit-surface: #ffffff;
+  --kit-font-display: "Fredoka", "Quicksand", sans-serif; --kit-font-text: "Quicksand", system-ui, sans-serif;
+  --kit-font-mono: "Quicksand", system-ui, sans-serif; --kit-label-font: "Quicksand", system-ui, sans-serif;
+  --kit-display-weight: 600; --kit-display-tracking: 0.01em; --kit-display-case: none;
+  --kit-radius: 24px; --kit-border: 3px solid #2d2d2d; --kit-shadow: 6px 6px 0 #2d2d2d; --kit-space: 28px;
+  --kit-sub-bg: #f5f0e6; --kit-sub-ink: rgba(45,45,45,.55); --kit-sub-said: #2d2d2d;
+  --kit-sub-font: 700 34px var(--kit-font-text); --kit-sub-radius: 24px; --kit-sub-deco: none;
+  --kit-ease: back.out(1.56); --kit-tempo: .9; --kit-ease-in: power2.in; --kit-stagger: .06; --kit-settle: .5;
+}
+.kit-subrow { border: 3px solid #2d2d2d; box-shadow: 6px 6px 0 #2d2d2d; }
+.kit-subrow .now { background: #f8635f; border-radius: 12px; box-shadow: 0 0 0 3px #2d2d2d, 3px 5px 0 0 #2d2d2d; }

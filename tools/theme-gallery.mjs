@@ -3,7 +3,7 @@
 //   static    tools/theme-check.mjs (FAIL: tokens, #hex palette, bundled fonts; WARN: token contrast)
 //   page QA   tools/qa_page.mjs with the theme applied: caption gate (safe area, ≤ 2 lines, contrast ≥ 4.5 on real
 //             pixels), illustrative label, and the overlap / tiny-text / wordy WARNs
-//   stills    at 30 % and 70 % of each film → <out>/<NN theme>/ and <out>/sheet.jpg, one labelled row per theme
+//   stills    mid-sentence in the 2nd and 3rd VO lines of each film (captions showing) → <out>/<NN theme>/ and <out>/sheet.jpg, one labelled row per theme
 //             (out: scratch/theme-gallery). --sheet also writes a 1600 px wide copy, e.g. docs/playbook/theme-gallery.jpg.
 // Works on copies of the projects under <out>/work/, so the projects are untouched and runs with different --out can go
 // side by side. Needs each project's audio first (`reelwright audio <project>`). Exit 1 when any theme has a FAIL, a
@@ -34,7 +34,10 @@ const work = projects.map((p) => {
   const src = path.join(ROOT, "projects", p), dst = path.join(OUT, "work", p);
   if (!fs.existsSync(path.join(src, "timeline.json"))) { console.error(`run \`reelwright audio ${p}\` first`); process.exit(1); }
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !SKIP.has(path.relative(src, f).split(path.sep)[0]) });
-  return [p, dst, JSON.parse(fs.readFileSync(path.join(dst, "timeline.json"), "utf8")).DUR];
+  // mid-sentence of the 2nd and 3rd VO lines: captions (where a film has them) are on screen, half the words spoken
+  const T = JSON.parse(fs.readFileSync(path.join(dst, "timeline.json"), "utf8")), vo = Object.values(T.VO || {});
+  const ts = vo.length >= 3 ? vo.slice(1, 3).map((v) => (v.start + v.end) / 2) : [0.3 * T.DUR, 0.7 * T.DUR];
+  return [p, dst, ts.map((t) => t.toFixed(2)).join(",")];
 });
 
 let bad = 0;
@@ -42,10 +45,10 @@ names.forEach((name, k) => {
   const { fail, warn } = checkTheme(name), issues = [...fail.map((x) => "FAIL " + x), ...warn.map((x) => "WARN " + x)];
   const row = path.join(OUT, `${String(k + 1).padStart(2, "0")} ${name}`);
   fs.mkdirSync(row, { recursive: true });
-  for (const [p, dir, dur] of work) {
+  for (const [p, dir, ts] of work) {
     const env = { REELWRIGHT_STYLE: name }, stills = path.join(dir, "stills");
     try {
-      run(process.execPath, ["tools/render.mjs", dir, "stills", [0.3, 0.7].map((f) => (f * dur).toFixed(2)).join(",")], env);
+      run(process.execPath, ["tools/render.mjs", dir, "stills", ts], env);
       for (const f of fs.readdirSync(stills).filter((f) => f.endsWith(".jpg")).sort()) fs.copyFileSync(path.join(stills, f), path.join(row, `${p} ${f}`));
       fs.rmSync(stills, { recursive: true, force: true });
       const q = JSON.parse(run(process.execPath, ["tools/qa_page.mjs", dir], env).trim().split("\n").pop());

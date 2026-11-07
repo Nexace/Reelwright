@@ -1,0 +1,17 @@
+/* broadside: protest-poster dark register. Ink-black ground, cream type, one fire-orange accent, flat plane with 1px hairlines;
+   massive lowercase Barlow 900 over IBM Plex Mono chrome; fast expo cuts; captions as an ink plate on an orange hairline with the spoken word flipped to orange.
+   Ported from HyperFrames frame preset "broadside" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "broadside";
+  --kit-bg: #111111; --kit-bg-image: none; --kit-ink: #F0ECE5; --kit-muted: #888880;
+  --kit-accent: #E85D26; --kit-accent-2: #F0ECE5; --kit-on-accent: #111111; --kit-surface: #1A1A18;
+  --kit-font-display: "Barlow", "Helvetica Neue", Arial, sans-serif; --kit-font-text: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "IBM Plex Mono", ui-monospace, monospace; --kit-label-font: "IBM Plex Mono", ui-monospace, monospace;
+  --kit-display-weight: 900; --kit-display-tracking: -0.04em; --kit-display-case: lowercase;
+  --kit-radius: 0px; --kit-border: 1px solid #282826; --kit-shadow: none; --kit-space: 28px;
+  --kit-sub-bg: #111111; --kit-sub-ink: rgba(240,236,229,.55); --kit-sub-said: #F0ECE5; --kit-sub-now: #111111;
+  --kit-sub-font: 900 36px var(--kit-font-display); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: expo.out; --kit-tempo: 0.75; --kit-ease-in: expo.in; --kit-stagger: .04; --kit-settle: .35;
+}
+.kit-subrow { border: 1px solid #E85D26; text-transform: lowercase; letter-spacing: -0.02em; }
+.kit-subrow .now { background: #E85D26; box-shadow: 0 0 0 5px #E85D26; }

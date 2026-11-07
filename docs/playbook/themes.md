@@ -61,3 +61,7 @@ settle.
   with `./video.sh audio <project>`.
 - A new theme: copy the closest file, change the values, and run both tools until they print nothing. Then look at the
   sheet.
+
+Known WARNs (owner's call, left as they are): the brand accents of brutalist (yellow on white, 1.27:1), pastel (accent
+2.05, muted 2.64/2.96, on-accent 2.30), playful (accent 2.23) and retro (accent 2.53, on-accent 2.53) sit under the 3:1
+token contrast. Everything else in all 27 themes prints clean in `theme-gallery`.

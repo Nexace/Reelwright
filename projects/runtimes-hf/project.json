@@ -1,0 +1,21 @@
+{
+  "title": "Reelwright — animation runtimes",
+  "renderer": "hyperframes",
+  "style": "neon",
+  "out": "out/runtimes-hf.mp4",
+  "fps": 30,
+  "ci": true,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+6%",
+  "pitch": "+0Hz",
+  "lead": 0.6,
+  "tail": 1.6,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 110, "duck_db": -10, "style": "drive", "drop_bar": 1 },
+  "lines": [
+    { "id": "libs",  "gap": 0.0, "text": "Bring GSAP, Lottie and anime." },
+    { "id": "three", "gap": 0.5, "text": "Or a Three scene." },
+    { "id": "end",   "gap": 0.5, "text": "Every frame seeks." }
+  ]
+}

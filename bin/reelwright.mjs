@@ -40,8 +40,10 @@
 //
 //   --lang <code>         voice project.json langs.<code> (its voice + lines), output <out>-<code>.mp4 + .srt/.vtt
 //   --style <name>        build with themes/<name>.css, output <out>-<name>.mp4
-//   --formats 16x9,9x16,1x1   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080):
+//   --formats 16x9,9x16,1x1,4x5   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080, 1080×1350):
 //                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
+//   --as <format>         extra output beside the mp4: webm, mov, gif, apng or png (a folder); same as project.json
+//                         "output": {"format": …}
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
 //
 // Plug-in commands (tools/commands/<name>.mjs; each file's header comment is its help, listed below):
@@ -64,7 +66,9 @@ const lg = args.indexOf("--lang");     // any command: voice project.json langs.
 if (lg >= 0) process.env.REELWRIGHT_LANG = args.splice(lg, 2)[1];
 const nc = args.indexOf("--no-cache");   // frames: render every frame (tools/renderers/pvk.mjs frame cache off)
 if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
-const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080" };
+const as = args.indexOf("--as");   // encode: also write this format beside the mp4 (tools/renderers/pvk.mjs encode)
+if (as >= 0) process.env.REELWRIGHT_OUT_FORMAT = args.splice(as, 2)[1] || "";
+const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080", "4x5": "1080x1350" };
 const fo = args.indexOf("--formats");
 const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
 if (formats && (!formats.length || formats.some((f) => !SIZES[f]))) {

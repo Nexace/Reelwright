@@ -40,6 +40,6 @@ PQ/HLG, detected by ffprobe). Then the output is HEVC Main 10, `bt2020nc`/`bt202
 `smpte2084` matching the source. A composition with no HDR source still logs "output: HLG" but the file is plain SDR
 H.264 (`bt709`). HDR cannot be combined with alpha or another format.
 
-## 4:5
+## 4:5 and 16:10
 `--formats 4x5` renders 1080×1350 (Instagram feed portrait), next to `16x9`, `9x16`, `1x1`. Films that lay out in the
-title-safe box (`KIT.safe`, `KIT.u`) already adapt.
+title-safe box (`KIT.safe`, `KIT.u`) already adapt. `--formats 16x10` renders 1920×1200 (laptop-screen ratio) the same way.

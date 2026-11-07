@@ -12,9 +12,10 @@
   --kit-font-mono: "Patrick Hand", cursive; --kit-label-font: "Patrick Hand", cursive;
   --kit-display-weight: 700; --kit-display-tracking: 0; --kit-display-case: none;
   --kit-radius: 18px; --kit-border: 3px solid #2b2b30; --kit-shadow: 4px 6px 0 #2b2b30; --kit-space: 28px;
-  --kit-sub-bg: #fffdf7; --kit-sub-ink: rgba(43,43,48,.4); --kit-sub-said: #ee4b35;
+  --kit-sub-bg: #fffdf7; --kit-sub-ink: rgba(43,43,48,.4); --kit-sub-said: #c4301c;
   --kit-sub-font: 400 36px var(--kit-font-text); --kit-sub-radius: 14px; --kit-sub-deco: none;
   --kit-ease: settle; --kit-tempo: 1; --kit-ease-in: power2.in; --kit-stagger: .07; --kit-settle: .55;
   --kit-boil: 8;
 }
 .kit-subrow { border: 3px solid #2b2b30; box-shadow: 3px 4px 0 #2b2b30; }
+.kit-lay-title { text-wrap: balance; }

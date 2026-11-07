@@ -49,7 +49,19 @@ async function check(page) {
     const step = 1 / Math.min(F.FPS || 30, T.STEP_FPS), n = Math.floor(F.DUR / step) + 1;
     const every = Math.max(1, Math.round(T.SAMPLE / step)), u = (K && K.u) || Math.min(W, H) / 1080;
     const t2 = (t) => t.toFixed(2);
-    const rgba = (c) => { const m = String(c).match(/[\d.]+/g) || [0, 0, 0, 0]; return m.length < 4 ? [...m.slice(0, 3).map(Number), 1] : m.slice(0, 4).map(Number); };
+    // any computed colour (rgb(), color(srgb …) from color-mix, oklch(), …) → [r, g, b, a] via a 1×1 canvas; null when
+    // the canvas can't parse it (assigning an unknown colour leaves fillStyle at the sentinel)
+    const cx1 = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+    cx1.globalCompositeOperation = 'copy';
+    const cols = new Map();
+    const rgba = (c) => {
+      c = String(c); if (cols.has(c)) return cols.get(c);
+      cx1.fillStyle = '#010203'; cx1.fillStyle = c; const f1 = cx1.fillStyle;
+      cx1.fillStyle = '#040506'; cx1.fillStyle = c;
+      let v = null;
+      if (f1 !== '#010203' || cx1.fillStyle !== '#040506') { cx1.fillRect(0, 0, 1, 1); const d = cx1.getImageData(0, 0, 1, 1).data; v = [d[0], d[1], d[2], d[3] / 255]; }
+      cols.set(c, v); return v;
+    };
     const lum = (c) => { const l = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
     const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, q) => q - m); return (x + 0.05) / (y + 0.05); };
     const over = (top, a, bot) => top.slice(0, 3).map((v, i) => v * a + bot[i] * (1 - a));
@@ -64,7 +76,7 @@ async function check(page) {
       if (e instanceof SVGElement) return SHAPES.test(e.tagName) && !e.closest('defs, clipPath, mask, symbol, marker');
       if (/^(IMG|CANVAS|VIDEO)$/.test(e.tagName) || direct(e)) return true;
       const s = getComputedStyle(e);
-      return rgba(s.backgroundColor)[3] > 0 || s.backgroundImage !== 'none' || parseFloat(s.borderTopWidth) + parseFloat(s.borderLeftWidth) > 0;
+      return (rgba(s.backgroundColor) || [0, 0, 0, 1])[3] > 0 || s.backgroundImage !== 'none' || parseFloat(s.borderTopWidth) + parseFloat(s.borderLeftWidth) > 0;
     }).slice(0, T.MAX_TRACK);
     const N = els.length, text = els.map((e) => !(e instanceof SVGElement) && direct(e)), shape = els.map((e) => e instanceof SVGElement);
     const name = (e) => {
@@ -80,7 +92,7 @@ async function check(page) {
       v = s.display === 'none' ? 0 : Number(s.opacity) * opOf(e.parentElement);
       memo.set(e, v); return v;
     };
-    const base = (() => { for (const e of [document.body, document.documentElement]) { const c = rgba(getComputedStyle(e).backgroundColor); if (c[3] > 0) return c; } return [0, 0, 0, 1]; })();
+    const base = (() => { for (const e of [document.body, document.documentElement]) { const c = rgba(getComputedStyle(e).backgroundColor); if (c && c[3] > 0) return c; } return [255, 255, 255, 1]; })();   // unpainted page: the browser's white
     // what's behind text e at (x, y): every layer under it, composited down to the page background; null when an
     // image or gradient is in the way (unknowable from the DOM: no line rather than a guess)
     const backOf = (e, x, y) => {
@@ -91,13 +103,17 @@ async function check(page) {
       for (const l of layers) {
         const s = getComputedStyle(l);
         if (s.backgroundImage !== 'none' || /^(IMG|CANVAS|VIDEO|svg)$/i.test(l.tagName)) { if (opOf(l) > 0.05) return null; continue; }
-        const c = rgba(s.backgroundColor), a = c[3] * opOf(l);
+        const c = rgba(s.backgroundColor); if (!c) return null;
+        const a = c[3] * opOf(l);
         if (a > 0.01) keep.push([c, a]);
         if (a >= 0.99) break;
       }
       return keep.reduceRight((bot, [c, a]) => over(c, a, bot), base);
     };
 
+    // a canvas's look: its pixels shrunk to 8×8; a canvas we can't read (tainted) counts as changing every frame
+    const px8 = Object.assign(document.createElement('canvas'), { width: 8, height: 8 }).getContext('2d', { willReadFrequently: true });
+    const pixels = (e, i) => { try { if (!e.width || !e.height) return ''; px8.clearRect(0, 0, 8, 8); px8.drawImage(e, 0, 0, 8, 8); return px8.getImageData(0, 0, 8, 8).data.join(); } catch { return 'unreadable ' + i; } };
     const vis = [], X = [], Y = [], SW = [], SH = [], OP = [], changed = new Uint8Array(n), samples = [];
     let prevText = [];
     for (let i = 0; i < n; i++) {
@@ -111,6 +127,8 @@ async function check(page) {
         v[k] = r.width > 0 && r.height > 0 && r.right > 0 && r.bottom > 0 && r.left < W && r.top < H && o > 0.05 && getComputedStyle(e).visibility !== 'hidden' ? 1 : 0;
         if (text[k]) txt[k] = e.textContent;
         else if (shape[k]) { const c = getComputedStyle(e); txt[k] = e.getAttribute('d') + c.strokeDashoffset + c.strokeDasharray; }   // draw-on and morphs keep the box
+        else if (e.tagName === 'VIDEO') txt[k] = e.currentTime + ':' + e.paused;   // footage plays inside a fixed box
+        else if (e.tagName === 'CANVAS') txt[k] = pixels(e, i);
       }
       if (i) for (let k = 0; k < N && !changed[i]; k++) {
         const p = i - 1;
@@ -131,8 +149,9 @@ async function check(page) {
         if (shape[k]) { const g = e.ownerSVGElement, u0 = svgs.get(g); svgs.set(g, u0 ? [Math.min(u0[0], L), Math.min(u0[1], Tp), Math.max(u0[2], R), Math.max(u0[3], B)] : [L, Tp, R, B]); continue; }
         boxes.push([L, Tp, R, B]);
         if (text[k] && op[k] >= 0.9) {
+          if (/^\s*illustrative\b/i.test(e.textContent)) continue;   // the required, deliberately muted label (as qa_page's tiny-text)
           const s = getComputedStyle(e), fg = rgba(s.color);
-          if (fg[3] < 0.1) continue;   // gradient / clipped-background text: its colour isn't the ink
+          if (!fg || fg[3] < 0.1) continue;   // unparsed colour, or gradient / clipped-background text: its colour isn't the ink
           const back = backOf(e, (L + R) / 2, (Tp + B) / 2);
           if (!back) continue;
           const sc = e.offsetWidth ? e.getBoundingClientRect().width / e.offsetWidth : 1, px = parseFloat(s.fontSize) * (sc || 1);
@@ -250,14 +269,17 @@ async function check(page) {
 }
 
 // a WARN check must never throw (qa would turn it into a FAIL gate): an odd film gets one line instead
-export default async (page) => { try { return await check(page); } catch (e) { return [`taste check skipped: ${e.message}`]; } };
+export default async (page) => { try { return await check(page); } catch (e) { return [`taste check skipped: ${String((e && e.message) || e).split('\n')[0]}`]; } };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   if (!process.argv[2]) { console.error("usage: node tools/checks/taste.page.mjs <project>"); process.exit(2); }
   const { launch } = await import("../browser.mjs");
   const DIR = path.resolve(process.argv[2]);
-  const P = JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8"));
-  const file = path.join(DIR, P.renderer === "hyperframes" ? "hf/index.html" : "film/index.html");
+  let P, file;
+  try { P = JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8")); }
+  catch (e) { console.error(`taste: can't read ${path.join(DIR, "project.json")}: ${e.message.split("\n")[0]}`); process.exit(1); }
+  file = path.join(DIR, P.renderer === "hyperframes" ? "hf/index.html" : "film/index.html");
+  if (!fs.existsSync(file)) { console.error(`taste: no film page ${file} (build the project first)`); process.exit(1); }
   const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files"]);
   try {
     const p = await browser.newPage({ viewport: { width: P.width || 1920, height: P.height || 1080 } });
@@ -266,8 +288,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     if (!(await p.evaluate(() => window.READY).catch(() => false))) {
       console.error(`${file} failed to load: ${errs.join("; ") || "READY never resolved"}`); process.exitCode = 1;
     } else {
-      const lines = await check(p);
-      console.log(lines.length ? lines.join("\n") : "taste: no problems");
+      let lines;
+      try { lines = await check(p); } catch (e) { console.error(`taste: check failed: ${e.message.split("\n")[0]}`); process.exitCode = 1; }
+      if (lines) console.log(lines.length ? lines.join("\n") : "taste: no problems");
     }
   } finally { await browser.close(); }
 }

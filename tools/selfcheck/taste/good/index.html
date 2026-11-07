@@ -1,6 +1,10 @@
 <!doctype html>
 <!-- tools/selfcheck/taste.mjs fixture: an 8 s film the taste check should pass: centred, eased motion, contrasty text,
-     a normal VO rate and something always moving. -->
+     a normal VO rate and something always moving. Two traps for the check itself:
+       #mix     dark oklch() text on a color-mix() card: Chrome computes these as oklch(…) / color(srgb …), which a
+                naive rgb() regex misreads as ~1:1 contrast
+       #canvas  from 2 s on, the only thing moving is what render(t) draws inside this fixed canvas: that is motion,
+                not a static frame -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -9,7 +13,11 @@
   body { background: #0f1115; }
   #card { left: 560px; top: 340px; width: 800px; height: 300px; background: #1b1e24; color: #f4f1ea; border-radius: 14px;
           font: 700 56px sans-serif; display: flex; align-items: center; justify-content: center; }
-  #dot { left: 920px; top: 700px; width: 80px; height: 80px; border-radius: 50%; background: #6ee7b7; }
+  #mix { left: 660px; top: 130px; width: 600px; height: 150px; border-radius: 14px; font: 600 40px sans-serif;
+         background: color-mix(in srgb, #ffffff 85%, #6ee7b7); color: oklch(25% 0.02 260);
+         display: flex; align-items: center; justify-content: center; }
+  #dot { left: 920px; top: 670px; width: 80px; height: 80px; border-radius: 50%; background: #6ee7b7; }
+  #canvas { left: 810px; top: 790px; }
 </style>
 </head>
 <body>
@@ -24,13 +32,17 @@ window.VO = { calm: { at: 0.5, start: 0.5, end: 3.5, text: words.join(" "), word
 'use strict';
 const { el, show, seg, E } = KIT;
 const card = el('div', '', undefined, 'Steady and clear'); card.id = 'card';
+const mix = el('div', '', undefined, 'Mixed colours'); mix.id = 'mix';
 const dot = el('div'); dot.id = 'dot';
+const cv = el('canvas'); cv.id = 'canvas'; cv.width = 300; cv.height = 160;
+const g = cv.getContext('2d');
 function render(t) {
   const p = E.out(seg(t, 0.2, 1.0));
-  show(card, p);
-  card.style.transform = `translate(${40 * Math.sin(2 * Math.PI * t / 4)}px, ${(1 - p) * 60}px)`;   // eased in, then a slow drift
-  const q = (t / 2) % 2, k = E.inOut(q < 1 ? q : 2 - q);                                           // eased ping-pong
-  dot.style.transform = `translateX(${-200 + 400 * k}px)`;
+  show(card, p); show(mix, p);
+  card.style.transform = `translateY(${(1 - p) * 60}px)`;   // eased in, then it holds
+  dot.style.transform = `translateX(${-200 + 400 * E.inOut(seg(t, 0, 2))}px)`;   // eased across, comes to rest at 2 s
+  g.fillStyle = '#1b1e24'; g.fillRect(0, 0, cv.width, cv.height);   // the canvas animation: a bar sweeping back and forth
+  g.fillStyle = '#93c5fd'; g.fillRect(130 + 110 * Math.sin(t * 2), 20, 40, 120);
 }
 KIT.start({ dur: 8, render });
 </script>

@@ -13,6 +13,7 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
+import { pagesMedia, mediaMix } from "./media.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
@@ -73,6 +74,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       const ok = await p.evaluate(() => window.READY).catch((e) => { console.error(e.message); return false; });
       if (!ok || errors) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
       if (alpha) await p.addStyleTag({ content: TRANSPARENT });
+      await pagesMedia(DIR, p, FPS, path.join(DIR, "film"), { frames: mode !== "info" });   // KIT.video / KIT.audio (tools/media.js)
       pages.push(p);
     }
     return { browser, pages, loaded };
@@ -196,7 +198,7 @@ const FORMATS = ["mp4", "webm", "mov", "gif", "apng", "png"];
 
 // the audio inputs of one encode: the one place that decides what is mixed in (mix.wav today)
 function audioInputs(DIR) {
-  const audio = path.join(DIR, "mix.wav");
+  const audio = mediaMix(DIR) || path.join(DIR, "mix.wav");   // mix.wav + KIT.audio clips, when the film has any
   if (!fs.existsSync(audio)) return { args: [], has: false };
   return { args: ["-i", audio], has: true };
 }

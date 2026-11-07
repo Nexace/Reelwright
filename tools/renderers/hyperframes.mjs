@@ -13,6 +13,7 @@ import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { chromium } from "playwright";
 import { launch } from "../browser.mjs";
+import { pagesMedia, mediaMix } from "./media.mjs";
 import { encode, blurOf, TRANSPARENT } from "./pvk.mjs";
 import { copyKit } from "../kit_files.mjs";
 
@@ -73,7 +74,7 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
 
   // the producer's HDR mp4 (frames/hdr.mp4) + mix.wav → the mp4 at "out", video copied untouched
   function hdrMux() {
-    const outFile = path.join(DIR, P.out || "out/film.mp4"), audio = path.join(DIR, "mix.wav");
+    const outFile = path.join(DIR, P.out || "out/film.mp4"), audio = mediaMix(DIR) || path.join(DIR, "mix.wav");
     if (!fs.existsSync(hdrFile)) { console.error("no frames/hdr.mp4 — run frames first"); process.exit(1); }
     if ((process.env.REELWRIGHT_OUT_FORMAT || P.output.format || "mp4") !== "mp4") console.log("HDR is mp4 only — other output formats ignored");
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
@@ -92,6 +93,7 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
     p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
     await p.goto(pathToFileURL(path.join(HF, "index.html")).href);
     const film = await p.evaluate(async () => (await window.READY) && window.FILM).catch((e) => { console.error(e.message); });
+    if (film && !errors) await pagesMedia(DIR, p, FPS, HF, { frames: false });   // KIT.audio / KIT.video sound → .cache/media-audio.json
     await browser.close();
     if (!film || errors) { console.error("hf/index.html failed to load — fix the errors above"); process.exit(1); }
     fs.writeFileSync(path.join(DIR, "timeline.json"), JSON.stringify(film, null, 1));

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 // family → weights the themes use (themes/*/theme.css)
 const FAMILIES = {
-  "Playfair Display": [700], "Source Serif 4": [400, 600],
+  "Playfair Display": [400, 700], "Source Serif 4": [400, 600],
   "Archivo Black": [400], "Space Mono": [400, 700],
   "Quicksand": [600, 700], "Nunito": [400, 700],
   "Space Grotesk": [500, 700], "JetBrains Mono": [400, 600],
@@ -19,6 +19,10 @@ const FAMILIES = {
   "Manrope": [400, 700, 800],
   "Syne": [700, 800],
   "Caveat": [400, 700], "Patrick Hand": [400],
+  // HyperFrames frame presets (themes/hf-*.css)
+  "Archivo": [400, 600], "Instrument Serif": [400], "Libre Baskerville": [400], "Barlow": [400, 900],
+  "IBM Plex Mono": [500], "Bodoni Moda": [700], "DM Mono": [400], "Hanken Grotesk": [400, 600],
+  "Newsreader": [400], "EB Garamond": [400], "Bebas Neue": [400],
 };
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 const slug = (f) => f.toLowerCase().replace(/\s+/g, "-");

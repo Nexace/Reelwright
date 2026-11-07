@@ -1,0 +1,1 @@
+| three.js 0.187.0 (`three.module.js`, `three.core.js`) | `vendor/three/` | MIT (SPDX `MIT`), [LICENSE](vendor/three/LICENSE) | Copyright three.js authors. https://github.com/mrdoob/three.js. Renders 3D scenes for `KIT.three` (tools/runtimes.js). Unchanged, unminified; what we took: [VENDORED.md](vendor/three/VENDORED.md). |

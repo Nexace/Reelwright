@@ -1,0 +1,17 @@
+/* blue-professional: warm cream canvas, one saturated cobalt accent, soft cobalt-tinted cards with hairline borders and no shadows;
+   Space Grotesk over Inter; measured corporate motion; captions as a tinted card with the spoken word on a cobalt chip.
+   Ported from HyperFrames frame preset "blue-professional" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "blue-professional";
+  --kit-bg: #fdfae7; --kit-bg-image: none; --kit-ink: #111111; --kit-muted: #6b6b6b;
+  --kit-accent: #1e2bfa; --kit-accent-2: #059669; --kit-on-accent: #fdfae7; --kit-surface: #f4f2e8;
+  --kit-font-display: "Space Grotesk", "Inter", sans-serif; --kit-font-text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "Space Grotesk", "Inter", sans-serif; --kit-label-font: "Space Grotesk", "Inter", sans-serif;
+  --kit-display-weight: 700; --kit-display-tracking: -0.02em; --kit-display-case: none;
+  --kit-radius: 14px; --kit-border: 1.5px solid rgba(30,43,250,.2); --kit-shadow: none; --kit-space: 28px;
+  --kit-sub-bg: #f4f2e8; --kit-sub-ink: #6b6b6b; --kit-sub-said: #111111; --kit-sub-now: #fdfae7;
+  --kit-sub-font: 500 32px var(--kit-font-display); --kit-sub-radius: 14px; --kit-sub-deco: none;
+  --kit-ease: corporate; --kit-tempo: 1; --kit-ease-in: accel; --kit-stagger: .08; --kit-settle: .6;
+}
+.kit-subrow { border: 1.5px solid rgba(30,43,250,.2); }
+.kit-subrow .now { background: #1e2bfa; border-radius: 100px; box-shadow: 0 0 0 6px #1e2bfa; }

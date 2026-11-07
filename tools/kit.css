@@ -64,7 +64,7 @@ html, body { overflow: hidden; }   /* size set by engine.js from project.json wi
 .kit-lay-card { background: var(--kit-surface); border: var(--kit-border); border-radius: var(--kit-radius); box-shadow: var(--kit-shadow);
   overflow: hidden; position: relative; }
 .kit-lay-text { display: flex; flex-direction: column; gap: calc(22 * var(--kit-u)); }
-.kit-lay-kicker, .kit-lay-note { font-family: var(--kit-label-font); font-size: calc(22 * var(--kit-u)); letter-spacing: .14em;
+.kit-lay-kicker, .kit-lay-note { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em;
   text-transform: uppercase; color: var(--kit-accent); }
 .kit-lay-title { font-size: calc(80 * var(--kit-u)); }
 .kit-lay-body { font-size: calc(34 * var(--kit-u)); line-height: 1.35; color: var(--kit-muted); }

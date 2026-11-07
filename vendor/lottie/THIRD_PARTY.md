@@ -1,0 +1,1 @@
+| lottie-web 5.13.0 (`lottie.min.js`) | `vendor/lottie/` | MIT (SPDX `MIT`), [LICENSE.md](vendor/lottie/LICENSE.md) | Copyright Bodymovin. https://github.com/airbnb/lottie-web. Plays Lottie animations for `KIT.lottie` (tools/runtimes.js). Unchanged; what we took: [VENDORED.md](vendor/lottie/VENDORED.md). |

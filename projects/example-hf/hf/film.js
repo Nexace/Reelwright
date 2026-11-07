@@ -31,7 +31,7 @@ cue(WIPE, 'whoosh');
 // ── 3. bar chart grows on the beat after "grows" ─────────────────────────
 const chart = KIT.block('animated-bar-chart');
 chart.querySelector('h3').textContent = 'Films shipped per week';
-chart.querySelector('p').textContent = 'Seven weeks, one script each';
+Object.assign(chart.querySelector('p'), { textContent: 'Seven weeks, one script each' }).style.fontSize = '26px';   // ≥ 24 px (tiny-text)
 const label = el('div', 'label', undefined, 'Illustrative data');
 { // chart + its label as one group, centred in the safe box
   const box = chart.parentNode, h = box.offsetHeight * scaleOf(box), gap = 32 * KIT.u;

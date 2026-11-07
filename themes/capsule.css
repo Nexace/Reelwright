@@ -1,0 +1,20 @@
+/* capsule: candy pills. Sun-bleached cream, 2px ink outline on everything, soft hard-offset shadows, coral and candy accents,
+   Bodoni display over Space Grotesk; bouncy overshoot motion; captions as an outlined cream pill with the spoken word on coral.
+   Ported from HyperFrames frame preset "capsule" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "capsule";
+  --kit-bg: #F5F5F0;
+  --kit-bg-image: radial-gradient(circle at 12% 8%, rgba(197,181,224,.35), transparent 38%), radial-gradient(circle at 92% 94%, rgba(232,93,78,.16), transparent 40%);
+  --kit-ink: #1A1A1A; --kit-muted: #6B6B66;
+  --kit-accent: #E85D4E; --kit-accent-2: #8BB4F7; --kit-on-accent: #1A1A1A; --kit-surface: #FFFFFF;
+  --kit-font-display: "Bodoni Moda", Georgia, serif; --kit-font-text: "Space Grotesk", sans-serif;
+  --kit-font-mono: "Space Grotesk", sans-serif; --kit-label-font: "Space Grotesk", sans-serif;
+  --kit-display-weight: 700; --kit-display-tracking: -0.02em; --kit-display-case: none;
+  --kit-radius: 32px; --kit-border: 2px solid #1E1E1E; --kit-shadow: 8px 8px 0 rgba(26,26,26,.08); --kit-space: 26px;
+  --kit-sub-bg: #F5F5F0; --kit-sub-ink: rgba(26,26,26,.55); --kit-sub-said: #1A1A1A;
+  --kit-sub-font: 700 34px var(--kit-font-display); --kit-sub-radius: 9999px; --kit-sub-deco: none;
+  --kit-ease: back.out(1.56); --kit-tempo: 0.9; --kit-ease-in: power2.in; --kit-stagger: .06; --kit-settle: .5;
+}
+.kit-subrow { border: 2px solid #1E1E1E; box-shadow: 8px 8px 0 rgba(26,26,26,.08); padding: 12px 36px; }
+.kit-subrow .now { background: #E85D4E; border-radius: 9999px; box-shadow: 0 0 0 .14em #E85D4E; }
+.kit-lay-kicker, .kit-lay-note { color: var(--kit-ink); }

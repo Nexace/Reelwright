@@ -1,0 +1,17 @@
+/* code-editorial: warm developer essay. Cream page, hairline ink cards with one soft warm shadow, EB Garamond headlines,
+   Inter body, JetBrains Mono kickers, a single coral voltage accent; calm easing; captions on a hairline cream card with a coral underline.
+   Ported from HyperFrames frame preset "code-editorial" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "code-editorial";
+  --kit-bg: #FAF9F5; --kit-bg-image: none; --kit-ink: #141413; --kit-muted: #6B675F;
+  --kit-accent: #B5654A; --kit-accent-2: #CC785C; --kit-on-accent: #FAF9F5; --kit-surface: #EFE9DE;
+  --kit-font-display: "EB Garamond", Georgia, serif; --kit-font-text: "Inter", sans-serif;
+  --kit-font-mono: "JetBrains Mono", monospace; --kit-label-font: "JetBrains Mono", monospace;
+  --kit-display-weight: 400; --kit-display-tracking: -0.018em; --kit-display-case: none;
+  --kit-radius: 12px; --kit-border: 1px solid rgba(20,20,19,.12); --kit-shadow: 0 1px 3px rgba(20,20,19,.08), 0 4px 16px rgba(20,20,19,.04); --kit-space: 26px;
+  --kit-sub-bg: #FAF9F5; --kit-sub-ink: rgba(20,20,19,.5); --kit-sub-said: #141413;
+  --kit-sub-font: 400 38px var(--kit-font-display); --kit-sub-radius: 12px; --kit-sub-deco: underline 3px #CC785C;
+  --kit-ease: power2.out; --kit-tempo: 1.1; --kit-ease-in: power2.in; --kit-stagger: .07; --kit-settle: .7;
+}
+.kit-subrow { border: 1px solid rgba(20,20,19,.12); box-shadow: 0 1px 3px rgba(20,20,19,.08), 0 4px 16px rgba(20,20,19,.04); text-underline-offset: 6px; }
+.kit-lay-kicker, .kit-lay-note { font-family: var(--kit-font-mono); letter-spacing: .16em; }

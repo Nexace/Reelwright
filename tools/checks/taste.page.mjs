@@ -4,9 +4,9 @@
 //             per second): one-frame speed spikes (a teleport or jitter) and hard stops/starts (a fast move next to a
 //             still frame: no easing). Frames at a cut and elements appearing/disappearing are skipped
 //   balance   every 0.5 s: the area-weighted centroid of visible content sits far off the frame centre for ≥ 1 s
-//   empty     every 0.5 s: content covers < 2% of the frame (near-empty) or > 75% (cramped) for > 1.5 s
+//   empty     every 0.5 s: content covers < 2% of the frame (near-empty) or > 85% (cramped) for > 1.5 s
 //   contrast  every 0.5 s: WCAG contrast of visible text (captions excluded: qa gates them) vs. what is behind it
-//   pacing    VO lines spoken faster than 3.3 words/s, and > 4 s where nothing on screen moves, fades or changes text
+//   pacing    VO lines spoken faster than 6.5 words/s, and > 4 s where nothing on screen moves, fades or changes text
 // Pre-render, standalone: node tools/checks/taste.page.mjs <project>   (prints the lines, exits 0)
 import fs from "node:fs";
 import path from "node:path";

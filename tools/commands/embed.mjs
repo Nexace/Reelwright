@@ -111,7 +111,7 @@ const shell = ({ title, W, H, film, audio }) => `<!doctype html>
 <meta http-equiv="Content-Security-Policy" content="${CSP}">
 <title>${title.replace(/</g, "&lt;")}</title>
 <!-- made by reelwright embed (tools/commands/embed.mjs); player: HyperFrames player 0.9.19, Apache-2.0, Copyright 2026
-     HeyGen, Inc. (vendor/hf-player/LICENSE) -->
+     HeyGen, Inc. (vendor/hf-player/LICENSE, https://www.apache.org/licenses/LICENSE-2.0) -->
 <style>
   :root { color-scheme: dark; }
   html, body { margin: 0; height: 100%; background: #0b0b0c; }

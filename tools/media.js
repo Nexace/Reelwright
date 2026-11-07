@@ -14,7 +14,8 @@
 
   // ── speed ramps ─────────────────────────────────────────────────────────
   // Ported from HyperFrames packages/core/src/speedRamp.ts + audioAutomation.ts sampleAutomationLane (Apache-2.0, Copyright HeyGen)
-  // shortcut: plain {t, v} points only (no curve / viaX shaping); port shapeProgress if a film needs bent segments
+  // shortcut: points take t, v and curve (-1..1, bends the segment leaving the point, upstream applyCurve); no viaX/viaY
+  // (the studio's drawn conics) — port shapeVia if a film needs them
   const MIN_RATE = 0.1, MAX_RATE = 10, CELLS = 48;
   const rateAt = (pts, t) => {   // log-scale interpolation, holds outside the points
     const n = pts.length - 1;
@@ -24,7 +25,8 @@
     while (hi - lo > 1) { const m = (lo + hi) >> 1; if (pts[m].t <= t) lo = m; else hi = m; }
     const a = pts[lo], b = pts[hi], span = b.t - a.t;
     if (span <= 0) return b.v;
-    return Math.exp(Math.log(a.v) + (Math.log(b.v) - Math.log(a.v)) * (t - a.t) / span);
+    const x = (t - a.t) / span, p = a.curve ? Math.pow(x, Math.pow(2, 2 * a.curve)) : x;
+    return Math.exp(Math.log(a.v) + (Math.log(b.v) - Math.log(a.v)) * p);
   };
   const tableOf = (pts) => {   // clip-local times and the source seconds consumed by each (trapezoids)
     const ts = [0], ss = [0];
@@ -64,10 +66,11 @@
     if (ramp) {
       if (!Array.isArray(ramp) || !ramp.length) throw new Error(`KIT.video("${id}"): ramp is [{ t, v }, ...] (t seconds from the clip start, v speed)`);
       lane = ramp.map((p, i) => {
-        const bad = Object.keys(p).filter((k) => k !== 't' && k !== 'v');
-        if (bad.length) throw new Error(`KIT.video("${id}"): ramp point keys ${bad.join(', ')} unsupported — only t and v`);
+        const bad = Object.keys(p).filter((k) => k !== 't' && k !== 'v' && k !== 'curve');
+        if (bad.length) throw new Error(`KIT.video("${id}"): ramp point keys ${bad.join(', ')} unsupported — only t, v and curve`);
         if (!Number.isFinite(p.t) || i && p.t < ramp[i - 1].t) throw new Error(`KIT.video("${id}"): ramp t must be ascending seconds`);
-        return { t: p.t, v: Math.min(MAX_RATE, Math.max(MIN_RATE, Number(p.v))) };
+        const c = Math.min(1, Math.max(-1, Number(p.curve) || 0));
+        return { t: p.t, v: Math.min(MAX_RATE, Math.max(MIN_RATE, Number(p.v))), ...(c ? { curve: c } : {}) };
       });
     }
     const T = lane && tableOf(lane);

@@ -13,9 +13,10 @@ KIT.audio('media/whoosh.wav', { start: W('demo', 'fast'), in: 0, out: 1.2, gain:
 // in render(t): position and style `clip` like any element (css(clip, {...}), show(clip, op), KIT.grade(clip, ...))
 ```
 
-- `ramp` points are `{t, v}`: `t` seconds from the clip start, `v` the speed. Speed is interpolated in log space and
+- `ramp` points are `{t, v, curve?}`: `t` seconds from the clip start, `v` the speed. Speed is interpolated in log space and
   source time is its integral (ported from HyperFrames `speedRamp.ts`), so both renderers show the same source frame.
-  Bent segments (`curve`, `viaX`) are not supported.
+  `curve` (-1..1) bends the segment leaving a point, as upstream (`x^(2^(2·curve))`); the studio's drawn `viaX/viaY`
+  conics are not supported.
 - The clip shows only inside `[start, start + dur)`. Past the end of the source, pvk holds the last frame and
   hyperframes may hide it (not checked), so keep `dur` inside the source.
 - `audio: true` clips and `KIT.audio` are mixed over `mix.wav` at encode (`amix normalize=0`, so `gain` is linear and

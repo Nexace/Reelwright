@@ -1,0 +1,20 @@
+/* cobalt-grid: risograph graph paper. Cream paper under a permanent cobalt grid, one ink colour, cobalt hairlines, Newsreader over
+   Hanken Grotesk and DM Mono; precise, even motion; captions ruled top and bottom with the word being spoken as a cobalt block.
+   Ported from HyperFrames frame preset "cobalt-grid" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "cobalt-grid";
+  --kit-bg: #F0EBDE;
+  --kit-bg-image: linear-gradient(rgba(31,43,224,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(31,43,224,.10) 1px, transparent 1px);
+  --kit-ink: #1F2BE0; --kit-muted: #5560E5;
+  --kit-accent: #1F2BE0; --kit-accent-2: #5560E5; --kit-on-accent: #F0EBDE; --kit-surface: #E6E0CE;
+  --kit-font-display: "Newsreader", Georgia, serif; --kit-font-text: "Hanken Grotesk", sans-serif;
+  --kit-font-mono: "DM Mono", monospace; --kit-label-font: "DM Mono", monospace;
+  --kit-display-weight: 400; --kit-display-tracking: -0.005em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: 1.5px solid #1F2BE0; --kit-shadow: none; --kit-space: 26px;
+  --kit-sub-bg: #F0EBDE; --kit-sub-ink: rgba(31,43,224,.55); --kit-sub-said: #1F2BE0; --kit-sub-now: #F0EBDE;
+  --kit-sub-font: 400 38px var(--kit-font-display); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: power3.out; --kit-tempo: 1; --kit-ease-in: power2.in; --kit-stagger: .05; --kit-settle: .5;
+}
+.kit-subrow { border-top: 1.5px solid #1F2BE0; border-bottom: 1.5px solid #1F2BE0; }
+.kit-subrow .now { background: #1F2BE0; box-shadow: 0 0 0 .06em #1F2BE0; }
+.kit-lay-kicker, .kit-lay-note { font-family: var(--kit-font-mono); letter-spacing: .06em; }

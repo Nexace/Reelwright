@@ -1,0 +1,18 @@
+/* blockframe: neo-brutalist candy. Off-white ground with a faint dot grid, 4px black borders, 8px hard offset shadows,
+   square corners, pastel yellow/pink accents; loud, fast back.out pops; captions as a white card with a yellow stamp on the spoken word.
+   Ported from HyperFrames frame preset "blockframe" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "blockframe";
+  --kit-bg: #FFFDF5; --kit-bg-image: radial-gradient(rgba(0,0,0,.14) 1.2px, transparent 1.6px) 0 0 / 24px 24px; --kit-ink: #000000; --kit-muted: #555555;
+  --kit-accent: #000000; --kit-accent-2: #FE90E8; --kit-on-accent: #FFFFFF; --kit-surface: #FFFFFF;
+  --kit-font-display: "Archivo Black", Impact, sans-serif; --kit-font-text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "Space Grotesk", "Inter", sans-serif; --kit-label-font: "Space Grotesk", "Inter", sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: -0.02em; --kit-display-case: uppercase;
+  --kit-radius: 0px; --kit-border: 4px solid #000000; --kit-shadow: 8px 8px 0 #000000; --kit-space: 26px;
+  --kit-sub-bg: #FFFFFF; --kit-sub-ink: rgba(0,0,0,.45); --kit-sub-said: #000000; --kit-sub-now: #000000;
+  --kit-sub-font: 400 32px "Archivo Black", Impact, sans-serif; --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: back.out(1.56); --kit-tempo: 0.8; --kit-ease-in: power2.in; --kit-stagger: .04; --kit-settle: .35;
+}
+.kit-subrow { border: 4px solid #000000; box-shadow: 8px 8px 0 #000000; text-transform: uppercase; }
+.kit-subrow .now { background: #F7CB46; box-shadow: 0 0 0 5px #F7CB46; }
+.kit-lay-tile.hero { background: #F7CB46; color: #000000; }

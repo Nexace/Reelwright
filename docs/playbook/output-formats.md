@@ -9,7 +9,7 @@ All opt-in. A film with no `"output"` key encodes exactly the mp4 it always did.
 
 | key | default | meaning |
 |---|---|---|
-| `format` | `mp4` | `webm` (VP9 + Opus), `mov` (ProRes), `gif`, `apng`, `png` (folder). `--as <format>` overrides it |
+| `format` | `mp4` | `webm` (VP9 + Opus), `mov` (ProRes), `gif`, `apng`, `png` (folder), `hls` (VOD playlist + 6 s segments, `hlsSegment`). `--as <format>` overrides it |
 | `alpha` | `false` | transparent frames (see below); webm → `yuva420p`, mov → ProRes 4444 `yuva444p10le`, gif transparent palette, apng RGBA |
 | `prores` | `4444` with alpha, else `hq` | `proxy`, `lt`, `422`, `hq`, `4444`, `4444xq` |
 | `crf` | mp4 16, webm 24 | quality for mp4 and webm |
@@ -18,7 +18,7 @@ All opt-in. A film with no `"output"` key encodes exactly the mp4 it always did.
 | `hdr` | `false` | hyperframes only, mp4 only (below) |
 
 **The mp4 is always written.** qa (loudness), the manifest and `all` read the mp4 at `out`, so a non-mp4 format is an
-extra file beside it: `out/film.webm`, `film.mov`, `film.gif`, `film.apng`, or the folder `out/film-png/`
+extra file beside it: `out/film.webm`, `film.mov`, `film.gif`, `film.apng`, or the folders `out/film-png/` and `out/film-hls/` (`index.m3u8`)
 (`frame_00001.png`, …). With `--formats`/`--lang`/`--style` the suffix follows the mp4 (`film-9x16.webm`). Subtitles
 (.srt/.vtt) are written as before. With `alpha` the mp4 itself is flattened (no alpha in H.264).
 

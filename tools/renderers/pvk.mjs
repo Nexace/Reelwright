@@ -2,7 +2,7 @@
 // Env: PAGES=6 (more = faster, more RAM), FPS (default project.json fps or 60), BROWSER=chrome|chromium
 // frames: cached in <project>/.cache/frames/ by what each frame shows (see fingerprint); REELWRIGHT_NO_CACHE=1
 // (--no-cache) renders every frame; REELWRIGHT_FRAMES_DIR renders into another folder (verify).
-// project.json "output" ({format, alpha, hdr, prores, crf, gifFps, scale}, see encode) and "motionBlur" ({shutter, samples}
+// project.json "output" ({format, alpha, hdr, prores, crf, gifFps, hlsSegment, scale}, see encode) and "motionBlur" ({shutter, samples}
 // or true) are opt-in: with neither set, frames and the mp4 are exactly what they were. alpha: frames are PNGs with a
 // transparent page (the film must not paint a stage background); motionBlur: each frame is the average of `samples`
 // sub-frames rendered across the shutter (docs/playbook/motion-blur.md, output-formats.md).
@@ -198,7 +198,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
 // because qa (loudness), the manifest and `all`'s final path all read the mp4 at "out". Extra file = "out" with the
 // extension swapped (png: a folder <out-base>-png/).
 const PRORES = { proxy: 0, lt: 1, "422": 2, hq: 3, "4444": 4, "4444xq": 5 };
-const FORMATS = ["mp4", "webm", "mov", "gif", "apng", "png"];
+const FORMATS = ["mp4", "webm", "mov", "gif", "apng", "png", "hls"];
 
 // the audio inputs of one encode: the one place that decides what is mixed in (mix.wav today)
 function audioInputs(DIR) {
@@ -248,6 +248,13 @@ function extra(fmt, o, base, frames, aud, ff) {
       "-loop", "0", file);
   } else if (fmt === "apng") {
     ff(...frames, "-an", ...vf(), "-plays", "0", "-pix_fmt", alpha ? "rgba" : "rgb24", "-f", "apng", file);
+  } else if (fmt === "hls") {   // VOD playlist + segments cut from the mp4 (no re-encode; segments start on its keyframes)
+    const dir = base + "-hls";
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    ff("-i", base + ".mp4", "-c", "copy", "-f", "hls", "-hls_time", String(o.hlsSegment ?? 6), "-hls_playlist_type", "vod",
+      "-hls_segment_filename", path.join(dir, "seg_%03d.ts"), path.join(dir, "index.m3u8"));
+    return console.log("→", path.join(dir, "index.m3u8"));
   } else {   // png: a folder of numbered stills
     const dir = base + "-png";
     fs.rmSync(dir, { recursive: true, force: true });

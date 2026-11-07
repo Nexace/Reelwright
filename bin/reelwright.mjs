@@ -42,7 +42,7 @@
 //   --style <name>        build with themes/<name>.css, output <out>-<name>.mp4
 //   --formats 16x9,9x16,1x1,4x5,16x10   film|all|stills|frames|encode|qa per format (1920×1080, 1080×1920, 1080×1080, 1080×1350, 1920×1200):
 //                         audio once, then out/<name>-<fmt>.mp4, stills-<fmt>/ and frames-<fmt>/
-//   --as <format>         extra output beside the mp4: webm, mov, gif, apng or png (a folder); same as project.json
+//   --as <format>         extra output beside the mp4: webm, mov, gif, apng, png (a folder) or hls; same as project.json
 //                         "output": {"format": …}
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
 //

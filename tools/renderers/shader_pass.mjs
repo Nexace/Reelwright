@@ -9,7 +9,8 @@ import { launch } from "../browser.mjs";
 import { SHADERS, vertSrc, accentOf } from "./shader_glsl.mjs";
 
 // what the producer uses for PRODUCER_BROWSER_GPU_MODE=software (engine/dist/services/browserManager.js)
-const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"];
+// --disable-lcd-text: same as the vendored engine patch; will-change layers (KIT.words) otherwise pick LCD or greyscale AA per run
+const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--disable-lcd-text", "--font-render-hinting=none"];
 
 // page: the film's index.html; frames: [{ t, file }] (.jpg written as jpeg 94 like the renderers, else png)
 export async function shaderPass(page, width, height, frames) {

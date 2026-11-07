@@ -37,7 +37,7 @@ cue(LOGO, 'impact', 0.7);
 function render(t) {
   KIT.show(end, fade(7, t));
   const pl = pop(t - LOGO);
-  logo.style.opacity = seg(t, LOGO, LOGO + 0.2); logo.style.transform = `scale(${0.7 + 0.3 * pl})`;
+  logo.style.opacity = seg(t, LOGO, LOGO + KIT.dur(0.2)); logo.style.transform = `scale(${0.7 + 0.3 * pl})`;
   tag.style.opacity = ent(t, TAG, 0.4);
   end.querySelector('.pulse').style.transform = `scale(${1 + 0.7 * KIT.pulse(t)})`;   // a dot that pumps on every beat
   // …the other scenes' set(t) calls

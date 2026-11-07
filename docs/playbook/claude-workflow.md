@@ -11,9 +11,9 @@ The loop an agent (Claude Code, the desktop app, Codex, …) runs for a film. Ea
 4. **Taste.** `node tools/checks/taste.page.mjs projects/<name>` (seconds, no render). It prints WARN lines:
    - `motion` — a one-frame velocity spike (a jump or jitter) or a move that starts/stops dead at speed (no easing);
    - `balance` — content piled to one side of the frame for over a second;
-   - `empty` — a near-empty frame for over 1.5 s, or a frame crammed edge to edge;
+   - `empty` — a near-empty frame for over 1.5 s, or over 85% of it covered;
    - `contrast` — text below WCAG 4.5 (3 for large text) against what's behind it;
-   - `pacing` — a VO line faster than 3.3 words/s, or over 4 s where nothing moves.
+   - `pacing` — a VO line faster than 6.5 words/s (edge-tts reads up to ~6), or over 4 s where nothing moves.
    They never fail the build (qa prints them as `WARN taste:` too); fix them or say why the shot wants it.
 5. **Preview in the chat.** `./video.sh embed <name>` writes `projects/<name>/out/embed.html`: one self-contained page
    (film, kit, fonts, images, blocks, mix) in the vendored HyperFrames player. No server, no network (its own CSP

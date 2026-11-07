@@ -1,6 +1,6 @@
 ---
 name: product-video
-description: Make, edit, rebuild or render product videos with the reelwright (scripted screen recordings, voiceover, beat-synced edits, mp4 output). Use when the user asks for an app walkthrough, launch film, explainer, promo video, or wants to rebuild or re-render a film in this repo.
+description: Make, edit, rebuild or render product videos and motion-graphics films with Reelwright (scripted screen recordings, voiceover, beat-synced edits, a live preview page to show in the chat, a taste check, mp4 output). Use when the user asks for an app walkthrough, launch film, explainer, promo video, or wants to rebuild or re-render a film in this repo.
 ---
 
 # Reelwright
@@ -19,18 +19,23 @@ Build films with the `pvk` wrapper (`bin/pvk`). It runs `video.sh` from any fold
 - `pvk audio <name>`: after script or voice changes. `pvk film <name>`: after edit changes.
 - `pvk all <name>`: everything from recording to mp4, ending with `qa`. Renders take minutes, so run it in the background.
 - `pvk stills <name> [t,t,...]`: preview frames. `pvk preview <name>`: live scrubber for the user.
+- `pvk embed <name>`: one self-contained preview page, `projects/<name>/out/embed.html` (film + mix in the HyperFrames player, no network). Show it in the chat; `#12.5` opens it on a moment.
+- `node tools/checks/taste.page.mjs projects/<name>`: taste check before rendering (motion jerk, balance, empty space, contrast, pacing). WARN only.
 - `pvk qa <name>`: blank frames, jumps and the gates (loudness, captions, flash, illustrative, seekable). A FAIL exits 1.
 - `pvk verify <name>`: inputs and frames still match the manifest.
 - `pvk clean <name>`: delete frames, stills and the frame cache (gigabytes), keeping the mp4.
 - Options: `--style <name>`, `--formats 16x9,9x16,1x1`, `--lang <code>`, `--no-cache`.
 
-## Workflow
+## Workflow: brief → script → stills → taste → preview → render
 
-1. Ask for the audience, length, voice or music-only, and what must be shown. Write the VO lines into `projects/<name>/project.json` and show them to the user before building.
-2. `pvk new <name>` (with `--renderer hyperframes` for a motion-graphics film), then adapt `record.mjs` (the take) and `film/film.js` (or `hf/film.js`, the edit). Pick a theme. If the owner already has a script in a spreadsheet, `pvk beats <name> import sheet.csv` fills `lines` from it.
-3. Iterate with `pvk stills <name>` and read `stills/sheet.jpg` before showing anything.
-4. `pvk all <name>`. Fix every FAIL gate and look at frames around every time QA flags.
-5. Report the mp4 path from `project.json` → `out`. Then `pvk clean <name>`.
+1. **Brief.** Ask for the audience, length, voice or music-only, the one thing to remember, and what must be shown. Put it in `project.json` as `"brief"`.
+2. **Script.** Write the VO lines into `projects/<name>/project.json` and show them to the user before building. A spreadsheet script: `pvk beats <name> import sheet.csv`.
+3. **Build the scenes.** `pvk new <name>` (with `--renderer hyperframes` for motion graphics), then adapt `record.mjs` (the take) and `film/film.js` (or `hf/film.js`). Start each scene from a recipe in `docs/recipes/` (proven patterns, each with a still) and pick a theme.
+4. **Stills.** `pvk sched <name>` + `pvk stills <name>`; read `stills/sheet.jpg` yourself before showing anything.
+5. **Taste.** `node tools/checks/taste.page.mjs projects/<name>`. Fix every line (or say why the shot wants it): a `motion` jump or dead stop means missing easing, `balance`/`empty` mean recompose, `contrast` means recolour, `pacing` means re-time or trim the line.
+6. **Preview in the chat.** `pvk embed <name>`, then show `projects/<name>/out/embed.html` to the user: in the desktop app send it as a file with `display: "render"` (side panel), or publish it as a private artifact (≤ 16 MB). Iterate 3-6 until they're happy; re-run `embed` after each change.
+7. **Render.** `pvk all <name>` in the background. Fix every FAIL gate and look at frames around every time QA flags; WARN lines (taste, overlap, tiny-text, wordy, dark) are worth fixing.
+8. Report the mp4 path from `project.json` → `out`. Then `pvk clean <name>`.
 
 ## Rules (from AGENTS.md)
 

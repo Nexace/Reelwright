@@ -10,6 +10,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import assert from "node:assert/strict";
 import { pathToFileURL, fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
 import { copyKit } from "../kit_files.mjs";
 import { createFileServer } from "@hyperframes/producer";
@@ -30,7 +31,8 @@ const LOTTIE = { v: "5.7.0", fr: 30, ip: 0, op: 60, w: 320, h: 180, ddd: 0, asse
 // per runtime: the scripts it needs (vendor-relative), and the film body; each uses several features of the library
 const RT = {
   gsap: { libs: ["gsap/dist/gsap.min.js", "gsap/dist/SplitText.min.js", "gsap/dist/DrawSVGPlugin.min.js", "gsap/dist/MorphSVGPlugin.min.js",
-      "gsap/dist/CustomEase.min.js", "gsap/dist/CustomWiggle.min.js", "gsap/dist/CustomBounce.min.js", "gsap/dist/TextPlugin.min.js"],
+      "gsap/dist/CustomEase.min.js", "gsap/dist/CustomWiggle.min.js", "gsap/dist/CustomBounce.min.js", "gsap/dist/TextPlugin.min.js",
+      "gsap/dist/EasePack.min.js", "gsap/dist/Physics2DPlugin.min.js", "gsap/dist/PhysicsPropsPlugin.min.js"],
     film: `
 const t1 = KIT.el('div', 'txt', S, 'Seek me anywhere'), box = KIT.el('div', 'box', S), out = KIT.el('div', 'txt2', S, '');
 S.insertAdjacentHTML('beforeend', '<svg width="640" height="360" style="position:absolute;left:0;top:0"><path id="ln" d="M40 300 C200 200 440 380 600 280" stroke="#e33" stroke-width="8" fill="none"/><path id="m1" d="M500 60h80v80h-80z" fill="#36c"/><path id="m2" d="M540 50 L590 150 L490 150 Z" fill="none"/></svg>');
@@ -42,6 +44,12 @@ const h = KIT.gsap((tl, gsap) => {
   tl.fromTo(box, { scale: 1 }, { scale: 1.4, duration: 1, ease: 'wig' }, 0.6);
   tl.fromTo('#ln', { drawSVG: '0% 0%' }, { drawSVG: '20% 100%', duration: 1.5 }, 0.1);
   tl.fromTo('#m1', { morphSVG: '#m1' }, { morphSVG: '#m2', duration: 1.2, ease: 'bnc' }, 0.4);
+  const ball = KIT.el('div', 'dot', S); ball.style.top = '60px'; const pp = KIT.el('div', 'dot', S); pp.style.top = '100px';
+  const ez = KIT.el('div', 'dot', S); ez.style.top = '140px';   // physics tweens read their start lazily: no other tween on their element
+  tl.fromTo(ball, { x: 300, y: 0 }, { physics2D: { velocity: 300, angle: -60, gravity: 500 }, duration: 1.2 }, 0.3);
+  tl.fromTo(pp, { x: 0 }, { physicsProps: { x: { velocity: 400, acceleration: -200 } }, duration: 1.5 }, 0.2);
+  tl.fromTo(ez, { rotation: 0 }, { rotation: 180, duration: 1.6, ease: 'slow(0.5, 0.8, false)' }, 0.2);
+  tl.fromTo(ez, { scale: 1 }, { scale: 3, duration: 1.4, ease: ExpoScaleEase.config(1, 3) }, 0.5);
   tl.fromTo(out, { text: '' }, { text: 'typed by TextPlugin', duration: 1.2, ease: 'none' }, 0.6);
 });
 KIT.start({ dur: ${DUR}, render: (t) => h.set(t) });` },
@@ -157,6 +165,21 @@ async function offPixels(x, y) {
     for (let i = 0; i < a.length; i += 4) if (Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])) > n) off++;
     return off;
   }, [x.toString("base64"), y.toString("base64"), NOISE]);
+}
+
+// the QA gate tools/checks/seekable-runtimes.py: flags each banned path, passes the seekable patterns above
+{
+  const P = path.join(tmp, "lint"); fs.mkdirSync(path.join(P, "film"), { recursive: true });
+  const bad = ["new SplitText(t, {}); tl.to(t, { scrambleText: 'x' })", "stagger: { each: 0.1, from: 'random' }", "ease: 'rough({ points: 20 })'",
+    "CustomWiggle.create('w', { type: 'random' })", "gsap.utils.shuffle(a)", "anime.utils.random(0, 9)", "motionPath: { path: '#p' }",
+    "tl.play()", "repeat: -1", "gsap.to('.a', { x: 1 })", "autoplay: true"];
+  fs.writeFileSync(path.join(P, "film", "film.js"), [...bad, "// tl.play() in a comment", ...Object.values(RT).map((r) => r.film)].join("\n"));
+  const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+  const r = spawnSync(PY, ["-c", "import importlib.util as u,sys;s=u.spec_from_file_location('c',sys.argv[1]);m=u.module_from_spec(s);s.loader.exec_module(m);" +
+    "print('\\n'.join(m.check({'proj':sys.argv[2],'P':{}})))", path.join(ROOT, "tools/checks/seekable-runtimes.py"), P], { encoding: "utf8" });
+  const lines = r.stdout.trim().split(/\r?\n/).filter(Boolean).map((l) => Number(l.split(":")[1]));
+  assert.deepEqual([...new Set(lines)], bad.map((_, i) => i + 1), r.stdout + r.stderr);
+  console.log(`PASS  seekable-runtimes gate: ${bad.length} banned paths flagged, comments and the fixtures above pass`);
 }
 
 const only = process.argv.slice(2);

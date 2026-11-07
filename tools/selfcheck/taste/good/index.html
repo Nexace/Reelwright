@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- tools/selfcheck/taste.mjs fixture: an 8 s film the taste check should pass: centred, eased motion, contrasty text,
+     a normal VO rate and something always moving. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../kit.css">
+<style>
+  body { background: #0f1115; }
+  #card { left: 560px; top: 340px; width: 800px; height: 300px; background: #1b1e24; color: #f4f1ea; border-radius: 14px;
+          font: 700 56px sans-serif; display: flex; align-items: center; justify-content: center; }
+  #dot { left: 920px; top: 700px; width: 80px; height: 80px; border-radius: 50%; background: #6ee7b7; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script>
+window.PROJECT = { title: "taste good", fps: 30, width: 1920, height: 1080, lead: 0.5, tail: 4.5, speechEnd: 3.5 };
+const words = "a calm line read at an easy pace".split(" ");
+window.VO = { calm: { at: 0.5, start: 0.5, end: 3.5, text: words.join(" "), words: words.map((w, i) => ({ w, t: 0.5 + i * 3 / words.length, d: 0.3 })) } };
+</script>
+<script src="../../../engine.js"></script>
+<script>
+'use strict';
+const { el, show, seg, E } = KIT;
+const card = el('div', '', undefined, 'Steady and clear'); card.id = 'card';
+const dot = el('div'); dot.id = 'dot';
+function render(t) {
+  const p = E.out(seg(t, 0.2, 1.0));
+  show(card, p);
+  card.style.transform = `translate(${40 * Math.sin(2 * Math.PI * t / 4)}px, ${(1 - p) * 60}px)`;   // eased in, then a slow drift
+  const q = (t / 2) % 2, k = E.inOut(q < 1 ? q : 2 - q);                                           // eased ping-pong
+  dot.style.transform = `translateX(${-200 + 400 * k}px)`;
+}
+KIT.start({ dur: 8, render });
+</script>
+</body>
+</html>

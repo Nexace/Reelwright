@@ -61,6 +61,10 @@ anime.js writes nothing before a tween starts, so give its targets their "before
 | `.play()`, `repeat: -1`, `gsap.ticker.add`, ScrollTrigger, Draggable, Observer | real-time playback | seek from `render(t)` |
 | global `gsap.to/from/fromTo(…)` | runs on GSAP's real-time ticker | add it to the `KIT.gsap` timeline |
 | `autoplay: true` | real-time playback | leave it off (the helpers do) |
+| `"random(…)"` string values (GSAP) | `Math.random` once at build: pages differ | a seeded value |
+| `lottie.loadAnimation(…)` directly | autoplays by default | `KIT.lottie` |
+| `gsap.timeline()` / `gsap.delayedCall` outside `KIT.gsap` | real time | the `tl` `KIT.gsap` passes to build |
+| `THREE.Clock`, `getElapsedTime`, `setAnimationLoop` | real time | animate in `update(t)` |
 
 Not bundled: ScrollTrigger and the other interactive plugins, GSDevTools, MotionPathHelper, Flip and CSSRulePlugin
 (seek behaviour unverified), the `.map` files.
@@ -82,6 +86,10 @@ Rules the test found:
   the same element made frames depend on seek order.
 - **Use `fromTo()`.** `KIT.gsap` primes the timeline (end, then 0) so `.from()` and relative values resolve once, but
   only `fromTo()` was tested.
+- **anime.js timelines are primed** (seeked to the end, then 0) like GSAP's: without it a child placed after 0 showed
+  its from-state before it started only once a later time had been visited.
+- **A runtime that fails to load fails the render**: pvk's READY rejects; in HyperFrames the page stays "building", so
+  capture never starts instead of rendering without that layer.
 - **No `autoSplit`** on SplitText (it re-splits on resize/font events, outside `render(t)`).
 
 Not tested: Lottie masks, mattes, gradients, text, images and expressions (expressions may call `random`/`wiggle`: test a
@@ -94,5 +102,8 @@ file before relying on it); dotLottie (`.lottie`); Three.js loaders, textures an
   `--allow-file-access-from-files`, so this works from `file://`; preview and HyperFrames serve over http.
 - HyperFrames' producer wraps `gsap.timeline()` in a proxy that queues tweens and flushes them later; `KIT.gsap` builds
   on the real timeline underneath (`__hfReal`), so the timeline is complete when it is primed.
+- `KIT.animations` stamps each animation's progress on `<html data-kit-animations>`: `currentTime` alone changes
+  nothing in the DOM, and pvk's frame cache keys on the DOM.
+- A preview moment (`index.html#12.5`) still works: READY renders the hash time once the libraries are built.
 - engine.js re-rasters each pvk frame by hiding `<body>` for a moment, which restarts CSS animations; `runtimes.js` seeks
   them again after that step.

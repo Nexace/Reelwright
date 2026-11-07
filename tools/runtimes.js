@@ -18,13 +18,17 @@
 
   // ── load waits ──────────────────────────────────────────────────────────
   const waits = [];
-  let building = 0;
+  // HyperFrames' GSAP stub also writes __hfTimelinesBuilding (false when its own queue drains): keep both writers' state,
+  // so it can't clear the flag while a load here is pending
+  let building = 0, stub = !!window.__hfTimelinesBuilding;
+  Object.defineProperty(window, '__hfTimelinesBuilding', { configurable: true, get: () => building > 0 || stub, set: (v) => { stub = !!v; } });
   const wait = (p) => {
-    building++; window.__hfTimelinesBuilding = true;
-    const q = Promise.resolve(p).finally(() => {
-      if (--building) return;
-      window.__hfTimelinesBuilding = false; window.dispatchEvent(new Event('hf-timelines-built'));
-    });
+    building++;
+    // a failed load stays "building": HyperFrames never starts capturing (loud), pvk's READY rejects
+    const q = Promise.resolve(p).then(() => {
+      if (--building || stub) return;
+      window.dispatchEvent(new Event('hf-timelines-built'));
+    }, (e) => { console.error('tools/runtimes.js: a runtime failed to load:', e); throw e; });
     waits.push(q); return q;
   };
   let css = false;
@@ -34,6 +38,8 @@
       if (a.playState === 'idle') { seen.delete(a); continue; }   // a CSS animation the style dropped (a new one replaces it)
       a.pause(); a.currentTime = Math.max(0, t) * 1000;
     }
+    // currentTime writes nothing to the DOM: stamp the progress so pvk's frame cache (a DOM fingerprint) sees it move
+    document.documentElement.dataset.kitAnimations = [...seen].map((a) => a.effect ? a.effect.getComputedTiming().progress : '').join(',');
   };
   const seen = new Set();
   const start = K.start;
@@ -42,7 +48,9 @@
     const ready = window.READY, render = window.render;
     // engine.js re-rasters by hiding <body> for a moment, which restarts CSS animations: seek them again after it
     window.render = async (t) => { await render(t); if (css) seekCss(t); };
-    window.READY = ready.then(async (ok) => { while (waits.length) await waits.shift(); await window.render(0); return ok; });
+    // engine.js rendered #12.5 (a preview moment) before the libraries were built: render it again now
+    const h = location.hash.slice(1), t0 = h && h !== 'play' && Number.isFinite(Number(h)) ? Number(h) : 0;
+    window.READY = ready.then(async (ok) => { while (waits.length) await waits.shift(); await window.render(t0); return ok; });
   };
 
   // ── CSS @keyframes and WAAPI ────────────────────────────────────────────
@@ -95,7 +103,8 @@
     if (!A) throw new Error('KIT.anime: load vendor/anime/anime.umd.min.js before tools/runtimes.js');
     if (A.engine) A.engine.useDefaultMainLoop = false;   // no requestAnimationFrame loop: only seek() moves anything
     const items = [].concat(build(A) || []);
-    for (const a of items) a.pause();
+    // prime like KIT.gsap: a child that starts later otherwise shows its from-state only after a later time was visited
+    for (const a of items) { a.pause(); a.seek(a.duration, true); a.seek(0, true); }
     return { items, set: (t) => { for (const a of items) a.seek(Math.max(0, t) * 1000, true); } };
   };
 

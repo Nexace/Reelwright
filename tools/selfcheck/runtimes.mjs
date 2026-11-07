@@ -65,6 +65,8 @@ const h = KIT.anime((A) => {
   const tl = A.createTimeline({ autoplay: false });
   tl.add('.dot', { x: [0, 460], rotate: [0, 180], scale: [{ to: 1.5, duration: 300 }, { to: 1, duration: 500 }], duration: 1200,
     delay: A.stagger(80, { from: 'center' }), ease: 'outElastic(1, .6)' }, 0);
+  const late = KIT.el('div', 'box', S); late.style.top = '200px';   // a child that starts after 0: before it, the from-state
+  tl.add(late, { scale: [0.2, 1], x: [0, 300], duration: 600, ease: 'outQuad' }, 900);
   return [tl, A.animate('.dot', { backgroundColor: ['#36c', '#e33'], borderRadius: ['0%', '50%'], duration: 1500, autoplay: false, ease: 'inOutSine' })];
 });
 KIT.start({ dur: ${DUR}, render: (t) => h.set(t) });` },
@@ -172,7 +174,8 @@ async function offPixels(x, y) {
   const P = path.join(tmp, "lint"); fs.mkdirSync(path.join(P, "film"), { recursive: true });
   const bad = ["new SplitText(t, {}); tl.to(t, { scrambleText: 'x' })", "stagger: { each: 0.1, from: 'random' }", "ease: 'rough({ points: 20 })'",
     "CustomWiggle.create('w', { type: 'random' })", "gsap.utils.shuffle(a)", "anime.utils.random(0, 9)", "motionPath: { path: '#p' }",
-    "tl.play()", "repeat: -1", "gsap.to('.a', { x: 1 })", "autoplay: true"];
+    "tl.play()", "repeat: -1", "gsap.to('.a', { x: 1 })", "autoplay: true", "x: 'random(-100, 100)'", "lottie.loadAnimation({})",
+    "const t2 = gsap.timeline()", "const c = new THREE.Clock()"];
   fs.writeFileSync(path.join(P, "film", "film.js"), [...bad, "// tl.play() in a comment", ...Object.values(RT).map((r) => r.film)].join("\n"));
   const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
   const r = spawnSync(PY, ["-c", "import importlib.util as u,sys;s=u.spec_from_file_location('c',sys.argv[1]);m=u.module_from_spec(s);s.loader.exec_module(m);" +

@@ -2,7 +2,7 @@
 # Bans the library paths that call Math.random on every render or failed a shuffled-seek test, and real-time playback:
 # GSAP ScrambleText, stagger/anime from:"random", RoughEase, CustomWiggle type:"random", gsap/anime utils.random/shuffle,
 # MotionPath (use KIT.path), play()/repeat:-1/ticker/ScrollTrigger, global gsap.to/from/fromTo (the real-time ticker),
-# autoplay:true (lottie, anime). Same files as the built-in seekable gate (qa.py). docs/playbook/runtimes.md has the why.
+# autoplay:true (lottie, anime), GSAP "random(…)" values, direct lottie.loadAnimation, timelines outside KIT.gsap, Three clocks. Same files as the built-in seekable gate (qa.py). docs/playbook/runtimes.md has the why.
 import os, re
 
 KIND = "gate"
@@ -17,6 +17,10 @@ BAD = [
      "plays in real time (seek from render(t) instead)"),
     (r"\bgsap\.(to|from|fromTo)\s*\(", "a global tween runs on GSAP's real-time ticker (add it to the KIT.gsap timeline)"),
     (r"\bautoplay\s*:\s*true\b", "autoplay plays in real time (KIT.lottie / KIT.anime keep it off)"),
+    (r"""['"]random\(""", 'a GSAP "random(…)" value is Math.random at build: pages differ (use a seeded value)'),
+    (r"\bloadAnimation\s*\(", "lottie.loadAnimation autoplays by default (use KIT.lottie)"),
+    (r"\bgsap\.(timeline|delayedCall)\s*\(", "a GSAP timeline outside KIT.gsap runs in real time (use the tl KIT.gsap passes to build)"),
+    (r"\bClock\s*\(|getElapsedTime|setAnimationLoop", "Three.js real-time clock or loop (animate in update(t))"),
 ]
 
 

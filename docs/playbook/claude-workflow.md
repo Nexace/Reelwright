@@ -5,7 +5,7 @@ The loop an agent (Claude Code, the desktop app, Codex, …) runs for a film. Ea
 1. **Brief.** Audience, length, voice or music-only, the one thing the viewer must remember, what must be shown.
    Write it at the top of `project.json` as `"brief"` (any text; nothing reads it but people and agents).
 2. **Script.** The VO lines in `project.json` → `lines`. Show them to the owner before building anything.
-3. **Stills.** `./video.sh sched <name>` then `./video.sh stills <name>` and read `stills/sheet.jpg` yourself. Start
+3. **Stills.** `./video.sh audio <name>` (voiceover timings; needs internet), then `./video.sh stills <name>` and read `stills/sheet.jpg` yourself. Start
    scenes from [docs/recipes/](../recipes/README.md): proven patterns with a still each, so the first draft already
    looks finished.
 4. **Taste.** `node tools/checks/taste.page.mjs projects/<name>` (seconds, no render). It prints WARN lines:

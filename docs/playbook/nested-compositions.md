@@ -35,7 +35,8 @@ the template into a host div, re-creates its scripts so they run, and **moves th
 `window.__timelines`** into its own list. On the hf renderer that keeps the HyperFrames runtime from seeking it a
 second time as a scene (the runtime seeks every non-root `__timelines` entry whose `data-composition-id` it finds in
 the DOM, which the inlined root has). The root also gets `data-no-timeline`, or the producer waits 45 s per render
-for a timeline it never sees. HyperFrames' own `data-composition-src` host, created by film.js at load, was
+for a timeline it never sees. Don't put `data-start`/`data-duration` on the child's root: the producer then treats it as a timed clip and
+hides the mount after that duration (seen in projects/engine-hf); `KIT.mount`'s `start`/`dur` set the window. HyperFrames' own `data-composition-src` host, created by film.js at load, was
 tried: the runtime loads it and shows and hides it on time, but a `{ seek(t) }` child timeline stayed at its first
 frame. KIT.mount does not use that host.
 

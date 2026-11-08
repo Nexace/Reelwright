@@ -126,12 +126,12 @@ export async function imageFacts(file) {
 }
 
 const cmt = (x) => String(x).replace(/\*\//g, "* /");   // page text inside a CSS comment can't close it
-export function themeCss(name, source, d) {
+export function themeCss(name, source, d, cmd = "theme-from") {
   const v = Object.entries(d.tokens).map(([k, x]) => `--kit-${k}: ${x};`);
   for (const [role, fam] of Object.entries(d.fonts))
     v.push(`--kit-font-${role}: "${fam}", ${role === "mono" ? "monospace" : /serif|garamond|playfair/i.test(fam) ? "serif" : "sans-serif"};`);
   const base = fs.readFileSync(path.join(THEMES, d.base + ".css"), "utf8");
-  return `/* ${name}: drafted by \`reelwright theme-from ${cmt(source)}\` on the ${d.base} theme — a starting point, edit freely.\n` +
+  return `/* ${name}: drafted by \`reelwright ${cmd} ${cmt(source)}\` on the ${d.base} theme — a starting point, edit freely.\n` +
     d.notes.map((n) => `   ${cmt(n)}\n`).join("") + `   Below: the ${d.base} theme as it was, then the drafted tokens, which win. */\n` +
     base + `\n/* drafted from ${cmt(source)} */\n:root {\n  --kit-theme: "${name}";\n  ${v.join("\n  ")}\n}\n`;
 }

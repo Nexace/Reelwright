@@ -30,6 +30,13 @@ const r = await run(bad);
 for (const c of WANT_GATE) assert.ok(codes(r.gate).includes(c), `gate should report ${c}:\n${r.gate.join("\n")}`);
 for (const c of WANT_WARN) assert.ok(codes(r.warn).includes(c), `warn should report ${c}:\n${r.warn.join("\n")}`);
 assert.ok(!codes(r.warn).some((c) => WANT_GATE.includes(c)) && !codes(r.gate).some((c) => WANT_WARN.includes(c)), "gate/warn kinds must not mix");
+// the film's own hf/film.js is the `seekable` gate's job (qa-broken puts Math.random there on purpose): upstream sees it, hf-lint drops it
+const qb = path.join(ROOT, "projects/qa-broken");
+if (fs.existsSync(path.join(qb, "hf/index.html"))) {
+  const rawQb = (await lintProject(path.join(qb, "hf"))).results.flatMap((x) => x.result.findings.map((f) => f.code));
+  assert.ok(rawQb.includes("non_deterministic_code"), "upstream should flag qa-broken's film.js (else the seekable dedupe is untested)");
+  assert.deepEqual((await run(load(qb))).gate, [], "qa-broken's Math.random is the seekable gate's, not hf-lint's");
+}
 for (const l of [...r.gate, ...r.warn]) assert.ok(l.length <= 200 && !l.includes("\n"), `one short line: ${l}`);
 console.log(`qa-broken-lint: ${r.gate.length} gate, ${r.warn.length} warn`);
 
@@ -84,6 +91,14 @@ try {
   }
   copyKit(path.join(tmp, "hf"));
   const P = JSON.parse(fs.readFileSync(path.join(tmp, "project.json"), "utf8"));
+  // the kit's own engine.js (preview-only #play loop) is scanned upstream since it is a <script src>: it must be dropped here
+  const rawKit = (await lintProject(path.join(tmp, "hf"))).results.flatMap((x) => x.result.findings.map((f) => f.code));
+  for (const c of ["non_deterministic_code", "requestanimationframe_in_composition"])
+    assert.ok(rawKit.includes(c), `upstream should flag the kit's engine.js with ${c} (else the kit filter is untested)`);
+  resetCache();
+  const kitRun = await run({ DIR: tmp, P });
+  for (const c of ["non_deterministic_code", "requestanimationframe_in_composition"])
+    assert.ok(!codes([...kitRun.gate, ...kitRun.warn]).includes(c), `${c} from hf/kit/ must not be reported`);
   const all = themes();
   assert.ok(all.length >= 27, `expected the shipped themes, found ${all.length}`);
   for (const style of all) {

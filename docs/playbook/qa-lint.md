@@ -13,6 +13,10 @@ Each line is `<code>: <message> (fix: <hint>)`, cut to 200 characters. `tools/ch
 both lists below. The fixture `projects/qa-broken-lint` trips 6 gate and 6 warn codes on purpose;
 `node tools/selfcheck/hf-lint.mjs` checks it and that every committed hyperframes film passes the gate.
 
+Findings in Reelwright's own kit (`hf/kit/`, e.g. the preview-only loop in `engine.js`) are dropped, and so are
+`non_deterministic_code` / `requestanimationframe_in_composition` findings in the film's own `hf/film.js`: the built-in
+`seekable` gate already fails those, so one mistake would fail twice.
+
 ## Rules not run (`SKIP`)
 Reelwright builds the page in `film.js` and `render(t)` is the only clock, so a rule is skipped when its premise is
 HyperFrames' own model. The one-line reason for each is next to it in `SKIP`. By group:

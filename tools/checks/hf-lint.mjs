@@ -73,6 +73,21 @@ export const DOWNGRADE = {
 
 const cache = new Map();   // hf dir → findings (both plug-ins call in the same process)
 export const resetCache = () => cache.clear();   // for self-checks that rewrite a folder and lint it again
+// Findings from hf/kit/ (tools/*.js and vendor libs the renderer copies in) are Reelwright's own code, not the film's: engine.js
+// is frozen and its preview-only #play loop uses performance.now / requestAnimationFrame. The clock/random/rAF findings in the
+// film's own hf/film.js are the built-in `seekable` gate's job (it would FAIL twice for one mistake). Upstream gives a finding
+// a file, or (no file) a snippet that starts with the script's first chars, so both are matched.
+const SEEKABLE = new Set(["non_deterministic_code", "requestanimationframe_in_composition"]);
+const head = (f) => { const fd = fs.openSync(f, "r"), b = Buffer.alloc(60); const n = fs.readSync(fd, b, 0, 60, 0); fs.closeSync(fd); return b.toString("utf8", 0, n); };
+const starts = (hf) => {
+  const kit = [], film = [];
+  try { for (const e of fs.readdirSync(path.join(hf, "kit"), { recursive: true, withFileTypes: true })) if (e.isFile() && e.name.endsWith(".js")) kit.push(head(path.join(e.parentPath, e.name))); } catch { /* no kit/ yet */ }
+  try { film.push(head(path.join(hf, "film.js"))); } catch { /* no film.js */ }
+  return { kit: kit.filter((x) => x.trim().length > 20), film: film.filter((x) => x.trim().length > 20) };
+};
+const begins = (x, list) => !!x.snippet && x.snippet.length >= 20 && list.some((h) => x.snippet.startsWith(h) || h.startsWith(x.snippet.slice(0, 60)));
+const covered = (x, st) => /(^|[\\/])hf[\\/]kit[\\/]/.test(x.file || "") || begins(x, st.kit) ||
+  (SEEKABLE.has(x.code) && (/(^|[\\/])hf[\\/]film\.js$/.test(x.file || "") || begins(x, st.film)));
 const oneLine = (s) => String(s || "").replace(/\s+/g, " ").trim();
 const clip = (s, n = 200) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
@@ -94,9 +109,9 @@ export async function hfLint(DIR, P) {
   const { f, ms } = cache.get(hf);
   const mine = new Set([...Object.keys(SKIP), ...((P.qa && P.qa["hf-lint-skip"]) || [])]);
   const out = { gate: [], warn: [], ms };
-  const seen = new Set();
+  const seen = new Set(), st = starts(hf);
   for (const x of f) {
-    if (mine.has(x.code)) continue;
+    if (mine.has(x.code) || covered(x, st)) continue;
     const line = clip(oneLine(`${x.code}: ${x.message}`) + (x.fixHint ? ` (fix: ${oneLine(x.fixHint)})` : ""));
     if (seen.has(line)) continue;
     seen.add(line);

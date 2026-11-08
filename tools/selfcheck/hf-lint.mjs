@@ -4,11 +4,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
+import os from "node:os";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import gate from "../checks/hf-lint.page.mjs";
 import warn from "../checks/hf-lint-warn.page.mjs";
-import { SKIP, DOWNGRADE } from "../checks/hf-lint.mjs";
+import { SKIP, DOWNGRADE, resetCache } from "../checks/hf-lint.mjs";
+import { themes, writeTheme } from "../theme.mjs";
+import { copyKit } from "../kit_files.mjs";
 import { lintProject } from "../../vendor/hyperframes/lint/dist/index.js";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -18,8 +21,9 @@ const run = async (ctx) => ({ gate: await gate(null, ctx), warn: await warn(null
 
 // the fixture: ≥ 6 error rules (gate) and ≥ 4 warning rules (warn) from different groups
 const WANT_GATE = ["visible_markup_comment", "non_deterministic_code", "requestanimationframe_in_composition",
-  "missing_gsap_script", "font_family_without_font_face", "missing_local_asset"];
-const WANT_WARN = ["root_dimensions_mismatch", "css_transition_used", "media_preload_none", "svg_round_cap_hidden_dash", "negative_z_index"];
+  "missing_gsap_script", "duplicate_composition_id", "missing_local_asset"];
+const WANT_WARN = ["root_dimensions_mismatch", "css_transition_used", "media_preload_none", "svg_round_cap_hidden_dash", "negative_z_index",
+  "font_family_without_font_face"];   // an error upstream, downgraded: see DOWNGRADE
 const bad = load(path.join(ROOT, "projects/qa-broken-lint"));
 assert.notEqual(bad.P.ci, true, "the broken fixture must not be a CI film");
 const r = await run(bad);
@@ -63,5 +67,35 @@ for (const d of dirs) {
   console.log(`${d}: ${x.gate.length} gate, ${x.warn.length} warn, ${(performance.now() - t0).toFixed(0)} ms`);
   for (const l of x.warn) console.log(`  WARN  ${l}`);
   assert.deepEqual(x.gate, [], `${d} must pass the hf-lint gate:\n${x.gate.join("\n")}`);
+}
+
+// every shipped theme on a real hf film (theme.css + kit/ are built output, so the loop above never sees them): no gate.
+// A copy of example-hf's tracked files under os.tmpdir(); the lint reads the linked theme.css and kit/kit.css.
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "hf-lint-themes-"));
+const savedStyle = process.env.REELWRIGHT_STYLE;
+delete process.env.REELWRIGHT_STYLE;
+try {
+  const src = "projects/example-hf";
+  const files = tracked ? tracked.filter((f) => f.startsWith(src + "/")) : fs.readdirSync(path.join(ROOT, src), { recursive: true, withFileTypes: true }).filter((e) => e.isFile()).map((e) => path.relative(ROOT, path.join(e.parentPath, e.name)).split(path.sep).join("/"));
+  for (const f of files) {
+    const to = path.join(tmp, path.relative(src, f));
+    fs.mkdirSync(path.dirname(to), { recursive: true });
+    fs.copyFileSync(path.join(ROOT, f), to);
+  }
+  copyKit(path.join(tmp, "hf"));
+  const P = JSON.parse(fs.readFileSync(path.join(tmp, "project.json"), "utf8"));
+  const all = themes();
+  assert.ok(all.length >= 27, `expected the shipped themes, found ${all.length}`);
+  for (const style of all) {
+    writeTheme(tmp, { ...P, style });
+    resetCache();
+    const x = await run({ DIR: tmp, P });
+    assert.deepEqual(x.gate, [], `theme "${style}" must pass the hf-lint gate:\n${x.gate.join("\n")}`);
+    for (const l of x.warn) console.log(`  theme ${style}: WARN  ${l}`);
+  }
+  console.log(`${all.length} themes on example-hf: gate clean`);
+} finally {
+  if (savedStyle !== undefined) process.env.REELWRIGHT_STYLE = savedStyle;
+  fs.rmSync(tmp, { recursive: true, force: true });
 }
 console.log("hf-lint selfcheck ok");

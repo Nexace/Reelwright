@@ -6,11 +6,11 @@ files it references, statically: no browser, no network, no rendered frames, abo
 
 | Plug-in | Kind | What it reports |
 |---|---|---|
-| `tools/checks/hf-lint.page.mjs` | gate (FAIL) | upstream **errors**: broken HTML/CSS, missing local assets, fonts without `@font-face`, non-deterministic code (`Math.random`, `requestAnimationFrame`), GSAP misuse, SVG, textures |
+| `tools/checks/hf-lint.page.mjs` | gate (FAIL) | upstream **errors**: broken HTML/CSS, missing local assets, non-deterministic code (`Math.random`, `requestAnimationFrame`), GSAP misuse, SVG, textures |
 | `tools/checks/hf-lint-warn.page.mjs` | WARN | upstream warnings and info, plus the errors in `DOWNGRADE` |
 
 Each line is `<code>: <message> (fix: <hint>)`, cut to 200 characters. `tools/checks/hf-lint.mjs` holds the shared run and
-both lists below. The fixture `projects/qa-broken-lint` trips 6 gate and 5 warn codes on purpose;
+both lists below. The fixture `projects/qa-broken-lint` trips 6 gate and 6 warn codes on purpose;
 `node tools/selfcheck/hf-lint.mjs` checks it and that every committed hyperframes film passes the gate.
 
 ## Rules not run (`SKIP`)
@@ -29,7 +29,8 @@ HyperFrames' own model. The one-line reason for each is next to it in `SKIP`. By
 - **Size and performance advice**, and rules that can't fire locally (`system_font_will_alias` is distributed-render only).
 
 Rules that run but only as WARN: `gsap_non_transform_motion`, `media_crossorigin_breaks_preview`,
-`deprecated_data_layer`, `deprecated_data_end` (`DOWNGRADE`, each with its reason). If you think another rule is wrong
+`deprecated_data_layer`, `deprecated_data_end`, `font_family_without_font_face` (`DOWNGRADE`, each with its reason; the last because
+five themes end their font stack in the system fallback Impact, which has no `@font-face`). If you think another rule is wrong
 for a film, move it there or into `SKIP` in `tools/checks/hf-lint.mjs`, with the reason.
 
 ## Silencing

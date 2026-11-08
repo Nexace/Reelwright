@@ -4,7 +4,6 @@
 // work are skipped (SKIP); a few errors are kept as warnings (DOWNGRADE). Rationale per rule: docs/playbook/qa-lint.md.
 import fs from "node:fs";
 import path from "node:path";
-import { lintProject } from "../../vendor/hyperframes/lint/dist/index.js";   // relative: a bare import would resolve elsewhere
 
 // Rules whose premise is HyperFrames' own model, not Reelwright's: the film page is built by film.js at runtime and
 // render(t) is the only clock (KIT.start registers window.__timelines.main, KIT.gsap registers its timeline, the mp4's
@@ -69,9 +68,11 @@ export const DOWNGRADE = {
   media_crossorigin_breaks_preview: "the page itself renders; only an off-origin preview shows it blank",
   deprecated_data_layer: "a deprecated HyperFrames attribute Reelwright never reads, so it does nothing here",
   deprecated_data_end: "a deprecated HyperFrames attribute Reelwright never reads, so it does nothing here",
+  font_family_without_font_face: "five themes end their stack in the system fallback Impact, which has no @font-face; a correct film must not FAIL",
 };
 
 const cache = new Map();   // hf dir → findings (both plug-ins call in the same process)
+export const resetCache = () => cache.clear();   // for self-checks that rewrite a folder and lint it again
 const oneLine = (s) => String(s || "").replace(/\s+/g, " ").trim();
 const clip = (s, n = 200) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
@@ -84,6 +85,9 @@ export async function hfLint(DIR, P) {
   if (!fs.existsSync(path.join(hf, "index.html"))) return none;
   if (!cache.has(hf)) {
     const t0 = performance.now();
+    // loaded here, not at the top: pvk films and a checkout without `npm install` never pay for (or fail on) the vendored lint.
+    // relative path: a bare "@hyperframes/lint" would resolve to a different checkout's node_modules
+    const { lintProject } = await import("../../vendor/hyperframes/lint/dist/index.js");
     const r = await lintProject(hf);
     cache.set(hf, { f: r.results.flatMap((x) => x.result.findings), ms: performance.now() - t0 });
   }

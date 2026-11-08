@@ -1,6 +1,6 @@
 // node tools/selfcheck/motion.mjs [fixture…] — the motion modules (tools/path.js, transitions.js, shots2.js, motion.js) are
 // pure functions of t. Each fixture in tools/selfcheck/motion/<name>.mjs is a small film (export default { scripts, dur, film,
-// check? }) rendered in both renderers — pvk (file:// page, window.render(t)) and hyperframes (the producer's own file
+// check?, hfNoise? }) rendered in both renderers — pvk (file:// page, window.render(t)) and hyperframes (the producer's own file
 // server, window.__hf.seek(t)): page A seeks 12 times forward, page B (a fresh browser) the same times shuffled; every
 // screenshot must match (pvk byte for byte, hyperframes within its raster noise) and the frames must move. A fixture's
 // optional check(page) runs in page A after load (assertions on the module's pure parts).
@@ -102,12 +102,14 @@ try {
       const diff = [], noisy = [];
       for (const t of times.filter((t) => a[t].sha !== b[t].sha)) {
         const off = renderer === "pvk" ? Infinity : await offPixels(a[t].png, b[t].png);
-        (off > MAX_PIXELS ? diff : noisy).push(off === Infinity ? t : `${t} (${off} px)`);
+        // a fixture may state a larger HyperFrames limit for frames in a window (fx.hfNoise: { px, at: [t0, t1], why })
+        const lim = fx.hfNoise && t >= fx.hfNoise.at[0] && t <= fx.hfNoise.at[1] ? fx.hfNoise.px : MAX_PIXELS;
+        (off > lim ? diff : noisy).push(off === Infinity ? t : `${t} (${off} px${lim !== MAX_PIXELS ? ` ≤ ${lim}: ${fx.hfNoise.why}` : ""})`);
       }
       const moving = new Set(times.map((t) => a[t].sha)).size, ok = !diff.length && moving >= N / 2;
       if (!ok) bad++;
       console.log(`${ok ? "PASS" : "FAIL"}  ${name.padEnd(12)} ${renderer.padEnd(11)} ${N - diff.length - noisy.length}/${N} identical` +
-        (noisy.length ? `, ${noisy.length} within raster noise` : "") + `, ${moving} distinct frames` +
+        (noisy.length ? `, ${noisy.length} within raster noise (t = ${noisy.join(", ")})` : "") + `, ${moving} distinct frames` +
         (diff.length ? `; DIFFER at t = ${diff.join(", ")}` : "") + (moving < N / 2 ? "; barely moves (fixture broken?)" : ""));
     }
   }

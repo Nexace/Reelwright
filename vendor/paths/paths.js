@@ -3334,7 +3334,8 @@ var interpolate = (x, inR, outR, o = {}) => {
   if (x > inR[n - 1] && er !== "extend") return er === "clamp" ? outR[n - 1] : x;
   let i = 1; while (i < n - 1 && x > inR[i]) i++;
   const p = (x - inR[i - 1]) / (inR[i] - inR[i - 1]), e = o.easing ? o.easing(p) : p;
-  return outR[i - 1] + (outR[i] - outR[i - 1]) * e;
+  const mix = (a, b) => a + (b - a) * e;
+  return Array.isArray(outR[0]) ? outR[i - 1].map((a, k) => mix(a, outR[i][k])) : mix(outR[i - 1], outR[i]);   // interpolatePaths passes vectors of weights
 };
 var normalizeInterpolatedPath = (path) => {
   return path.replace(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi, (value) => {

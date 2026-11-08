@@ -31,13 +31,16 @@ export function pick(brief) {
   let i = 0;
   P.forEach((_, j) => { if (score(j) > score(i) + 1e-9) i = j; });   // ties go to the earlier, more general row
   if (score(i) < 1) throw new Error(`no product type matches "${brief}" — name the kind of product (saas, fintech, fitness app, …)`);
-  // fonts: the row's typography mood (and the brief) against each pairing's mood keywords, rare words weighted up
-  const mood = new Set([...B, ...words(why[i].Typography_Mood + " " + why[i].Style_Priority)]);
-  const T = types.map((t) => words(t["Mood/Style Keywords"] + " " + t["Best For"])), wt = idf(T);
-  const fit = (j) => [...T[j]].filter((w) => mood.has(w)).reduce((a, w) => a + wt(w), 0) +
+  // fonts: the row's typography mood, its product type and the brief, against each pairing's mood keywords (and, at half
+  // weight, what it's best for); rare words count more. The row's UI style (glass, neumorphism…) is web-only, so it's left out.
+  const mood = new Set([...B, ...words(why[i].Typography_Mood + " " + products[i]["Product Type"])]);
+  mood.delete("typography");
+  const K = types.map((t) => words(t["Mood/Style Keywords"])), F = types.map((t) => words(t["Best For"]));
+  const wk = idf(K), wf = idf(F), sum = (set, w) => [...set].filter((x) => mood.has(x)).reduce((n, x) => n + w(x), 0);
+  const fit = (j) => sum(K[j], wk) + 0.5 * sum(F[j], wf) +
     0.5 * (bundled(types[j]["Heading Font"]) + bundled(types[j]["Body Font"]));   // prefer pairings that need no substitute
   let k = 0;
-  T.forEach((_, j) => { if (fit(j) > fit(k) + 1e-9) k = j; });
+  K.forEach((_, j) => { if (fit(j) > fit(k) + 1e-9) k = j; });
   const type = types[k];
   return { product: products[i], colors: colors[i], why: why[i], type };
 }

@@ -45,7 +45,7 @@ KIT.start({ dur: 6, render: (t) => {
 } });`,
   check: async (p) => { await p.evaluate(() => {
     const fail = (m) => { throw new Error('motion check: ' + m); };
-    const near = (a, b, m) => { if (!(Math.abs(a - b) < 1e-9)) fail(m + ': ' + a + ' != ' + b); };
+    const near = (a, b, m, tol = 1e-9) => { if (!(Math.abs(a - b) < tol)) fail(m + ': ' + a + ' != ' + b); };
     const R = KIT.rate;
     // [fn, f(0), f(1)] for each one-argument rate function
     const ends = { linear: [0, 1], smooth: [0, 1], smoothstep: [0, 1], smootherstep: [0, 1], rushInto: [0, 1], rushFrom: [0, 1],
@@ -59,6 +59,7 @@ KIT.start({ dur: 6, render: (t) => {
     near(fns.notQuiteThere(1), 0.7, 'notQuiteThere(1)'); near(fns.notQuiteThere(0), 0, 'notQuiteThere(0)');
     near(fns.squish(0.1), 0, 'squish before a'); near(fns.squish(0.9), 1, 'squish after b');
     near(R.thereAndBack(0.5), 1, 'thereAndBack(0.5)'); near(R.thereAndBackWithPause(0.5), 1, 'pause plateau');
+    for (const q of [0.2, 0.5]) for (const e of [0.5 - q / 2, 0.5 + q / 2]) near(R.thereAndBackWithPause(e - 1e-6, q), R.thereAndBackWithPause(e + 1e-6, q), 'pause ' + q + ' continuous at ' + e, 1e-3);
     near(R.smooth(0.5), 0.5, 'smooth(0.5)'); near(R.lingering(0.8), 1, 'lingering(0.8)');
     near(R.smoothstep(0.5), KIT.math ? KIT.math.ease.smooth(0.5) : 0.5, 'smoothstep = math smooth');
     let lo = 0, hi = 1;

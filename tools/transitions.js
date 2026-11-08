@@ -26,10 +26,12 @@
   const tri = (p) => 1 - Math.abs(1 - 2 * p);   // 0 → 1 at the middle → 0
   const mask = (e, v) => { e.style.maskImage = v; e.style.webkitMaskImage = v; };
   const move = (dx, dy, k) => 'translate(' + f(dx * k) + 'px,' + f(dy * k) + 'px)';
-  const cutAt = (p, c) => { (p < 0.5 ? c.to : c.from).style.visibility = 'hidden'; };   // the cut: only one layer is up
+  // hidden = visibility + opacity 0: a child with visibility:visible (KIT.show writes it) still paints inside a hidden parent
+  const hide = (e) => { e.style.visibility = 'hidden'; e.style.opacity = '0'; };
+  const cutAt = (p, c) => hide(p < 0.5 ? c.to : c.from);   // the cut: only one layer is up
   const wash = (c, op) => { K.show(c.overlay, op); };
   const RESET = ['transform', 'clipPath', 'maskImage', 'webkitMaskImage', 'filter', 'opacity', 'zIndex', 'backfaceVisibility'];
-  const reset = (e, vis) => { for (const k of RESET) e.style[k] = ''; e.style.visibility = vis; };
+  const reset = (e, vis) => { for (const k of RESET) e.style[k] = ''; if (vis === 'hidden') hide(e); else e.style.visibility = vis; };
   const SPARE = [document.createElement('div'), document.createElement('div')];   // writes for a missing or not-owned layer go here
   const reg = new WeakMap();   // layer → transitions that use it, by `at`
   const owner = (e, t) => { const l = reg.get(e); let o = l[0]; for (const x of l) if (x.at <= t) o = x; return o; };
@@ -111,7 +113,7 @@
       const rect = (b) => 'M0 ' + f(b.y) + 'h' + W + 'v' + f(b.h) + 'h' + -W + 'z', all = bands.map(rect).join('');
       c.from.style.transform = 'translateX(' + f(dx) + 'px)'; c.to.style.transform = 'translateX(' + f(-dx) + 'px)';
       c.from.style.filter = c.to.style.filter = 'hue-rotate(' + f(hue) + 'deg) saturate(' + f(1 + a) + ')';
-      if (p < 0.5) { if (nb) c.to.style.clipPath = "path('" + all + "')"; else c.to.style.visibility = 'hidden'; }
+      if (p < 0.5) { if (nb) c.to.style.clipPath = "path('" + all + "')"; else hide(c.to); }
       else if (nb) c.to.style.clipPath = "path(evenodd,'M0 0h" + W + 'v' + H + 'h' + -W + 'z' + all + "')";
       const bar = (b, col, x) => 'linear-gradient(' + col + ',' + col + ') ' + f(x) + 'px ' + f(b.y) + 'px/' + f(b.w) + 'px ' + f(b.h) + 'px no-repeat';
       c.overlay.style.background = bands.flatMap((b) => [bar(b, 'rgba(255,0,70,.55)', b.x0), bar(b, 'rgba(0,255,255,.55)', b.x0 + b.s * 0.06 * W)]).join(',');

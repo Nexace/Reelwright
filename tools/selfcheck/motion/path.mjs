@@ -51,6 +51,8 @@ KIT.start({ dur: 4, render: (t) => {
       T('closed ends with Z', /Z$/.test(K.path.fromPoints(pts, { closed: true })));
       const st = R.parsePath(K.path.fromPoints(pts, { curviness: 0 }));
       T('curviness 0 is straight', st.slice(1).every((i) => i.type === 'L') && near(K.path(K.path.fromPoints(pts, { curviness: 0 })).len, pts.slice(1).reduce((s, q, i) => s + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0), 0.01));
+      const ms = K.path('M0 0 L100 0 M200 0 L300 0').slice(0.6, 0.9), mp = K.path(ms);   // review: per-subpath slice
+      T('multi-subpath slice', near(mp.at(0).x, 220, 0.01) && near(mp.at(1).x, 280, 0.01) && near(mp.len, 60, 0.01));
       return out;
     });
     if (r.length) throw new Error('KIT.path checks failed: ' + r.join('; '));

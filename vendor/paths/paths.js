@@ -3327,9 +3327,12 @@ var interpolatePath = (value, firstPath, secondPath) => {
   return serializeInstructions(commandInterpolator(value));
 };
 // src/interpolate-paths.ts
-// shim for remotion's interpolate (Remotion License, not vendored): piecewise linear, extrapolate "extend" (default) | "clamp" | "identity"
+// shim for remotion's interpolate (Remotion License, not vendored): piecewise linear, extrapolate "extend" (default) | "clamp" | "wrap" | "identity" (numbers only)
 var interpolate = (x, inR, outR, o = {}) => {
   const n = inR.length, el = o.extrapolateLeft || "extend", er = o.extrapolateRight || "extend";
+  const span = inR[n - 1] - inR[0];
+  if (x < inR[0] && el === "wrap" || x > inR[n - 1] && er === "wrap") x = inR[0] + ((x - inR[0]) % span + span) % span;
+  if ((x < inR[0] && el === "identity" || x > inR[n - 1] && er === "identity") && Array.isArray(outR[0])) throw new Error("interpolatePaths: extrapolate 'identity' has no meaning for paths");
   if (x < inR[0] && el !== "extend") return el === "clamp" ? outR[0] : x;
   if (x > inR[n - 1] && er !== "extend") return er === "clamp" ? outR[n - 1] : x;
   let i = 1; while (i < n - 1 && x > inR[i]) i++;

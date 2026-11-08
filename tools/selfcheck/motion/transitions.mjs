@@ -39,7 +39,8 @@ KIT.start({ dur: D, render: (t) => window.TRS.forEach((x) => x.tr.set(t)) });`,
         as(to.style.visibility === 'hidden' && from.style.visibility === 'visible', type + ': before at, to must be hidden and from shown');
         apply(tr.end + 0.002);
         as(from.style.visibility === 'hidden' && to.style.visibility === 'visible', type + ': after end, from must be hidden and to shown');
-        as(['transform', 'clipPath', 'maskImage', 'filter', 'opacity', 'zIndex'].every((k) => !from.style[k] && !to.style[k]), type + ': styles not reset after end');
+        as(['transform', 'clipPath', 'maskImage', 'filter', 'zIndex'].every((k) => !from.style[k] && !to.style[k]) && !to.style.opacity &&
+          (!from.style.opacity || from.style.opacity === '0'), type + ': styles not reset after end (hidden from keeps opacity 0)');
       }
       for (const n of names) as(seen.has(n), n + ' is not in the film');
       for (const t of [0.3, 2.7, 4.1, 6.2]) { apply(t); const a = snap(); apply(5.1); apply(t); as(snap() === a, 'set(' + t + ') is not a pure function of t'); }
@@ -52,6 +53,7 @@ KIT.start({ dur: D, render: (t) => window.TRS.forEach((x) => x.tr.set(t)) });`,
       cu.set(3); as(a.style.visibility === 'hidden' && b.style.opacity === '' && b.style.visibility === 'visible', 'custom transition end state');
       const nf = KIT.transition('fade', { from: null, to: c, at: 1, dur: 1, ease: (v) => v });
       nf.set(0); as(c.style.visibility === 'hidden', 'null from: before'); nf.set(1.5); as(c.style.opacity === '0.5', 'null from: mid'); nf.set(2); as(c.style.visibility === 'visible', 'null from: after');
+      nf.set(0); as(c.style.opacity === '0', 'hidden layer also has opacity 0 (a visible child cannot show through)');
       let threw = false; try { KIT.transition('nope', { at: 0 }); } catch { threw = true; } as(threw, 'unknown type must throw');
       while (S.children.length > n0) S.lastChild.remove();
       return out;

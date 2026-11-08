@@ -19,7 +19,8 @@
 //   showPassingFlash(pathEl, { window = 0.3, width, color, thin })   a bright dash travels along an SVG <path>/<line>/… (a clone drawn over it)
 //   Geometry (el box, path style) is measured once, when the effect is created: create effects after layout and fonts are in place,
 //   with el un-transformed. Overlays go in opts.parent (default KIT.stage). Colours: --kit-accent (effect) / --kit-ink / --kit-bg.
-//   Two effects that write the same property (scale, opacity) on one element fight: give them different elements.
+//   Each effect owns the properties it writes on el, even at rest (indicate: scale, color; wiggle: rotate, scale; blink: opacity;
+//   applyWave: el's children): the film must not set those on el. Wrap el to fade or tint it. Two effects on one el fight the same way.
 // KIT.typewriter(el, text, { at, cps = 18, caret = true, mistakes = [], hold = 0.4, backspace = 2 * cps }) → { set(t), end }
 //   The string shown is a function of t. mistakes: [{ index, wrong }] types `wrong` in place of text[index…], holds, deletes it,
 //   then goes on. end = time (s) the text is complete. The caret (empty span, drawn with currentColor) is steady while typing, then blinks.
@@ -55,7 +56,7 @@
     doubleSmooth: (p) => (p < 0.5 ? 0.5 * smooth(2 * p) : 0.5 * (1 + smooth(2 * p - 1))),
     thereAndBack,
     thereAndBackWithPause: (p, pause = 1 / 3) => {
-      const a = 1 / pause;
+      const a = 2 / (1 - pause);   // Manim CE: reaches 1 at 0.5 - pause/2
       return p < 0.5 - pause / 2 ? smooth(a * p) : p < 0.5 + pause / 2 ? 1 : smooth(a - a * p);
     },
     runningStart: (p, pull = -0.5) => bezier([0, 0, pull, pull, 1, 1, 1])(p),

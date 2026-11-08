@@ -115,6 +115,7 @@
   // Feed world(t) to the film's own animation instead of t.
   S.bulletTime = (o = {}) => {
     const [t0, t1] = win(o, 60), { ramp = f(8), orbit = 25, zoom = 1.15, persp = 1000 } = o, e = E('sine.inOut');
+    if (!(ramp > 0)) throw new Error('bulletTime: ramp must be > 0 s');
     const a = t0 - ramp, w0 = t0 - ramp / 2, pts = [[a, a], [t0, w0], [t1, w0], [t1 + ramp, w0 + ramp / 2]], lag = t1 + ramp - (w0 + ramp / 2);
     return {
       world: (t) => (t <= a ? t : t >= t1 + ramp ? t - lag : K.remap(t, pts)),

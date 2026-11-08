@@ -19,12 +19,15 @@ circumscribe, a light leak, three cards on depth planes flown by a tour, a brush
   (it differed under shuffled seeks). `fromPoints(pts, { curviness })` replaces MotionPath's "path from points".
 - `draw(pathEl, p)` is the draw-on; `morph(a, b, p)` morphs two paths of any shape (exact at p = 0 and 1); `morphMany` runs
   through several. `KIT.path.lib` is the whole @remotion/paths API (`warpPath`, `getSubpaths`, …).
-- `follow` measures the element once: create it at its final size. It does not size SVG children.
+- `follow` reads the element's size on every call (`offsetWidth`/`offsetHeight`), so it does not size SVG children.
+- `slice(p0, p1)` works across subpaths (each sliced on its own). `KIT.path.lib.interpolatePaths` takes extrapolate
+  `extend`, `clamp` or `wrap`; `identity` throws (a path is not a number).
 
 ## Transitions — `KIT.transition`
 
 Scenes are full-stage layers (`.scene`); a transition owns their `transform`, `clip-path`, `mask`, `filter`, `opacity`,
-`z-index` and `visibility`, so style the scene's children, not the layer. Window `[at, at + dur]`: before it `from` shows,
+`z-index` and `visibility`, so style the scene's children, not the layer. A hidden layer gets `opacity: 0` as well as
+`visibility: hidden`, because a child that `KIT.show` made visible would otherwise still paint. Window `[at, at + dur]`: before it `from` shows,
 after it `to` shows. Chains work (a layer can be the `to` of one and the `from` of the next). Call every `set(t)` in `render(t)`.
 
 Types: `cut` (`none`), `fade`, `fadeThrough`, `slide`, `push`, `wipe`, `barnDoor`, `blinds`, `clockWipe`, `iris`, `flip`, `cube`,
@@ -48,7 +51,8 @@ between the two layers (it cannot shift one band of a single layer); `clockWipe`
 - `KIT.rate.*` are Manim CE's rate functions (and ManimGL's `overshoot`). `KIT.rate.smooth` is Manim's sigmoid; the cubic
   is `KIT.rate.smoothstep` (= `KIT.math.ease.smooth`).
 - `KIT.indicate.indicate / flash / focusOn / circumscribe / wiggle / blink / applyWave / showPassingFlash(el, { at, dur })`
-  measure `el` once at creation: create them after layout and fonts. Two effects writing the same property on one element fight.
+  measure `el` once at creation: create them after layout and fonts. Each owns the properties it writes on `el`, even at rest
+  (`indicate`: scale, color; `wiggle`: rotate, scale; `blink`: opacity; `applyWave`: the children), so fade or tint a wrapper instead.
 - `KIT.typewriter(el, text, { at, cps, mistakes: [{ index, wrong }] })` types, mistypes, backspaces and retypes; `end` is
   when the text is complete.
 - `KIT.sim(step, state0, { dt, dur })` runs a fixed-step simulation once at load and interpolates samples: physics you can

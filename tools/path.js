@@ -8,7 +8,7 @@
 //   KIT.path.morphMany(ds, p)                     → d through ds at evenly spaced stops (interpolatePaths)
 //   KIT.path.follow(el, path, p, { rotate = true, offset = [0, 0] })
 //        moves an absolutely positioned el (left/top 0, same coordinate space as the path) so its centre sits at p along path
-//        (a KIT.path or a d); transform = translate(x − w/2 + ox, y − h/2 + oy) rotate(angle). Size is measured once per element.
+//        (a KIT.path or a d); transform = translate(x − w/2 + ox, y − h/2 + oy) rotate(angle). Size is read on every call.
 //   KIT.path.fromPoints(pts, { curviness = 1, closed = false })   → a smooth d through [[x, y], …] (Catmull-Rom as cubic Béziers;
 //        curviness 0 = straight segments)
 //   KIT.path.lib                                  window.RemotionPaths (parsePath, getLength, warpPath, …) for anything else
@@ -30,8 +30,18 @@
       return { x: pt.x, y: pt.y, angle: Math.atan2(tg.y, tg.x) * 180 / Math.PI };
     };
     // the part from p0 to p1: cut the front at p1, flip, cut what is left at the length of the piece, flip back
+    // shortcut: one subpath at a time; reversePath keeps subpath order, so a multi-subpath d is sliced per subpath
+    const subs = R.getSubpaths(d), lens = subs.map((s) => R.getLength(s));
     const slice = (p0, p1) => {
       p0 = K.clamp(p0); p1 = K.clamp(p1);
+      if (subs.length > 1) {
+        let acc = 0; const out = [];
+        subs.forEach((s, i) => {
+          const a = acc / len, b = (acc += lens[i]) / len, q0 = Math.max(p0, a), q1 = Math.min(p1, b);
+          if (q1 > q0 && lens[i] > 0) out.push(P(s).slice((q0 - a) / (b - a), (q1 - a) / (b - a)));
+        });
+        if (out.length) return out.join(' ');
+      }
       if (p1 <= p0) { const q = at(p0); return `M${q.x} ${q.y}`; }
       const head = p1 >= 1 ? d : R.cutPath(d, p1 * len);
       return p0 <= 0 ? head : R.reversePath(R.cutPath(R.reversePath(head), (p1 - p0) * len));
@@ -52,10 +62,8 @@
     return n < 1 ? ds[0] : R.interpolatePaths(K.clamp(p), ds.map((_, i) => i / n), ds, { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   };
 
-  const sizes = new WeakMap();
   P.follow = (el, path, p, { rotate = true, offset = [0, 0] } = {}) => {
-    let s = sizes.get(el);
-    if (!s) sizes.set(el, (s = [el.offsetWidth, el.offsetHeight]));
+    const s = [el.offsetWidth, el.offsetHeight];   // measured every call: a size cached on a page's first frame differs per page
     const q = (path.at ? path : P(path)).at(p);
     el.style.transform = `translate(${q.x - s[0] / 2 + offset[0]}px, ${q.y - s[1] / 2 + offset[1]}px)` + (rotate ? ` rotate(${q.angle}deg)` : '');
   };

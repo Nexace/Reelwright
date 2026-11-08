@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- tools/selfcheck/taste.mjs fixture: a 9 s film with every taste problem on purpose (no sched, no VO audio).
+     0–2.2 s  #jumper teleports for one frame at 1.0 s; #slider moves linearly 1.0–2.0 s and stops dead;
+              grey-on-grey text; the VO line runs at 7 words/s
+     2.2–4.2 s  everything crammed into the top-left corner
+     4.2–9 s    one tiny dot: near-empty and static for 4.8 s -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../kit.css">
+<style>
+  body { background: #0f1115; }
+  .box { background: #6ee7b7; }
+  #grey { left: 660px; top: 150px; width: 600px; height: 200px; background: #666; color: #777; font: 600 40px sans-serif;
+          display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script>
+window.PROJECT = { title: "taste bad", fps: 30, width: 1920, height: 1080, lead: 0.3, tail: 6.7, speechEnd: 2.3 };
+const words = "so many words crammed into one tiny line that nobody can follow along now".split(" ");
+window.VO = { fast: { at: 0.3, start: 0.3, end: 2.3, text: words.join(" "), words: words.map((w, i) => ({ w, t: 0.3 + i * 2 / words.length, d: 0.12 })) } };
+</script>
+<script src="../../../engine.js"></script>
+<script>
+'use strict';
+const { el, css, show } = KIT;
+const box = (id, l, t, w, h) => { const e = el('div', 'box'); e.id = id; css(e, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' }); return e; };
+const jumper = box('jumper', 700, 450, 160, 160), slider = box('slider', 300, 700, 120, 120);
+const grey = el('div', '', undefined, 'Low contrast label'); grey.id = 'grey';
+const corner = [box('c1', 40, 40, 200, 120), box('c2', 40, 180, 300, 80), box('c3', 260, 40, 120, 120)];
+const dot = box('dot', 948, 528, 24, 24);
+function render(t) {
+  const A = t < 2.2, B = t >= 2.2 && t < 4.2;
+  for (const e of [jumper, slider, grey]) show(e, A ? 1 : 0);
+  for (const e of corner) show(e, B ? 1 : 0);
+  show(dot, t >= 4.2 ? 1 : 0);
+  jumper.style.transform = Math.round(t * 30) === 30 ? 'translateX(500px)' : 'none';   // one frame away, then back
+  slider.style.transform = `translateX(${1400 * KIT.clamp(t - 1, 0, 1)}px)`;            // linear: no ease at either end
+}
+KIT.start({ dur: 9, render });
+</script>
+</body>
+</html>

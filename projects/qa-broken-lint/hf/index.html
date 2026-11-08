@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- QA fixture: every mistake below is deliberate (tools/selfcheck/hf-lint.mjs asserts the lint codes). -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  /* structure / CSS: body is 1280x720 but the root says 1920x1080 (root_dimensions_mismatch) */
+  html, body { margin: 0; width: 1280px; height: 720px; background: #101418; overflow: hidden; }
+  /* CSS: a transition is wall-clock time, not render(t) (css_transition_used); negative z-index (negative_z_index) */
+  .big { color: #fff; font-size: 96px; transition: opacity 0.3s; }
+  .under { z-index: -1; position: absolute; }
+  /* fonts: no @font-face for it (font_family_without_font_face) */
+  .brand { font-family: "Nonexistent Brand Sans"; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage" class="brand"></div>
+  <div class="under">behind</div>
+  <!-- markup: block-comment syntax shows as text (visible_markup_comment) -->
+  /* this is not an HTML comment */
+  <!-- media / assets: a missing local file (missing_local_asset); preload none (media_preload_none) -->
+  <img id="logo" src="assets/does-not-exist.png">
+  <video id="clip" src="assets/also-missing.mp4" preload="none" muted></video>
+  <!-- SVG: round caps leave a dot on a "hidden" dash (svg_round_cap_hidden_dash) -->
+  <svg width="100" height="20"><path d="M0 10 H100" pathLength="100" stroke="#fff" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="100" fill="none"/></svg>
+</div>
+<script>
+  /* determinism: render(t) must be a pure function of t (non_deterministic_code, requestanimationframe_in_composition) */
+  var jitter = Math.random();
+  requestAnimationFrame(function tick() { requestAnimationFrame(tick); });
+  /* GSAP used with no GSAP script loaded (missing_gsap_script) */
+  var tl = gsap.timeline({ paused: true });
+  tl.to("#stage", { opacity: 0.5, duration: 1 });
+</script>
+<script src="kit-data.js"></script>
+<script src="kit/engine.js"></script>
+<script src="film.js"></script>
+</body>
+</html>

@@ -9,7 +9,7 @@
   --kit-font-mono: "Nunito", sans-serif; --kit-label-font: "Fredoka", sans-serif;
   --kit-display-weight: 600; --kit-display-tracking: -0.01em; --kit-display-case: none;
   --kit-radius: 28px; --kit-border: 5px solid #1d1a3a; --kit-shadow: 0 10px 0 #1d1a3a; --kit-space: 28px;
-  --kit-sub-bg: #ffffff; --kit-sub-ink: rgba(29,26,58,.4); --kit-sub-said: #ff4f5e;
+  --kit-sub-bg: #ffffff; --kit-sub-ink: rgba(29,26,58,.4); --kit-sub-said: #c8243a;
   --kit-sub-font: 700 32px var(--kit-font-text); --kit-sub-radius: 22px; --kit-sub-deco: none;
   --kit-ease: settle; --kit-tempo: 0.95; --kit-ease-in: power2.in; --kit-stagger: .06; --kit-settle: .5;
 }

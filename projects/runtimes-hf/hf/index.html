@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- Runtimes demo: GSAP, Lottie, anime.js, Three.js and CSS @keyframes, all seeked from render(t) by tools/runtimes.js.
+     Kept short: CI builds it on three OSes ("ci": true). Preview: open hf/index.html#3 (a moment) or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" -->
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .title, .tag, .dot { position: absolute; }
+  .an { opacity: 0; }   /* anime.js writes opacity from its tween's start; hidden until then */   /* nested in scene layers, which kit.css does not position */
+  .title { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking);
+    font-size: calc(96 * var(--kit-u)); white-space: nowrap; color: var(--kit-ink); }
+  .tag { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase;
+    color: var(--kit-muted); white-space: nowrap; transform: translateX(-50%); }
+  .dot { width: calc(34 * var(--kit-u)); height: calc(34 * var(--kit-u)); border-radius: 50%; background: var(--kit-accent); }
+  .ring { border: calc(6 * var(--kit-u)) solid var(--kit-accent); border-radius: 50%;
+    animation: pulse 0.9s cubic-bezier(.3, 1.5, .6, 1) 0s 3 alternate both; }
+  @keyframes pulse { from { transform: scale(0.6); opacity: 0.2 } to { transform: scale(1); opacity: 1 } }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>                    <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>                  <!-- copied from tools/ by the renderer -->
+<script src="kit/gsap/dist/gsap.min.js"></script>      <!-- vendor/gsap (GSAP Standard No Charge licence) -->
+<script src="kit/gsap/dist/SplitText.min.js"></script>
+<script src="kit/gsap/dist/DrawSVGPlugin.min.js"></script>
+<script src="kit/lottie/lottie.min.js"></script>       <!-- vendor/lottie -->
+<script src="kit/anime/anime.umd.min.js"></script>     <!-- vendor/anime -->
+<script src="kit/runtimes.js"></script>                <!-- KIT.gsap / lottie / anime / three / animations -->
+<script src="film.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- Recipe film: eight proven scenes, one per recipe in docs/recipes/*.md. The CSS and JS between the "#region" markers
+     here and in film.js are what each recipe page quotes. All timings come from hf/kit-data.js (tools/sched.py).
+     Preview in a browser: open hf/index.html#4.2 (a moment) or #play (rough real-time playback). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  body { background: var(--kit-bg); }
+  /* #region setup-css */
+  /* a custom scene sits in the title-safe box; sizes in --kit-u so 16x9, 9x16 and 1x1 all fit */
+  .sc { left: var(--kit-safe-x); top: var(--kit-safe-y); width: var(--kit-safe-w); height: var(--kit-safe-h); display: flex;
+        flex-direction: column; align-items: center; justify-content: center; visibility: hidden; color: var(--kit-ink); font-family: var(--kit-font-text); }
+  .kick { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-accent); }
+  .disp { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking); text-transform: var(--kit-display-case); }
+  .card { background: var(--kit-surface); border: var(--kit-border); border-radius: var(--kit-radius); box-shadow: var(--kit-shadow); }
+  .note { font-family: var(--kit-label-font); font-size: calc(20 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-muted); }
+  /* #endregion */
+  /* #region hook-css */
+  .hl { text-align: center; line-height: 1.02; margin-top: calc(28 * var(--kit-u)); font-size: min(calc(150 * var(--kit-u)), calc(var(--kit-safe-w) / 11)); }
+  .hl .ln { display: block; }
+  .hl b { color: var(--kit-accent); font-weight: inherit; }
+  .bar { display: block; height: calc(10 * var(--kit-u)); width: min(calc(560 * var(--kit-u)), 60%); margin-top: calc(48 * var(--kit-u));
+         border-radius: calc(5 * var(--kit-u)); background: var(--kit-accent); }
+  /* #endregion */
+  /* #region chart-css */
+  .chart { width: min(calc(1500 * var(--kit-u)), 100%); padding: calc(48 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(28 * var(--kit-u)); }
+  .chart h3 { font-size: calc(44 * var(--kit-u)); }
+  .cols { display: grid; grid-template-columns: repeat(6, 1fr); gap: calc(24 * var(--kit-u)); }
+  .cols.bars { height: calc(440 * var(--kit-u)); align-items: end; }
+  .cols.bars i { display: block; border-radius: calc(6 * var(--kit-u)); background: var(--kit-accent-2); transform-origin: bottom; }
+  .cols.bars i:last-child { background: var(--kit-accent); }
+  .cols span { text-align: center; font-family: var(--kit-label-font); font-size: calc(26 * var(--kit-u)); color: var(--kit-muted); }
+  .chart-note { margin-top: calc(28 * var(--kit-u)); }
+  /* #endregion */
+  /* #region features-css */
+  .list { width: min(calc(1200 * var(--kit-u)), 100%); display: flex; flex-direction: column; gap: calc(22 * var(--kit-u)); margin-top: calc(32 * var(--kit-u)); }
+  .row { display: flex; align-items: center; gap: calc(32 * var(--kit-u)); padding: calc(24 * var(--kit-u)) calc(36 * var(--kit-u)); }
+  .row .ic { flex: none; width: calc(72 * var(--kit-u)); height: calc(72 * var(--kit-u)); border-radius: var(--kit-radius); display: flex; align-items: center;
+             justify-content: center; font-size: calc(36 * var(--kit-u)); color: var(--kit-accent); background: color-mix(in srgb, var(--kit-accent) 16%, transparent); }
+  .row b { display: block; font-size: calc(52 * var(--kit-u)); line-height: 1.1; }
+  .row span { font-size: calc(28 * var(--kit-u)); color: var(--kit-muted); }
+  /* #endregion */
+  /* #region split-css */
+  .vs { display: flex; gap: calc(48 * var(--kit-u)); width: 100%; height: 62%; }
+  .fmt-9x16 .vs, .fmt-1x1 .vs { flex-direction: column; height: 82%; }
+  .pane { flex: 1; padding: calc(44 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(22 * var(--kit-u)); }
+  .pane .kick { color: var(--kit-muted); }
+  .wall i { display: block; height: calc(14 * var(--kit-u)); margin-bottom: calc(18 * var(--kit-u)); border-radius: calc(7 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 16%, transparent); }
+  .pane.after { border-color: var(--kit-accent); }
+  .pane.after .kick { color: var(--kit-accent); }
+  .pane.after .idea { margin: auto 0; font-size: calc(96 * var(--kit-u)); line-height: 1.02; }
+  .pane.after .cta { align-self: flex-start; padding: calc(16 * var(--kit-u)) calc(40 * var(--kit-u)); border-radius: var(--kit-radius); font-size: calc(30 * var(--kit-u));
+                     font-weight: 700; background: var(--kit-accent); color: var(--kit-on-accent); }
+  /* #endregion */
+  /* #region push-css */
+  /* the filmed layer: frame-sized, on a floor 40 % bigger than the frame, so no edge ever shows */
+  .scene, .cam { position: absolute; inset: 0; }
+  .bleed { position: absolute; inset: -40%; background: var(--kit-bg); background-image: var(--kit-bg-image); background-size: calc(64 * var(--kit-u)) calc(64 * var(--kit-u)); }
+  .ui { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(calc(1240 * var(--kit-u)), 86%); padding: calc(44 * var(--kit-u));
+        display: flex; flex-direction: column; gap: calc(28 * var(--kit-u)); }
+  .ui .h { height: calc(30 * var(--kit-u)); width: 36%; border-radius: calc(8 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 60%, transparent); }
+  .ui .kpis { display: flex; gap: calc(24 * var(--kit-u)); }
+  .kpi { flex: 1; padding: calc(28 * var(--kit-u)); border-radius: var(--kit-radius); border: var(--kit-border); background: color-mix(in srgb, var(--kit-ink) 5%, transparent);
+         display: flex; flex-direction: column; gap: calc(18 * var(--kit-u)); }
+  .kpi.key { border-color: var(--kit-accent); background: color-mix(in srgb, var(--kit-accent) 10%, transparent); }
+  .kpi b { font-size: calc(36 * var(--kit-u)); }
+  .kpi .spark { display: flex; align-items: flex-end; gap: calc(8 * var(--kit-u)); height: calc(84 * var(--kit-u)); }
+  .kpi .spark i { flex: 1; display: block; border-radius: calc(3 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 22%, transparent); }
+  .kpi.key .spark i { background: var(--kit-accent); }
+  .ui .feed { display: flex; flex-direction: column; gap: calc(18 * var(--kit-u)); }
+  .ui .feed i { display: block; height: calc(16 * var(--kit-u)); border-radius: calc(8 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 12%, transparent); }
+  /* #endregion */
+  /* #region end-css */
+  .logo { display: flex; align-items: center; gap: calc(36 * var(--kit-u)); white-space: nowrap; }
+  .logo i { flex: none; width: calc(130 * var(--kit-u)); height: calc(130 * var(--kit-u)); border-radius: calc(30 * var(--kit-u)); background: var(--kit-accent); color: var(--kit-on-accent);
+            font-style: normal; font-size: calc(60 * var(--kit-u)); display: flex; align-items: center; justify-content: center; }
+  .logo b { font-size: min(calc(150 * var(--kit-u)), calc(var(--kit-safe-w) / 9)); line-height: 1; }
+  .tag { margin-top: calc(40 * var(--kit-u)); display: flex; align-items: center; gap: calc(20 * var(--kit-u)); }
+  .tag .pulse { width: calc(22 * var(--kit-u)); height: calc(22 * var(--kit-u)); border-radius: 50%; background: var(--kit-accent); }
+  /* #endregion */
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>     <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>   <!-- copied from tools/ by the renderer -->
+<script src="kit/layouts.js"></script>  <!-- KIT.layout.* -->
+<script src="kit/shots.js"></script>    <!-- KIT.shot.*, KIT.shoot -->
+<script src="film.js"></script>
+</body>
+</html>

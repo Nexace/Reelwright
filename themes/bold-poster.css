@@ -1,0 +1,18 @@
+/* bold-poster: screen-printed poster. White paper, brown-black ink, one tomato red; Shrikhand display over Baskerville body,
+   heavy ink rules with a red left bar, square corners, no box shadows; fast slamming motion; captions as a paper card with the spoken word on a red panel.
+   Ported from HyperFrames frame preset "bold-poster" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "bold-poster";
+  --kit-bg: #FFFFFF; --kit-bg-image: none; --kit-ink: #1C1410; --kit-muted: #6e625b;
+  --kit-accent: #D8000F; --kit-accent-2: #1C1410; --kit-on-accent: #FFFFFF; --kit-surface: #F5F2EF;
+  --kit-font-display: "Shrikhand", Georgia, serif; --kit-font-text: "Libre Baskerville", Georgia, serif;
+  --kit-font-mono: "Space Grotesk", "Inter", sans-serif; --kit-label-font: "Space Grotesk", "Inter", sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: 0em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: 3px solid #1C1410; --kit-shadow: none; --kit-space: 28px;
+  --kit-sub-bg: #FFFFFF; --kit-sub-ink: rgba(28,20,16,.55); --kit-sub-said: #1C1410; --kit-sub-now: #FFFFFF;
+  --kit-sub-font: 400 32px var(--kit-font-text); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: back.out(1.56); --kit-tempo: 0.8; --kit-ease-in: expo.in; --kit-stagger: .05; --kit-settle: .4;
+}
+.kit-subrow { border: 1.5px solid #1C1410; border-left: 4px solid #D8000F; }
+.kit-subrow .now { background: #D8000F; box-shadow: 0 0 0 5px #D8000F; text-shadow: 2px 2px 0 rgba(28,20,16,.25), 4px 4px 0 rgba(28,20,16,.15); }
+.kit-lay-card { border-left: 8px solid #D8000F; }

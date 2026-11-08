@@ -1,0 +1,1 @@
+| Anime.js 4.5.0 (`anime.umd.min.js`) | `vendor/anime/` | MIT (SPDX `MIT`), [LICENSE.md](vendor/anime/LICENSE.md) | Copyright Julian Garnier. https://github.com/juliangarnier/anime. Drives `KIT.anime` timelines (tools/runtimes.js). Unchanged; what we took: [VENDORED.md](vendor/anime/VENDORED.md). |

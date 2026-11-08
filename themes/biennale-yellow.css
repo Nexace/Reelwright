@@ -1,0 +1,22 @@
+/* biennale-yellow: art-biennale catalogue. Parchment ground with a solar-yellow bloom and a faint ember counter-bloom,
+   deep indigo ink for everything, 1px hairlines, no shadows, no radius; Instrument Serif display; slow premium glides;
+   captions on a parchment card with a hairline, the spoken word on a hard yellow underprint.
+   Ported from HyperFrames frame preset "biennale-yellow" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "biennale-yellow";
+  --kit-bg: #E9E5DB;
+  --kit-bg-image: radial-gradient(circle at 74% 36%, #F1EE2E 0, #F8F39B 16%, rgba(240,218,124,.5) 34%, transparent 58%), radial-gradient(circle at 4% 100%, rgba(226,107,74,.2), transparent 40%);
+  --kit-ink: #1B2566; --kit-muted: #595f89;
+  --kit-accent: #1B2566; --kit-accent-2: #E26B4A; --kit-on-accent: #E9E5DB; --kit-surface: #DCD6C4;
+  --kit-font-display: "Instrument Serif", Georgia, serif; --kit-font-text: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --kit-font-mono: "JetBrains Mono", Consolas, monospace; --kit-label-font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: -0.01em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: 1px solid #1B2566; --kit-shadow: none; --kit-space: 28px;
+  --kit-sub-bg: #E9E5DB; --kit-sub-ink: #6d7295; --kit-sub-said: #1B2566;
+  --kit-sub-font: 400 38px var(--kit-font-display); --kit-sub-radius: 0; --kit-sub-deco: none;
+  --kit-ease: premium; --kit-tempo: 1.3; --kit-ease-in: accel; --kit-stagger: .09; --kit-settle: .85;
+}
+.kit-subrow { border: 1px solid #1B2566; }
+.kit-subrow .said { background: #F1EE2E; box-shadow: 0 0 0 .06em #F1EE2E; }
+.kit-lay-tile.hero { background: #F1EE2E; color: #1B2566; }
+.kit-lay-title { text-wrap: balance; }

@@ -1,0 +1,16 @@
+/* cartesian: quiet catalogue. Warm stone paper, 1px taupe hairlines instead of borders or shadows, light Playfair over Inter;
+   slow, unhurried easing; captions on a hairline-ruled paper slip with the spoken word underlined in stone.
+   Ported from HyperFrames frame preset "cartesian" (heygen-com/hyperframes, Apache-2.0). */
+:root {
+  --kit-theme: "cartesian";
+  --kit-bg: #EDE8E0; --kit-bg-image: none; --kit-ink: #1A1A1A; --kit-muted: #5A5A5A;
+  --kit-accent: #7A7168; --kit-accent-2: #B8B0A4; --kit-on-accent: #EDE8E0; --kit-surface: #F2EFE9;
+  --kit-font-display: "Playfair Display", Georgia, serif; --kit-font-text: "Inter", sans-serif;
+  --kit-font-mono: "Inter", sans-serif; --kit-label-font: "Inter", sans-serif;
+  --kit-display-weight: 400; --kit-display-tracking: -0.01em; --kit-display-case: none;
+  --kit-radius: 0px; --kit-border: 1px solid #B8B0A4; --kit-shadow: none; --kit-space: 26px;
+  --kit-sub-bg: #EDE8E0; --kit-sub-ink: rgba(26,26,26,.5); --kit-sub-said: #1A1A1A;
+  --kit-sub-font: 400 36px var(--kit-font-display); --kit-sub-radius: 0; --kit-sub-deco: underline 1px #8A8178;
+  --kit-ease: power2.out; --kit-tempo: 1; --kit-ease-in: power2.in; --kit-stagger: .08; --kit-settle: .7;
+}
+.kit-subrow { border: 1px solid #B8B0A4; text-underline-offset: 8px; }

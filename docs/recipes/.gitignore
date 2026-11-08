@@ -1,0 +1,13 @@
+# the recipe film's build output: only source (project.json, hf/index.html, hf/film.js) and img/ are committed
+film/hf/kit/
+film/hf/kit-data.js
+film/hf/theme.css
+film/vo/
+film/stills/
+film/music/*.wav
+film/music/grid.json
+film/mix.wav
+film/timeline.json
+film/out/
+film/frames/
+film/.cache/

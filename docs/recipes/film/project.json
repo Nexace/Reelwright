@@ -1,0 +1,25 @@
+{
+  "title": "Reelwright — recipe library",
+  "renderer": "hyperframes",
+  "style": "dark-tech",
+  "out": "out/recipes.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.8,
+  "tail": 2.4,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 2 },
+  "lines": [
+    { "id": "hook",     "gap": 0.0, "text": "Your first second decides everything." },
+    { "id": "kinetic",  "gap": 0.8, "text": "Say it big. Say it once." },
+    { "id": "stat",     "gap": 0.8, "text": "Teams ship forty percent faster." },
+    { "id": "chart",    "gap": 0.8, "text": "Revenue grows every single quarter." },
+    { "id": "features", "gap": 0.8, "text": "Voice, music, themes, and checks." },
+    { "id": "split",    "gap": 0.8, "text": "Before, a wall of text. After, one clear idea." },
+    { "id": "push",     "gap": 0.8, "text": "Lean in on the one thing that matters." },
+    { "id": "end",      "gap": 0.8, "text": "Reelwright. Films from code." }
+  ]
+}

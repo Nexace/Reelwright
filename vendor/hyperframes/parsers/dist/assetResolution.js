@@ -89,6 +89,7 @@ function decodeAuthoredAttribute(value) {
 // src/assetResolution.ts
 import { closeSync, constants, existsSync, fstatSync, openSync, readFileSync } from "fs";
 import { isAbsolute as isAbsolute2, join as join2, posix as posix2, relative as relative2, resolve as resolve3, sep } from "path";
+import { fileURLToPath } from "url";
 
 // src/utils/urlPath.ts
 function decodeUrlPathVariants(path) {
@@ -122,8 +123,9 @@ import { posix } from "path";
 
 // src/assetPaths.ts
 import { isAbsolute, relative, resolve } from "path";
+var URL_SCHEME_OF_TWO_OR_MORE_CHARS_RE = /^[a-z][a-z0-9+.-]+:/i;
 function isNonRelativeUrl(val) {
-  return !val || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("//") || val.startsWith("data:") || val.startsWith("#") || val.startsWith("/");
+  return !val || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("//") || val.startsWith("data:") || val.startsWith("#") || val.startsWith("/") || URL_SCHEME_OF_TWO_OR_MORE_CHARS_RE.test(val);
 }
 
 // src/rewriteSubCompPaths.ts
@@ -221,8 +223,21 @@ function reanchoredCandidates(variant, baseDir, compiledDir) {
   if (!stripped || stripped === variant || stripped.startsWith("..")) return [];
   return compiledDir ? [join2(compiledDir, stripped), join2(baseDir, stripped)] : [join2(baseDir, stripped)];
 }
+function fileUrlAsPath(src) {
+  if (!/^file:/i.test(src)) return src;
+  try {
+    return fileURLToPath(src);
+  } catch {
+    return src;
+  }
+}
+function gitBashFile(src) {
+  if (process.platform !== "win32" || !/^\/[a-zA-Z]\//.test(src)) return void 0;
+  const path = resolve3(`${src[1]}:${src.slice(2)}`);
+  return existsSync(path) ? path : void 0;
+}
 function resolveProjectRelativeSrc(src, baseDir, compiledDir) {
-  const cleanSrc = cleanAssetUrl(src);
+  const cleanSrc = fileUrlAsPath(cleanAssetUrl(src));
   if (isAbsolute2(cleanSrc) && existsSync(cleanSrc)) return cleanSrc;
   const candidates = /* @__PURE__ */ new Set();
   for (const variant of decodeUrlPathVariants(cleanSrc)) {
@@ -232,7 +247,7 @@ function resolveProjectRelativeSrc(src, baseDir, compiledDir) {
     if (compiledDir) candidates.add(join2(compiledDir, variant));
     candidates.add(join2(baseDir, variant));
   }
-  return [...candidates].find(existsSync) ?? join2(baseDir, cleanSrc);
+  return [...candidates].find(existsSync) ?? gitBashFile(cleanSrc) ?? join2(baseDir, cleanSrc);
 }
 function maskRange(src, pattern) {
   return src.replace(pattern, (m) => " ".repeat(m.length));
@@ -257,6 +272,13 @@ function maskNonScannableRanges(html) {
   out = maskRange(out, /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi);
   return out;
 }
+function decodeTextHonoringBom(bytes) {
+  if (bytes[0] === 255 && bytes[1] === 254) return bytes.subarray(2).toString("utf16le");
+  if (bytes[0] === 254 && bytes[1] === 255)
+    return Buffer.from(bytes.subarray(2, bytes.length - bytes.length % 2)).swap16().toString("utf16le");
+  return bytes.toString("utf-8").replace(/^\uFEFF/, "");
+}
+var readTextFile = (path) => decodeTextHonoringBom(readFileSync(path));
 function readProjectFile(path) {
   let fd;
   try {
@@ -269,7 +291,7 @@ function readProjectFile(path) {
   }
   try {
     if (!fstatSync(fd).isFile()) return { kind: "folder" };
-    return { kind: "file", text: readFileSync(fd, "utf-8") };
+    return { kind: "file", text: decodeTextHonoringBom(readFileSync(fd)) };
   } finally {
     closeSync(fd);
   }
@@ -277,12 +299,14 @@ function readProjectFile(path) {
 export {
   cleanAssetUrl,
   collectSubCompositionSrcs,
+  decodeTextHonoringBom,
   hasUnresolvedTemplatingToken,
   isRemoteOrInlineUrl,
   isUnresolvedAssetPlaceholder,
   isWithinProjectRoot,
   maskNonScannableRanges,
   readProjectFile,
+  readTextFile,
   resolveAuthoredAssetFile,
   resolveExistingLocalAsset,
   resolveLocalAssetCandidates,

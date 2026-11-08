@@ -312,6 +312,15 @@ function applyRenames(resolved, idMap) {
         rewriteElementIdReferences(el, idMap);
     }
 }
+const CLIP_SELECTOR = "[data-start]:not([data-composition-id]):not([data-composition-src])";
+/** The outermost timed clips holding an `<svg>` outside every composition host. Each is its own id scope, as an
+ *  inlined composition is, so two scenes drawn with the same ids each resolve their own `url(#id)` and `href`. */
+export function sceneClipRoots(document, hosts) {
+    return [...document.querySelectorAll(CLIP_SELECTOR)].filter((clip) => !clip.parentElement?.closest(CLIP_SELECTOR) &&
+        !!clip.parentElement?.closest("[data-composition-id]") &&
+        !isExcluded(clip, hosts) &&
+        !!clip.querySelector("svg"));
+}
 /**
  * Rename every colliding, natively-referenced SVG id across the inlined
  * composition instances in `scopes` and rewrite each instance's attribute

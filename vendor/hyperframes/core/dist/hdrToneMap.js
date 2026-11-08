@@ -1,3 +1,10 @@
+const BT2408_HLG_REFERENCE_WHITE_NITS = 203;
+const SDR_NOMINAL_PEAK_NITS = 100;
+/** One zscale serves a stream: only an all-HLG one takes HLG's white, so a mixed one's PQ stays as is. */
+export const toneMapReferenceNits = (keyframeTransfers) => keyframeTransfers?.length && keyframeTransfers.every((transfer) => transfer === "arib-std-b67")
+    ? BT2408_HLG_REFERENCE_WHITE_NITS
+    : SDR_NOMINAL_PEAK_NITS;
+export const readsKeyframeTransfers = ({ colorTransfer }) => colorTransfer === "arib-std-b67" || !known(colorTransfer);
 function known(value) {
     return value && value !== "unknown" && value !== "reserved" ? value : undefined;
 }
@@ -14,7 +21,9 @@ export function hdrToSdrToneMapFilter(probed, firstFrame, size) {
     ].filter(([, value]) => value);
     const setTags = tags.length ? `setparams=${tags.map((tag) => tag.join("=")).join(":")},` : "";
     const resizeBeforeToneMap = size ? `w=${size.width}:h=${size.height}:` : "";
-    return `${setTags}zscale=${resizeBeforeToneMap}t=linear:npl=100,tonemap=hable:desat=0,zscale=p=bt709:t=bt709:m=bt709:r=tv`;
+    const stream = known(firstFrame.colorTransfer) ?? known(probed.colorTransfer);
+    const npl = toneMapReferenceNits(firstFrame.keyframeTransfers?.map((transfer) => transfer === "unspecified" ? (stream ?? transfer) : transfer));
+    return `${setTags}zscale=${resizeBeforeToneMap}t=linear:npl=${npl},tonemap=hable:desat=0,zscale=p=bt709:t=bt709:m=bt709:r=tv`;
 }
 /** ffmpeg args printing the first shown frame's tags; ffprobe's packet-bounded reads miss edit-list pre-roll. */
 export function firstFrameColourArgs(videoPath) {
@@ -23,6 +32,23 @@ export function firstFrameColourArgs(videoPath) {
         ...["-vf", "showinfo", "-f", "null", "-"],
     ];
 }
+const SPS_UNIT_TYPES = { h264: "7", hevc: "33" };
+const TRANSFER_NAMES = {
+    "1": "bt709",
+    "2": "unspecified",
+    "16": "smpte2084",
+    "18": "arib-std-b67",
+};
+/** ffmpeg args tracing the transfer of each SPS, in the header and in keyframes, without decoding a picture. */
+export function keyframeTransferArgs(videoPath, codec) {
+    const sps = codec ? SPS_UNIT_TYPES[codec] : undefined;
+    const trace = sps ? `filter_units=pass_types=${sps},trace_headers` : "trace_headers";
+    return [
+        ...["-hide_banner", "-nostats", "-discard", "nokey", "-i", videoPath, "-map", "0:v:0"],
+        ...["-c", "copy", "-bsf:v", trace, "-f", "null", "-"],
+    ];
+}
+export const parseKeyframeTransfers = (stderr) => [...stderr.matchAll(/transfer_characteristics +[01]+ = (\d+)/g)].map(([, code = ""]) => TRANSFER_NAMES[code] ?? `code ${code}`);
 export function parseFirstFrameColour(stderr) {
     const tags = / color_space:(\S+) color_primaries:(\S+) color_trc:(\S+)/.exec(stderr);
     return tags ? { colorSpace: tags[1], colorPrimaries: tags[2], colorTransfer: tags[3] } : {};

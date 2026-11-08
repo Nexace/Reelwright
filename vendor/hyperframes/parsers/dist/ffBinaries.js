@@ -1,8 +1,8 @@
 // src/ffBinaries.ts
 import { execFileSync } from "child_process";
-import { accessSync, constants, existsSync } from "fs";
+import { accessSync, closeSync, constants, existsSync, openSync, readSync } from "fs";
 import { createRequire } from "module";
-import { delimiter, dirname, join, resolve } from "path";
+import { basename, delimiter, dirname, join, resolve } from "path";
 var FFMPEG_PATH_ENV = "HYPERFRAMES_FFMPEG_PATH";
 var FFPROBE_PATH_ENV = "HYPERFRAMES_FFPROBE_PATH";
 var ENV_BY_NAME = {
@@ -19,11 +19,40 @@ function chooseBestPathCandidate(name, candidates) {
   const normalized = candidates.map((candidate) => candidate.trim()).filter(Boolean);
   return normalized.find((candidate) => candidateFileName(candidate) === `${name}.exe`) ?? normalized.find((candidate) => candidateFileName(candidate) === name) ?? normalized.find((candidate) => !candidateFileName(candidate).match(/\.(cmd|bat)$/i)) ?? normalized[0];
 }
+var MACHO_CPU_X86_64 = 16777223;
+var ROSETTA_RUNTIME = "/Library/Apple/usr/libexec/oah/libRosettaRuntime";
+function isX86OnlyMachO(file) {
+  const header = Buffer.alloc(8);
+  try {
+    const fd = openSync(file, "r");
+    try {
+      readSync(fd, header, 0, 8, 0);
+    } finally {
+      closeSync(fd);
+    }
+  } catch {
+    return false;
+  }
+  return header.readUInt32LE(0) === 4277009103 && header.readUInt32LE(4) === MACHO_CPU_X86_64;
+}
+function runsOnThisMac(candidate) {
+  if (process.platform !== "darwin" || process.arch !== "arm64" || existsSync(ROSETTA_RUNTIME)) {
+    return true;
+  }
+  if (!isX86OnlyMachO(candidate)) return true;
+  const name = basename(candidate);
+  if (!skippedX86Binaries.has(name)) skippedX86Binaries.set(name, candidate);
+  return false;
+}
+var skippedX86Binaries = /* @__PURE__ */ new Map();
+function getSkippedX86Binary(name) {
+  return skippedX86Binaries.get(name);
+}
 function isExecutablePathCandidate(candidate) {
   if (process.platform === "win32") return existsSync(candidate);
   try {
     accessSync(candidate, constants.X_OK);
-    return true;
+    return runsOnThisMac(candidate);
   } catch {
     return false;
   }
@@ -55,7 +84,7 @@ var COMMON_BIN_DIRS = process.platform === "win32" ? [] : ["/opt/homebrew/bin", 
 function findInCommonDirsOrInstallerPackage(name) {
   for (const dir of COMMON_BIN_DIRS) {
     const candidate = `${dir}/${name}`;
-    if (existsSync(candidate)) return candidate;
+    if (existsSync(candidate) && runsOnThisMac(candidate)) return candidate;
   }
   return findInInstallerPackage(name);
 }
@@ -64,7 +93,7 @@ function binaryFileName(name) {
 }
 function findInProjectLocalBin(name) {
   const candidate = resolve(".hyperframes", "bin", binaryFileName(name));
-  return existsSync(candidate) ? candidate : void 0;
+  return existsSync(candidate) && runsOnThisMac(candidate) ? candidate : void 0;
 }
 function tryResolve(fromFile, request) {
   try {
@@ -126,10 +155,13 @@ function findFfBinary(name, options = {}) {
 function clearFfBinaryLookupCache() {
   pathLookupCache.clear();
   lastMissAt.clear();
+  skippedX86Binaries.clear();
 }
 export {
   FFMPEG_PATH_ENV,
   FFPROBE_PATH_ENV,
   clearFfBinaryLookupCache,
-  findFfBinary
+  findFfBinary,
+  getSkippedX86Binary,
+  isX86OnlyMachO
 };

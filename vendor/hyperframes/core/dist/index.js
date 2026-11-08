@@ -31,8 +31,8 @@ export { HF_COLOR_GRADING_ATTR, HF_COLOR_GRADING_ADJUST_KEYS, HF_COLOR_GRADING_A
 export { colorGroupOf, effectiveColorGrading, ensureColorGroupInertStyle, HF_COLOR_GROUP_ATTR, HF_COLOR_GROUP_TAG, resolveColorGroupElement, } from "./colorGroups.js";
 export { parseCubeLut, CubeLutParseError, } from "./colorLuts.js";
 export { bakeHfColorGradingCube } from "./colorGradingBake.js";
-export { firstFrameColourArgs, hdrToSdrToneMapFilter, parseFirstFrameColour, } from "./hdrToneMap.js";
-export { HEAVY_BITRATE, HEAVY_PIXEL_SHARE, PREVIEW_PROXY_BOX_PARAM, PREVIEW_PROXY_LIGHT_PARAM, PREVIEW_PROXY_PRIORITY_HEADER, PREVIEW_PROXY_PROGRESS_HEADER, PREVIEW_PROXY_RETRY_PARAM, PREVIEW_QUALITY_LEVELS, formatPreviewProxyBox, isHeavyForPreview, isPreviewQuality, parsePreviewProxyBox, quantizePreviewProxyBox, scalePreviewProxyBox, } from "./previewProxyBox.js";
+export { firstFrameColourArgs, hdrToSdrToneMapFilter, keyframeTransferArgs, parseKeyframeTransfers, readsKeyframeTransfers, toneMapReferenceNits, parseFirstFrameColour, } from "./hdrToneMap.js";
+export { HEAVY_BITRATE, HEAVY_PIXEL_SHARE, PREVIEW_PROXY_BOX_PARAM, PREVIEW_PROXY_LIGHT_PARAM, PREVIEW_PROXY_PRIORITY_HEADER, PREVIEW_PROXY_PROGRESS_HEADER, PREVIEW_PROXY_RETRY_PARAM, PREVIEW_PROXY_STILL_PARAM, PREVIEW_QUALITY_LEVELS, formatPreviewProxyBox, isHeavyForPreview, isPreviewQuality, parsePreviewProxyBox, quantizePreviewProxyBox, scalePreviewProxyBox, } from "./previewProxyBox.js";
 // Inline scripts
 export { HYPERFRAME_RUNTIME_ARTIFACTS, HYPERFRAME_RUNTIME_CONTRACT, loadHyperframeRuntimeSource, } from "./inline-scripts/hyperframe.js";
 export { HYPERFRAME_RUNTIME_GLOBALS, HYPERFRAME_BRIDGE_SOURCES, HYPERFRAME_CONTROL_ACTIONS, } from "./inline-scripts/runtimeContract.js";
@@ -59,7 +59,7 @@ export { COMPOSITION_CONTRACT_VERSION, COMPOSITION_ATTRIBUTES, CANONICAL_AUTHORE
 // (verify:packed-manifests catches exactly that).
 export { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
 // Also exposed via the ./runtime/clip-window subpath; re-exported here for the same dist-emit reason.
-export { hasClipStarted, isClipVisibleAt, isInClipWindow } from "./runtime/clipWindow.js";
+export { hasClipStarted, isClipOnScreenAt, isClipVisibleAt, isInClipWindow, } from "./runtime/clipWindow.js";
 export { MEDIA_ELEMENT_LEAD_SECONDS, mediaElementTime } from "./runtime/mediaClock.js";
 export { normalizePlaybackRate, normalizeRateSpec, parseStrictFiniteTimingNumber, readElementPlaybackRate, readElementRateSpec, readMediaStart, resolveNaturalMediaTimelineDuration, resolveNaturalMediaTimelineDurationFromValues, } from "./runtime/playbackRate.js";
 export { shiftRateLane, sourceTimeAt, timeAtSourceTime } from "./speedRamp.js";

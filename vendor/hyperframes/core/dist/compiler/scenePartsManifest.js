@@ -7,6 +7,8 @@ const hash = (text) => createHash("sha1").update(text).digest("hex").slice(0, 16
  * `ignore` lists selectors for parts that change on every build without changing what is shown.
  */
 export function addScenePartsManifest(html, ignore = []) {
+    if (!html.includes(SCENE_PART_ATTR))
+        return html;
     const doc = parseHTMLContent(html);
     const parts = [...doc.querySelectorAll(`[${SCENE_PART_ATTR}]`)];
     if (parts.length === 0)

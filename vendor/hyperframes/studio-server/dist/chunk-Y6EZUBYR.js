@@ -3,7 +3,10 @@ import { execFile } from "child_process";
 import { extname } from "path";
 import {
   firstFrameColourArgs,
-  parseFirstFrameColour
+  keyframeTransferArgs,
+  parseFirstFrameColour,
+  readsKeyframeTransfers,
+  parseKeyframeTransfers
 } from "@hyperframes/core";
 import { findFfBinary } from "@hyperframes/parsers/ff-binaries";
 import { videoStreamHasAlpha } from "@hyperframes/parsers/media-alpha";
@@ -82,14 +85,21 @@ function classifyMediaColor(stream) {
     bitsPerRawSample: stream?.bits_per_raw_sample
   };
 }
-async function probeFirstFrameColour(filePath, runner = execFileRunner) {
+async function probeFirstFrameColour(filePath, codec, runner = execFileRunner) {
   const ffmpegPath = findFfBinary("ffmpeg", { configuredMustExist: true }) ?? (runner === execFileRunner ? void 0 : "ffmpeg");
   if (!ffmpegPath) return {};
   const result = await runner(ffmpegPath, firstFrameColourArgs(filePath), {
     timeout: 15e3,
     maxBuffer: 1024 * 1024
   });
-  return result.status === 0 ? parseFirstFrameColour(String(result.stderr)) : {};
+  const first = result.status === 0 ? parseFirstFrameColour(String(result.stderr)) : {};
+  if (result.status !== 0 || !readsKeyframeTransfers(first)) return first;
+  const keyframes = await runner(ffmpegPath, keyframeTransferArgs(filePath, codec), {
+    timeout: 3e4,
+    maxBuffer: 8 * 1024 * 1024
+  });
+  const keyframeTransfers = keyframes.status === 0 ? parseKeyframeTransfers(String(keyframes.stderr)) : [];
+  return { ...first, keyframeTransfers };
 }
 function bitDepthOf(stream) {
   const raw = Number(stream.bits_per_raw_sample);

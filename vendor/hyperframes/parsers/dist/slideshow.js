@@ -26,6 +26,9 @@ function parseSlideshowManifest(html) {
 function isOptionalNumberArray(v) {
   return v === void 0 || Array.isArray(v) && v.every((n) => typeof n === "number");
 }
+function isOptionalFiniteNumber(v) {
+  return v === void 0 || typeof v === "number" && Number.isFinite(v);
+}
 function isOptionalBoolean(v) {
   return v === void 0 || typeof v === "boolean";
 }
@@ -44,6 +47,7 @@ function isSlideRef(v) {
   if (!isRecord(v)) return false;
   const r = v;
   if (typeof r["sceneId"] !== "string") return false;
+  if (![r["startTime"], r["endTime"]].every(isOptionalFiniteNumber)) return false;
   if (!isOptionalNumberArray(r["fragments"])) return false;
   if (r["hotspots"] !== void 0 && (!Array.isArray(r["hotspots"]) || !r["hotspots"].every(isSlideHotspot)))
     return false;

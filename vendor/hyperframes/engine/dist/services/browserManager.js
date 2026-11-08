@@ -21,6 +21,7 @@ import { getSystemTotalMb, LOW_MEMORY_TOTAL_MB_THRESHOLD } from "./systemMemory.
 import { describeWslGpuAccess, detectWsl } from "./wslHost.js";
 import { BrowserLeasePool, } from "./browserLeasePool.js";
 export { BrowserLeasePool } from "./browserLeasePool.js";
+import { hyperframesCacheDir } from "@hyperframes/core/cache-dir";
 let _puppeteer;
 let hostHandlesSigint = false;
 /** Set while the host cancels renders on Ctrl+C; Puppeteer's own handler would exit before any cleanup ran. */
@@ -199,7 +200,7 @@ export function resolveHeadlessShellPath(config) {
         }
         return fromEnv.path;
     }
-    const ours = join(homedir(), ".cache", "hyperframes", "chrome", "chrome-headless-shell");
+    const ours = hyperframesCacheDir("chrome", "chrome-headless-shell");
     const shared = join(homedir(), ".cache", "puppeteer", "chrome-headless-shell");
     return (findManagedHeadlessShell(ours) ??
         findSharedHeadlessShell(shared) ??

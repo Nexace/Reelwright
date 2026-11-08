@@ -1,6 +1,6 @@
 {
   "name": "@hyperframes/core",
-  "version": "0.8.217",
+  "version": "0.9.19",
   "description": "",
   "repository": {
     "type": "git",
@@ -60,6 +60,10 @@
       "import": "./dist/atomicFile.js",
       "types": "./dist/atomicFile.d.ts"
     },
+    "./cache-dir": {
+      "import": "./dist/cacheDir.js",
+      "types": "./dist/cacheDir.d.ts"
+    },
     "./remove-tree": {
       "import": "./dist/removeTree.js",
       "types": "./dist/removeTree.d.ts"
@@ -99,6 +103,10 @@
     "./studio-preview-mark": {
       "import": "./dist/studioPreviewMark.js",
       "types": "./dist/studioPreviewMark.d.ts"
+    },
+    "./page-motion-blur": {
+      "import": "./dist/pageMotionBlur.js",
+      "types": "./dist/pageMotionBlur.d.ts"
     },
     "./keyframe-defaults": {
       "import": "./dist/keyframeDefaults.js",
@@ -429,9 +437,9 @@
     "linkedom": "^0.18.12",
     "postcss": "^8.5.8",
     "wawoff2": "^2.0.1",
-    "@hyperframes/parsers": "0.8.217",
-    "@hyperframes/lint": "0.8.217",
-    "@hyperframes/studio-server": "0.8.217"
+    "@hyperframes/parsers": "0.9.19",
+    "@hyperframes/lint": "0.9.19",
+    "@hyperframes/studio-server": "0.9.19"
   },
   "optionalDependencies": {
     "esbuild": "^0.28.2"

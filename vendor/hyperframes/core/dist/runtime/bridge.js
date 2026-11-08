@@ -31,6 +31,7 @@ const CONTROL_HANDLERS = new Map(Object.entries({
     "set-idle-heartbeat": (data, deps) => deps.onSetIdleHeartbeat(Boolean(data.slow)),
     "set-display-scale": (data, deps) => deps.onSetDisplayScale?.(Number(data.scale)),
     "set-preview-quality": (data, deps) => deps.onSetPreviewQuality?.(Number(data.level)),
+    "set-copies-ahead": (data, deps) => deps.onSetCopiesAhead?.(Boolean(data.on)),
     "retry-preview-copies": (_d, deps) => deps.onRetryPreviewCopies?.(),
     "request-preview-facts": (_d, deps) => deps.onRequestPreviewFacts?.(),
     "set-root-duration": (data, deps) => deps.onSetRootDuration(Number(data.durationSeconds ?? 0)),

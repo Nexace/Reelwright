@@ -29,11 +29,13 @@ const PROPERTY_MAP = { rotate: "rotation" };
 function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+function keyPattern(key, valuePattern) {
+    return new RegExp(`(?<![\\w$])${escapeRegExp(key)}\\s*:\\s*${valuePattern}`);
+}
 /** Extract the balanced `{...}` body following `marker` in `src`. Brace
  * counting does not skip string literals — sound for motion.dev output
  * (numeric arrays + named eases, never arbitrary strings containing `}`). */
-function balancedBlock(src, marker) {
-    const at = src.indexOf(marker);
+function balancedBlock(src, marker, at = src.indexOf(marker)) {
     if (at === -1)
         return null;
     const start = src.indexOf("{", at + marker.length - 1);
@@ -51,9 +53,15 @@ function balancedBlock(src, marker) {
     }
     return null;
 }
+function balancedBlockAfterKey(src, key) {
+    const match = keyPattern(key, "\\{").exec(src);
+    if (!match)
+        return null;
+    return balancedBlock(src, match[0], match.index);
+}
 /** Extract a balanced `[...]` immediately after `key:` inside `src`. */
 function arrayAfterKey(src, key) {
-    const re = new RegExp(`${escapeRegExp(key)}\\s*:\\s*\\[`);
+    const re = keyPattern(key, "\\[");
     const m = re.exec(src);
     if (!m)
         return null;
@@ -71,7 +79,7 @@ function arrayAfterKey(src, key) {
     return null;
 }
 function scalarAfterKey(src, key) {
-    const m = new RegExp(`${escapeRegExp(key)}\\s*:\\s*("[^"]*"|[\\w.]+)`).exec(src);
+    const m = keyPattern(key, '("[^"]*"|[\\w.]+)').exec(src);
     return m?.[1] ?? null;
 }
 function parseEase(transitionBlock) {
@@ -110,7 +118,7 @@ function stripWrapTail(values, times, ease, duration) {
 /** Extract and validate one property's raw arrays from the snippet blocks. */
 function extractTrackData(animate, transition, prop) {
     const valuesSrc = arrayAfterKey(animate, prop);
-    const propTransition = balancedBlock(transition, `${prop}: {`);
+    const propTransition = balancedBlockAfterKey(transition, prop);
     if (!valuesSrc || !propTransition)
         return null;
     const timesSrc = arrayAfterKey(propTransition, "times");

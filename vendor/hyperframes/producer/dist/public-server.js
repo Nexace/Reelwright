@@ -2,33 +2,36 @@
 
 // src/server.ts
 import {
-  existsSync as existsSync19,
-  mkdirSync as mkdirSync11,
-  statSync as statSync10,
+  existsSync as existsSync23,
+  mkdirSync as mkdirSync13,
+  statSync as statSync11,
   mkdtempSync as mkdtempSync4,
-  writeFileSync as writeFileSync7,
-  rmSync as rmSync11,
+  writeFileSync as writeFileSync8,
+  rmSync as rmSync13,
   createReadStream as createReadStream3
 } from "node:fs";
-import { resolve as resolve10, dirname as dirname13, join as join31 } from "node:path";
+import { resolve as resolve10, dirname as dirname15, join as join35 } from "node:path";
 import { tmpdir as tmpdir3 } from "node:os";
 import { parseArgs } from "node:util";
 import crypto from "node:crypto";
 import { Hono as Hono2 } from "hono";
 import { streamSSE } from "hono/streaming";
 import { serve as serve2 } from "@hono/node-server";
-import { fetchPublicHttpsText as fetchPublicHttpsText2 } from "@hyperframes/engine";
+import {
+  fetchPublicHttpsText as fetchPublicHttpsText2,
+  REFERENCE_BACKGROUND_FIELD as REFERENCE_BACKGROUND_FIELD3,
+  referenceBackgroundResult as referenceBackgroundResult5
+} from "@hyperframes/engine";
 
 // src/services/renderOrchestrator.ts
 import { audioFailureDiagnostics as audioFailureDiagnostics2 } from "@hyperframes/engine";
 import {
-  existsSync as existsSync16,
-  mkdirSync as mkdirSync10,
-  readFileSync as readFileSync9,
-  readdirSync as readdirSync5,
-  rmSync as rmSync10,
-  statSync as statSync8,
-  writeFileSync as writeFileSync6,
+  existsSync as existsSync20,
+  mkdirSync as mkdirSync12,
+  readdirSync as readdirSync6,
+  rmSync as rmSync12,
+  statSync as statSync9,
+  writeFileSync as writeFileSync7,
   copyFileSync as copyFileSync5,
   appendFileSync
 } from "fs";
@@ -43,7 +46,6 @@ import {
   toFps as toFps2
 } from "@hyperframes/core";
 import { HF_AUDIO_GROUP_TAG } from "@hyperframes/core/audio-groups";
-import { extractStandaloneEntryFromIndex, isTemplateEntry } from "@hyperframes/core/compiler";
 import { HTML_BODY_CSS_HEIGHT_FIRST_RE, HTML_BODY_CSS_WIDTH_FIRST_RE } from "@hyperframes/parsers";
 import {
   extractMediaMetadata as extractMediaMetadata4,
@@ -51,7 +53,7 @@ import {
   closeCaptureSession as closeCaptureSession8,
   createCaptureSession as createCaptureSession8,
   initializeSession as initializeSession8,
-  createVideoFrameInjector,
+  createVideoFrameInjector as createVideoFrameInjector2,
   getEncoderPreset as getEncoderPreset3,
   distributeFrames as distributeFrames2,
   distributeFramesInterleaved as distributeFramesInterleaved2,
@@ -75,9 +77,14 @@ import {
   isDrawElementCaptureError,
   getDrawElementVerificationDetails,
   augmentProtocolTimeoutError,
-  augmentPageNavigationTimeoutError
+  augmentPageNavigationTimeoutError,
+  displaySize
 } from "@hyperframes/engine";
-import { join as join27, dirname as dirname11, resolve as resolve8 } from "path";
+import {
+  referenceBackgroundResult,
+  createReferenceBackgroundRecorder
+} from "@hyperframes/engine";
+import { join as join31, dirname as dirname13, resolve as resolve8 } from "path";
 import { totalmem as totalmem2 } from "node:os";
 import { randomUUID } from "crypto";
 import { fileURLToPath as fileURLToPath4 } from "url";
@@ -103,6 +110,7 @@ import { join, extname, resolve as resolve2, sep } from "node:path";
 import { injectScriptsAtHeadStart, injectScriptsIntoHtml } from "@hyperframes/core/compiler";
 import { fpsToNumber } from "@hyperframes/core";
 import { stripSdrPngColourTags } from "@hyperframes/core/compiler/png-colour-tags";
+import { openRangeEnd } from "@hyperframes/studio-server/media-range";
 
 // src/services/hyperframeRuntimeLoader.ts
 import { createHash } from "node:crypto";
@@ -260,7 +268,7 @@ var MIME_TYPES = {
   ".ttf": "font/ttf",
   ".otf": "font/otf"
 };
-function parseRangeHeader(header, size) {
+function parseRangeHeader(header, size, contentType = "application/octet-stream") {
   if (!header) return { kind: "absent" };
   const match = /^\s*bytes\s*=\s*(.*?)\s*$/i.exec(header);
   if (!match) return { kind: "absent" };
@@ -285,7 +293,7 @@ function parseRangeHeader(header, size) {
   if (!Number.isFinite(start)) return { kind: "absent" };
   if (rawEnd === "") {
     if (start >= size) return { kind: "unsatisfiable" };
-    return { kind: "satisfiable", start, end: size - 1 };
+    return { kind: "satisfiable", start, end: openRangeEnd(start, size - 1, contentType) };
   }
   if (!/^\d+$/.test(rawEnd)) return { kind: "absent" };
   const requestedEnd = Number(rawEnd);
@@ -757,7 +765,7 @@ function createFileServer(options) {
       }
       const totalSize = stat.size;
       const rangeHeader = c.req.header("range");
-      const rangeRequest = parseRangeHeader(rangeHeader, totalSize);
+      const rangeRequest = parseRangeHeader(rangeHeader, totalSize, contentType);
       if (rangeRequest.kind === "unsatisfiable") {
         return new Response(null, {
           status: 416,
@@ -1103,6 +1111,21 @@ function reportFrameProgress(job, stage, progress, onProgress, done, total) {
     total
   });
 }
+var lastExtractReportAt = /* @__PURE__ */ new WeakMap();
+function reportExtractProgress(job, done, total, onProgress) {
+  if (total <= 0) return;
+  const frames = Math.min(done, total);
+  reportThrottled(
+    lastExtractReportAt,
+    job,
+    "Extracting video frames",
+    10 + 10 * frames / total,
+    onProgress,
+    frames === total,
+    { code: "extract_video", done: frames, total },
+    "preprocessing"
+  );
+}
 var lastEncodeReportAt = /* @__PURE__ */ new WeakMap();
 function reportEncodeProgress(job, done, total, onProgress, from) {
   if (total <= 0) return;
@@ -1134,6 +1157,14 @@ function reportAssembleProgress(job, done, total, onProgress) {
   );
 }
 var workerPhasesByJob = /* @__PURE__ */ new WeakMap();
+function forgetWorkerPhases(job) {
+  workerPhasesByJob.delete(job);
+}
+function describeWorkerPhases(job) {
+  const phases = workerPhasesByJob.get(job);
+  if (!phases?.size) return void 0;
+  return `Last phase per worker: ${[...phases].map(([id, phase]) => `worker ${id} ${phase}`).join(", ")}.`;
+}
 function reportWorkerStartup(job, progress, onProgress) {
   const phase = progress.latestWorkerPhase;
   if (!phase) return;
@@ -1205,27 +1236,25 @@ function createMemorySampler(intervalMs = 250) {
   };
 }
 var warnedSymlinkFallback = false;
+var copyCannotFix = (error) => ["ENOSPC", "EDQUOT", "EEXIST", "ENOENT"].includes(
+  error?.code ?? ""
+);
 function tryWindowsFrameJunction(fileSystem, src, dest) {
   if (process.platform !== "win32") return false;
   try {
     fileSystem.symlinkSync(src, dest, "junction");
     return true;
   } catch (error) {
-    const code = error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : void 0;
-    if (["EPERM", "EACCES", "UNKNOWN", "EINVAL", "ENOSYS", "EOPNOTSUPP", "ENOTSUP"].includes(
-      code ?? ""
-    )) {
-      return false;
-    }
-    throw error;
+    if (copyCannotFix(error)) throw error;
+    return false;
   }
 }
 function linkOrCopyFrameDir(fileSystem, src, dest) {
   try {
     fileSystem.symlinkSync(src, dest, "dir");
   } catch (err) {
+    if (copyCannotFix(err)) throw err;
     const code = err?.code;
-    if (code !== "EPERM" && code !== "EACCES" && code !== "UNKNOWN") throw err;
     if (tryWindowsFrameJunction(fileSystem, src, dest)) return;
     if (!warnedSymlinkFallback) {
       warnedSymlinkFallback = true;
@@ -2000,6 +2029,7 @@ import {
   getCapturePerfSummary as getCapturePerfSummary2,
   initializeSession as initializeSession2,
   prepareCaptureSessionForReuse as prepareCaptureSessionForReuse2,
+  resolveDeVerifyMinDb as resolveDeVerifyMinDb2,
   shouldDisableBrowserPoolForParallelWorker,
   spawnStreamingEncoder as spawnStreamingEncoder2
 } from "@hyperframes/engine";
@@ -2128,6 +2158,14 @@ function pushWorkerDedupPerfs(results, sink) {
     if (r.perf) sink.push(r.perf);
   }
 }
+function capturedBeyondViewport(perfs, fallback) {
+  const used = perfs.flatMap((perf) => perf.captureBeyondViewport ?? []);
+  return used.length > 0 ? used.includes(true) : fallback;
+}
+function withCapturedBeyondViewport(capture, perfs) {
+  const used = capturedBeyondViewport(perfs, capture.captureBeyondViewport);
+  return used === void 0 ? capture : { ...capture, captureBeyondViewport: used };
+}
 function pushWorkerPageErrors(results, sink) {
   for (const result of results) {
     for (const line of result.pageErrorLines ?? []) if (!sink.includes(line)) sink.push(line);
@@ -2214,6 +2252,11 @@ function aggregateChromeMemory(perfs) {
     gpuProcessSeenLastSample: sampled.some((p) => p.chromeGpuProcessSeenLastSample === true),
     samples: sampled.reduce((sum, p) => sum + (p.chromeMemorySamples ?? 0), 0)
   };
+}
+function frameWeightedAvgMs(perfs, avgOf) {
+  const frames = perfs.reduce((sum, p) => sum + p.frames, 0);
+  if (frames === 0) return void 0;
+  return Math.round(perfs.reduce((sum, p) => sum + avgOf(p) * p.frames, 0) / frames);
 }
 function aggregateDedup(perfs) {
   if (perfs.length === 0) return void 0;
@@ -2313,6 +2356,10 @@ function buildRenderPerfSummary(input) {
       if (withSamples.length === 0) return void 0;
       return withSamples.reduce((a, b) => b.frames > a.frames ? b : a).p50TotalMs;
     })(),
+    captureSeekAvgMs: frameWeightedAvgMs(input.dedupPerfs, (p) => p.avgSeekMs),
+    captureBeforeCaptureAvgMs: frameWeightedAvgMs(input.dedupPerfs, (p) => p.avgBeforeCaptureMs),
+    captureScreenshotAvgMs: frameWeightedAvgMs(input.dedupPerfs, (p) => p.avgScreenshotMs),
+    encoderWaitAvgMs: input.perfStages.encoderDrainWaitMs !== void 0 && input.totalFrames > 0 ? Math.round(input.perfStages.encoderDrainWaitMs / input.totalFrames) : void 0,
     peakRssMb: Math.round(input.peakRssBytes / (1024 * 1024)),
     peakHeapUsedMb: Math.round(input.peakHeapUsedBytes / (1024 * 1024)),
     staticDedup: aggregateDedup(input.dedupPerfs),
@@ -3685,7 +3732,29 @@ import {
   prepareCaptureSessionForReuse,
   spawnStreamingEncoder
 } from "@hyperframes/engine";
+
+// src/services/render/stallClock.ts
+var SUSPEND_GAP_MS = 15e3;
+function createStallClock(now = () => Date.now()) {
+  let since = now();
+  let seen = since;
+  return {
+    reset() {
+      since = seen = now();
+    },
+    idle(expectedMs) {
+      const at = now();
+      const gap = at - seen;
+      seen = at;
+      if (gap > expectedMs + SUSPEND_GAP_MS) since += gap;
+      return at - since;
+    }
+  };
+}
+
+// src/services/render/stages/captureStreamingStage.ts
 var DEFAULT_CAPTURE_STALL_MS = 6e4;
+var SESSION_INIT_STALL_MS = 3e5;
 var DE_STALL_POLL_MS = 5e3;
 var STALL_ADVICE = "Chrome stopped answering. If another app is keeping the GPU or CPU busy (a 3D render, a game, another export), let it finish or render one job at a time, then retry.";
 function poolFailure(error, probeSession) {
@@ -3716,6 +3785,14 @@ function captureModeLabel(mode) {
   if (mode === "beginframe") return "BeginFrame";
   return "screenshot";
 }
+var OPENING_CAPTURE_SESSION = {
+  captureMode: "screenshot",
+  captureStep: "opening the capture session"
+};
+var OPENING_RISK_SESSION = {
+  captureMode: "screenshot",
+  captureStep: "opening the screenshot session for effect frames"
+};
 var SequentialCaptureStallError = class extends Error {
   captureMode;
   constructor(session, stallTimeoutMs, frameIndex, totalFrames) {
@@ -3729,21 +3806,27 @@ var SequentialCaptureStallError = class extends Error {
 };
 function raceAgainstStall(promise, deadlineMs, input, signal) {
   return new Promise((resolve11, reject) => {
-    const timer = setTimeout(
-      () => {
-        reject(
-          signal?.aborted ? new Error(
-            `[Render] Sequential ${captureModeLabel(input.session.captureMode)} capture aborted while a capture call was in flight (frame ${input.frameIndex}/${input.totalFrames}).`
-          ) : new SequentialCaptureStallError(
-            input.session,
-            input.stallTimeoutMs,
-            input.frameIndex,
-            input.totalFrames
-          )
-        );
-      },
-      Math.max(0, deadlineMs)
+    const clock = createStallClock();
+    const trip = () => reject(
+      signal?.aborted ? new Error(
+        `[Render] Sequential ${captureModeLabel(input.session.captureMode)} capture aborted while a capture call was in flight (frame ${input.frameIndex}/${input.totalFrames}).`
+      ) : new SequentialCaptureStallError(
+        input.session,
+        input.stallTimeoutMs,
+        input.frameIndex,
+        input.totalFrames
+      )
     );
+    const deadline = Math.max(0, deadlineMs);
+    let wait = Math.min(deadline, DE_STALL_POLL_MS);
+    let timer;
+    const look = () => {
+      const idle = clock.idle(wait);
+      if (idle >= deadline) return trip();
+      wait = Math.min(deadline - idle, DE_STALL_POLL_MS);
+      timer = setTimeout(look, wait);
+    };
+    timer = setTimeout(look, wait);
     promise.then(
       (value) => {
         clearTimeout(timer);
@@ -3817,62 +3900,72 @@ function createDrainFrameGuard(args) {
       sizes.push(buf.length);
       if (sizes.length > 60) sizes.shift();
     }
-    const truth = session.deVerifyFrames?.get(idx);
-    if (truth) {
-      let db;
-      try {
-        db = await psnrDb(buf, truth);
-      } catch (err) {
-        log.warn("[Render] drawElement self-verify sample skipped (psnr infrastructure)", {
-          frame: idx,
-          error: err instanceof Error ? err.message : String(err)
-        });
-        return buf;
-      }
-      if (db < verifyMinDb) {
-        const dumpDir = await mkdtemp(join9(tmpdir(), "hf-de-verify-fail-")).catch(() => null);
-        if (dumpDir) {
-          await Promise.all([
-            writeFile(join9(dumpDir, `frame-${idx}-de.jpg`), buf),
-            writeFile(join9(dumpDir, `frame-${idx}-truth.jpg`), truth)
-          ]).catch(() => {
-          });
-        }
-        throw new DrawElementVerificationError(
-          `drawElement self-verify failed at frame ${idx}: ${db.toFixed(1)}dB < ${verifyMinDb}dB vs pre-injection screenshot${dumpDir ? ` (pair: ${dumpDir})` : ""}`,
-          { kind: "psnr", frameIndex: idx, failedDb: db, verifyThresholdDb: verifyMinDb }
-        );
-      }
-      stats.verifyChecked += 1;
-      stats.verifyMinDb = stats.verifyMinDb === void 0 ? db : Math.min(stats.verifyMinDb, db);
-      log.info("[Render] drawElement self-verify passed", {
-        frame: idx,
-        psnrDb: db === Infinity ? "inf" : Number(db.toFixed(1))
-      });
-    }
+    await verifyDrawElementSample(session, idx, buf, { log, stats, verifyMinDb });
     return buf;
   };
 }
-async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEncoder, reorderBuffer, assertNotAborted, onProgress, log, stats, abortSignal, risk) {
+async function verifyDrawElementSample(session, idx, buf, ctx) {
+  const { log, stats, verifyMinDb } = ctx;
+  const truth = session.deVerifyFrames?.get(idx);
+  if (!truth) return;
+  let db;
+  try {
+    db = await psnrDb(buf, truth);
+  } catch (err) {
+    log.warn("[Render] drawElement self-verify sample skipped (psnr infrastructure)", {
+      frame: idx,
+      error: err instanceof Error ? err.message : String(err)
+    });
+    return;
+  }
+  if (db < verifyMinDb) {
+    const dumpDir = await mkdtemp(join9(tmpdir(), "hf-de-verify-fail-")).catch(() => null);
+    if (dumpDir) {
+      await Promise.all([
+        writeFile(join9(dumpDir, `frame-${idx}-de.jpg`), buf),
+        writeFile(join9(dumpDir, `frame-${idx}-truth.jpg`), truth)
+      ]).catch(() => {
+      });
+    }
+    throw new DrawElementVerificationError(
+      `drawElement self-verify failed at frame ${idx}: ${db.toFixed(1)}dB < ${verifyMinDb}dB vs pre-injection screenshot${dumpDir ? ` (pair: ${dumpDir})` : ""}`,
+      { kind: "psnr", frameIndex: idx, failedDb: db, verifyThresholdDb: verifyMinDb }
+    );
+  }
+  if (stats) {
+    stats.verifyChecked += 1;
+    stats.verifyMinDb = stats.verifyMinDb === void 0 ? db : Math.min(stats.verifyMinDb, db);
+  }
+  log.info("[Render] drawElement self-verify passed", {
+    frame: idx,
+    psnrDb: db === Infinity ? "inf" : Number(db.toFixed(1))
+  });
+}
+async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEncoder, reorderBuffer, assertNotAborted, onProgress, log, stats, abortSignal, resume, risk) {
   let prev = null;
   const frameTime = (i) => i * job.config.fps.den / job.config.fps.num;
   const guard = createDrainFrameGuard({ log, stats, frameTime });
   const guardFrame = (item, buf) => item.trusted ? Promise.resolve(buf) : guard(session, item.idx, buf);
   const captureRisk = async (idx) => {
-    await risk.open();
-    lastProgressAt = Date.now();
+    await raceAgainstStall(
+      risk.open(),
+      stallTimeoutMs - quiet.idle(0),
+      { session: OPENING_RISK_SESSION, frameIndex: idx, totalFrames, stallTimeoutMs },
+      abortSignal
+    );
+    quiet.reset();
     return raceAgainstStall(
       risk.capture(idx, frameTime(idx)),
-      stallTimeoutMs - (Date.now() - lastProgressAt),
+      stallTimeoutMs - quiet.idle(0),
       { session, frameIndex: idx, totalFrames, stallTimeoutMs },
       abortSignal
     );
   };
   const stallTimeoutMs = resolveCaptureStallTimeoutMs();
-  let lastProgressAt = Date.now();
+  const quiet = createStallClock();
   const captureWithStallGuard = (idx, promise) => raceAgainstStall(
     promise,
-    stallTimeoutMs - (Date.now() - lastProgressAt),
+    stallTimeoutMs - quiet.idle(0),
     { session, frameIndex: idx, totalFrames, stallTimeoutMs },
     abortSignal
   );
@@ -3884,7 +3977,8 @@ async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEnc
     ensureFrameWritten(await currentEncoder.writeFrame(buf), prev.idx, currentEncoder);
     reorderBuffer.advanceTo(prev.idx + 1);
     job.framesRendered = prev.idx + 1;
-    lastProgressAt = Date.now();
+    resume.written = prev.idx + 1;
+    quiet.reset();
     reportFrameProgress(
       job,
       `Streaming frame ${prev.idx + 1}/${totalFrames}`,
@@ -3904,7 +3998,8 @@ async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEnc
       ensureFrameWritten(await currentEncoder.writeFrame(buf), item.idx, currentEncoder);
       reorderBuffer.advanceTo(item.idx + 1);
       job.framesRendered = item.idx + 1;
-      lastProgressAt = Date.now();
+      resume.written = item.idx + 1;
+      quiet.reset();
       reportFrameProgress(
         job,
         `Streaming frame ${item.idx + 1}/${totalFrames}`,
@@ -3919,7 +4014,7 @@ async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEnc
     const boundarySS = process.env.HF_FAST_CAPTURE_BOUNDARY_SS === "true";
     const batchable = (f) => !session.staticFrames?.has(f) && !(boundarySS && session.clipBoundaryFrames?.has(f)) && !risk?.frames.has(f);
     let prevBatch = [];
-    let i = 0;
+    let i = resume.from;
     while (i < totalFrames) {
       assertNotAborted();
       if (batchable(i)) {
@@ -3952,7 +4047,7 @@ async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEnc
     await drainBatch(prevBatch);
     return;
   }
-  for (let i = 0; i < totalFrames; i++) {
+  for (let i = resume.from; i < totalFrames; i++) {
     assertNotAborted();
     if (risk?.frames.has(i)) {
       const buffer = await captureRisk(i);
@@ -3969,6 +4064,10 @@ async function runWorkerEncodePipelineLoop(session, totalFrames, job, currentEnc
     prev = { idx: i, encodeResult };
   }
   await drainPrev();
+}
+var STALL_RESUMES_BEFORE_FALLBACK = 3;
+function resumesAfterStall(error, abortSignal, resume, resumes) {
+  return error instanceof SequentialCaptureStallError && abortSignal?.aborted !== true && resume.written > resume.from && resumes < STALL_RESUMES_BEFORE_FALLBACK;
 }
 async function runCaptureStreamingStage(input) {
   const {
@@ -4043,7 +4142,7 @@ async function runCaptureStreamingStage(input) {
       let parallelGuardRan = false;
       let writtenFrames = 0;
       let resumeFrom = 0;
-      let resumedAfterStall = false;
+      let resumes = 0;
       let workerResults;
       for (; ; ) {
         const parallelReorder = createFrameReorderBuffer(resumeFrom, totalFrames);
@@ -4078,7 +4177,7 @@ async function runCaptureStreamingStage(input) {
         }
         const stallTimeoutMs = resolveCaptureStallTimeoutMs();
         let lastCapturedFrames = 0;
-        let lastProgressAt = Date.now();
+        const quiet = createStallClock();
         const workerPhases = /* @__PURE__ */ new Map();
         const phaseDetail = (phase) => `phase=${phase.phase} frame=${phase.frameIndex ?? "n/a"} step=${phase.readStep?.() ?? "n/a"} browser=${phase.browserExecutable} version=${phase.browserVersion} CanvasDrawElement=${phase.canvasDrawElement} gpu=${phase.gpuBackend}`;
         const phaseSummary = () => [...workerPhases.entries()].sort(([left], [right]) => left - right).map(([workerId, detail]) => `worker=${workerId} ${detail}`).join("; ");
@@ -4089,23 +4188,21 @@ async function runCaptureStreamingStage(input) {
           captureLabel === "BeginFrame",
           cfg
         );
-        const stallTimer = setInterval(
-          () => {
-            if (!watchdogArmed || Date.now() - lastProgressAt <= budget()) return;
-            stalled = true;
-            const stallErr = new ParallelCaptureStallError({
-              variant: "drain",
-              captureLabel,
-              stallTimeoutMs: budget(),
-              lastCapturedFrames: resumeFrom + lastCapturedFrames,
-              totalFrames,
-              phaseSummary: phaseSummary()
-            });
-            parallelReorder.abort(stallErr);
-            stallController.abort();
-          },
-          Math.min(budget(), DE_STALL_POLL_MS)
-        );
+        const pollMs = Math.min(budget(), DE_STALL_POLL_MS);
+        const stallTimer = setInterval(() => {
+          if (!watchdogArmed || quiet.idle(pollMs) <= budget()) return;
+          stalled = true;
+          const stallErr = new ParallelCaptureStallError({
+            variant: "drain",
+            captureLabel,
+            stallTimeoutMs: budget(),
+            lastCapturedFrames: resumeFrom + lastCapturedFrames,
+            totalFrames,
+            phaseSummary: phaseSummary()
+          });
+          parallelReorder.abort(stallErr);
+          stallController.abort();
+        }, pollMs);
         try {
           workerResults = await executeParallelCapture(
             fileServer.url,
@@ -4120,7 +4217,7 @@ async function runCaptureStreamingStage(input) {
                 workerPhases.set(phase.workerId, phaseDetail(phase));
                 if (phase.phase === "frame_capture" && !watchdogArmed) {
                   watchdogArmed = true;
-                  lastProgressAt = Date.now();
+                  quiet.reset();
                 }
                 log.info("[Render] Parallel capture worker phase", {
                   workerId: phase.workerId,
@@ -4136,7 +4233,7 @@ async function runCaptureStreamingStage(input) {
               }
               if (progress.capturedFrames > lastCapturedFrames) {
                 lastCapturedFrames = progress.capturedFrames;
-                lastProgressAt = Date.now();
+                quiet.reset();
                 watchdogArmed = true;
               }
               const doneFrames = resumeFrom + progress.capturedFrames;
@@ -4167,17 +4264,14 @@ async function runCaptureStreamingStage(input) {
             }
           );
         } catch (err) {
-          if (stalled && abortSignal?.aborted !== true && captureLabel === "BeginFrame" && !resumedAfterStall && writtenFrames > resumeFrom) {
-            resumedAfterStall = true;
-            log.warn(
-              "[Render] Parallel BeginFrame capture stalled; resuming from the first unwritten frame",
-              {
-                resumeFrom: writtenFrames,
-                totalFrames,
-                workerPhases: phaseSummary()
-              }
-            );
+          if (stalled && abortSignal?.aborted !== true && writtenFrames > resumeFrom && resumes < STALL_RESUMES_BEFORE_FALLBACK) {
+            log.warn("[Render] Parallel capture stalled; resuming from the first unwritten frame", {
+              resumeFrom: writtenFrames,
+              totalFrames,
+              workerPhases: phaseSummary()
+            });
             resumeFrom = writtenFrames;
+            resumes++;
             continue;
           }
           if (parallelDrainError) throw poolFailure(parallelDrainError, probeSession);
@@ -4213,116 +4307,159 @@ async function runCaptureStreamingStage(input) {
       }
       lastBrowserConsole = withWorkerPageErrors(lastBrowserConsole, workerPageErrors);
     } else {
-      const videoInjector = createRenderVideoFrameInjector();
-      const session = probeSession ?? await createCaptureSession(
-        fileServer.url,
-        framesDir,
-        buildCaptureOptions(),
-        videoInjector,
-        captureCfg
-      );
-      captureBeyondViewport = session.options.captureBeyondViewport;
-      if (probeSession) {
-        prepareCaptureSessionForReuse(session, framesDir, videoInjector);
-        probeSession = null;
-      }
-      let riskSession = null;
-      const openRiskSession = async () => {
-        const opened = await createCaptureSession(
-          fileServer.url,
-          framesDir,
-          buildCaptureOptions(),
-          createRenderVideoFrameInjector(),
-          {
-            ...captureCfg,
-            useDrawElement: false,
-            staticFrameDedup: false,
-            enableBrowserPool: false
-          }
+      const resume = { from: 0, written: 0 };
+      let resumes = 0;
+      for (; ; ) {
+        const videoInjector = createRenderVideoFrameInjector();
+        const initStallMs = Math.max(SESSION_INIT_STALL_MS, resolveCaptureStallTimeoutMs());
+        const setup = createStallClock();
+        const withinInitBudget = (work, stalled) => raceAgainstStall(
+          work,
+          initStallMs - setup.idle(0),
+          { session: stalled, frameIndex: resume.from, totalFrames, stallTimeoutMs: initStallMs },
+          abortSignal
         );
-        riskSession = opened;
-        await initializeSession(opened);
-        return opened;
-      };
-      try {
-        if (!session.isInitialized) {
-          await initializeSession(session);
-        }
-        await completeDeferredDrawElementInit(session);
-        assertNotAborted();
-        lastBrowserConsole = session.browserConsoleBuffer;
-        if (session.workerEncodeEnabled) {
-          deDrainStats = {
-            verifyChecked: 0,
-            blankSuspects: 0,
-            blankDeterministicAccepts: 0,
-            blankRecaptures: 0
-          };
-          const riskFrames = session.deRiskFrames;
-          await runWorkerEncodePipelineLoop(
-            session,
-            totalFrames,
-            job,
-            currentEncoder,
-            reorderBuffer,
-            assertNotAborted,
-            onProgress,
-            log,
-            deDrainStats,
-            abortSignal,
-            riskFrames && riskFrames.size > 0 ? {
-              frames: riskFrames,
-              // Opened on the first risk frame, in a browser of its own: pages sharing a
-              // browser share a compositor, which starves the drawElement page's paint events.
-              open: async () => {
-                riskSession ??= await openRiskSession();
-              },
-              capture: async (frameIndex, time) => (await captureFrameToBuffer(riskSession, frameIndex, time)).buffer
-            } : void 0
+        const openSession = async () => {
+          const opening = createCaptureSession(
+            fileServer.url,
+            framesDir,
+            buildCaptureOptions(),
+            videoInjector,
+            captureCfg
           );
-        } else {
-          const stallTimeoutMs = resolveCaptureStallTimeoutMs();
-          let lastProgressAt = Date.now();
-          for (let i = 0; i < totalFrames; i++) {
-            assertNotAborted();
-            const time = i * job.config.fps.den / job.config.fps.num;
-            const budget = stallBudgetMs(
-              stallTimeoutMs,
-              i,
-              session.captureMode === "beginframe",
-              cfg
-            );
-            const { buffer } = await raceAgainstStall(
-              captureFrameToBuffer(session, i, time),
-              budget - (Date.now() - lastProgressAt),
-              { session, frameIndex: i, totalFrames, stallTimeoutMs: budget },
-              abortSignal
-            );
-            await reorderBuffer.waitForFrame(i);
-            ensureFrameWritten(await currentEncoder.writeFrame(buffer), i, currentEncoder);
-            reorderBuffer.advanceTo(i + 1);
-            job.framesRendered = i + 1;
-            lastProgressAt = Date.now();
-            const frameProgress = (i + 1) / totalFrames;
-            const progress = 25 + frameProgress * 55;
-            reportFrameProgress(
-              job,
-              `Streaming frame ${i + 1}/${totalFrames}`,
-              Math.round(progress),
-              onProgress,
-              i + 1,
-              totalFrames
-            );
+          try {
+            return await withinInitBudget(opening, OPENING_CAPTURE_SESSION);
+          } catch (error) {
+            void opening.then(closeCaptureSession, () => {
+            });
+            throw error;
           }
+        };
+        const session = probeSession ?? await openSession();
+        captureBeyondViewport = session.options.captureBeyondViewport;
+        if (probeSession) {
+          prepareCaptureSessionForReuse(session, framesDir, videoInjector);
+          probeSession = null;
         }
-        dedupPerfs.push(getCapturePerfSummary(session));
-      } catch (error) {
-        lastBrowserConsole = session.browserConsoleBuffer;
-        throw wrapCaptureStageError(error, lastBrowserConsole);
-      } finally {
-        lastBrowserConsole = session.browserConsoleBuffer;
-        await closeCaptureSession(session);
-        if (riskSession) await closeCaptureSession(riskSession);
+        let riskSession = null;
+        let attemptClosed = false;
+        const openRiskSession = async () => {
+          const opened = await createCaptureSession(
+            fileServer.url,
+            framesDir,
+            buildCaptureOptions(),
+            createRenderVideoFrameInjector(),
+            {
+              ...captureCfg,
+              useDrawElement: false,
+              staticFrameDedup: false,
+              enableBrowserPool: false
+            }
+          );
+          if (attemptClosed) {
+            await closeCaptureSession(opened);
+            throw new Error("[Render] Capture attempt ended while its screenshot session opened");
+          }
+          riskSession = opened;
+          await initializeSession(opened);
+          return opened;
+        };
+        let resumed = false;
+        try {
+          if (!session.isInitialized) {
+            await withinInitBudget(initializeSession(session), session);
+          }
+          await withinInitBudget(completeDeferredDrawElementInit(session), session);
+          assertNotAborted();
+          lastBrowserConsole = session.browserConsoleBuffer;
+          if (session.workerEncodeEnabled) {
+            deDrainStats ??= {
+              verifyChecked: 0,
+              blankSuspects: 0,
+              blankDeterministicAccepts: 0,
+              blankRecaptures: 0
+            };
+            const riskFrames = session.deRiskFrames;
+            await runWorkerEncodePipelineLoop(
+              session,
+              totalFrames,
+              job,
+              currentEncoder,
+              reorderBuffer,
+              assertNotAborted,
+              onProgress,
+              log,
+              deDrainStats,
+              abortSignal,
+              resume,
+              riskFrames && riskFrames.size > 0 ? {
+                frames: riskFrames,
+                // Opened on the first risk frame, in a browser of its own: pages sharing a
+                // browser share a compositor, which starves the drawElement page's paint events.
+                open: async () => {
+                  riskSession ??= await openRiskSession();
+                },
+                capture: async (frameIndex, time) => (await captureFrameToBuffer(riskSession, frameIndex, time)).buffer
+              } : void 0
+            );
+          } else {
+            const stallTimeoutMs = resolveCaptureStallTimeoutMs();
+            const verifyMinDb = resolveDeVerifyMinDb();
+            let lastProgressAt = Date.now();
+            for (let i = resume.from; i < totalFrames; i++) {
+              assertNotAborted();
+              const time = i * job.config.fps.den / job.config.fps.num;
+              const budget = stallBudgetMs(
+                stallTimeoutMs,
+                i,
+                session.captureMode === "beginframe",
+                cfg
+              );
+              const { buffer } = await raceAgainstStall(
+                captureFrameToBuffer(session, i, time),
+                budget - (Date.now() - lastProgressAt),
+                { session, frameIndex: i, totalFrames, stallTimeoutMs: budget },
+                abortSignal
+              );
+              await verifyDrawElementSample(session, i, buffer, { log, verifyMinDb });
+              await reorderBuffer.waitForFrame(i);
+              ensureFrameWritten(await currentEncoder.writeFrame(buffer), i, currentEncoder);
+              reorderBuffer.advanceTo(i + 1);
+              job.framesRendered = i + 1;
+              resume.written = i + 1;
+              lastProgressAt = Date.now();
+              const frameProgress = (i + 1) / totalFrames;
+              const progress = 25 + frameProgress * 55;
+              reportFrameProgress(
+                job,
+                `Streaming frame ${i + 1}/${totalFrames}`,
+                Math.round(progress),
+                onProgress,
+                i + 1,
+                totalFrames
+              );
+            }
+          }
+          dedupPerfs.push(getCapturePerfSummary(session));
+        } catch (error) {
+          lastBrowserConsole = session.browserConsoleBuffer;
+          if (!resumesAfterStall(error, abortSignal, resume, resumes)) {
+            throw wrapCaptureStageError(error, lastBrowserConsole);
+          }
+          log.warn("[Render] Sequential capture stalled; resuming from the first unwritten frame", {
+            resumeFrom: resume.written,
+            totalFrames
+          });
+          resume.from = resume.written;
+          resumes++;
+          resumed = true;
+        } finally {
+          attemptClosed = true;
+          lastBrowserConsole = session.browserConsoleBuffer;
+          await closeCaptureSession(session);
+          if (riskSession) await closeCaptureSession(riskSession);
+        }
+        if (!resumed) break;
       }
     }
     const encodeFrom = job.progress;
@@ -4338,6 +4475,7 @@ async function runCaptureStreamingStage(input) {
     return {
       success: true,
       encodeMs: encodeResult.durationMs,
+      encoderDrainWaitMs: encodeResult.drainWaitMs,
       probeSession,
       lastBrowserConsole,
       workerCount,
@@ -4392,6 +4530,10 @@ async function captureSegmentFrames(ctx, segment, encoder) {
       },
       ctx.abortSignal
     );
+    await verifyDrawElementSample(ctx.session, i, buffer, {
+      log: ctx.log,
+      verifyMinDb: ctx.verifyMinDb
+    });
     ensureFrameWritten(await encoder.writeFrame(buffer), i, encoder);
     ctx.job.framesRendered = i + 1;
     lastProgressAt = Date.now();
@@ -4406,6 +4548,25 @@ async function captureSegmentFrames(ctx, segment, encoder) {
   }
 }
 async function captureSegment(ctx, segment) {
+  const { frames } = ctx;
+  if (!frames) return captureSegmentToEncoder(ctx, segment);
+  try {
+    reportFrameProgress(
+      ctx.job,
+      `Reading video for segment ${segment.index + 1}/${ctx.segmentCount}`,
+      Math.round(25 + segment.startFrame / ctx.totalFrames * 55),
+      ctx.onProgress,
+      segment.startFrame,
+      ctx.totalFrames
+    );
+    await frames.prepare(segment);
+    ctx.assertNotAborted();
+    return await captureSegmentToEncoder(ctx, segment);
+  } finally {
+    frames.release();
+  }
+}
+async function captureSegmentToEncoder(ctx, segment) {
   const segmentPath = segmentOutputPath(ctx.segmentDir, segment.index);
   let encoder;
   try {
@@ -4437,7 +4598,7 @@ async function captureSegment(ctx, segment) {
       // finished; absent only in unit tests, whose fake encoder writes none.
       bytes: existsSync6(segmentPath) ? statSync3(segmentPath).size : 0
     });
-    return encodeResult.durationMs;
+    return encodeResult;
   } finally {
     if (!encoderClosed) {
       await encoder.close().catch(() => {
@@ -4458,16 +4619,16 @@ var DEFAULT_DEPS = {
 function defaultSessionFactory(input) {
   let probeSession = input.probeSession;
   return {
-    create: async () => {
+    create: async (injector = input.createRenderVideoFrameInjector) => {
       const probeCannotCaptureEveryFrame = Boolean(probeSession?.deRiskFrames?.size);
       if (probeSession && probeCannotCaptureEveryFrame) {
         await closeCaptureSession2(probeSession).catch(() => {
         });
         probeSession = null;
       }
-      const session = probeSession ?? await openSegmentedSession(input);
+      const session = probeSession ?? await openSegmentedSession(input, injector);
       if (probeSession) {
-        openSegmentedSessionReuse(input, probeSession);
+        openSegmentedSessionReuse(input, probeSession, injector);
         probeSession = null;
       }
       try {
@@ -4482,12 +4643,12 @@ function defaultSessionFactory(input) {
     }
   };
 }
-function openSegmentedSessionReuse(input, session) {
-  prepareCaptureSessionForReuse2(session, input.framesDir, input.createRenderVideoFrameInjector());
+function openSegmentedSessionReuse(input, session, injector) {
+  prepareCaptureSessionForReuse2(session, input.framesDir, injector());
 }
-async function openSegmentedSession(input) {
+async function openSegmentedSession(input, injector) {
   const captureCfg = input.cfg.forceScreenshot === input.plan.forceScreenshot ? input.cfg : { ...input.cfg, forceScreenshot: input.plan.forceScreenshot };
-  const videoInjector = input.createRenderVideoFrameInjector();
+  const videoInjector = injector();
   const captureOptions = { ...input.buildCaptureOptions(), deFrameFallback: false };
   const ownBrowser = shouldDisableBrowserPoolForParallelWorker({
     parallel: (input.workerCount ?? 1) > 1
@@ -4500,6 +4661,19 @@ async function openSegmentedSession(input) {
     ownBrowser ? { ...captureCfg, enableBrowserPool: false } : captureCfg
   );
 }
+function removeJoinedSegments(run, segmentPaths) {
+  if (!run.input.segmentVideoFrames || run.input.job.config.keepSegments === true) return;
+  for (const path of segmentPaths) {
+    try {
+      run.deps.removeFile(path);
+    } catch (err) {
+      run.input.log.warn("[Render] could not remove a joined segment file", {
+        path,
+        error: err instanceof Error ? err.message : String(err)
+      });
+    }
+  }
+}
 async function concatSegments(concat, segmentPaths, videoOnlyPath, abortSignal, cfg) {
   const result = await concat(segmentPaths, videoOnlyPath, abortSignal, cfg);
   if (result.success) return;
@@ -4511,12 +4685,14 @@ async function concatSegments(concat, segmentPaths, videoOnlyPath, abortSignal, 
 async function createSegmentWorker(run, id) {
   const { input, deps } = run;
   const factory = input.sessionFactoryForWorker?.(id) ?? run.sessionFactory;
+  const frames = input.segmentVideoFrames?.forWorker();
   return {
     id,
     factory,
     sessionSegments: 0,
     ctx: {
-      session: await factory.create(),
+      session: await factory.create(frames && (() => frames.hook)),
+      frames,
       job: input.job,
       cfg: input.cfg,
       totalFrames: input.totalFrames,
@@ -4527,6 +4703,8 @@ async function createSegmentWorker(run, id) {
       spawnEncoder: deps.spawnEncoder,
       captureFrame: deps.captureFrame,
       stallTimeoutMs: resolveCaptureStallTimeoutMs(),
+      log: input.log,
+      verifyMinDb: resolveDeVerifyMinDb2(),
       abortSignal: input.abortSignal,
       assertNotAborted: input.assertNotAborted,
       onProgress: input.onProgress,
@@ -4546,7 +4724,8 @@ async function recycleWorkerSession(run, worker, why) {
   run.input.dedupPerfs.push(getCapturePerfSummary2(worker.ctx.session));
   const memory = worker.ctx.session.chromeMemory?.stats();
   await run.deps.closeSession(worker.ctx.session);
-  worker.ctx.session = await worker.factory.create();
+  const { frames } = worker.ctx;
+  worker.ctx.session = await worker.factory.create(frames && (() => frames.hook));
   worker.sessionSegments = 0;
   if (why === "cadence") run.totals.browserRecycles += 1;
   run.input.log.info(`[Render] segment browser recycled (${why})`, {
@@ -4579,7 +4758,11 @@ async function retryAfterTargetLoss(run, worker, err, segment, segmentPath) {
   );
   run.deps.removeFile(segmentPath);
   await recycleWorkerSession(run, worker, "retry");
-  run.totals.encodeMs += await captureSegment(worker.ctx, segment);
+  addSegmentEncode(run.totals, await captureSegment(worker.ctx, segment));
+}
+function addSegmentEncode(totals, result) {
+  totals.encodeMs += result.durationMs;
+  totals.encoderDrainWaitMs += result.drainWaitMs ?? 0;
 }
 async function runOneSegment(run, worker, segment) {
   const segmentPath = segmentOutputPath(run.segmentDir, segment.index);
@@ -4591,7 +4774,7 @@ async function runOneSegment(run, worker, segment) {
     segmentIndex: segment.index
   });
   try {
-    run.totals.encodeMs += await captureSegment(worker.ctx, segment);
+    addSegmentEncode(run.totals, await captureSegment(worker.ctx, segment));
   } catch (err) {
     if (err instanceof SegmentEncoderSpawnError) return onSegmentSpawnFailure(run, err, segment);
     await retryAfterTargetLoss(run, worker, err, segment, segmentPath);
@@ -4610,6 +4793,7 @@ async function concatResumedRun(run, segmentPaths) {
     input.abortSignal,
     input.cfg
   );
+  removeJoinedSegments(run, segmentPaths);
   return {
     success: true,
     encodeMs: 0,
@@ -4634,7 +4818,7 @@ async function runCaptureSegmentedStage(input) {
   const run = {
     input,
     deps,
-    totals: { encodeMs: 0, segmentRetries: 0, browserRecycles: 0 },
+    totals: { encodeMs: 0, encoderDrainWaitMs: 0, segmentRetries: 0, browserRecycles: 0 },
     segments,
     pending,
     segmentDir,
@@ -4684,9 +4868,11 @@ async function runCaptureSegmentedStage(input) {
     input.abortSignal,
     input.cfg
   );
+  removeJoinedSegments(run, segmentPaths);
   return {
     success: true,
     encodeMs: run.totals.encodeMs,
+    encoderDrainWaitMs: run.totals.encoderDrainWaitMs,
     probeSession: null,
     lastBrowserConsole,
     workerCount: run.workerCount,
@@ -4770,187 +4956,8 @@ function startRenderEtaGuard(options) {
   return stop;
 }
 
-// src/services/render/segmentManifest.ts
-import { createHash as createHash2 } from "node:crypto";
-import { existsSync as existsSync7, mkdirSync as mkdirSync4, readFileSync as readFileSync4, statSync as statSync4, writeFileSync as writeFileSync3 } from "node:fs";
-import { join as join11 } from "node:path";
-import { renameWithRetry as renameWithRetry2 } from "@hyperframes/engine";
-var MANIFEST_FILENAME = "segments.json";
-function computeSegmentPlanHash(input) {
-  const ordered = [
-    input.compositionHash,
-    input.cliVersion,
-    String(input.totalFrames),
-    String(input.segmentFrames),
-    `${input.fps.num}/${input.fps.den}`,
-    `${input.width}x${input.height}`,
-    input.codec,
-    input.preset,
-    input.quality === void 0 ? "" : String(input.quality),
-    input.bitrate ?? "",
-    input.pixelFormat ?? "",
-    input.imageFormat,
-    input.useGpu ? "gpu" : "cpu",
-    `${input.outputWidth}x${input.outputHeight}`,
-    input.motionBlur,
-    input.pageMotionBlur ?? "",
-    input.captureQuality === void 0 ? "" : String(input.captureQuality)
-  ];
-  const delivery = [input.maxBitrate, input.bufferSize, input.gopSize].map((v) => v ?? "");
-  if (delivery.some((v) => v !== "")) ordered.push(...delivery.map(String));
-  return createHash2("sha256").update(ordered.join(" ")).digest("hex").slice(0, 16);
-}
-function segmentDirFor(projectRendersDir, planHash) {
-  return join11(projectRendersDir, ".hf-segments", planHash);
-}
-function hasNumber(value, key) {
-  return key in value && typeof Reflect.get(value, key) === "number";
-}
-function hasString(value, key) {
-  return key in value && typeof Reflect.get(value, key) === "string";
-}
-function isEntry(value) {
-  if (typeof value !== "object" || value === null) return false;
-  return hasNumber(value, "index") && hasNumber(value, "startFrame") && hasNumber(value, "endFrame") && hasString(value, "path") && hasNumber(value, "bytes") && hasString(value, "completedAt");
-}
-function isManifest(value) {
-  if (typeof value !== "object" || value === null) return false;
-  const completed = Reflect.get(value, "completed");
-  return Reflect.get(value, "version") === 1 && hasString(value, "planHash") && hasNumber(value, "totalFrames") && hasNumber(value, "segmentFrames") && Array.isArray(completed) && completed.every(isEntry);
-}
-function readSegmentManifest(segmentDir) {
-  const path = join11(segmentDir, MANIFEST_FILENAME);
-  if (!existsSync7(path)) return null;
-  try {
-    const parsed = JSON.parse(readFileSync4(path, "utf-8"));
-    return isManifest(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-function writeSegmentManifest(segmentDir, manifest) {
-  mkdirSync4(segmentDir, { recursive: true });
-  const tmp = join11(segmentDir, `${MANIFEST_FILENAME}.${process.pid}.tmp`);
-  writeFileSync3(tmp, JSON.stringify(manifest, null, 2), "utf-8");
-  renameWithRetry2(tmp, join11(segmentDir, MANIFEST_FILENAME));
-}
-async function probeSegmentFrameCount(path, probe) {
-  try {
-    const meta = await probe(path);
-    if (!Number.isFinite(meta.videoStreamDurationSeconds) || !Number.isFinite(meta.fps))
-      return null;
-    if (meta.fps <= 0) return null;
-    return Math.round(meta.videoStreamDurationSeconds * meta.fps);
-  } catch {
-    return null;
-  }
-}
-async function validateCompletedSegments(manifest, expectedHash, probeFrames) {
-  const ok = /* @__PURE__ */ new Set();
-  if (manifest.planHash !== expectedHash) return ok;
-  for (const entry of manifest.completed) {
-    if (!existsSync7(entry.path)) continue;
-    const size = statSync4(entry.path).size;
-    if (size <= 0 || size !== entry.bytes) continue;
-    const frames = await probeFrames(entry.path);
-    if (frames !== entry.endFrame - entry.startFrame) continue;
-    ok.add(entry.index);
-  }
-  return ok;
-}
-
-// src/services/render/hdrMode.ts
-import {
-  analyzeCompositionHdr,
-  formatHdrAutoPromotionWarning,
-  HDR_AUTO_PROMOTION_PIPELINE,
-  isHdrColorSpace,
-  sanitizeHdrAutoPromotionAsset
-} from "@hyperframes/engine";
-function formatDowngradeWarning(outputFormat, forcedHdrWithoutSources) {
-  const hdrSourceReason = forcedHdrWithoutSources ? "HDR was forced without detected HDR sources" : "HDR source detected";
-  const formatReason = outputFormat === "hls" ? "HLS output is SDR-only (H.264 in MPEG-TS)" : "HDR + alpha is not supported";
-  return `[Render] ${hdrSourceReason}, but format is "${outputFormat}", so falling back to SDR. ${formatReason}. Use --format mp4 for HDR10 output.`;
-}
-function findRenderHdrAutoPromotionTrigger(input) {
-  for (const extracted of input.extractionResult?.extracted ?? []) {
-    if (!isHdrColorSpace(extracted.metadata.colorSpace)) continue;
-    const source = input.videos.find(({ id }) => id === extracted.videoId)?.src;
-    if (source) return source;
-  }
-  return input.images.find(({ id }) => input.nativeHdrImageIds.has(id))?.src;
-}
-function logHdrResolution(input, hdrMode, effectiveHdr, forcedHdrWithoutSources) {
-  if (forcedHdrWithoutSources) {
-    input.log.warn(
-      "[Render] HDR forced by --hdr flag, but no HDR sources were detected, defaulting to HLG. SDR-only compositions may look perceptually wrong on HDR displays."
-    );
-  }
-  if (!effectiveHdr) {
-    input.log.info(
-      hdrMode === "force-sdr" ? "[Render] SDR forced by --sdr flag" : "[Render] No HDR sources detected, rendering SDR"
-    );
-    return;
-  }
-  if (hdrMode === "auto") {
-    input.log.warn(
-      formatHdrAutoPromotionWarning({
-        triggeringAsset: sanitizeHdrAutoPromotionAsset(
-          input.autoPromotionTrigger ?? "an HDR-tagged asset"
-        ),
-        output: HDR_AUTO_PROMOTION_PIPELINE
-      })
-    );
-    return;
-  }
-  const reason = forcedHdrWithoutSources ? "forced by --hdr flag (no HDR sources detected, defaulting to HLG)" : "forced by --hdr flag";
-  input.log.info(
-    `[Render] HDR ${reason}, output: ${effectiveHdr.transfer.toUpperCase()} (BT.2020, 10-bit H.265)`
-  );
-}
-function formatCarriesHdr(format) {
-  return format === "mp4";
-}
-function rendersSdrOnly(config) {
-  return config.hdrMode === "force-sdr" || !formatCarriesHdr(config.format ?? "mp4");
-}
-function resolveEffectiveHdrMode(input) {
-  const hdrMode = input.hdrMode ?? "auto";
-  const videoColorSpaces = (input.extractionResult?.extracted ?? []).map(
-    (ext) => ext.metadata.colorSpace
-  );
-  const allColorSpaces = [...videoColorSpaces, ...input.imageColorSpaces];
-  const info = allColorSpaces.length > 0 ? analyzeCompositionHdr(allColorSpaces) : null;
-  let effectiveHdr;
-  let forcedHdrWithoutSources = false;
-  if (hdrMode === "force-sdr") {
-    effectiveHdr = void 0;
-  } else if (hdrMode === "force-hdr") {
-    if (info?.hasHdr && info.dominantTransfer) {
-      effectiveHdr = { transfer: info.dominantTransfer };
-    } else {
-      effectiveHdr = { transfer: "hlg" };
-      forcedHdrWithoutSources = true;
-    }
-  } else if (info?.hasHdr && info.dominantTransfer) {
-    effectiveHdr = { transfer: info.dominantTransfer };
-  }
-  if (effectiveHdr && !formatCarriesHdr(input.outputFormat)) {
-    input.log.warn(formatDowngradeWarning(input.outputFormat, forcedHdrWithoutSources));
-    effectiveHdr = void 0;
-  }
-  logHdrResolution(input, hdrMode, effectiveHdr, forcedHdrWithoutSources);
-  return effectiveHdr;
-}
-
-// src/services/render/captureBeyondViewport.ts
-function resolveVideoCaptureBeyondViewport(videoCount) {
-  if (videoCount <= 0) return void 0;
-  return true;
-}
-
 // src/services/render/captureCost.ts
-import { join as join12 } from "node:path";
+import { join as join11 } from "node:path";
 import { fpsToNumber as fpsToNumber4 } from "@hyperframes/core";
 import {
   calculateOptimalWorkers,
@@ -5155,6 +5162,7 @@ async function runCaptureCalibration(input) {
   let probeSession = input.probeSession;
   let forceScreenshot = input.forceScreenshot;
   let lastBrowserConsole = [];
+  let calibrationEvaluateTimedOut = false;
   const fps = fpsToNumber4(job.config.fps);
   const sessionRef = { current: null };
   const runOneCalibration = async (sessionDir, sessionCfg) => {
@@ -5195,11 +5203,12 @@ async function runCaptureCalibration(input) {
   });
   let calibration;
   try {
-    calibration = await runOneCalibration(join12(workDir, "capture-calibration"), calibrationCfg);
+    calibration = await runOneCalibration(join11(workDir, "capture-calibration"), calibrationCfg);
   } catch (error) {
     const shouldFallback = !forceScreenshot && shouldFallbackToScreenshotAfterCalibrationError(error);
     if (!shouldFallback) {
       calibration = createFailedCaptureCalibrationEstimate("calibration-failed");
+      calibrationEvaluateTimedOut = isEvaluateTimeout(error);
       log.warn("[Render] Auto-worker calibration failed; using conservative worker budget.", {
         protocolTimeout: calibrationCfg.protocolTimeout,
         error: error instanceof Error ? error.message : String(error)
@@ -5228,11 +5237,12 @@ async function runCaptureCalibration(input) {
       const screenshotCfg = createCaptureCalibrationConfig({ ...cfg, forceScreenshot: true });
       try {
         calibration = await runOneCalibration(
-          join12(workDir, "capture-calibration-screenshot"),
+          join11(workDir, "capture-calibration-screenshot"),
           screenshotCfg
         );
       } catch (fallbackError) {
         calibration = createFailedCaptureCalibrationEstimate("calibration-screenshot-failed");
+        calibrationEvaluateTimedOut = isEvaluateTimeout(fallbackError);
         log.warn(
           "[Render] Screenshot auto-worker calibration failed after BeginFrame fallback; using conservative worker budget.",
           {
@@ -5249,13 +5259,503 @@ async function runCaptureCalibration(input) {
       });
     }
   }
-  return { calibration, forceScreenshot, probeSession, lastBrowserConsole };
+  return {
+    calibration,
+    forceScreenshot,
+    probeSession,
+    lastBrowserConsole,
+    calibrationEvaluateTimedOut
+  };
+}
+function isEvaluateTimeout(error) {
+  return /Runtime\.evaluate timed out/i.test(normalizeErrorMessage(error));
 }
 function shouldFallbackToScreenshotAfterCalibrationError(error) {
   const message = normalizeErrorMessage(error);
   return /HeadlessExperimental\.beginFrame timed out|beginFrame probe timeout|Another frame is pending|Frame still pending|Protocol error.*HeadlessExperimental\.beginFrame|Runtime\.callFunctionOn timed out|Runtime\.evaluate timed out/i.test(
     message
   );
+}
+
+// src/services/render/pageNeverReady.ts
+var PAGE_NEVER_READY = "PAGE_NEVER_READY";
+var PageNeverReadyError = class extends Error {
+  code = PAGE_NEVER_READY;
+  // The producer server reads these off the error for the wire envelope.
+  owner = "user";
+  retryable = false;
+  constructor(cause) {
+    super(
+      "The composition page never became ready: it did not answer browser commands during calibration or capture, and no frame was captured. Its script may never return.",
+      { cause }
+    );
+    this.name = "PageNeverReadyError";
+  }
+};
+function checkPageNeverReady(input) {
+  const { calibrationEvaluateTimedOut, framesRendered, error } = input;
+  if (!calibrationEvaluateTimedOut || framesRendered > 0 || !isEvaluateTimeout(error)) {
+    return void 0;
+  }
+  return new PageNeverReadyError(error);
+}
+
+// src/services/render/deferredVideoFrames.ts
+import { mkdirSync as mkdirSync4, rmSync as rmSync7 } from "node:fs";
+import { dirname as dirname5, join as join12 } from "node:path";
+import {
+  createFrameLookupTable,
+  extractVideoFramesRange,
+  runVideoExtractionWithRetry
+} from "@hyperframes/engine";
+function contiguousRuns(sortedIndexes) {
+  const runs = [];
+  for (const index of sortedIndexes) {
+    const last = runs[runs.length - 1];
+    if (last && last.firstFrame + last.frames === index) last.frames++;
+    else runs.push({ firstFrame: index, frames: 1 });
+  }
+  return runs;
+}
+function shownDeferredFrameIndexes(source, frames, fps) {
+  const shown = /* @__PURE__ */ new Map();
+  const deferred = source.extracted.filter((video) => video.deferredRange);
+  if (deferred.length === 0) return shown;
+  const table = createFrameLookupTable(
+    source.videos,
+    deferred.map((video) => ({
+      ...video,
+      outputDir: "",
+      framePaths: new Map(Array.from({ length: video.totalFrames }, (_, i) => [i, String(i)]))
+    })),
+    resolveRenderFpsConfig(fps).value
+  );
+  for (const frame of frames) {
+    const globalTime = frame * fps.den / fps.num;
+    for (const [videoId, payload] of table.getActiveFramePayloads(globalTime)) {
+      const indexes = shown.get(videoId) ?? /* @__PURE__ */ new Set();
+      indexes.add(payload.frameIndex);
+      shown.set(videoId, indexes);
+    }
+  }
+  return shown;
+}
+async function extractDeferredFrames(input) {
+  const deferred = input.extracted.filter((video) => video.deferredRange);
+  if (deferred.length === 0) return [];
+  const shown = shownDeferredFrameIndexes(input, input.frames, input.fps);
+  return Promise.all(
+    deferred.map(async (video) => {
+      const outputDir = join12(input.outputRoot, video.videoId);
+      const indexes = [...shown.get(video.videoId) ?? []].sort((a, b) => a - b);
+      if (indexes.length === 0) {
+        return { ...video, outputDir, framePaths: /* @__PURE__ */ new Map(), ownedByLookup: false };
+      }
+      const range = video.deferredRange;
+      const extracted = await extractVideoFramesRange(
+        input.sourceOf(video),
+        video.videoId,
+        range.startTime,
+        range.durationSeconds,
+        {
+          fps: input.fps,
+          outputDir: input.outputRoot,
+          format: range.format,
+          frameRanges: contiguousRuns(indexes),
+          shownBox: input.shownBoxes?.get(video.videoId)
+        },
+        input.signal,
+        input.cfg
+      );
+      const missing = indexes.find((index) => !extracted.framePaths.has(index));
+      if (missing !== void 0) throw input.onMissingFrame(video, missing);
+      return { ...video, outputDir, framePaths: extracted.framePaths, ownedByLookup: false };
+    })
+  );
+}
+async function extractAllDeferredFrames(extracted, input) {
+  const framesTotal = extracted.reduce(
+    (sum, video) => sum + (video.deferredRange ? video.totalFrames : 0),
+    0
+  );
+  let framesDone = 0;
+  for (const video of extracted) {
+    const range = video.deferredRange;
+    if (!range) continue;
+    const { result: filled } = await runVideoExtractionWithRetry(
+      () => extractVideoFramesRange(
+        input.sourceOf?.(video) ?? video.srcPath,
+        video.videoId,
+        range.startTime,
+        range.durationSeconds,
+        { fps: input.fps, outputDir: dirname5(video.outputDir), format: range.format },
+        input.signal,
+        input.cfg
+      ),
+      {
+        signal: input.signal,
+        maxTransientRetries: input.maxTransientRetries,
+        onRetry: () => {
+          rmSync7(video.outputDir, { recursive: true, force: true });
+          mkdirSync4(video.outputDir, { recursive: true });
+        }
+      }
+    );
+    if (filled.framePaths.size < video.totalFrames) {
+      throw new Error(
+        `[Render] video ${JSON.stringify(video.videoId)} has ${filled.framePaths.size} frames; it was expected to have ${video.totalFrames} frames.`
+      );
+    }
+    video.framePaths = filled.framePaths;
+    delete video.deferredRange;
+    framesDone += video.totalFrames;
+    input.onProgress?.(framesDone, framesTotal);
+  }
+}
+
+// src/services/render/segmentVideoFrames.ts
+import { mkdirSync as mkdirSync5, rmSync as rmSync8 } from "node:fs";
+import { join as join13 } from "node:path";
+import {
+  createFrameLookupTable as createFrameLookupTable2,
+  createVideoFrameInjector
+} from "@hyperframes/engine";
+function segmentFramesDir(rootDir, index) {
+  return join13(rootDir, "segment-frames", `segment_${String(index).padStart(5, "0")}`);
+}
+function createSegmentVideoFrames(input) {
+  const extractFrames = input.extractFrames ?? extractDeferredFrames;
+  const sourceOf = input.sourceOf ?? ((video) => video.srcPath);
+  const fullyExtracted = input.extracted.filter((video) => !video.deferredRange);
+  const tableFor = async (frames, dir) => {
+    const sliced = await extractFrames({
+      videos: input.videos,
+      extracted: input.extracted,
+      frames,
+      fps: input.fps,
+      outputRoot: dir,
+      cfg: input.cfg,
+      signal: input.abortSignal,
+      sourceOf,
+      onMissingFrame: (video, index) => new Error(
+        `[Render] video ${JSON.stringify(video.videoId)} has no frame ${index}; it was expected to have ${video.totalFrames} frames.`
+      )
+    });
+    return createFrameLookupTable2(
+      input.videos,
+      [...fullyExtracted, ...sliced],
+      resolveRenderFpsConfig(input.fps).value
+    );
+  };
+  const injectorFor = async (frames, dir) => createVideoFrameInjector(await tableFor(frames, dir), input.injectorOptions);
+  let onDemandCalls = 0;
+  const onDemandHook = () => Object.assign(
+    async (page, time, heldVideoTime) => {
+      const dir = join13(
+        input.rootDir,
+        "segment-frames",
+        `on-demand_${String(onDemandCalls++).padStart(5, "0")}`
+      );
+      try {
+        const frames = [time, heldVideoTime].filter((t) => t !== void 0).map((t) => Math.round(t * input.fps.num / input.fps.den));
+        const injector = await injectorFor(frames, dir);
+        await injector?.(page, time, heldVideoTime);
+      } finally {
+        rmSync8(dir, { recursive: true, force: true });
+      }
+    },
+    { fresh: onDemandHook }
+  );
+  return {
+    async forFrames(frames, name) {
+      const dir = join13(input.rootDir, "segment-frames", name);
+      const release = () => rmSync8(dir, { recursive: true, force: true });
+      try {
+        release();
+        mkdirSync5(dir, { recursive: true });
+        const table = await tableFor([...frames], dir);
+        return { injector: () => createVideoFrameInjector(table, input.injectorOptions), release };
+      } catch (error) {
+        release();
+        throw error;
+      }
+    },
+    forWorker() {
+      let injector = null;
+      let folder = null;
+      const onDemand = onDemandHook();
+      const release = () => {
+        injector = null;
+        if (folder) rmSync8(folder, { recursive: true, force: true });
+        folder = null;
+      };
+      return {
+        hook: Object.assign(
+          (page, time, heldVideoTime) => (injector ?? onDemand)(page, time, heldVideoTime),
+          { fresh: onDemandHook }
+        ),
+        release,
+        async prepare(segment) {
+          release();
+          const dir = segmentFramesDir(input.rootDir, segment.index);
+          folder = dir;
+          try {
+            rmSync8(dir, { recursive: true, force: true });
+            mkdirSync5(dir, { recursive: true });
+            injector = await injectorFor(
+              Array.from(
+                { length: segment.endFrame - segment.startFrame },
+                (_, i) => segment.startFrame + i
+              ),
+              dir
+            );
+          } catch (error) {
+            release();
+            throw error;
+          }
+        }
+      };
+    }
+  };
+}
+
+// src/services/render/videoFrameWindow.ts
+import { readdirSync as readdirSync3, statSync as statSync4 } from "node:fs";
+import { join as join14 } from "node:path";
+function shouldWindowVideoFrames(args) {
+  return args.segmented && args.env.HF_VIDEO_FRAME_WINDOW?.trim().toLowerCase() === "true";
+}
+function directoryBytes(path) {
+  let bytes = 0;
+  let entries;
+  try {
+    entries = readdirSync3(path, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  for (const entry of entries) {
+    const child2 = join14(path, entry.name);
+    try {
+      bytes += entry.isDirectory() ? directoryBytes(child2) : statSync4(child2).size;
+    } catch {
+    }
+  }
+  return bytes;
+}
+function trackSegmentFramePeak(frames, rootDir, onPeak) {
+  let peak = 0;
+  return {
+    forFrames: (frameIndexes, name) => frames.forFrames(frameIndexes, name),
+    forWorker() {
+      const worker = frames.forWorker();
+      return {
+        ...worker,
+        async prepare(segment) {
+          await worker.prepare(segment);
+          const held = directoryBytes(join14(rootDir, "segment-frames"));
+          if (held > peak) {
+            peak = held;
+            onPeak(peak);
+          }
+        }
+      };
+    }
+  };
+}
+
+// src/services/render/segmentManifest.ts
+import { createHash as createHash2 } from "node:crypto";
+import { existsSync as existsSync7, mkdirSync as mkdirSync6, readFileSync as readFileSync4, statSync as statSync5, writeFileSync as writeFileSync3 } from "node:fs";
+import { join as join15 } from "node:path";
+import { renameWithRetry as renameWithRetry2 } from "@hyperframes/engine";
+var MANIFEST_FILENAME = "segments.json";
+function computeSegmentPlanHash(input) {
+  const ordered = [
+    input.compositionHash,
+    input.cliVersion,
+    String(input.totalFrames),
+    String(input.segmentFrames),
+    `${input.fps.num}/${input.fps.den}`,
+    `${input.width}x${input.height}`,
+    input.codec,
+    input.preset,
+    input.quality === void 0 ? "" : String(input.quality),
+    input.bitrate ?? "",
+    input.pixelFormat ?? "",
+    input.imageFormat,
+    input.useGpu ? "gpu" : "cpu",
+    `${input.outputWidth}x${input.outputHeight}`,
+    input.motionBlur,
+    input.pageMotionBlur ?? "",
+    input.captureQuality === void 0 ? "" : String(input.captureQuality)
+  ];
+  const delivery = [input.maxBitrate, input.bufferSize, input.gopSize].map((v) => v ?? "");
+  if (delivery.some((v) => v !== "")) ordered.push(...delivery.map(String));
+  return createHash2("sha256").update(ordered.join(" ")).digest("hex").slice(0, 16);
+}
+function segmentDirFor(projectRendersDir, planHash) {
+  return join15(projectRendersDir, ".hf-segments", planHash);
+}
+function hasNumber(value, key) {
+  return key in value && typeof Reflect.get(value, key) === "number";
+}
+function hasString(value, key) {
+  return key in value && typeof Reflect.get(value, key) === "string";
+}
+function isEntry(value) {
+  if (typeof value !== "object" || value === null) return false;
+  return hasNumber(value, "index") && hasNumber(value, "startFrame") && hasNumber(value, "endFrame") && hasString(value, "path") && hasNumber(value, "bytes") && hasString(value, "completedAt");
+}
+function isManifest(value) {
+  if (typeof value !== "object" || value === null) return false;
+  const completed = Reflect.get(value, "completed");
+  return Reflect.get(value, "version") === 1 && hasString(value, "planHash") && hasNumber(value, "totalFrames") && hasNumber(value, "segmentFrames") && Array.isArray(completed) && completed.every(isEntry);
+}
+function readSegmentManifest(segmentDir) {
+  const path = join15(segmentDir, MANIFEST_FILENAME);
+  if (!existsSync7(path)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync4(path, "utf-8"));
+    return isManifest(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function writeSegmentManifest(segmentDir, manifest) {
+  mkdirSync6(segmentDir, { recursive: true });
+  const tmp = join15(segmentDir, `${MANIFEST_FILENAME}.${process.pid}.tmp`);
+  writeFileSync3(tmp, JSON.stringify(manifest, null, 2), "utf-8");
+  renameWithRetry2(tmp, join15(segmentDir, MANIFEST_FILENAME));
+}
+async function probeSegmentFrameCount(path, probe) {
+  try {
+    const meta = await probe(path);
+    if (!Number.isFinite(meta.videoStreamDurationSeconds) || !Number.isFinite(meta.fps))
+      return null;
+    if (meta.fps <= 0) return null;
+    return Math.round(meta.videoStreamDurationSeconds * meta.fps);
+  } catch {
+    return null;
+  }
+}
+async function validateCompletedSegments(manifest, expectedHash, probeFrames) {
+  const ok = /* @__PURE__ */ new Set();
+  if (manifest.planHash !== expectedHash) return ok;
+  for (const entry of manifest.completed) {
+    if (!existsSync7(entry.path)) continue;
+    const size = statSync5(entry.path).size;
+    if (size <= 0 || size !== entry.bytes) continue;
+    const frames = await probeFrames(entry.path);
+    if (frames !== entry.endFrame - entry.startFrame) continue;
+    ok.add(entry.index);
+  }
+  return ok;
+}
+
+// src/services/render/hdrMode.ts
+import {
+  analyzeCompositionHdr,
+  formatHdrAutoPromotionWarning,
+  gradingKeepsSdr,
+  HDR_AUTO_PROMOTION_PIPELINE,
+  isHdrColorSpace,
+  sanitizeHdrAutoPromotionAsset
+} from "@hyperframes/engine";
+function formatDowngradeWarning(outputFormat, forcedHdrWithoutSources) {
+  const hdrSourceReason = forcedHdrWithoutSources ? "HDR was forced without detected HDR sources" : "HDR source detected";
+  const formatReason = outputFormat === "hls" ? "HLS output is SDR-only (H.264 in MPEG-TS)" : "HDR + alpha is not supported";
+  return `[Render] ${hdrSourceReason}, but format is "${outputFormat}", so falling back to SDR. ${formatReason}. Use --format mp4 for HDR10 output.`;
+}
+function findRenderHdrAutoPromotionTrigger(input) {
+  for (const extracted of input.extractionResult?.extracted ?? []) {
+    if (!isHdrColorSpace(extracted.metadata.colorSpace)) continue;
+    const source = input.videos.find(({ id }) => id === extracted.videoId)?.src;
+    if (source) return source;
+  }
+  return input.images.find(({ id }) => input.nativeHdrImageIds.has(id))?.src;
+}
+function logGradingResolution(input, hdrMode, effectiveHdr, hasHdrSource) {
+  const keptSdr = hasHdrSource && gradingKeepsSdr(hdrMode, input.media);
+  if (keptSdr) {
+    input.log.warn(
+      "[Render] HDR source detected, but color grading is SDR-only, so rendering SDR: HDR sources are tone-mapped before the grade. Use --hdr to force HDR output (grades stay SDR)."
+    );
+  } else if (effectiveHdr && [...input.media.videos, ...input.media.images].some((m) => m.graded)) {
+    input.log.warn(
+      "[Render] HDR output with graded media: color grading is SDR-only, so graded elements are graded in SDR and placed in the HDR output."
+    );
+  }
+  return keptSdr;
+}
+function logHdrResolution(input, hdrMode, effectiveHdr, forcedHdrWithoutSources, hasHdrSource) {
+  const keptSdrForGrading = logGradingResolution(input, hdrMode, effectiveHdr, hasHdrSource);
+  if (forcedHdrWithoutSources) {
+    input.log.warn(
+      "[Render] HDR forced by --hdr flag, but no HDR sources were detected, defaulting to HLG. SDR-only compositions may look perceptually wrong on HDR displays."
+    );
+  }
+  if (!effectiveHdr) {
+    if (keptSdrForGrading) return;
+    input.log.info(
+      hdrMode === "force-sdr" ? "[Render] SDR forced by --sdr flag" : "[Render] No HDR sources detected, rendering SDR"
+    );
+    return;
+  }
+  if (hdrMode === "auto") {
+    input.log.warn(
+      formatHdrAutoPromotionWarning({
+        triggeringAsset: sanitizeHdrAutoPromotionAsset(
+          input.autoPromotionTrigger ?? "an HDR-tagged asset"
+        ),
+        output: HDR_AUTO_PROMOTION_PIPELINE
+      })
+    );
+    return;
+  }
+  const reason = forcedHdrWithoutSources ? "forced by --hdr flag (no HDR sources detected, defaulting to HLG)" : "forced by --hdr flag";
+  input.log.info(
+    `[Render] HDR ${reason}, output: ${effectiveHdr.transfer.toUpperCase()} (BT.2020, 10-bit H.265)`
+  );
+}
+function formatCarriesHdr(format) {
+  return format === "mp4";
+}
+function rendersSdrOnly(config, media) {
+  return config.hdrMode === "force-sdr" || gradingKeepsSdr(config.hdrMode, media) || !formatCarriesHdr(config.format ?? "mp4");
+}
+function resolveEffectiveHdrMode(input) {
+  const hdrMode = input.hdrMode ?? "auto";
+  const videoColorSpaces = (input.extractionResult?.extracted ?? []).map(
+    (ext) => ext.metadata.colorSpace
+  );
+  const allColorSpaces = [...videoColorSpaces, ...input.imageColorSpaces];
+  const info = allColorSpaces.length > 0 ? analyzeCompositionHdr(allColorSpaces) : null;
+  let effectiveHdr;
+  let forcedHdrWithoutSources = false;
+  if (hdrMode === "force-sdr" || gradingKeepsSdr(hdrMode, input.media)) {
+    effectiveHdr = void 0;
+  } else if (hdrMode === "force-hdr") {
+    if (info?.hasHdr && info.dominantTransfer) {
+      effectiveHdr = { transfer: info.dominantTransfer };
+    } else {
+      effectiveHdr = { transfer: "hlg" };
+      forcedHdrWithoutSources = true;
+    }
+  } else if (info?.hasHdr && info.dominantTransfer) {
+    effectiveHdr = { transfer: info.dominantTransfer };
+  }
+  if (effectiveHdr && !formatCarriesHdr(input.outputFormat)) {
+    input.log.warn(formatDowngradeWarning(input.outputFormat, forcedHdrWithoutSources));
+    effectiveHdr = void 0;
+  }
+  logHdrResolution(input, hdrMode, effectiveHdr, forcedHdrWithoutSources, info?.hasHdr === true);
+  return effectiveHdr;
+}
+
+// src/services/render/captureBeyondViewport.ts
+function resolveVideoCaptureBeyondViewport(videoCount) {
+  if (videoCount <= 0) return void 0;
+  return true;
 }
 
 // src/services/render/observability.ts
@@ -5498,51 +5998,51 @@ var RenderStageStalledError = class extends CaptureFailure2 {
   code = "RENDER_STAGE_STALLED";
   owner = "system";
   retryable = false;
-  constructor(phase, silentMs, progress) {
+  constructor(phase, silentMs, progress, detail) {
     super({
       kind: "protocol_timeout",
-      message: `[Render] ${phase} stalled: no progress for ${silentMs}ms (stuck at ${progress}).`
+      message: `[Render] ${phase} stalled: no progress for ${silentMs}ms (stuck at ${progress}).${detail ? ` ${detail}` : ""}`
     });
     this.name = "RenderStageStalledError";
   }
 };
 var STALL_POLL_MS = 5e3;
 function watchStall(phase, rule) {
+  const detail = rule.detail ?? (() => void 0);
   let last = rule.progress();
   let budgetMs = rule.firstProgressMs;
-  let lastChangeAt = Date.now();
+  const silence = createStallClock();
+  const pollMs = Math.min(STALL_POLL_MS, rule.noProgressMs, rule.firstProgressMs);
   let attempt;
   let timer;
   let inTail = false;
   const restartWindow = (ms) => {
     last = rule.progress();
     budgetMs = ms;
-    lastChangeAt = Date.now();
+    silence.reset();
   };
   const tripped = new Promise((_, reject) => {
-    timer = setInterval(
-      () => {
-        const current = rule.progress();
-        if (rule.complete?.() && !inTail) {
-          inTail = true;
-          return restartWindow(rule.tailMs ?? rule.noProgressMs);
-        }
-        if (current !== last) return restartWindow(rule.noProgressMs);
-        if (Date.now() - lastChangeAt < budgetMs) return;
-        const error = new RenderStageStalledError(phase, budgetMs, current);
-        if (attempt && !attempt.signal.aborted) {
-          attempt.abort(error);
-          return restartWindow(rule.noProgressMs);
-        }
-        clearInterval(timer);
-        reject(error);
-      },
-      Math.min(STALL_POLL_MS, rule.noProgressMs, rule.firstProgressMs)
-    );
+    timer = setInterval(() => {
+      const current = rule.progress();
+      if (rule.complete?.() && !inTail) {
+        inTail = true;
+        return restartWindow(rule.tailMs ?? rule.noProgressMs);
+      }
+      if (current !== last) return restartWindow(rule.noProgressMs);
+      if (silence.idle(pollMs) < budgetMs) return;
+      const error = new RenderStageStalledError(phase, budgetMs, current, detail());
+      if (attempt && !attempt.signal.aborted) {
+        attempt.abort(error);
+        return restartWindow(rule.noProgressMs);
+      }
+      clearInterval(timer);
+      reject(error);
+    }, pollMs);
   });
   const openAttempt = (parent) => {
     attempt = new AbortController();
     inTail = false;
+    rule.attemptOpened?.();
     restartWindow(rule.firstProgressMs);
     return parent ? AbortSignal.any([parent, attempt.signal]) : attempt.signal;
   };
@@ -5686,7 +6186,7 @@ function computeVideoFrameCoverage(videos, extracted, fps) {
   for (const video of videos) {
     const entry = byId.get(video.id);
     const expectedFrames = expectedFramesForVideo(video, entry, fps);
-    const capturedFrames = entry ? entry.framePaths.size : 0;
+    const capturedFrames = entry ? entry.deferredRange ? entry.totalFrames : entry.framePaths.size : 0;
     const ratio = expectedFrames === 0 ? 1 : capturedFrames / expectedFrames;
     reports.push({
       videoId: video.id,
@@ -5721,14 +6221,17 @@ function countAuthoredTimedClips(html) {
 }
 
 // src/services/render/stages/compileStage.ts
-import { join as join16 } from "node:path";
+import { existsSync as existsSync11, writeFileSync as writeFileSync5 } from "node:fs";
+import { join as join19 } from "node:path";
 import { suggestMatchingPreset } from "@hyperframes/core";
+import { extractStandaloneEntryFromIndex, isTemplateEntry } from "@hyperframes/core/compiler";
+import { readTextFile as readTextFile2 } from "@hyperframes/parsers/asset-resolution";
 
 // src/services/htmlCompiler.ts
 import { decodedUrlPath } from "@hyperframes/parsers/asset-paths";
 import { createHash as createHash6 } from "node:crypto";
-import { createReadStream as createReadStream2, existsSync as existsSync10, mkdirSync as mkdirSync7, readFileSync as readFileSync7 } from "fs";
-import { join as join15, dirname as dirname7, resolve as resolve7, basename as basename4, relative as relative2 } from "path";
+import { createReadStream as createReadStream2, existsSync as existsSync10, mkdirSync as mkdirSync9, readFileSync as readFileSync7 } from "fs";
+import { join as join18, dirname as dirname8, resolve as resolve7, basename as basename4, relative as relative2 } from "path";
 import { parseHTML as parseHTML5 } from "linkedom";
 import {
   COMPOSITION_SOURCE_URL,
@@ -5780,7 +6283,8 @@ import {
 } from "@hyperframes/parsers/sub-composition-validity";
 import {
   isUnresolvedAssetPlaceholder,
-  readProjectFile
+  readProjectFile,
+  readTextFile
 } from "@hyperframes/parsers/asset-resolution";
 
 // src/services/renderMediaCollector.ts
@@ -5802,6 +6306,7 @@ import {
 } from "@hyperframes/core/media-timing";
 import {
   parseVideoElements,
+  hasGradedCanvas,
   parseImageElements,
   parseAudioElements,
   isSelfOrAncestorHidden,
@@ -5936,7 +6441,7 @@ function collectRenderMedia(html) {
     if (placed) audios.push(placed);
     else droppedMediaIds.add(elementId);
   }
-  return { videos, audios, images, droppedMediaIds };
+  return { videos, audios, images, droppedMediaIds, gradedCanvas: hasGradedCanvas(html) };
 }
 function placeAudio(audio, window2) {
   const authoredEnd = audio.end > 0 ? audio.end : Infinity;
@@ -5972,8 +6477,8 @@ import {
 
 // src/services/animatedGifPrep.ts
 import { createHash as createHash4 } from "node:crypto";
-import { copyFileSync as copyFileSync2, existsSync as existsSync8, mkdirSync as mkdirSync5, readFileSync as readFileSync5, rmSync as rmSync7, statSync as statSync5 } from "node:fs";
-import { dirname as dirname5, isAbsolute as isAbsolute2, join as join13, resolve as resolve5 } from "node:path";
+import { copyFileSync as copyFileSync2, existsSync as existsSync8, mkdirSync as mkdirSync7, readFileSync as readFileSync5, rmSync as rmSync9, statSync as statSync6 } from "node:fs";
+import { dirname as dirname6, isAbsolute as isAbsolute2, join as join16, resolve as resolve5 } from "node:path";
 import { parseHTML as parseHTML3 } from "linkedom";
 import { parseAnimatedGifMetadata } from "@hyperframes/core";
 import { DEFAULT_VP9_CPU_USED, runFfmpeg as runFfmpeg2, renameWithRetry as renameWithRetry3 } from "@hyperframes/engine";
@@ -6022,7 +6527,7 @@ function resolveLocalImageSourcePath(src, options) {
 }
 function isUsableFile(path) {
   try {
-    const stat = statSync5(path);
+    const stat = statSync6(path);
     return stat.isFile() && stat.size > 0;
   } catch {
     return false;
@@ -6129,11 +6634,11 @@ async function runAnimatedGifTranscode(request) {
   throw result.error ?? new Error(`Animated GIF transcode failed (${result.exitCode}): ${result.stderr.slice(-500)}`);
 }
 async function ensurePreparedWebm(input) {
-  if (!existsSync8(dirname5(input.cachePath))) {
-    mkdirSync5(dirname5(input.cachePath), { recursive: true });
+  if (!existsSync8(dirname6(input.cachePath))) {
+    mkdirSync7(dirname6(input.cachePath), { recursive: true });
   }
-  if (!existsSync8(dirname5(input.outputPath))) {
-    mkdirSync5(dirname5(input.outputPath), { recursive: true });
+  if (!existsSync8(dirname6(input.outputPath))) {
+    mkdirSync7(dirname6(input.outputPath), { recursive: true });
   }
   if (!isUsableFile(input.cachePath)) {
     const tmpPath = `${input.cachePath}.tmp-${process.pid}-${Date.now()}`;
@@ -6157,10 +6662,10 @@ async function ensurePreparedWebm(input) {
       if (!isUsableFile(input.cachePath)) {
         renameWithRetry3(tmpPath, input.cachePath);
       } else {
-        rmSync7(tmpPath, { force: true });
+        rmSync9(tmpPath, { force: true });
       }
     } catch (error) {
-      rmSync7(tmpPath, { force: true });
+      rmSync9(tmpPath, { force: true });
       throw error;
     }
   }
@@ -6216,7 +6721,7 @@ function replaceImageWithVideo(input) {
   return video;
 }
 async function prepareAnimatedGifInputs(html, options) {
-  const outputDir = options.outputDir ?? join13(options.downloadDir, PREPARED_GIF_SUBDIR);
+  const outputDir = options.outputDir ?? join16(options.downloadDir, PREPARED_GIF_SUBDIR);
   const outputSrcPrefix = normalizeRelPath(options.outputSrcPrefix ?? PREPARED_GIF_SUBDIR);
   const cacheDir = options.cacheDir ?? outputDir;
   const { document: document2 } = parseHTML3(html);
@@ -6243,8 +6748,8 @@ async function prepareAnimatedGifInputs(html, options) {
     );
     const hash = computePreparedGifHash(bytes, loopIterations, padSeconds);
     const filename = `${CACHE_SCHEMA}-${hash.slice(0, 24)}.webm`;
-    const cachePath = join13(cacheDir, filename);
-    const outputPath = join13(outputDir, filename);
+    const cachePath = join16(cacheDir, filename);
+    const outputPath = join16(outputDir, filename);
     const outputSrc = `${outputSrcPrefix}/${filename}`;
     await ensurePreparedWebm({
       sourcePath,
@@ -6281,15 +6786,15 @@ import { createHash as createHash5 } from "node:crypto";
 import {
   closeSync as closeSync4,
   copyFileSync as copyFileSync3,
-  mkdirSync as mkdirSync6,
+  mkdirSync as mkdirSync8,
   openSync as openSync4,
   readFileSync as readFileSync6,
   readSync as readSync3,
-  rmSync as rmSync8,
-  statSync as statSync6,
+  rmSync as rmSync10,
+  statSync as statSync7,
   writeFileSync as writeFileSync4
 } from "node:fs";
-import { dirname as dirname6, join as join14, resolve as resolve6 } from "node:path";
+import { dirname as dirname7, join as join17, resolve as resolve6 } from "node:path";
 import { parseHTML as parseHTML4 } from "linkedom";
 import { renameWithRetry as renameWithRetry4, runFfmpeg as runFfmpeg3, runFfprobe } from "@hyperframes/engine";
 
@@ -6529,14 +7034,14 @@ function resolveImageSource(src, options) {
 }
 function isUsableFile2(path) {
   try {
-    return statSync6(path).size > 0;
+    return statSync7(path).size > 0;
   } catch {
     return false;
   }
 }
 async function ensurePreparedJpeg(source, cachePath, outputPath, options) {
-  mkdirSync6(dirname6(cachePath), { recursive: true });
-  mkdirSync6(dirname6(outputPath), { recursive: true });
+  mkdirSync8(dirname7(cachePath), { recursive: true });
+  mkdirSync8(dirname7(outputPath), { recursive: true });
   if (!isUsableFile2(cachePath)) {
     const tmpPath = `${cachePath}.tmp-${process.pid}-${Date.now()}`;
     const inlinePath = `${tmpPath}.heic`;
@@ -6554,8 +7059,8 @@ async function ensurePreparedJpeg(source, cachePath, outputPath, options) {
       const reason = error instanceof Error ? error.message : String(error);
       throw TOOL_FAILURE_RE.test(reason) ? new HeifToolUnavailableError(source.label, reason) : new HeifImageConversionError(source.label, reason);
     } finally {
-      rmSync8(tmpPath, { force: true });
-      rmSync8(inlinePath, { force: true });
+      rmSync10(tmpPath, { force: true });
+      rmSync10(inlinePath, { force: true });
     }
   }
   if (resolve6(outputPath) !== resolve6(cachePath) && !isUsableFile2(outputPath)) {
@@ -6563,7 +7068,7 @@ async function ensurePreparedJpeg(source, cachePath, outputPath, options) {
   }
 }
 async function prepareHeifImageInputs(html, options) {
-  const outputDir = options.outputDir ?? join14(options.downloadDir, PREPARED_HEIF_SUBDIR);
+  const outputDir = options.outputDir ?? join17(options.downloadDir, PREPARED_HEIF_SUBDIR);
   const outputSrcPrefix = normalizeRelPath(options.outputSrcPrefix ?? PREPARED_HEIF_SUBDIR);
   const cacheDir = options.cacheDir ?? outputDir;
   const preparedAssets = /* @__PURE__ */ new Map();
@@ -6584,7 +7089,7 @@ async function prepareHeifImageInputs(html, options) {
   await Promise.all(
     [...unique].map(
       ([filename, source]) => withMediaProbeSlot(
-        () => ensurePreparedJpeg(source, join14(cacheDir, filename), join14(outputDir, filename), options)
+        () => ensurePreparedJpeg(source, join17(cacheDir, filename), join17(outputDir, filename), options)
       ).catch((error) => {
         if (!options.onFailure) throw error;
         failed.add(filename);
@@ -6596,8 +7101,8 @@ async function prepareHeifImageInputs(html, options) {
     if (failed.has(filename)) continue;
     const outputSrc = `${outputSrcPrefix}/${filename}`;
     img.setAttribute("src", outputSrc);
-    preparedAssets.set(outputSrc, join14(outputDir, filename));
-    preparedImages.push({ sourceSrc: src, outputSrc, outputPath: join14(outputDir, filename) });
+    preparedAssets.set(outputSrc, join17(outputDir, filename));
+    preparedImages.push({ sourceSrc: src, outputSrc, outputPath: join17(outputDir, filename) });
   }
   return { html: document2.toString(), preparedAssets, preparedImages };
 }
@@ -6921,8 +7426,8 @@ function detectShaderTransitionUsage(html) {
 async function resolveMediaDuration(src, mediaStart, playbackRate, baseDir, downloadDir, tagName, elementIdentity, log, urlByAbsentLocalPath, probes) {
   let filePath = src;
   if (isHttpUrl(src)) {
-    const remoteDir = join15(downloadDir, REMOTE_MEDIA_SUBDIR);
-    if (!existsSync10(remoteDir)) mkdirSync7(remoteDir, { recursive: true });
+    const remoteDir = join18(downloadDir, REMOTE_MEDIA_SUBDIR);
+    if (!existsSync10(remoteDir)) mkdirSync9(remoteDir, { recursive: true });
     try {
       filePath = await downloadToTemp(src, remoteDir, void 0, void 0, void 0, {
         onTelemetry: logRemoteDownloadTelemetry
@@ -6932,7 +7437,7 @@ async function resolveMediaDuration(src, mediaStart, playbackRate, baseDir, down
     }
   } else {
     filePath = decodedUrlPath(src);
-    if (!filePath.startsWith("/")) filePath = join15(baseDir, filePath);
+    if (!filePath.startsWith("/")) filePath = join18(baseDir, filePath);
     filePath = urlByAbsentLocalPath?.get(filePath) ?? filePath;
   }
   if (!isHttpUrl(filePath) && !existsSync10(filePath)) {
@@ -7093,7 +7598,7 @@ async function parseSubCompositions(html, projectDir, downloadDir, visited = /* 
     workItems.map(async (item) => {
       const { html: compiledSub } = await compileHtmlFile(
         rewriteUnresolvableGsapToCdn(item.rawSubHtml, projectDir, item.srcPath),
-        dirname7(item.filePath),
+        dirname8(item.filePath),
         downloadDir,
         void 0,
         urlByAbsentLocalPath,
@@ -7523,7 +8028,7 @@ var REMOTE_SOURCE_TAG_RE = /<source\b[^>]*?\bsrc\s*=\s*["'](https?:\/\/[^"']+)["
 var REMOTE_IMG_TAG_RE = /<img\b[^>]*?(?<![\w-])src\s*=\s*["'](https?:\/\/[^"']+)["'][^>]*>/gi;
 async function downloadAndRewriteUrls(urlSet, html, remoteDir, warnLabel, logLabel, extraRewrite) {
   if (urlSet.size === 0) return { html, remoteMediaAssets: /* @__PURE__ */ new Map() };
-  if (!existsSync10(remoteDir)) mkdirSync7(remoteDir, { recursive: true });
+  if (!existsSync10(remoteDir)) mkdirSync9(remoteDir, { recursive: true });
   const urlToLocal = /* @__PURE__ */ new Map();
   await Promise.all(
     [...urlSet].map(async (url) => {
@@ -7570,7 +8075,7 @@ async function localizeRemoteMediaSources(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join15(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join18(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote media download failed",
     "Localized remote media source(s)"
   );
@@ -7585,7 +8090,7 @@ async function localizeRemoteImageSources(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join15(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join18(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote image download failed",
     "Localized remote image source(s)"
   );
@@ -7601,7 +8106,7 @@ async function localizeRemoteBackgroundImages(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join15(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join18(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote background-image download failed",
     "Localized remote background-image(s)",
     // Quoted url('..')/url("..") are rewritten by downloadAndRewriteUrls' default
@@ -7700,6 +8205,25 @@ ${fontFaceBlocks.join("\n")}
   }
   return result;
 }
+function projectStylesheetFontFamilies(html, projectDir) {
+  const families = [];
+  for (const [tag] of html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*>/gi)) {
+    const href = /\bhref=["']([^"']+)["']/i.exec(tag)?.[1];
+    if (!href || /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(href)) continue;
+    const sheet = resolve7(projectDir, decodedUrlPath(href).replace(/^(?:\.?\/)+/, ""));
+    if (!isPathInside2(sheet, projectDir) || !existsSync10(sheet)) continue;
+    for (const face of extractFontFaceBlocks(readFileSync7(sheet, "utf8"))) {
+      const family = /font-family\s*:\s*([^;}]+)/i.exec(face)?.[1]?.trim().replace(/^['"]|['"]$/g, "");
+      const shipsFile = [...face.matchAll(LOCAL_FONTFACE_URL_RE)].some(([, url = ""]) => {
+        const path = decodedUrlPath(url);
+        const file = path.startsWith("/") ? resolve7(projectDir, `.${path}`) : resolve7(dirname8(sheet), path);
+        return isPathInside2(file, projectDir) && existsSync10(file);
+      });
+      if (family && shipsFile) families.push(family);
+    }
+  }
+  return families;
+}
 function collectFontFaceUrls(html) {
   const styleBlockRe = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
   const urlSet = /* @__PURE__ */ new Set();
@@ -7730,13 +8254,11 @@ function collectFontFaceUrls(html) {
   }
   return urlSet;
 }
-async function localizeRemoteFontFaces(html, downloadDir) {
-  const processed = await inlineExternalFontStylesheets(html);
-  const urlSet = collectFontFaceUrls(processed);
+function localizeFontFaceUrls(html, downloadDir) {
   return downloadAndRewriteUrls(
-    urlSet,
-    processed,
-    join15(downloadDir, REMOTE_MEDIA_SUBDIR),
+    collectFontFaceUrls(html),
+    html,
+    join18(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote font download failed",
     "Localized remote font face(s)",
     (h, url, relPath) => h.replaceAll(`url(${url})`, `url("${relPath}")`)
@@ -7849,7 +8371,7 @@ function rebaseDirectEntryAssetPaths(html, projectDir, htmlPath) {
   const { document: document2 } = parseHTML5(html);
   const assetExists = (path) => existsSync10(resolve7(projectDir, path));
   rewriteAssetPaths(
-    document2.querySelectorAll("[src], [href]"),
+    document2.querySelectorAll("[src], [href], [srcset]"),
     entryPath,
     (el, attr) => el.getAttribute(attr),
     (el, attr, value) => el.setAttribute(attr, value),
@@ -7868,11 +8390,7 @@ function rebaseDirectEntryAssetPaths(html, projectDir, htmlPath) {
   return document2.toString();
 }
 async function compileForRender(projectDir, htmlPath, downloadDir, options = {}) {
-  const entryHtml = rebaseDirectEntryAssetPaths(
-    readFileSync7(htmlPath, "utf-8"),
-    projectDir,
-    htmlPath
-  );
+  const entryHtml = rebaseDirectEntryAssetPaths(readTextFile(htmlPath), projectDir, htmlPath);
   const rawHtml = rewriteUnresolvableGsapToCdn(entryHtml, projectDir);
   assertSubCompositionsUsable(rawHtml, projectDir);
   const probes = /* @__PURE__ */ new Map();
@@ -7907,15 +8425,17 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   const hasShaderTransitions = detectShaderTransitionUsage(sanitizedHtml);
   const usesThreeDTransforms = detectThreeDTransformUsage(sanitizedHtml);
   const hasAncestorBackgroundImage = detectAncestorBackgroundImage(sanitizedHtml);
+  const fontSheetHtml = await inlineExternalFontStylesheets(
+    promoteCssImportsToLinkTags(sanitizedHtml)
+  );
   const normalizedFontHtml = normalizeSystemFontPrimaryFamilies(
-    injectTextRenderingRule(
-      coalesceHeadStylesAndBodyScripts(promoteCssImportsToLinkTags(sanitizedHtml))
-    )
+    injectTextRenderingRule(coalesceHeadStylesAndBodyScripts(fontSheetHtml))
   );
   const coalescedHtml = await injectDeterministicFontFaces(normalizedFontHtml, {
     logger: defaultLogger,
     failClosedFontFetch: options.failClosedFontFetch === true,
     allowSystemFontCapture: options.allowSystemFontCapture,
+    projectFontFamilies: projectStylesheetFontFamilies(fontSheetHtml, projectDir),
     abortSignal: options.abortSignal
   });
   const assembledHtml = await inlineExternalScripts(coalescedHtml);
@@ -7941,7 +8461,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   );
   const { html: htmlWithLocalImages, remoteMediaAssets: remoteImageAssets } = await localizeRemoteImageSources(htmlWithLocalMedia, downloadDir);
   const { html: htmlWithLocalBg, remoteMediaAssets: remoteBgAssets } = await localizeRemoteBackgroundImages(htmlWithLocalImages, downloadDir);
-  const { html: htmlWithLocalizedFonts, remoteMediaAssets: remoteFontAssets } = await localizeRemoteFontFaces(htmlWithLocalBg, downloadDir);
+  const { html: htmlWithLocalizedFonts, remoteMediaAssets: remoteFontAssets } = await localizeFontFaceUrls(htmlWithLocalBg, downloadDir);
   const {
     html: htmlWithJpegs,
     preparedAssets: preparedHeifAssets,
@@ -7991,7 +8511,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   for (const [relPath, absPath] of preparedHeifAssets) {
     externalAssets.set(relPath, absPath);
   }
-  const { videos, audios, images, droppedMediaIds } = collectRenderMedia(html);
+  const { videos, audios, images, droppedMediaIds, gradedCanvas } = collectRenderMedia(html);
   const masterFxChain = parseMasterFxChain(html);
   const advised = /* @__PURE__ */ new Set();
   for (const video of videos) {
@@ -8030,6 +8550,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
     audios,
     images,
     droppedMediaIds,
+    gradedCanvas,
     ...masterFxChain ? { masterFxChain } : {},
     unresolvedCompositions,
     externalAssets,
@@ -8409,11 +8930,36 @@ function adaptAspectAgnosticResolution(requested, aspectAgnostic, width, height,
   });
   return flipped;
 }
+function resolveEntryHtmlPath(input) {
+  const { projectDir, workDir, entryFile, log } = input;
+  const htmlPath = join19(projectDir, entryFile);
+  const rawEntry = readTextFile2(htmlPath);
+  if (entryFile === "index.html" || !isTemplateEntry(rawEntry)) return htmlPath;
+  const projectIndexPath = join19(projectDir, "index.html");
+  if (!existsSync11(projectIndexPath)) {
+    throw new Error(
+      `Template entry file "${entryFile}" requires a project index.html to extract its render shell.`
+    );
+  }
+  const standaloneHtml = extractStandaloneEntryFromIndex(
+    readTextFile2(projectIndexPath),
+    entryFile,
+    rawEntry
+  );
+  if (!standaloneHtml) {
+    throw new Error(
+      `Entry file "${entryFile}" is not mounted from index.html via data-composition-src, so it cannot be rendered independently.`
+    );
+  }
+  const wrapperPath = join19(workDir, "standalone-entry.html");
+  writeFileSync5(wrapperPath, standaloneHtml, "utf-8");
+  log.info("Extracted standalone entry from index.html host context", { entryFile });
+  return wrapperPath;
+}
 async function runCompileStage(input) {
   const {
     projectDir,
     workDir,
-    htmlPath,
     entryFile,
     job,
     cfg,
@@ -8424,8 +8970,9 @@ async function runCompileStage(input) {
     allowSystemFontCapture,
     abortSignal
   } = input;
+  const htmlPath = resolveEntryHtmlPath({ projectDir, workDir, entryFile, log });
   const compileStart = Date.now();
-  const compiled = await compileForRender(projectDir, htmlPath, join16(workDir, "downloads"), {
+  const compiled = await compileForRender(projectDir, htmlPath, join19(workDir, "downloads"), {
     log,
     failClosedFontFetch: failClosedFontFetch === true,
     allowSystemFontCapture,
@@ -8433,7 +8980,7 @@ async function runCompileStage(input) {
     variables: input.variables,
     urlByAbsentLocalPath: input.urlByAbsentLocalPath,
     pageMotionBlur: input.pageMotionBlur,
-    animatedGifCacheDir: cfg.extractCacheDir ? join16(cfg.extractCacheDir, "animated-gif") : void 0,
+    animatedGifCacheDir: cfg.extractCacheDir ? join19(cfg.extractCacheDir, "animated-gif") : void 0,
     ffmpegProcessTimeout: cfg.ffmpegProcessTimeout
   });
   assertNotAborted();
@@ -8483,13 +9030,14 @@ async function runCompileStage(input) {
     videos: compiled.videos,
     audios: compiled.audios,
     images: compiled.images,
+    gradedCanvas: compiled.gradedCanvas,
     masterFxChain: compiled.masterFxChain,
     width: compiled.width,
     height: compiled.height
   };
   await preflightCompositionAssetMediaTypes({
     projectDir,
-    compiledDir: join16(workDir, "compiled"),
+    compiledDir: join19(workDir, "compiled"),
     composition,
     signal: abortSignal
   });
@@ -8535,7 +9083,7 @@ async function runCompileStage(input) {
 
 // src/services/render/stages/probeStage.ts
 import { createHash as createHash7 } from "node:crypto";
-import { basename as basename5, join as join17 } from "node:path";
+import { basename as basename5, join as join20 } from "node:path";
 import { parseHTML as parseHTML6 } from "linkedom";
 import {
   closeCaptureSession as closeCaptureSession4,
@@ -8721,7 +9269,7 @@ async function runProbeStage(input) {
   );
   const hasVariableMedia = hasVariableBoundMedia(compiled.html, job.config.variables);
   const hasInsertedMedia = hasRuntimeMediaChanges(compiled.html);
-  const needsBrowser = probeRequiresBrowser({
+  const needsBrowser = cfg.videoLayerPassthrough || probeRequiresBrowser({
     durationSeconds: composition.duration,
     unresolvedCompositionCount: compiled.unresolvedCompositions.length,
     hasAutoStart,
@@ -8744,7 +9292,7 @@ async function runProbeStage(input) {
       });
       fileServer = await createFileServer({
         projectDir,
-        compiledDir: join17(workDir, "compiled"),
+        compiledDir: join20(workDir, "compiled"),
         port: 0,
         preHeadScripts: [VIRTUAL_TIME_SHIM],
         fps: job.config.fps
@@ -8753,6 +9301,7 @@ async function runProbeStage(input) {
       const motionBlur = job.config.motionBlur;
       const captureFormat = resolveCaptureImageFormat({ needsAlpha, motionBlur });
       const captureOpts = {
+        recordReferenceBackground: input.recordReferenceBackground,
         width,
         height,
         fps: job.config.fps,
@@ -8773,7 +9322,7 @@ async function runProbeStage(input) {
           log.info("Creating capture session...", { attempt, maxAttempts: PROBE_MAX_ATTEMPTS });
           probeSession = await createCaptureSession4(
             fileServer.url,
-            join17(workDir, "probe"),
+            join20(workDir, "probe"),
             captureOpts,
             null,
             probeCfg
@@ -8858,7 +9407,7 @@ async function runProbeStage(input) {
           });
           probeSession = await createCaptureSession4(
             fileServer.url,
-            join17(workDir, "probe-screenshot"),
+            join20(workDir, "probe-screenshot"),
             captureOpts,
             null,
             { ...probeCfg, forceScreenshot: true }
@@ -8896,7 +9445,7 @@ async function runProbeStage(input) {
             compiled,
             resolutions,
             projectDir,
-            join17(workDir, "downloads")
+            join20(workDir, "downloads")
           );
           assertNotAborted();
           composition.videos = compiled.videos;
@@ -9087,7 +9636,7 @@ async function runProbeStage(input) {
     }
     await preflightCompositionAssetMediaTypes({
       projectDir,
-      compiledDir: join17(workDir, "compiled"),
+      compiledDir: join20(workDir, "compiled"),
       composition,
       signal: abortSignal
     });
@@ -9221,14 +9770,15 @@ function validateRenderDuration(input) {
 }
 
 // src/services/render/stages/extractVideosStage.ts
-import { existsSync as existsSync11 } from "node:fs";
-import { join as join18 } from "node:path";
+import { existsSync as existsSync12 } from "node:fs";
+import { join as join21 } from "node:path";
 import {
   classifyVideoExtractionError,
-  createFrameLookupTable,
+  createFrameLookupTable as createFrameLookupTable3,
   detectTransfer,
   extractAllVideoFrames,
   extractMediaMetadata as extractMediaMetadata3,
+  gradingKeepsSdr as gradingKeepsSdr2,
   isVideoPastTimelineEnd,
   isHdrColorSpace as isHdrColorSpace2,
   rebaseVideoToWindow,
@@ -9236,7 +9786,7 @@ import {
   resolveVideoExtractionWindow as resolveVideoExtractionWindow2,
   isHttpUrl as isHttpUrl2,
   resolveProjectRelativeSrc as resolveProjectRelativeSrc3,
-  runVideoExtractionWithRetry,
+  runVideoExtractionWithRetry as runVideoExtractionWithRetry2,
   safeVideoExtractionSourceIdentity,
   videoAudioId as videoAudioId2
 } from "@hyperframes/engine";
@@ -9320,17 +9870,23 @@ function resolveVideoExtractionPolicy(env = process.env) {
   const maxTransientRetries = failureMode !== "off" && env.HF_VIDEO_EXTRACTION_MAX_RETRIES?.trim() === "1" ? 1 : 0;
   return { failureMode, maxTransientRetries };
 }
+var MAX_NAMED_SOURCES = 5;
 var VideoExtractionStageError = class extends Error {
   constructor(code, retryable, failures, extractionFailure = buildExtractionFailureMetadata(
     failures.map((failure) => ({
       kind: failure.kind,
       affectedElementCount: failure.count
     }))
-  ), ffmpegReason) {
+  ), ffmpegReason, sources = []) {
     const total = failures.reduce((sum, failure) => sum + failure.count, 0);
     const breakdown = failures.map((failure) => `${failure.kind}=${failure.count}`).join(",");
     const reason = ffmpegReason ? `: ffmpeg said: ${ffmpegReason}` : "";
-    super(`Video extraction failed for ${total} source(s) [${code}; ${breakdown}]${reason}`);
+    const shown = sources.slice(0, MAX_NAMED_SOURCES).join(", ");
+    const more = sources.length > MAX_NAMED_SOURCES ? ` and ${sources.length - MAX_NAMED_SOURCES} more` : "";
+    const files = sources.length > 0 ? ` (${shown}${more})` : "";
+    super(
+      `Video extraction failed for ${total} source(s) [${code}; ${breakdown}]${files}${reason}`
+    );
     this.code = code;
     this.retryable = retryable;
     this.failures = failures;
@@ -9349,13 +9905,20 @@ var VideoExtractionStageError = class extends Error {
    */
   publicMetadata;
 };
-function throwIfEncoderInterrupted(result) {
+function throwIfHostFailure(result) {
   const interrupted = result.errors.find((failure) => failure.kind === "external_interruption");
-  if (!interrupted) return;
-  throw encoderFailureError("Video frame extraction failed", {
-    error: String(interrupted.error),
-    failureReason: "external_interruption"
-  });
+  if (interrupted) {
+    throw encoderFailureError("Video frame extraction failed", {
+      error: String(interrupted.error),
+      failureReason: "external_interruption"
+    });
+  }
+  const full = result.errors.filter((failure) => failure.kind === "disk_full").length;
+  if (full === 0) return;
+  throw Object.assign(
+    new Error(`ENOSPC: no space left on device, extracting the frames of ${full} video source(s)`),
+    { code: "ENOSPC" }
+  );
 }
 function buildVideoExtractionStageError(result) {
   if (result.success && result.errors.length === 0) return null;
@@ -9373,7 +9936,10 @@ function buildVideoExtractionStageError(result) {
     retryable,
     failures,
     extractionFailureMetadataFromResult(result),
-    result.errors.find((failure) => failure.ffmpegReason)?.ffmpegReason
+    result.errors.find((failure) => failure.ffmpegReason)?.ffmpegReason,
+    [
+      ...new Set(result.errors.flatMap((failure) => failure.source ? [failure.source] : []))
+    ].sort()
   );
 }
 function buildHdrProbeStageError(failures) {
@@ -9452,7 +10018,8 @@ async function runExtractVideosStage(input) {
     assertNotAborted,
     materializeSymlinks,
     deferRangeExtraction,
-    urlByAbsentLocalPath
+    urlByAbsentLocalPath,
+    skipFrameExtractionIds = []
   } = input;
   const stage2Start = Date.now();
   const extractionPolicy = resolveVideoExtractionPolicy();
@@ -9464,17 +10031,18 @@ async function runExtractVideosStage(input) {
   let failureToEnforce = null;
   let videoReadinessSkipIds = [];
   let videoMetadataHints = [];
+  const probesHdr = job.config.hdrMode !== "force-sdr" && !gradingKeepsSdr2(job.config.hdrMode, composition);
   const nativeHdrVideoIds = /* @__PURE__ */ new Set();
   const videoTransfers = /* @__PURE__ */ new Map();
   let hdrProbeTransientRetries = 0;
-  if (job.config.hdrMode !== "force-sdr" && composition.videos.length > 0) {
+  if (probesHdr && composition.videos.length > 0) {
     log?.info("Probing video color spaces...", { videoCount: composition.videos.length });
     const probeFailures = await Promise.all(
       composition.videos.map(async (v) => {
         const videoPath = resolveProjectRelativeSrc3(v.src, projectDir, compiledDir);
-        if (!existsSync11(videoPath)) return null;
+        if (!existsSync12(videoPath)) return null;
         try {
-          const attempted = extractionPolicy.maxTransientRetries === 0 ? { result: await extractMediaMetadata3(videoPath), retries: 0 } : await runVideoExtractionWithRetry(() => extractMediaMetadata3(videoPath), {
+          const attempted = extractionPolicy.maxTransientRetries === 0 ? { result: await extractMediaMetadata3(videoPath), retries: 0 } : await runVideoExtractionWithRetry2(() => extractMediaMetadata3(videoPath), {
             signal: abortSignal,
             maxTransientRetries: extractionPolicy.maxTransientRetries,
             onRetry: () => {
@@ -9506,11 +10074,11 @@ async function runExtractVideosStage(input) {
   const imageTransfers = /* @__PURE__ */ new Map();
   const hdrImageSrcPaths = /* @__PURE__ */ new Map();
   const imageColorSpaces = [];
-  if (job.config.hdrMode !== "force-sdr" && composition.images.length > 0) {
+  if (probesHdr && composition.images.length > 0) {
     const probed = await Promise.all(
       composition.images.map(async (img) => {
         const imgPath = resolveProjectRelativeSrc3(img.src, projectDir, compiledDir);
-        if (!existsSync11(imgPath)) return null;
+        if (!existsSync12(imgPath)) return null;
         const colorSpace = await probeColorSpaceSafely(imgPath, log);
         if (isHdrColorSpace2(colorSpace)) {
           nativeHdrImageIds.add(img.id);
@@ -9522,7 +10090,10 @@ async function runExtractVideosStage(input) {
     );
     imageColorSpaces.push(...probed);
   }
-  if (composition.videos.length > 0) {
+  if (skipFrameExtractionIds.length > 0) {
+    await appendVideoAudioFromProbe({ projectDir, compiledDir, composition, urlByAbsentLocalPath });
+    videoReadinessSkipIds = [...skipFrameExtractionIds];
+  } else if (composition.videos.length > 0) {
     const totalVideos = composition.videos.length;
     for (let i = 0; i < totalVideos; i++) {
       const v = composition.videos[i];
@@ -9531,6 +10102,8 @@ async function runExtractVideosStage(input) {
         safeVideoExtractionSourceLogMetadata(v.src)
       );
     }
+    let framesPlanned = 0;
+    let framesDone = 0;
     extractionResult = await extractAllVideoFrames(
       composition.videos,
       projectDir,
@@ -9539,15 +10112,20 @@ async function runExtractVideosStage(input) {
       // because short boundary counts can differ by one frame.
       {
         fps: job.config.fps,
-        outputDir: join18(compiledDir, "__hyperframes_video_frames"),
+        outputDir: join21(compiledDir, "__hyperframes_video_frames"),
         format: job.config.videoFrameFormat ?? "auto",
-        toneMapHdrToSdr: rendersSdrOnly(job.config),
+        toneMapHdrToSdr: rendersSdrOnly(job.config, composition),
         timelineEnd: composition.duration,
         maxTransientRetries: extractionPolicy.maxTransientRetries,
         collectProbeFailures: extractionPolicy.failureMode === "enforce",
         deferRangeExtraction,
-        contentKeyedDirs: [join18(compiledDir, REMOTE_MEDIA_SUBDIR)],
-        urlByAbsentLocalPath
+        contentKeyedDirs: [join21(compiledDir, REMOTE_MEDIA_SUBDIR)],
+        urlByAbsentLocalPath,
+        onProgress: ({ planned = 0, done = 0 }) => {
+          framesPlanned += planned;
+          framesDone += done;
+          reportExtractProgress(job, framesDone, framesPlanned, input.onProgress);
+        }
       },
       abortSignal,
       cfg,
@@ -9555,13 +10133,13 @@ async function runExtractVideosStage(input) {
     );
     extractionResult.phaseBreakdown.transientRetries = (extractionResult.phaseBreakdown.transientRetries ?? 0) + hdrProbeTransientRetries;
     assertNotAborted();
-    throwIfEncoderInterrupted(extractionResult);
+    throwIfHostFailure(extractionResult);
     failureToEnforce = applyVideoExtractionFailurePolicy(extractionResult, extractionPolicy, log);
     materializeExtractedFramesForCompiledDir(extractionResult.extracted, compiledDir, {
       materializeSymlinks
     });
     if (extractionResult.extracted.length > 0) {
-      frameLookup = createFrameLookupTable(
+      frameLookup = createFrameLookupTable3(
         composition.videos,
         extractionResult.extracted,
         resolveRenderFpsConfig(job.config.fps).value
@@ -9611,9 +10189,120 @@ function appendAutoDetectedVideoAudio(composition, extracted) {
     existingAudioSrcs.add(video.src);
   }
 }
+async function appendVideoAudioFromProbe(input) {
+  const { projectDir, compiledDir, composition, urlByAbsentLocalPath } = input;
+  const videos = composition.videos.filter(
+    (video) => !isVideoPastTimelineEnd(video, composition.duration)
+  );
+  const probed = await Promise.all(
+    videos.map(async (video) => {
+      const path = isHttpUrl2(video.src) ? video.src : resolveProjectRelativeSrc3(video.src, projectDir, compiledDir);
+      const readFrom = urlByAbsentLocalPath?.get(path) ?? path;
+      if (!isHttpUrl2(readFrom) && !existsSync12(readFrom)) return null;
+      const metadata = await extractMediaMetadata3(readFrom);
+      const window2 = await resolveFinalFrameExtractionWindow2(
+        readFrom,
+        video,
+        metadata,
+        resolveVideoExtractionWindow2(video, metadata, composition.duration)
+      );
+      if (window2.durationSeconds <= 0) return null;
+      rebaseVideoToWindow(video, window2);
+      return { videoId: video.id, metadata };
+    })
+  );
+  appendAutoDetectedVideoAudio(
+    composition,
+    probed.filter((entry) => entry !== null)
+  );
+}
+
+// src/services/render/videoLayerPassthroughPlan.ts
+import { existsSync as existsSync13 } from "node:fs";
+import {
+  buildVideoLayerInput,
+  isHttpUrl as isHttpUrl3,
+  qualifyVideoLayer,
+  resolveProjectRelativeSrc as resolveProjectRelativeSrc4
+} from "@hyperframes/engine";
+var SAMPLES = 9;
+function inspectVideoLayout(id, w, h, time) {
+  window.__hf?.seek?.(time);
+  const video = document.getElementById(id);
+  if (!video) return { reason: "video_missing" };
+  const r = video.getBoundingClientRect();
+  if (Math.abs(r.left) > 0.5 || Math.abs(r.top) > 0.5) return { reason: "not_full_canvas" };
+  if (Math.abs(r.width - w) > 0.5 || Math.abs(r.height - h) > 0.5) {
+    return { reason: "not_full_canvas" };
+  }
+  const painted = (s) => s.backgroundColor !== "" && s.backgroundColor !== "transparent" && s.backgroundColor !== "rgba(0, 0, 0, 0)" || s.backgroundImage !== "" && s.backgroundImage !== "none";
+  for (let e = video; e && e !== document.documentElement; ) {
+    const s = getComputedStyle(e);
+    if (s.opacity !== "1") return { reason: "opacity" };
+    if (s.transform !== "none" || s.filter !== "none") return { reason: "transform_or_filter" };
+    if (s.clipPath !== "none" || s.maskImage !== "none") return { reason: "clip_or_mask" };
+    if (s.mixBlendMode !== "normal") return { reason: "blend_mode" };
+    if (s.visibility !== "visible" || s.display === "none") return { reason: "not_shown" };
+    const cleared = e === document.body || e.hasAttribute("data-composition-id");
+    if (e !== video && painted(s) && !cleared) return { reason: "ancestor_background" };
+    e = e.parentElement;
+  }
+  for (const root of Array.from(document.querySelectorAll("[data-composition-id]"))) {
+    if (root.parentElement?.closest("[data-composition-id]") && painted(getComputedStyle(root))) {
+      return { reason: "subcomposition_background" };
+    }
+  }
+  const fitStyle = getComputedStyle(video).objectFit;
+  if (fitStyle !== "fill" && fitStyle !== "cover") return { reason: "object_fit" };
+  const own = Number.parseInt(getComputedStyle(video).zIndex, 10) || 0;
+  for (const other of Array.from(document.body.querySelectorAll("*"))) {
+    if (other === video || other.contains(video) || video.contains(other)) continue;
+    if (other.tagName === "SCRIPT" || other.tagName === "STYLE") continue;
+    const z = Number.parseInt(getComputedStyle(other).zIndex, 10) || 0;
+    const before = video.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_PRECEDING;
+    if (z < own || z === own && before) {
+      const box = other.getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) return { reason: "paints_under" };
+    }
+  }
+  return { fit: fitStyle === "cover" ? "cover" : "fill" };
+}
+async function probeVideoLayout(page, videoId, canvas, duration) {
+  let fit = "fill";
+  for (let i = 0; i < SAMPLES; i++) {
+    const t = duration * i / SAMPLES;
+    const seen = await page.evaluate(inspectVideoLayout, videoId, canvas.width, canvas.height, t);
+    if ("reason" in seen) return seen;
+    if (seen.fit === "cover") fit = "cover";
+  }
+  await page.evaluate(
+    () => window.__hf?.seek?.(0)
+  );
+  return { fit };
+}
+async function planVideoLayerPassthrough(input) {
+  const q = qualifyVideoLayer(input.videos, input.duration);
+  if (!q.qualifies) return { reason: q.reason };
+  const { video } = q;
+  if (isHttpUrl3(video.src)) return { reason: "remote_source" };
+  const path = resolveProjectRelativeSrc4(video.src, input.projectDir, input.compiledDir);
+  if (!existsSync13(path)) return { reason: "source_missing" };
+  const layout = await probeVideoLayout(input.page, video.id, input.canvas, input.duration);
+  if ("reason" in layout) return layout;
+  const layer = await buildVideoLayerInput(
+    path,
+    video.mediaStart,
+    input.duration,
+    input.fps,
+    input.canvas,
+    layout.fit
+  );
+  return layer ? { videoId: video.id, layer } : { reason: "source_unsupported" };
+}
 
 // src/services/render/stages/audioStage.ts
-import { join as join20 } from "node:path";
+import { existsSync as existsSync15 } from "node:fs";
+import { join as join24 } from "node:path";
 import {
   MIXED_AUDIO_FILENAME,
   audioFailureDiagnostics,
@@ -9622,10 +10311,20 @@ import {
   collectScratchLeftovers
 } from "@hyperframes/engine";
 
+// src/services/render/audioDeliveryLimit.ts
+import { existsSync as existsSync14 } from "node:fs";
+import { dirname as dirname10, join as join23 } from "node:path";
+import {
+  applyAudioFxChain,
+  describeFfmpegFailure as describeFfmpegFailure3,
+  encodeAac as encodeAac2,
+  renameWithRetry as renameWithRetry6
+} from "@hyperframes/engine";
+
 // src/services/render/audioPadTrim.ts
 import { spawn } from "node:child_process";
 import { mkdtempSync as mkdtempSync3 } from "node:fs";
-import { dirname as dirname8, join as join19 } from "node:path";
+import { dirname as dirname9, join as join22 } from "node:path";
 import {
   DEFAULT_CONFIG,
   describeFfmpegFailure as describeFfmpegFailure2,
@@ -9736,8 +10435,9 @@ var AUDIO_DURATION_TOLERANCE_SECONDS = 1e-3;
 var AAC_DELIVERY_TRUE_PEAK_DBFS = -1;
 var AAC_TRUE_PEAK_CORRECTION_HEADROOM_DB = 0.5;
 var MAX_TRUE_PEAK_CORRECTION_PASSES = 3;
+var gainFilter = (gainDb) => `volume=${gainDb.toFixed(3)}dB`;
 function aacTruePeakCorrectionFilter(targetDurationSeconds, attenuationDb) {
-  return `volume=${attenuationDb.toFixed(3)}dB,apad,atrim=0:${formatSeconds(targetDurationSeconds)}`;
+  return `${gainFilter(attenuationDb)},apad,atrim=0:${formatSeconds(targetDurationSeconds)}`;
 }
 function buildPadTrimAudioPlan(audioPath, outputPath, sourceDurationSeconds, targetDurationSeconds) {
   const delta = targetDurationSeconds - sourceDurationSeconds;
@@ -9775,7 +10475,7 @@ async function padOrTrimAudioToVideoFrameCount(input) {
   const probeAudio = input.probeAudioInfo ?? defaultProbeAudioInfo;
   const timeoutMs = input.timeoutMs ?? DEFAULT_CONFIG.ffmpegProcessTimeout;
   const runner = input.runFfmpeg ?? ((args) => defaultRunFfmpeg(args, timeoutMs, input.signal));
-  const encode = input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal);
+  const encode = input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath);
   const probeTruePeak = input.probeAudioTruePeakDbfs ?? (input.runFfmpeg || input.encodeAac ? void 0 : (audioPath, signal) => measureTruePeakDbfs(audioPath, { timeoutMs, signal }));
   const [videoResult, audioResult] = await Promise.allSettled([
     probeVideo(input.videoPath),
@@ -9823,7 +10523,12 @@ async function padOrTrimAudioToVideoFrameCount(input) {
   );
   try {
     for (const step of plan.steps) {
-      const ffmpegResult = step.kind === "copy" ? await runner(step.args) : await encode(input.audioPath, input.outputPath, targetDurationSeconds, step.filter);
+      const ffmpegResult = step.kind === "copy" ? await runner(step.args) : await encode(
+        input.sourcePath ?? input.audioPath,
+        input.outputPath,
+        targetDurationSeconds,
+        step.filter
+      );
       if (!ffmpegResult.success) {
         return {
           success: false,
@@ -9852,6 +10557,7 @@ async function padOrTrimAudioToVideoFrameCount(input) {
   if (probeTruePeak) {
     const correction = await enforceAacTruePeak({
       audioPath: input.outputPath,
+      sourcePath: input.sourcePath,
       targetDurationSeconds,
       signal: input.signal,
       probeTruePeak,
@@ -9887,14 +10593,32 @@ async function constrainAacTruePeak(input) {
     targetDurationSeconds: input.targetDurationSeconds,
     signal: input.signal,
     probeTruePeak: input.probeTruePeakDbfs ?? ((audioPath, signal) => measureTruePeakDbfs(audioPath, { timeoutMs, signal })),
-    encode: input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath)
+    encode: input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath),
+    rewriteSource: input.rewriteSource ?? ((sourcePath, outputPath, filter) => defaultRunFfmpeg(
+      ["-i", sourcePath, "-af", filter, "-c:a", "pcm_f32le", "-y", outputPath],
+      timeoutMs,
+      input.signal
+    ))
   });
+}
+async function cutSource(input, scratchDir, attenuationDb) {
+  if (!input.sourcePath || !input.rewriteSource) return true;
+  const cutPath = join22(scratchDir, "source.wav");
+  try {
+    const result = await input.rewriteSource(input.sourcePath, cutPath, gainFilter(attenuationDb));
+    if (!result.success) throw new Error(result.error);
+    renameWithRetry5(cutPath, input.sourcePath, { copyFallback: true });
+    return true;
+  } catch {
+    removeScratch(input.sourcePath);
+    return false;
+  }
 }
 async function enforceAacTruePeak(input) {
   let scratchDir;
   try {
-    scratchDir = mkdtempSync3(join19(dirname8(input.audioPath), ".true-peak-"));
-    const correctedPath = join19(scratchDir, "audio.m4a");
+    scratchDir = mkdtempSync3(join22(dirname9(input.audioPath), ".true-peak-"));
+    const correctedPath = join22(scratchDir, "audio.m4a");
     const measurements = [];
     let attenuationDb = 0;
     let sourcePeakDbfs;
@@ -9909,8 +10633,10 @@ async function enforceAacTruePeak(input) {
       }
       if (truePeakDbfs <= AAC_DELIVERY_TRUE_PEAK_DBFS) {
         if (measuredPath !== correctedPath) return { success: true };
+        const sourceCut = await cutSource(input, scratchDir, attenuationDb);
         renameWithRetry5(correctedPath, input.audioPath, { copyFallback: true });
-        return { success: true, loweredDb: Number((-attenuationDb).toFixed(2)) };
+        const loweredDb = Number((-attenuationDb).toFixed(2));
+        return sourceCut ? { success: true, loweredDb } : { success: true, loweredDb, sourceStale: true };
       }
       if (pass === MAX_TRUE_PEAK_CORRECTION_PASSES) break;
       const headroomDb = AAC_TRUE_PEAK_CORRECTION_HEADROOM_DB * 2 ** pass;
@@ -9920,7 +10646,7 @@ async function enforceAacTruePeak(input) {
       const referenceDbfs = Math.max(truePeakDbfs, (sourcePeakDbfs ?? -Infinity) + attenuationDb);
       attenuationDb += AAC_DELIVERY_TRUE_PEAK_DBFS - headroomDb - referenceDbfs;
       const result = await input.encode(
-        input.audioPath,
+        input.sourcePath ?? input.audioPath,
         correctedPath,
         input.targetDurationSeconds,
         aacTruePeakCorrectionFilter(input.targetDurationSeconds, attenuationDb)
@@ -10082,6 +10808,75 @@ async function runFfprobeJson(args, signal) {
   }
 }
 
+// src/services/render/audioDeliveryLimit.ts
+var LIMIT_PASSES = 3;
+var LOWEST_CEILING_DBTP = AAC_DELIVERY_TRUE_PEAK_DBFS - 2;
+var PASS_HEADROOM_DB = 0.05;
+var limitChain = (ceiling) => ({
+  version: 1,
+  nodes: [{ type: "truepeak", id: "delivery", params: { ceiling } }]
+});
+async function limitDeliveryPeaks(input, deps = {
+  measure: measureTruePeakDbfs,
+  applyChain: applyAudioFxChain,
+  encode: encodeAac2,
+  rename: renameWithRetry6,
+  sourceExists: existsSync14
+}) {
+  const { audioPath, sourcePath, signal, timeoutMs } = input;
+  if (!deps.sourceExists(sourcePath)) return { success: true };
+  const peak = await deps.measure(audioPath, { timeoutMs, signal });
+  if (peak <= AAC_DELIVERY_TRUE_PEAK_DBFS) return { success: true };
+  const alternating = ["a", "b"].map(
+    (k) => join23(dirname10(sourcePath), `audio-source-limited-${k}.wav`)
+  );
+  let encodedFrom;
+  let ceiling = AAC_DELIVERY_TRUE_PEAK_DBFS;
+  for (let pass = 0; pass < LIMIT_PASSES; pass++) {
+    const limitedPath = alternating[pass % 2];
+    const result = await limitPass(input, deps, ceiling, limitedPath);
+    if ("encodeFailure" in result) return result.encodeFailure;
+    if ("limitFailed" in result) break;
+    encodedFrom = limitedPath;
+    if (result.peak <= AAC_DELIVERY_TRUE_PEAK_DBFS || ceiling <= LOWEST_CEILING_DBTP) break;
+    ceiling = Math.max(
+      ceiling - (result.peak - AAC_DELIVERY_TRUE_PEAK_DBFS) - PASS_HEADROOM_DB,
+      LOWEST_CEILING_DBTP
+    );
+  }
+  if (encodedFrom) deps.rename(encodedFrom, sourcePath, { copyFallback: true });
+  return { success: true };
+}
+async function limitPass(input, deps, ceiling, limitedPath) {
+  const { audioPath, sourcePath, signal, timeoutMs } = input;
+  try {
+    await deps.applyChain(sourcePath, limitChain(ceiling), limitedPath, {
+      trackId: "delivery",
+      signal
+    });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    input.warn?.("[audio] true-peak limit failed, the whole-mix cut applies", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return { limitFailed: true };
+  }
+  const encoded = await deps.encode(limitedPath, audioPath, input.targetDurationSeconds, {
+    signal,
+    timeout: timeoutMs
+  });
+  if (!encoded.success) {
+    return {
+      encodeFailure: {
+        success: false,
+        error: `[audioDeliveryLimit] ${describeFfmpegFailure3(encoded, timeoutMs)}`,
+        failureReason: encoded.failureReason
+      }
+    };
+  }
+  return { peak: await deps.measure(audioPath, { timeoutMs, signal }) };
+}
+
 // src/services/render/stages/audioStage.ts
 function assertAudioNotInterrupted(failures) {
   const interrupted = failures?.find((failure) => failure.reason === "external_interruption");
@@ -10105,28 +10900,55 @@ function runAudioStage(input) {
 }
 async function runAudioStageScoped(input) {
   const stageStart = Date.now();
-  const pcmSourcePath = join20(input.workDir, "audio-source.wav");
+  const pcmSourcePath = join24(input.workDir, "audio-source.wav");
   const duration = input.totalFrames * input.fps.den / input.fps.num;
+  let deliverySourcePath;
   try {
     const result = await mixAudioForDelivery(input, duration, pcmSourcePath);
     let audioLoweredDb;
     if (result.hasAudio) {
       const guardStart = Date.now();
-      const peak = await constrainAacTruePeak({
-        audioPath: result.audioOutputPath,
-        sourcePath: pcmSourcePath,
-        targetDurationSeconds: duration,
-        signal: input.abortSignal,
-        timeoutMs: input.ffmpegProcessTimeout
-      });
-      if (!peak.success) throw encoderFailureError("Audio true-peak check failed", peak);
-      audioLoweredDb = peak.loweredDb;
+      const guard = await guardDeliveryPeaks(
+        input,
+        result.audioOutputPath,
+        pcmSourcePath,
+        duration
+      );
+      audioLoweredDb = guard.loweredDb;
       input.log?.info("[audio] phases", { ...result.audioPhaseMs, guard: Date.now() - guardStart });
+      if (input.keepDeliverySource && !guard.sourceStale && existsSync15(pcmSourcePath)) {
+        deliverySourcePath = pcmSourcePath;
+      }
     }
-    return { ...result, audioLoweredDb, audioProcessMs: Date.now() - stageStart };
+    return {
+      ...result,
+      audioLoweredDb,
+      deliverySourcePath,
+      audioProcessMs: Date.now() - stageStart
+    };
   } finally {
-    removeScratch2(pcmSourcePath);
+    if (!deliverySourcePath) removeScratch2(pcmSourcePath);
   }
+}
+async function guardDeliveryPeaks(input, audioPath, sourcePath, duration) {
+  const limited = await limitDeliveryPeaks({
+    audioPath,
+    sourcePath,
+    targetDurationSeconds: duration,
+    signal: input.abortSignal,
+    timeoutMs: input.ffmpegProcessTimeout,
+    warn: (message, details) => input.log?.warn?.(message, details)
+  });
+  if (!limited.success) throw encoderFailureError("Audio true-peak limit failed", limited);
+  const peak = await constrainAacTruePeak({
+    audioPath,
+    sourcePath,
+    targetDurationSeconds: duration,
+    signal: input.abortSignal,
+    timeoutMs: input.ffmpegProcessTimeout
+  });
+  if (!peak.success) throw encoderFailureError("Audio true-peak check failed", peak);
+  return { loweredDb: peak.loweredDb, sourceStale: peak.sourceStale };
 }
 async function mixAudioForDelivery(input, duration, pcmSourcePath) {
   const {
@@ -10143,7 +10965,7 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
     assertNotAborted,
     log
   } = input;
-  const audioOutputPath = join20(workDir, MIXED_AUDIO_FILENAME);
+  const audioOutputPath = join24(workDir, MIXED_AUDIO_FILENAME);
   let hasAudio = false;
   let audioError;
   let audioFailures;
@@ -10154,7 +10976,7 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
       audioResult = await processCompositionAudio(
         audios,
         projectDir,
-        join20(workDir, "audio-work"),
+        join24(workDir, "audio-work"),
         audioOutputPath,
         duration,
         abortSignal,
@@ -10222,8 +11044,8 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
 }
 
 // src/services/render/stages/captureStage.ts
-import { existsSync as existsSync12, readdirSync as readdirSync3, statfsSync as statfsSync2 } from "node:fs";
-import { join as join21 } from "node:path";
+import { existsSync as existsSync16, readdirSync as readdirSync4, statfsSync as statfsSync2 } from "node:fs";
+import { join as join25 } from "node:path";
 import {
   classifyCaptureFailure as classifyCaptureFailure2,
   frameFileExtension,
@@ -10293,16 +11115,16 @@ function diskCaptureShortfallError(needBytes, freeBytes, framesDir, basis, remed
 }
 function measureCaptureFrameBytes(workDir, framesDir) {
   let total = sampleDirectoryBytes(framesDir);
-  if (!existsSync12(workDir)) return total;
-  for (const attempt of readdirSync3(workDir)) {
+  if (!existsSync16(workDir)) return total;
+  for (const attempt of readdirSync4(workDir)) {
     if (/^retry-\d+-batch-\d+-worker-\d+$/.test(attempt)) {
-      total += sampleDirectoryBytes(join21(workDir, attempt));
+      total += sampleDirectoryBytes(join25(workDir, attempt));
       continue;
     }
     if (!/^capture-attempt-\d+$/.test(attempt)) continue;
-    const attemptDir = join21(workDir, attempt);
-    for (const name of readdirSync3(attemptDir)) {
-      if (/^worker-\d+$/.test(name)) total += sampleDirectoryBytes(join21(attemptDir, name));
+    const attemptDir = join25(workDir, attempt);
+    for (const name of readdirSync4(attemptDir)) {
+      if (/^worker-\d+$/.test(name)) total += sampleDirectoryBytes(join25(attemptDir, name));
     }
   }
   return total;
@@ -10596,8 +11418,8 @@ async function captureSessionFrames(session, { input, rangeStart, rangeEnd, resu
 }
 
 // src/services/render/stages/captureHdrStage.ts
-import { existsSync as existsSync14, mkdirSync as mkdirSync8 } from "node:fs";
-import { join as join25 } from "node:path";
+import { existsSync as existsSync18, mkdirSync as mkdirSync10 } from "node:fs";
+import { join as join29 } from "node:path";
 import {
   closeCaptureSession as closeCaptureSession7,
   cloneCaptureWarnings as cloneCaptureWarnings2,
@@ -10669,7 +11491,7 @@ function createHdrImageTransferCache(options = {}) {
 }
 
 // src/services/render/stages/captureHdrSequentialLoop.ts
-import { join as join22 } from "node:path";
+import { join as join26 } from "node:path";
 import {
   TRANSITIONS,
   crossfade
@@ -10794,7 +11616,7 @@ async function runSequentialLayeredFrameLoop(input) {
       );
       if (debugDumpEnabled && debugDumpDir && i % 30 === 0) {
         writeFileExclusiveSync(
-          join22(debugDumpDir, `frame_${String(i).padStart(4, "0")}_final_rgb48le.bin`),
+          join26(debugDumpDir, `frame_${String(i).padStart(4, "0")}_final_rgb48le.bin`),
           normalCanvas
         );
       }
@@ -10826,7 +11648,7 @@ async function runSequentialLayeredFrameLoop(input) {
 }
 
 // src/services/render/stages/captureHdrHybridLoop.ts
-import { join as join24 } from "node:path";
+import { join as join28 } from "node:path";
 import {
   TRANSITIONS as TRANSITIONS2,
   closeCaptureSession as closeCaptureSession6,
@@ -10840,9 +11662,9 @@ import {
 // src/services/shaderTransitionWorkerPool.ts
 import { Worker } from "node:worker_threads";
 import { fileURLToPath as fileURLToPath3, pathToFileURL } from "node:url";
-import { dirname as dirname9, join as join23 } from "node:path";
+import { dirname as dirname11, join as join27 } from "node:path";
 import { createRequire } from "node:module";
-import { existsSync as existsSync13 } from "node:fs";
+import { existsSync as existsSync17 } from "node:fs";
 import { cpus as cpus2 } from "node:os";
 function resolveWorkerEntry(explicit) {
   if (explicit && explicit.length > 0) {
@@ -10853,10 +11675,10 @@ function resolveWorkerEntry(explicit) {
     const isTs = override.endsWith(".ts");
     return { path: override, isTs };
   }
-  const moduleDir = dirname9(fileURLToPath3(import.meta.url));
-  const jsPath = join23(moduleDir, "shaderTransitionWorker.js");
-  if (existsSync13(jsPath)) return { path: jsPath, isTs: false };
-  const tsPath = join23(moduleDir, "shaderTransitionWorker.ts");
+  const moduleDir = dirname11(fileURLToPath3(import.meta.url));
+  const jsPath = join27(moduleDir, "shaderTransitionWorker.js");
+  if (existsSync17(jsPath)) return { path: jsPath, isTs: false };
+  const tsPath = join27(moduleDir, "shaderTransitionWorker.ts");
   return { path: tsPath, isTs: true };
 }
 function buildExecArgv(entryIsTs) {
@@ -11224,7 +12046,7 @@ async function runHybridLayeredFrameLoop(input) {
           );
           if (debugDumpEnabled && debugDumpDir && i % 30 === 0) {
             writeFileExclusiveSync(
-              join24(debugDumpDir, `frame_${String(i).padStart(4, "0")}_final_rgb48le.bin`),
+              join28(debugDumpDir, `frame_${String(i).padStart(4, "0")}_final_rgb48le.bin`),
               canvas
             );
           }
@@ -11294,6 +12116,7 @@ async function runCaptureHdrStage(input) {
   let lastBrowserConsole = [];
   let captureDurationMs = 0;
   let encodeMs = 0;
+  let encoderDrainWaitMs;
   const nativeHdrIds = /* @__PURE__ */ new Set([...nativeHdrVideoIds, ...nativeHdrImageIds]);
   log.info(
     hasHdrContent ? "[Render] HDR layered composite: z-ordered DOM + native HDR video/image layers" : "[Render] Shader transition composite: z-ordered SDR DOM layers"
@@ -11414,9 +12237,9 @@ async function runCaptureHdrStage(input) {
         if (hdrVideoFrameSources.has(v.id)) hdrVideoEndTimes.set(v.id, v.end);
       }
       const debugDumpEnabled = process.env.KEEP_TEMP === "1";
-      const debugDumpDir = debugDumpEnabled ? join25(framesDir, "debug-composite") : null;
-      if (debugDumpDir && !existsSync14(debugDumpDir)) {
-        mkdirSync8(debugDumpDir, { recursive: true });
+      const debugDumpDir = debugDumpEnabled ? join29(framesDir, "debug-composite") : null;
+      if (debugDumpDir && !existsSync18(debugDumpDir)) {
+        mkdirSync10(debugDumpDir, { recursive: true });
       }
       const compositeTransfer = resolveCompositeTransfer(hasHdrContent, effectiveHdr);
       const hdrTargetTransfer = compositeTransfer === "srgb" ? void 0 : compositeTransfer;
@@ -11531,6 +12354,7 @@ async function runCaptureHdrStage(input) {
     reportEncodeProgress(job, totalFrames, totalFrames, onProgress, encodeFrom);
     captureDurationMs = Date.now() - stageStart;
     encodeMs = hdrEncodeResult.durationMs;
+    encoderDrainWaitMs = hdrEncodeResult.drainWaitMs;
   } catch (error) {
     lastBrowserConsole = domSession.browserConsoleBuffer;
     throw wrapCaptureStageError(error, lastBrowserConsole);
@@ -11563,6 +12387,7 @@ async function runCaptureHdrStage(input) {
     hdrPerf,
     captureDurationMs,
     encodeMs,
+    encoderDrainWaitMs,
     warnings: cloneCaptureWarnings2(domSession.warnings)
   };
 }
@@ -11570,16 +12395,16 @@ async function runCaptureHdrStage(input) {
 // src/services/render/stages/encodeStage.ts
 import {
   copyFileSync as copyFileSync4,
-  existsSync as existsSync15,
-  mkdirSync as mkdirSync9,
-  readdirSync as readdirSync4,
+  existsSync as existsSync19,
+  mkdirSync as mkdirSync11,
+  readdirSync as readdirSync5,
   readFileSync as readFileSync8,
-  rmSync as rmSync9,
-  statSync as statSync7,
-  writeFileSync as writeFileSync5
+  rmSync as rmSync11,
+  statSync as statSync8,
+  writeFileSync as writeFileSync6
 } from "node:fs";
 import { readFile as readFile2 } from "node:fs/promises";
-import { dirname as dirname10, join as join26 } from "node:path";
+import { dirname as dirname12, join as join30 } from "node:path";
 import {
   encodeFramesChunkedConcat,
   encodeFramesFromDir,
@@ -11672,12 +12497,12 @@ async function reencodeWithClearedWholeFrames(argsInput, run, startTime) {
     const error = "[FFmpeg] GIF output could not be parsed to clear its frames";
     return gifEncodeFailure(startTime, outputPath, error);
   }
-  writeFileSync5(outputPath, gif);
+  writeFileSync6(outputPath, gif);
   return null;
 }
 async function encodeGifFromDir(framesDir, framePattern, outputPath, input) {
   const startTime = Date.now();
-  const files = readdirSync4(framesDir).filter((file) => file.match(/\.(jpg|jpeg|png)$/i));
+  const files = readdirSync5(framesDir).filter((file) => file.match(/\.(jpg|jpeg|png)$/i));
   const frameCount = files.length;
   if (frameCount === 0) {
     return gifEncodeFailure(startTime, outputPath, "[FFmpeg] No frame files found in directory");
@@ -11704,7 +12529,7 @@ async function encodeGifFromDir(framesDir, framePattern, outputPath, input) {
       const failure = await reencodeWithClearedWholeFrames(argsInput, run, startTime);
       if (failure) return failure;
     }
-    const fileSize = existsSync15(outputPath) ? statSync7(outputPath).size : 0;
+    const fileSize = existsSync19(outputPath) ? statSync8(outputPath).size : 0;
     return {
       success: true,
       outputPath,
@@ -11713,7 +12538,7 @@ async function encodeGifFromDir(framesDir, framePattern, outputPath, input) {
       fileSize
     };
   } finally {
-    rmSync9(input.palettePath, { force: true });
+    rmSync11(input.palettePath, { force: true });
   }
 }
 function startEncodeProgress(job, stage, onProgress) {
@@ -11790,7 +12615,7 @@ function encodeWhileCapturing(input, totalFrames) {
         await new Promise((resolve11) => wake = resolve11);
       }
       if (signal.aborted) return;
-      const mergedPath = join26(input.framesDir, formatCaptureFrameName(next, "jpg"));
+      const mergedPath = join30(input.framesDir, formatCaptureFrameName(next, "jpg"));
       const frame = await readLandedFrame(landed.get(next), mergedPath);
       landed.delete(next);
       if (!await stream.writeFrame(frame)) {
@@ -11865,19 +12690,19 @@ async function runEncodeStage(input) {
   const stage5Start = Date.now();
   if (isPngSequence) {
     const encoded = startEncodeProgress(job, "Writing PNG sequence", onProgress);
-    if (!existsSync15(outputPath)) mkdirSync9(outputPath, { recursive: true });
-    const captured = readdirSync4(framesDir).filter((name) => name.endsWith(".png")).sort();
+    if (!existsSync19(outputPath)) mkdirSync11(outputPath, { recursive: true });
+    const captured = readdirSync5(framesDir).filter((name) => name.endsWith(".png")).sort();
     if (captured.length === 0) {
       throw new Error(
         `[Render] png-sequence output requested but no PNGs were captured to ${framesDir}`
       );
     }
     captured.forEach((name, i) => {
-      const dst = join26(outputPath, formatExportFrameName(i, "png"));
-      copyFileSync4(join26(framesDir, name), dst);
+      const dst = join30(outputPath, formatExportFrameName(i, "png"));
+      copyFileSync4(join30(framesDir, name), dst);
     });
-    if (hasAudio && audioOutputPath && existsSync15(audioOutputPath)) {
-      copyFileSync4(audioOutputPath, join26(outputPath, MIXED_AUDIO_FILENAME2));
+    if (hasAudio && audioOutputPath && existsSync19(audioOutputPath)) {
+      copyFileSync4(audioOutputPath, join30(outputPath, MIXED_AUDIO_FILENAME2));
       log.info(
         `[Render] png-sequence: ${MIXED_AUDIO_FILENAME2} sidecar written to ${outputPath}/${MIXED_AUDIO_FILENAME2}`
       );
@@ -11897,7 +12722,7 @@ async function runEncodeStage(input) {
     const encodeResult2 = await encodeGifFromDir(framesDir, framePattern2, outputPath, {
       fps: job.config.fps,
       loop,
-      palettePath: join26(dirname10(videoOnlyPath), "gif-palette.png"),
+      palettePath: join30(dirname12(videoOnlyPath), "gif-palette.png"),
       preserveAlpha: needsAlpha,
       signal: abortSignal,
       timeout: engineCfg.ffmpegEncodeTimeout
@@ -11987,6 +12812,7 @@ async function assembleOutput(input, onSecondsWritten) {
     const normalizeResult = await padOrTrimAudioToVideoFrameCount({
       videoPath: videoOnlyPath,
       audioPath: audioOutputPath,
+      sourcePath: input.audioPcmPath,
       outputPath: normalizedAudioPath,
       signal: abortSignal,
       timeoutMs: ffmpegProcessTimeout
@@ -12102,14 +12928,14 @@ function sampleDirectoryBytes(dir) {
     if (!current) continue;
     let entries = [];
     try {
-      entries = readdirSync5(current);
+      entries = readdirSync6(current);
     } catch {
       continue;
     }
     for (const name of entries) {
-      const full = join27(current, name);
+      const full = join31(current, name);
       try {
-        const st = statSync8(full);
+        const st = statSync9(full);
         if (st.isDirectory()) {
           stack.push(full);
         } else if (st.isFile()) {
@@ -12198,6 +13024,17 @@ function applyRenderWarningPolicy(job, captureWarnings, log = defaultLogger) {
     throw new RenderQualityError(job.warnings);
   }
 }
+var stopPrepSessionOnScriptFailure = (options) => ({
+  ...options,
+  onSubTimelineScriptFailure: () => {
+    throw new Error("a composition script failed, so this preparation session stops");
+  }
+});
+var surfaceScriptFailure = (error, job) => error instanceof RenderQualityError || error instanceof RenderCancelledError || !job.warnings?.some((warning) => warning.code === "sub_timeline_script_failure") ? error : new RenderQualityError(job.warnings);
+var withScriptFailureStop = (options, job, log) => ({
+  ...options,
+  onSubTimelineScriptFailure: (warnings) => applyRenderWarningPolicy(job, warnings, log)
+});
 var RenderCancelledError = class extends Error {
   reason;
   constructor(message = "render_cancelled", reason = "aborted") {
@@ -12246,18 +13083,14 @@ function hasUsableVideoDimensions(metadata) {
   return Number.isFinite(metadata.width) && Number.isFinite(metadata.height) && metadata.width > 0 && metadata.height > 0;
 }
 function collectVideoMetadataHints(extractedVideos) {
-  return extractedVideos.filter((video) => hasUsableVideoDimensions(video.metadata)).map((video) => ({
-    id: video.videoId,
-    width: video.metadata.width,
-    height: video.metadata.height
-  })).sort((a, b) => a.id.localeCompare(b.id));
+  return extractedVideos.filter((video) => hasUsableVideoDimensions(video.metadata)).map((video) => ({ id: video.videoId, ...displaySize(video.metadata) })).sort((a, b) => a.id.localeCompare(b.id));
 }
 function findMissingFrameRanges(totalFrames, framesDir, frameExt) {
   const ranges = [];
   let rangeStart = null;
   for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-    const framePath = join27(framesDir, formatCaptureFrameName(frameIndex, frameExt));
-    const missing = !existsSync16(framePath) || statSync8(framePath).size <= 8;
+    const framePath = join31(framesDir, formatCaptureFrameName(frameIndex, frameExt));
+    const missing = !existsSync20(framePath) || statSync9(framePath).size <= 8;
     if (missing && rangeStart === null) {
       rangeStart = frameIndex;
     } else if (!missing && rangeStart !== null) {
@@ -12273,7 +13106,7 @@ function findMissingFrameRanges(totalFrames, framesDir, frameExt) {
 function buildMissingFrameRetryBatches(ranges, maxWorkers, workDir, attempt, rangeStart = 0, stride = 1) {
   const workersPerBatch = Math.max(1, Math.floor(maxWorkers));
   const batches = [];
-  const outputDirFor = (batchIndex, workerId) => join27(workDir, `retry-${attempt}-batch-${batchIndex}-worker-${workerId}`);
+  const outputDirFor = (batchIndex, workerId) => join31(workDir, `retry-${attempt}-batch-${batchIndex}-worker-${workerId}`);
   if (stride > 1) {
     const spans = /* @__PURE__ */ new Map();
     for (const range of ranges) {
@@ -12333,8 +13166,8 @@ function getNextRetryWorkerCount(currentWorkers) {
   return Math.max(1, Math.floor(currentWorkers / 2));
 }
 function resolveRenderWorkDirPrefix(outputPath, jobId, platform2 = process.platform, systemTempDir = tmpdir2()) {
-  if (platform2 === "win32" || platform2 === "darwin") return join27(systemTempDir, "hf-render-");
-  return join27(dirname11(outputPath), `work-${jobId}-`);
+  if (platform2 === "win32" || platform2 === "darwin") return join31(systemTempDir, "hf-render-");
+  return join31(dirname13(outputPath), `work-${jobId}-`);
 }
 var MAX_TRANSIENT_CAPTURE_RETRIES = 1;
 function isTransientCaptureRetryEligible(failureKind, missing, retriesUsed) {
@@ -12355,7 +13188,9 @@ function frameStallRule(job, totalFrames) {
     noProgressMs,
     firstProgressMs: Math.max(FIRST_FRAME_STALL_MS, noProgressMs),
     complete: () => (job.framesRendered ?? 0) >= totalFrames,
-    tailMs: Math.max(TAIL_STALL_MS, noProgressMs)
+    tailMs: Math.max(TAIL_STALL_MS, noProgressMs),
+    detail: () => describeWorkerPhases(job),
+    attemptOpened: () => forgetWorkerPhases(job)
   };
 }
 function isRecoverableParallelCaptureError(error) {
@@ -12379,8 +13214,8 @@ The composition is too large for the available memory. To reduce memory pressure
 function countCapturedFrames(totalFrames, framesDir, frameExt) {
   let captured = 0;
   for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-    const framePath = join27(framesDir, formatCaptureFrameName(frameIndex, frameExt));
-    if (existsSync16(framePath)) captured++;
+    const framePath = join31(framesDir, formatCaptureFrameName(frameIndex, frameExt));
+    if (existsSync20(framePath)) captured++;
   }
   return captured;
 }
@@ -12405,7 +13240,7 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
       reason: attempt === 0 ? "initial" : pendingTransientRetry ? "transient-retry" : "retry"
     });
     pendingTransientRetry = false;
-    const attemptWorkDir = join27(options.workDir, `capture-attempt-${attempt}`);
+    const attemptWorkDir = join31(options.workDir, `capture-attempt-${attempt}`);
     const batches = missingRanges ? buildMissingFrameRetryBatches(
       missingRanges,
       currentWorkers,
@@ -12506,6 +13341,22 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
       }
       const remainingCount = countFrameRanges(remaining);
       const madeProgress = captureAttemptMadeProgress(frameCount, remainingCount);
+      if (options.allowRetry && !madeProgress && (currentWorkers > 1 || initializationRetriesUsed === 0 && failure.kind === "protocol_timeout") && /\bNetwork\.enable timed out|Navigation timeout of \d+ ms exceeded/i.test(failure.message)) {
+        initializationRetriesUsed++;
+        const nextWorkers2 = getNextRetryWorkerCount(currentWorkers);
+        options.log.warn(
+          "[Render] Browser initialization timed out; retrying with fewer workers.",
+          {
+            fromWorkers: currentWorkers,
+            toWorkers: nextWorkers2,
+            error: failure.message
+          }
+        );
+        currentWorkers = nextWorkers2;
+        missingRanges = remaining;
+        attempt++;
+        continue;
+      }
       if (options.allowRetry && isTransientCaptureRetryEligible(failure.kind, remaining, transientRetriesUsed)) {
         transientRetriesUsed++;
         options.log.warn(
@@ -12521,22 +13372,6 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
         missingRanges = remaining;
         attempt++;
         pendingTransientRetry = true;
-        continue;
-      }
-      if (options.allowRetry && !madeProgress && initializationRetriesUsed === 0 && failure.kind === "protocol_timeout" && /\bNetwork\.enable timed out/i.test(failure.message)) {
-        initializationRetriesUsed++;
-        const nextWorkers2 = getNextRetryWorkerCount(currentWorkers);
-        options.log.warn(
-          "[Render] Browser initialization timed out; retrying once with fresh sessions.",
-          {
-            fromWorkers: currentWorkers,
-            toWorkers: nextWorkers2,
-            error: failure.message
-          }
-        );
-        currentWorkers = nextWorkers2;
-        missingRanges = remaining;
-        attempt++;
         continue;
       }
       if (!madeProgress) {
@@ -12563,6 +13398,7 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
 }
 function createRenderJob(config) {
   return {
+    ...referenceBackgroundResult(void 0),
     id: randomUUID(),
     config: {
       ...config,
@@ -12881,6 +13717,11 @@ function resolveDeSingleMinFrames(env) {
 function shouldPreferSingleWorkerDrawElement(args) {
   return args.workerCount > 1 && args.useDrawElement && !args.deCompileGate && !args.forceScreenshot && outputUsesH264Pipeline(args.outputFormat) && args.minFrames > 0 && args.totalFrames >= args.minFrames && args.singleWorkerStreamingOk && !args.layeredOrEffectRoute && !args.supersampling && !args.probeDeGated && !args.experimentalParallelDeOptIn;
 }
+function initialDeClampReason(args) {
+  if (args.useDrawElement) return void 0;
+  if (args.deCompileGate) return "compile_gate";
+  return explainDrawElementDisabled(args.config);
+}
 function probeNeedsScreenshotFrames(session) {
   return (session?.deRiskFrames?.size ?? 0) > 0;
 }
@@ -12932,6 +13773,7 @@ function resolveParallelRouterRetryPlan(args) {
 function shouldRetryViaPinnedFallback(args) {
   if (args.isCancellation || args.isEncoderInterrupted) return false;
   if (args.isVerifyError || args.isDeCaptureError) return true;
+  if (args.isBeginFrameCapture === true) return true;
   if (args.isDeRendererStall === true || args.isSequentialCaptureStall === true) return true;
   if (args.isParallelCaptureStall === true || args.isEncoderDeath === true) return true;
   if (args.isTransientCaptureError === true) return true;
@@ -13030,19 +13872,19 @@ function deVerifyFallbackTelemetry(err) {
   };
 }
 function resolveRenderDebugDir() {
-  const producerRoot = process.env.PRODUCER_RENDERS_DIR ? resolve8(process.env.PRODUCER_RENDERS_DIR, "..") : resolve8(dirname11(fileURLToPath4(import.meta.url)), "../..");
-  return join27(producerRoot, ".debug");
+  const producerRoot = process.env.PRODUCER_RENDERS_DIR ? resolve8(process.env.PRODUCER_RENDERS_DIR, "..") : resolve8(dirname13(fileURLToPath4(import.meta.url)), "../..");
+  return join31(producerRoot, ".debug");
 }
 async function executeRenderJob(job, projectDir, outputPath, progressSink, abortSignal, assertRenderActive) {
   validateHlsRenderConfig(job.config);
   validateDeliveryEncoderConfig(job.config);
   const debugDir = resolveRenderDebugDir();
-  const outputDir = dirname11(outputPath);
-  if (!existsSync16(outputDir)) mkdirSync10(outputDir, { recursive: true });
-  const workDir = job.config.debug ? join27(debugDir, job.id) : createRenderWorkDir(resolveRenderWorkDirPrefix(outputPath, job.id), outputDir);
+  const outputDir = dirname13(outputPath);
+  if (!existsSync20(outputDir)) mkdirSync12(outputDir, { recursive: true });
+  const workDir = job.config.debug ? join31(debugDir, job.id) : createRenderWorkDir(resolveRenderWorkDirPrefix(outputPath, job.id), outputDir);
   const pipelineStart = Date.now();
   const baseLog = job.config.logger ?? defaultLogger;
-  const logPath = job.config.debug ? join27(workDir, "render.log") : null;
+  const logPath = job.config.debug ? join31(workDir, "render.log") : null;
   const execution = new RenderExecutionContext({
     request: { renderJobId: job.id, projectDir, outputPath },
     logger: logPath ? createRenderFileLogger(logPath, baseLog) : baseLog,
@@ -13056,7 +13898,7 @@ async function executeRenderJob(job, projectDir, outputPath, progressSink, abort
       log.info("KEEP_TEMP=1, leaving workDir on disk for inspection", { workDir });
       return;
     }
-    rmSync10(workDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    rmSync12(workDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   });
   try {
     await executeRenderPipeline({
@@ -13089,6 +13931,7 @@ async function executeRenderPipeline(input) {
   const onProgress = execution.onProgress;
   const tooSlow = new AbortController();
   let tooSlowError;
+  let calibrationEvaluateTimedOut = false;
   const executionSignal = job.config.maxRenderMs ? AbortSignal.any([tooSlow.signal, ...execution.signal ? [execution.signal] : []]) : execution.signal;
   let fileServer = null;
   let probeSession = null;
@@ -13103,7 +13946,7 @@ async function executeRenderPipeline(input) {
     imageDecodeFailures: 0
   };
   let hdrPerf;
-  const perfOutputPath = join27(workDir, "perf-summary.json");
+  const perfOutputPath = join31(workDir, "perf-summary.json");
   const cfg = { ...job.config.producerConfig ?? resolveConfig2() };
   const observability = new RenderObservabilityRecorder({
     pipelineStartMs: pipelineStart,
@@ -13179,7 +14022,7 @@ async function executeRenderPipeline(input) {
     job.startedAt = /* @__PURE__ */ new Date();
     assertNotAborted();
     assertConfiguredFfmpegBinariesExist();
-    if (!existsSync16(workDir)) mkdirSync10(workDir, { recursive: true });
+    if (!existsSync20(workDir)) mkdirSync12(workDir, { recursive: true });
     if (job.config.debug) {
       log.info("[Render] Debug artifacts enabled", { workDir, logPath });
     }
@@ -13208,36 +14051,11 @@ async function executeRenderPipeline(input) {
       requestedWorkers: job.config.workers ?? "auto"
     });
     const entryFile = job.config.entryFile || "index.html";
-    let htmlPath = join27(projectDir, entryFile);
-    if (!existsSync16(htmlPath)) {
+    const htmlPath = join31(projectDir, entryFile);
+    if (!existsSync20(htmlPath)) {
       throw new Error(`Entry file not found: ${htmlPath}`);
     }
     assertNotAborted();
-    const rawEntry = readFileSync9(htmlPath, "utf-8");
-    if (entryFile !== "index.html" && isTemplateEntry(rawEntry)) {
-      const wrapperPath = join27(workDir, "standalone-entry.html");
-      const projectIndexPath = join27(projectDir, "index.html");
-      if (!existsSync16(projectIndexPath)) {
-        throw new Error(
-          `Template entry file "${entryFile}" requires a project index.html to extract its render shell.`
-        );
-      }
-      const standaloneHtml = extractStandaloneEntryFromIndex(
-        readFileSync9(projectIndexPath, "utf-8"),
-        entryFile,
-        rawEntry
-      );
-      if (!standaloneHtml) {
-        throw new Error(
-          `Entry file "${entryFile}" is not mounted from index.html via data-composition-src, so it cannot be rendered independently.`
-        );
-      }
-      writeFileSync6(wrapperPath, standaloneHtml, "utf-8");
-      htmlPath = wrapperPath;
-      log.info("Extracted standalone entry from index.html host context", {
-        entryFile
-      });
-    }
     const stage1Start = Date.now();
     updateJobStatus(job, "preprocessing", "Compiling composition", 5, onProgress, {
       code: "compile"
@@ -13249,7 +14067,6 @@ async function executeRenderPipeline(input) {
       () => runCompileStage({
         projectDir,
         workDir,
-        htmlPath,
         entryFile,
         job,
         cfg,
@@ -13270,11 +14087,15 @@ async function executeRenderPipeline(input) {
     perfStages.compileOnlyMs = compileResult.compileOnlyMs;
     let captureForceScreenshot = compileResult.forceScreenshot;
     const deCompileGate = compileResult.deCompileGate;
-    let deClampReason = cfg.useDrawElement ? void 0 : explainDrawElementDisabled({
-      platform: process.platform,
-      browserGpuMode: cfg.browserGpuMode,
-      workerEncode: cfg.enableDrawElementWorkerEncode,
-      chromeCeiling: chromeMajorCeiling()
+    let deClampReason = initialDeClampReason({
+      useDrawElement: cfg.useDrawElement,
+      deCompileGate,
+      config: {
+        platform: process.platform,
+        browserGpuMode: cfg.browserGpuMode,
+        workerEncode: cfg.enableDrawElementWorkerEncode,
+        chromeCeiling: chromeMajorCeiling()
+      }
     });
     let deWorkerInversion;
     let deParallelStreamForced = false;
@@ -13319,6 +14140,9 @@ async function executeRenderPipeline(input) {
       cfg.protocolTimeout = scaledProtocolTimeout;
       updateCaptureObservability({ protocolTimeoutMs: scaledProtocolTimeout });
     }
+    const recordReferenceBackground = createReferenceBackgroundRecorder(
+      (result) => Object.assign(job, result)
+    );
     const subTimelineWaitMemo = {};
     const probeResult = await observeRenderStage(
       observability,
@@ -13339,7 +14163,8 @@ async function executeRenderPipeline(input) {
         height,
         needsAlpha,
         deviceScaleFactor,
-        subTimelineWaitMemo
+        subTimelineWaitMemo,
+        recordReferenceBackground
       }),
       // Browser probe is pre-capture; report `browser calibrating` so a
       // slow probe (~64s SwiftShader warm-up on Windows was the reported
@@ -13382,10 +14207,61 @@ async function executeRenderPipeline(input) {
       compositionHash,
       beginFrameStalled: probeResult.beginFrameStalled
     });
+    let videoLayerPlan;
+    if (cfg.videoLayerPassthrough) {
+      const gates = {
+        mp4: outputFormat === "mp4",
+        software_encode: !job.config.useGpu,
+        opaque_output: !needsAlpha,
+        sdr: rendersSdrOnly(job.config, composition) || (job.config.hdrMode === void 0 || job.config.hdrMode === "auto") && composition.images.length === 0,
+        streaming: shouldUseStreamingEncode(cfg, outputFormat, 1, probeResult.duration),
+        probe_page: probeSession?.isInitialized === true
+      };
+      const failed = Object.entries(gates).find(([, ok]) => !ok)?.[0];
+      if (failed || !probeSession) {
+        log.info(`[Render] Video layer passthrough off: ${failed ?? "probe_page"}`);
+      } else {
+        videoLayerPlan = await planVideoLayerPassthrough({
+          videos: composition.videos,
+          duration: probeResult.duration,
+          fps: job.config.fps,
+          canvas: { width, height },
+          page: probeSession.page,
+          projectDir,
+          compiledDir: join31(workDir, "compiled")
+        });
+        if (videoLayerPlan.videoId === void 0) {
+          log.info(`[Render] Video layer passthrough off: ${videoLayerPlan.reason}`);
+        } else {
+          cfg.useDrawElement = false;
+          cfg.forceScreenshot = true;
+          captureForceScreenshot = true;
+          const opened = probeSession;
+          probeSession = null;
+          await closeCaptureSession8(opened);
+        }
+      }
+    }
+    const videoLayer = videoLayerPlan?.videoId === void 0 ? void 0 : videoLayerPlan;
     updateJobStatus(job, "preprocessing", "Extracting video frames", 10, onProgress, {
       code: "extract_video"
     });
-    const compiledDir = join27(workDir, "compiled");
+    const compiledDir = join31(workDir, "compiled");
+    const segmentsCapture = (layeredOrEffectRoute) => shouldSegmentCapture({
+      env: process.env,
+      durationSeconds: probeResult.duration,
+      outputFormat,
+      layeredOrEffectRoute,
+      streamingOk: shouldUseStreamingEncode(cfg, outputFormat, 1, probeResult.duration)
+    });
+    const segmentedForWindow = segmentsCapture(compiled.hasShaderTransitions);
+    const windowVideoFrames = job.config.motionBlur === void 0 && shouldWindowVideoFrames({ env: process.env, segmented: segmentedForWindow });
+    if (!windowVideoFrames && shouldWindowVideoFrames({ env: process.env, segmented: true })) {
+      const reason = job.config.motionBlur !== void 0 ? "motion blur" : outputFormat !== "mp4" && outputFormat !== "mov" ? `${outputFormat} output` : "capture is not segmented";
+      log.info("[Render] HF_VIDEO_FRAME_WINDOW is set but this render extracts every frame", {
+        reason
+      });
+    }
     const extractResult = await observeRenderStage(
       observability,
       "video_extract",
@@ -13397,10 +14273,13 @@ async function executeRenderPipeline(input) {
         cfg,
         log,
         composition,
+        skipFrameExtractionIds: videoLayer ? [videoLayer.videoId] : [],
         abortSignal: executionSignal,
         assertNotAborted,
         // Local staging can use links; distributed plan() alone requires real copies.
-        materializeSymlinks: false
+        materializeSymlinks: false,
+        deferRangeExtraction: windowVideoFrames ? true : void 0,
+        onProgress
       })
     );
     const {
@@ -13450,6 +14329,7 @@ async function executeRenderPipeline(input) {
     });
     const effectiveHdr = resolveEffectiveHdrMode({
       hdrMode: job.config.hdrMode,
+      media: composition,
       outputFormat,
       extractionResult,
       imageColorSpaces,
@@ -13481,7 +14361,8 @@ async function executeRenderPipeline(input) {
         masterFxChain: composition.masterFxChain,
         abortSignal: executionSignal,
         assertNotAborted,
-        log
+        log,
+        keepDeliverySource: true
       })
     );
     pendingAudio = audioStage.catch(() => void 0);
@@ -13494,7 +14375,7 @@ async function executeRenderPipeline(input) {
       try {
         fileServer = await createFileServer({
           projectDir,
-          compiledDir: join27(workDir, "compiled"),
+          compiledDir: join31(workDir, "compiled"),
           port: 0,
           preHeadScripts: [VIRTUAL_TIME_SHIM],
           fps: job.config.fps
@@ -13512,8 +14393,8 @@ async function executeRenderPipeline(input) {
     if (!activeFileServer) {
       throw new Error("File server failed to initialize before frame capture");
     }
-    const framesDir = join27(workDir, "captured-frames");
-    if (!existsSync16(framesDir)) mkdirSync10(framesDir, { recursive: true });
+    const framesDir = join31(workDir, "captured-frames");
+    if (!existsSync20(framesDir)) mkdirSync12(framesDir, { recursive: true });
     updateJobStatus(job, "rendering", "Checking browser GPU", 25, onProgress, {
       code: "start_browsers"
     });
@@ -13539,8 +14420,9 @@ async function executeRenderPipeline(input) {
       width,
       height,
       fps: job.config.fps,
-      format: captureImageFormat,
-      transparent: needsAlpha,
+      format: videoLayer ? "png" : captureImageFormat,
+      transparent: needsAlpha || videoLayer !== void 0,
+      ...videoLayer ? { hiddenElementIds: [videoLayer.videoId] } : {},
       quality: captureImageFormat === "png" ? void 0 : resolveCaptureJpegQuality(job.config.quality),
       variables: job.config.variables,
       deviceScaleFactor,
@@ -13555,6 +14437,7 @@ async function executeRenderPipeline(input) {
     let routePageMotionBlur;
     const buildCaptureOptions = () => ({
       ...captureOptions,
+      recordReferenceBackground,
       ...routePageMotionBlur ? { pageMotionBlur: routePageMotionBlur } : {},
       videoMetadataHints,
       skipReadinessVideoIds: videoReadinessSkipIds,
@@ -13587,7 +14470,57 @@ async function executeRenderPipeline(input) {
         });
       }
     });
-    const createRenderVideoFrameInjector = () => createVideoFrameInjector(frameLookup, frameCacheOptions(cfg, workerCount));
+    const buildPrepCaptureOptions = () => stopPrepSessionOnScriptFailure(buildCaptureOptions());
+    const buildWorkerCaptureOptions = () => withScriptFailureStop(buildCaptureOptions(), job, log);
+    let videoFrameWindow = windowVideoFrames && (extractionResult?.extracted.some((video) => video.deferredRange) ?? false);
+    if (windowVideoFrames) {
+      const extracted = extractionResult?.extracted ?? [];
+      log.info("[Render] Video frame window", {
+        windowed: extracted.filter((video) => video.deferredRange).length,
+        fullyExtracted: extracted.filter((video) => !video.deferredRange).length
+      });
+    }
+    const buildSegmentVideoFrames = () => trackSegmentFramePeak(
+      createSegmentVideoFrames({
+        videos: composition.videos,
+        extracted: extractionResult?.extracted ?? [],
+        fps: job.config.fps,
+        rootDir: workDir,
+        cfg,
+        injectorOptions: frameCacheOptions(cfg, workerCount),
+        abortSignal: executionSignal
+      }),
+      workDir,
+      (bytes) => updateCaptureObservability({ videoFrameWindowPeakBytes: bytes })
+    );
+    const createRenderVideoFrameInjector = () => createVideoFrameInjector2(frameLookup, frameCacheOptions(cfg, workerCount));
+    const extractDeferredVideoFrames = async () => {
+      videoFrameWindow = false;
+      updateCaptureObservability({ videoFrameWindow: "off" });
+      const extracted = extractionResult?.extracted ?? [];
+      const videoCount = extracted.filter((video) => video.deferredRange).length;
+      const startedAt = Date.now();
+      log.info("[Render] Extracting the frames of the videos a window would have held back", {
+        videoCount
+      });
+      await observeRenderStage(
+        observability,
+        "video_extract_deferred",
+        { videoCount },
+        () => extractAllDeferredFrames(extracted, {
+          fps: job.config.fps,
+          cfg,
+          signal: executionSignal,
+          maxTransientRetries: resolveVideoExtractionPolicy().maxTransientRetries,
+          onProgress: (done, total) => reportExtractProgress(job, done, total, onProgress)
+        })
+      );
+      assertNotAborted();
+      log.info("[Render] Extracted the deferred video frames", {
+        videoCount,
+        elapsedMs: Date.now() - startedAt
+      });
+    };
     let captureCalibration;
     const htmlInCanvasDetected = compiled.renderModeHints.reasons.some(
       (r) => r.code === "htmlInCanvas"
@@ -13690,7 +14623,7 @@ async function executeRenderPipeline(input) {
         probeSession = await createCaptureSession8(
           activeFileServer.url,
           framesDir,
-          buildCaptureOptions(),
+          buildPrepCaptureOptions(),
           null,
           { ...cfg, forceScreenshot: captureForceScreenshot }
         );
@@ -13753,33 +14686,43 @@ async function executeRenderPipeline(input) {
       updateJobStatus(job, "rendering", "Measuring capture speed", 25, onProgress, {
         code: "start_browsers"
       });
-      const outcome = await observeRenderStage(
-        observability,
-        "capture_calibration",
-        captureStageObservationData({
-          forceScreenshot: captureForceScreenshot,
-          // Override the default `capturing` — calibration writes probe
-          // frames only, not `job.framesRendered`, so heartbeats reporting
-          // `framesCompleted: 0` misread as broken. Field signal
-          // ts=1784019503.
-          stagePhase: "calibrating"
-        }),
-        () => runCaptureCalibration({
-          cfg: calibrationCaptureConfig(cfg),
-          fileServer: activeFileServer,
-          workDir,
-          log,
-          job,
-          totalFrames,
-          forceScreenshot: captureForceScreenshot,
-          probeSession,
-          buildCaptureOptions,
-          createRenderVideoFrameInjector,
-          assertNotAborted
-        }),
-        { heartbeatMessage: "browser calibrating (frames not started)" }
-      );
+      const calibrationFrames = videoFrameWindow ? await buildSegmentVideoFrames().forFrames(
+        selectCaptureCalibrationFrames(totalFrames),
+        "calibration"
+      ) : void 0;
+      let outcome;
+      try {
+        outcome = await observeRenderStage(
+          observability,
+          "capture_calibration",
+          captureStageObservationData({
+            forceScreenshot: captureForceScreenshot,
+            // Override the default `capturing` — calibration writes probe
+            // frames only, not `job.framesRendered`, so heartbeats reporting
+            // `framesCompleted: 0` misread as broken. Field signal
+            // ts=1784019503.
+            stagePhase: "calibrating"
+          }),
+          () => runCaptureCalibration({
+            cfg: calibrationCaptureConfig(cfg),
+            fileServer: activeFileServer,
+            workDir,
+            log,
+            job,
+            totalFrames,
+            forceScreenshot: captureForceScreenshot,
+            probeSession,
+            buildCaptureOptions: buildPrepCaptureOptions,
+            createRenderVideoFrameInjector: calibrationFrames ? calibrationFrames.injector : createRenderVideoFrameInjector,
+            assertNotAborted
+          }),
+          { heartbeatMessage: "browser calibrating (frames not started)" }
+        );
+      } finally {
+        calibrationFrames?.release();
+      }
       captureCalibration = outcome.calibration;
+      calibrationEvaluateTimedOut = outcome.calibrationEvaluateTimedOut;
       captureForceScreenshot = outcome.forceScreenshot;
       updateCaptureObservability({ forceScreenshot: captureForceScreenshot });
       probeSession = outcome.probeSession;
@@ -13837,6 +14780,7 @@ async function executeRenderPipeline(input) {
         }
       }
     );
+    if (videoLayer) workerCount = 1;
     const preRoutingWorkerCount = workerCount;
     if (deParallelRouterEligible && workerCount > 1) {
       deParallelRouter = "routed";
@@ -14008,7 +14952,7 @@ async function executeRenderPipeline(input) {
       hls: ".mp4"
     };
     const videoExt = FORMAT_EXT[outputFormat] ?? ".mp4";
-    const videoOnlyPath = join27(workDir, `video-only${videoExt}`);
+    const videoOnlyPath = join31(workDir, `video-only${videoExt}`);
     const usePageSideCompositingForTransitions = (cfg.enablePageSideCompositing || isGif) && compiled.hasShaderTransitions && !hasHdrContent && outputSupportsPageSideShaderCompositing(outputFormat);
     if (usePageSideCompositingForTransitions) {
       activeFileServer.addPreHeadScript(HF_PAGE_SIDE_COMPOSITING_STUB);
@@ -14109,13 +15053,7 @@ async function executeRenderPipeline(input) {
       // excluded routes are the ones whose concat-copy or capture loop the
       // segment contract does not cover (webm VP9 concat is fragile, HDR and
       // shader transitions run their own compositor).
-      useSegmentedCapture: shouldSegmentCapture({
-        env: process.env,
-        durationSeconds: job.duration,
-        outputFormat,
-        layeredOrEffectRoute: hasHdrContent || compiled.hasShaderTransitions,
-        streamingOk: shouldUseStreamingEncode(cfg, outputFormat, 1, job.duration)
-      }),
+      useSegmentedCapture: segmentsCapture(hasHdrContent || compiled.hasShaderTransitions),
       useLayeredComposite,
       usePageSideCompositing: usePageSideCompositingForTransitions,
       hasHdrContent,
@@ -14155,10 +15093,14 @@ async function executeRenderPipeline(input) {
       deWorkerInversion,
       deParallelRouter
     });
+    if (videoFrameWindow && capturePlan.kind !== "sdr_segmented")
+      await extractDeferredVideoFrames();
+    updateCaptureObservability({ videoFrameWindow: videoFrameWindow ? "on" : "off" });
     observability.checkpoint("capture_strategy", "resolved", {
       plan: capturePlan.kind,
       workerCount: capturePlan.workerCount,
       forceScreenshot: capturePlan.forceScreenshot,
+      videoFrameWindow: videoFrameWindow ? "on" : "off",
       captureBeyondViewport: resolvedCaptureBeyondViewport ?? null,
       useStreamingEncode: capturePlan.kind === "sdr_streaming",
       useLayeredComposite: capturePlan.kind === "hdr_layered",
@@ -14183,7 +15125,7 @@ async function executeRenderPipeline(input) {
     const effectiveQuality = job.config.crf ?? preset.quality;
     const effectiveBitrate = job.config.crf != null ? void 0 : job.config.videoBitrate;
     const audioResult = await audioStage;
-    const { audioOutputPath, hasAudio } = audioResult;
+    const { audioOutputPath, deliverySourcePath, hasAudio } = audioResult;
     perfStages.audioProcessMs = audioResult.audioProcessMs;
     recordLimiterAttenuation(job, audioResult.audioLoweredDb);
     if (audioResult.audioError) {
@@ -14244,7 +15186,7 @@ async function executeRenderPipeline(input) {
             effectiveBitrate,
             deliveryEncoder,
             fileServer: activeFileServer,
-            buildCaptureOptions,
+            buildCaptureOptions: buildWorkerCaptureOptions,
             createRenderVideoFrameInjector,
             hdrDiagnostics,
             abortSignal: attempt,
@@ -14264,6 +15206,7 @@ async function executeRenderPipeline(input) {
       perfStages.captureFrameMs = hdrRes.captureDurationMs;
       perfStages.captureSetupMs = Math.max(0, Date.now() - stage4Start - hdrRes.captureDurationMs);
       perfStages.encodeMs = hdrRes.encodeMs;
+      perfStages.encoderDrainWaitMs = hdrRes.encoderDrainWaitMs ?? 0;
     } else {
       let streamingHandled = false;
       if (capturePlan.kind === "sdr_segmented") {
@@ -14295,7 +15238,7 @@ async function executeRenderPipeline(input) {
           pageMotionBlur: job.config.pageMotionBlur,
           captureQuality: captureOptions.quality
         });
-        const segmentDir = segmentDirFor(join27(projectDir, "renders"), segmentPlanHash);
+        const segmentDir = segmentDirFor(join31(projectDir, "renders"), segmentPlanHash);
         let completedSegments = /* @__PURE__ */ new Set();
         if (job.config.resumeSegments === true) {
           const existing = readSegmentManifest(segmentDir);
@@ -14310,10 +15253,10 @@ async function executeRenderPipeline(input) {
             });
           }
           if (completedSegments.size === 0) {
-            rmSync10(segmentDir, { recursive: true, force: true });
+            rmSync12(segmentDir, { recursive: true, force: true });
           }
         } else {
-          rmSync10(segmentDir, { recursive: true, force: true });
+          rmSync12(segmentDir, { recursive: true, force: true });
         }
         const emptySegmentManifest = () => ({
           version: 1,
@@ -14361,8 +15304,9 @@ async function executeRenderPipeline(input) {
                 // Each segment sets its own GOP (at most the interval); hls never reaches this route.
                 ...deliveryEncoder
               },
-              buildCaptureOptions,
+              buildCaptureOptions: buildWorkerCaptureOptions,
               createRenderVideoFrameInjector,
+              segmentVideoFrames: videoFrameWindow ? buildSegmentVideoFrames() : void 0,
               abortSignal: executionSignal,
               assertNotAborted,
               onProgress,
@@ -14414,7 +15358,7 @@ async function executeRenderPipeline(input) {
             probeSession = null;
             await closeOrphanedProbeForRetry(orphaned, closeCaptureSession8, log, "segmented");
           }
-          rmSync10(segmentDir, { recursive: true, force: true });
+          rmSync12(segmentDir, { recursive: true, force: true });
           completedSegments = /* @__PURE__ */ new Set();
           segmentManifest = emptySegmentManifest();
           dedupPerfs.length = 0;
@@ -14443,6 +15387,7 @@ async function executeRenderPipeline(input) {
           perfStages.captureFrameMs = Date.now() - captureFrameStart;
           perfStages.captureSetupMs = Math.max(0, perfStages.captureMs - perfStages.captureFrameMs);
           perfStages.encodeMs = segmentedRes.encodeMs;
+          perfStages.encoderDrainWaitMs = segmentedRes.encoderDrainWaitMs ?? 0;
           log.info(
             `[Render] Segmented capture complete: ${segmentedRes.segments} segment(s) concatenated.`,
             {
@@ -14452,11 +15397,12 @@ async function executeRenderPipeline(input) {
           );
           updateCaptureObservability({ segmentRetries: segmentedRes.segmentRetries });
           if (job.config.keepSegments !== true) {
-            rmSync10(segmentDir, { recursive: true, force: true });
+            rmSync12(segmentDir, { recursive: true, force: true });
           }
         } else {
           capturePlan = replanAfterFailure(capturePlan, { kind: "streaming_unavailable" });
           syncCapturePlan();
+          if (videoFrameWindow) await extractDeferredVideoFrames();
           probeSession = null;
           observability.checkpoint(
             "capture_segmented",
@@ -14500,6 +15446,7 @@ async function executeRenderPipeline(input) {
                 vp9CpuUsed: cfg.vp9CpuUsed,
                 useGpu: job.config.useGpu,
                 imageFormat: captureOptions.format || "jpeg",
+                ...videoLayer ? { videoLayer: videoLayer.layer } : {},
                 hdr: preset.hdr,
                 // HLS only: force an IDR every `gopSize` frames so the
                 // assemble stage's `-c copy` segmentation cuts exactly on
@@ -14507,7 +15454,7 @@ async function executeRenderPipeline(input) {
                 // encoder's open-GOP output untouched.
                 ...deliveryEncoder
               },
-              buildCaptureOptions,
+              buildCaptureOptions: buildWorkerCaptureOptions,
               createRenderVideoFrameInjector,
               abortSignal: executionSignal,
               assertNotAborted,
@@ -14541,7 +15488,8 @@ async function executeRenderPipeline(input) {
             isSequentialCaptureStall: isSequentialStall,
             isParallelCaptureStall: isParallelStall,
             isEncoderDeath,
-            isTransientCaptureError: isTransientBrowserError2(err)
+            isTransientCaptureError: isTransientBrowserError2(err),
+            isBeginFrameCapture: !capturePlan.forceScreenshot && !cfg.useDrawElement && parallelCaptureMode === "beginframe"
           }))
             throw err;
           const isMemoryExhaustion = !isVerifyError && isMemoryExhaustionError(err);
@@ -14620,6 +15568,7 @@ async function executeRenderPipeline(input) {
           perfStages.captureFrameMs = captureFrameMs;
           perfStages.captureSetupMs = Math.max(0, perfStages.captureMs - captureFrameMs);
           perfStages.encodeMs = streamingRes.encodeMs;
+          perfStages.encoderDrainWaitMs = streamingRes.encoderDrainWaitMs ?? 0;
         } else {
           if (capturePlan.kind === "sdr_streaming") {
             capturePlan = replanAfterFailure(capturePlan, { kind: "streaming_unavailable" });
@@ -14691,7 +15640,7 @@ async function executeRenderPipeline(input) {
             probeSession,
             captureAttempts,
             dedupPerfs,
-            buildCaptureOptions,
+            buildCaptureOptions: buildWorkerCaptureOptions,
             createRenderVideoFrameInjector,
             abortSignal: executionSignal,
             assertNotAborted,
@@ -14724,8 +15673,8 @@ async function executeRenderPipeline(input) {
             "capture_disk",
             "drawElement capture failed; retrying with a fresh screenshot session"
           );
-          rmSync10(framesDir, { recursive: true, force: true });
-          mkdirSync10(framesDir, { recursive: true });
+          rmSync12(framesDir, { recursive: true, force: true });
+          mkdirSync12(framesDir, { recursive: true });
           resetCaptureAttemptProgress(job);
           dedupPerfs.length = 0;
           cfg.useDrawElement = false;
@@ -14804,6 +15753,7 @@ async function executeRenderPipeline(input) {
           job,
           videoOnlyPath,
           audioOutputPath,
+          audioPcmPath: deliverySourcePath,
           outputPath: stagedOutputPath,
           hasAudio,
           format: outputFormat,
@@ -14829,12 +15779,12 @@ async function executeRenderPipeline(input) {
       })
     );
     const totalElapsed = Date.now() - pipelineStart;
-    const tmpPeakBytes = existsSync16(workDir) ? sampleDirectoryBytes(workDir) : 0;
+    const tmpPeakBytes = existsSync20(workDir) ? sampleDirectoryBytes(workDir) : 0;
     recordTransientRetryObservability();
     observability.checkpoint("pipeline", "artifact validated", { totalElapsedMs: totalElapsed });
     const observabilitySummary = observability.summary({
       lastBrowserConsole,
-      capture: captureObservability,
+      capture: withCapturedBeyondViewport(captureObservability, dedupPerfs),
       initFallback: mergeWorkerInitObservability(dedupPerfs),
       extraction: extractionObservability,
       compositionHash
@@ -14901,7 +15851,7 @@ async function executeRenderPipeline(input) {
     job.perfSummary = perfSummary;
     if (job.config.debug) {
       try {
-        writeFileSync6(perfOutputPath, JSON.stringify(perfSummary, null, 2), "utf-8");
+        writeFileSync7(perfOutputPath, JSON.stringify(perfSummary, null, 2), "utf-8");
       } catch (err) {
         log.debug("Failed to write perf summary", {
           perfOutputPath,
@@ -14910,8 +15860,8 @@ async function executeRenderPipeline(input) {
       }
     }
     if (job.config.debug) {
-      if (!isPngSequence && !isHls && existsSync16(stagedOutputPath)) {
-        const debugOutput = join27(workDir, `output${videoExt}`);
+      if (!isPngSequence && !isHls && existsSync20(stagedOutputPath)) {
+        const debugOutput = join31(workDir, `output${videoExt}`);
         copyFileSync5(stagedOutputPath, debugOutput);
       }
     }
@@ -14924,7 +15874,12 @@ async function executeRenderPipeline(input) {
     await eventPublisher.flush();
   } catch (caught) {
     await pendingAudio;
-    const error = tooSlowError ?? caught;
+    const pageNeverReady = checkPageNeverReady({
+      calibrationEvaluateTimedOut,
+      framesRendered: job.framesRendered ?? 0,
+      error: caught
+    });
+    const error = surfaceScriptFailure(tooSlowError ?? pageNeverReady ?? caught, job);
     if (!tooSlowError && (error instanceof RenderCancelledError || executionSignal?.aborted)) {
       job.error = error instanceof Error ? error.message : "render_cancelled";
       updateJobStatus(job, "cancelled", "Render cancelled", job.progress, onProgress);
@@ -14970,7 +15925,7 @@ async function executeRenderPipeline(input) {
     const failedStage = job.currentStage || "pipeline";
     const observabilitySummary = observability.summary({
       lastBrowserConsole,
-      capture: captureObservability,
+      capture: withCapturedBeyondViewport(captureObservability, dedupPerfs),
       initFallback: mergeWorkerInitObservability(dedupPerfs),
       extraction: extractionObservability,
       compositionHash
@@ -15017,15 +15972,15 @@ async function executeRenderPipeline(input) {
 
 // src/services/hyperframeLint.ts
 import {
-  existsSync as existsSync17,
-  readFileSync as readFileSync10,
-  statSync as statSync9,
+  existsSync as existsSync21,
+  readFileSync as readFileSync9,
+  statSync as statSync10,
   openSync as openSync5,
   fstatSync as fstatSync3,
   closeSync as closeSync5,
   constants as constants3
 } from "node:fs";
-import { resolve as resolve9, join as join28, relative as relative3, isAbsolute as isAbsolute3, sep as sep2 } from "node:path";
+import { resolve as resolve9, join as join32, relative as relative3, isAbsolute as isAbsolute3, sep as sep2 } from "node:path";
 import { lintHyperframeHtml } from "@hyperframes/lint";
 function isStringRecord(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -15059,19 +16014,19 @@ function readEntryHtml(filePath) {
   } catch (error) {
     if (error instanceof Error && "code" in error && (error.code === "ENOENT" || error.code === "ENOTDIR"))
       return null;
-    if (!statSync9(filePath, { throwIfNoEntry: false })?.isFile()) return null;
+    if (!statSync10(filePath, { throwIfNoEntry: false })?.isFile()) return null;
     throw error;
   }
   try {
     if (!fstatSync3(fd).isFile()) return null;
-    return readFileSync10(fd, "utf-8");
+    return readFileSync9(fd, "utf-8");
   } finally {
     closeSync5(fd);
   }
 }
 function readProjectEntryFile(projectDir, preferredEntryFile) {
   const absProjectDir = resolve9(projectDir);
-  if (!existsSync17(absProjectDir) || !statSync9(absProjectDir).isDirectory()) {
+  if (!existsSync21(absProjectDir) || !statSync10(absProjectDir).isDirectory()) {
     return { error: `Project directory not found: ${absProjectDir}` };
   }
   const entryCandidates = [preferredEntryFile, "index.html", "src/index.html"].filter(
@@ -15093,7 +16048,7 @@ function readProjectEntryFile(projectDir, preferredEntryFile) {
     }
   }
   return {
-    error: `No HTML entry file found in project directory: ${join28(absProjectDir, preferredEntryFile || "index.html")}`
+    error: `No HTML entry file found in project directory: ${join32(absProjectDir, preferredEntryFile || "index.html")}`
   };
 }
 function prepareHyperframeLintBody(body) {
@@ -15139,8 +16094,8 @@ async function runHyperframeLint(prepared) {
 // src/services/healthWorker.ts
 import { Worker as Worker2 } from "node:worker_threads";
 import { fileURLToPath as fileURLToPath5 } from "node:url";
-import { dirname as dirname12, join as join29 } from "node:path";
-import { existsSync as existsSync18 } from "node:fs";
+import { dirname as dirname14, join as join33 } from "node:path";
+import { existsSync as existsSync22 } from "node:fs";
 var DEFAULT_HEALTH_PORT = 9848;
 async function startHealthWorker(options = {}) {
   const log = options.logger ?? defaultLogger2();
@@ -15214,10 +16169,10 @@ function defaultLogger2() {
   };
 }
 function resolveWorkerEntry2() {
-  const here = dirname12(fileURLToPath5(import.meta.url));
-  const candidates = [join29(here, "healthWorkerThread.js"), join29(here, "healthWorkerThread.ts")];
+  const here = dirname14(fileURLToPath5(import.meta.url));
+  const candidates = [join33(here, "healthWorkerThread.js"), join33(here, "healthWorkerThread.ts")];
   for (const candidate of candidates) {
-    if (existsSync18(candidate)) return candidate;
+    if (existsSync22(candidate)) return candidate;
   }
   return void 0;
 }
@@ -15251,8 +16206,13 @@ import {
 import { DISTRIBUTED_FPS, isDistributedFps } from "@hyperframes/core";
 
 // src/services/distributed/plan.ts
+import {
+  REFERENCE_BACKGROUND_FIELD as REFERENCE_BACKGROUND_FIELD2,
+  referenceBackgroundResult as referenceBackgroundResult4,
+  createReferenceBackgroundRecorder as createReferenceBackgroundRecorder2
+} from "@hyperframes/engine";
 import { audioFailureDiagnostics as audioFailureDiagnostics3 } from "@hyperframes/engine";
-import { extname as extname4, isAbsolute as isAbsolute4, join as join30, relative as relative4, sep as sep3 } from "node:path";
+import { extname as extname4, isAbsolute as isAbsolute4, join as join34, relative as relative4, sep as sep3 } from "node:path";
 import {
   fpsToNumber as fpsToNumber9,
   HF_COLOR_GRADING_ATTR as HF_COLOR_GRADING_ATTR2
@@ -15263,7 +16223,7 @@ import {
   normalizeVp9CpuUsed,
   resolveConfig as resolveConfig3,
   declareContentAddressedUrl,
-  renameWithRetry as renameWithRetry7,
+  renameWithRetry as renameWithRetry8,
   declareProbeFactsUrl
 } from "@hyperframes/engine";
 
@@ -15271,16 +16231,14 @@ import {
 import {
   closeCaptureSession as closeCaptureSession9,
   createCaptureSession as createCaptureSession9,
-  createFrameLookupTable as createFrameLookupTable3,
+  createFrameLookupTable as createFrameLookupTable4,
   initializeSession as initializeSession9
 } from "@hyperframes/engine";
 
 // src/services/distributed/chunkFrames.ts
 import {
   compositionRequiresWebGpu as compositionRequiresWebGpu3,
-  createFrameLookupTable as createFrameLookupTable2,
-  createVideoFrameInjector as createVideoFrameInjector2,
-  extractVideoFramesRange
+  createVideoFrameInjector as createVideoFrameInjector3
 } from "@hyperframes/engine";
 
 // src/services/distributed/shared.ts
@@ -15295,6 +16253,20 @@ var execFile = promisify2(execFileCallback);
 
 // src/services/distributed/chunkWeights.ts
 import { resolveFrameFormat } from "@hyperframes/engine";
+
+// src/services/render/planReferenceBackground.ts
+import {
+  closeCaptureSession as closeCaptureSession10,
+  createCaptureSession as createCaptureSession10,
+  readReferenceBackground,
+  referenceBackgroundResult as referenceBackgroundResult2
+} from "@hyperframes/engine";
+
+// src/services/render/stages/freezePlan.ts
+import {
+  REFERENCE_BACKGROUND_FIELD,
+  referenceBackgroundResult as referenceBackgroundResult3
+} from "@hyperframes/engine";
 
 // src/services/distributed/planProtocol.ts
 var PLAN_SCHEMA_VERSION = 1;
@@ -15334,10 +16306,10 @@ var DISTRIBUTED_RENDER_CAPABILITIES = Object.freeze({
 var FIELD_DELIMITER = Buffer.from([0]);
 
 // src/services/distributed/chunkAudio.ts
-import { appendRenderProvenanceArgs, describeFfmpegFailure as describeFfmpegFailure3, runFfmpeg as runFfmpeg7 } from "@hyperframes/engine";
+import { appendRenderProvenanceArgs, describeFfmpegFailure as describeFfmpegFailure4, runFfmpeg as runFfmpeg7 } from "@hyperframes/engine";
 
 // src/services/distributed/mp4Stitch.ts
-import { renameWithRetry as renameWithRetry6 } from "@hyperframes/engine";
+import { renameWithRetry as renameWithRetry7 } from "@hyperframes/engine";
 var SCAN_BYTES = 64 * 1024;
 
 // src/services/distributed/chunkAudio.ts
@@ -15357,9 +16329,9 @@ var PLAN_ROOT_CATEGORY = {
 var PLAN_DIR_SIZE_LIMIT_BYTES = 2 * 1024 * 1024 * 1024;
 var FREEZE_OWNED_PLAN_FILES = [
   "plan.json",
-  join30("meta", "composition.json"),
-  join30("meta", "encoder.json"),
-  join30("meta", "chunks.json")
+  join34("meta", "composition.json"),
+  join34("meta", "encoder.json"),
+  join34("meta", "chunks.json")
 ];
 
 // src/services/distributed/renderConfigValidation.ts
@@ -15604,7 +16576,8 @@ var SAFE_RENDER_ERROR_CODES = /* @__PURE__ */ new Set([
   "VIDEO_EXTRACTION_FAILED",
   "ENCODER_INTERRUPTED",
   "RENDER_TOO_SLOW",
-  "RENDER_STAGE_STALLED"
+  "RENDER_STAGE_STALLED",
+  "PAGE_NEVER_READY"
 ]);
 function extractSafeRenderErrorCode(error) {
   if (typeof error !== "object" || error === null || !("code" in error)) return void 0;
@@ -15670,6 +16643,7 @@ function parseRenderOptions(body) {
   const maxRenderMs = typeof body.maxRenderMs === "number" ? body.maxRenderMs : void 0;
   const useGpu = body.gpu === true;
   const debug = body.debug === true;
+  const forceScreenshot = body.forceScreenshot === true ? true : void 0;
   const strictness = body.bestEffort === false ? "strict" : "best-effort";
   const outputPath = parseOutputCandidate(body);
   const entryFile = nonEmptyString(body.entryFile);
@@ -15691,6 +16665,7 @@ function parseRenderOptions(body) {
     bufferSize,
     useGpu,
     debug,
+    forceScreenshot,
     strictness,
     entryFile,
     format,
@@ -15715,6 +16690,7 @@ function buildRenderJobConfig(input, outputPath, log) {
   const request = createRenderRequest({
     projectDir: input.projectDir,
     outputPath,
+    engineOverrides: input.forceScreenshot ? { forceScreenshot: true } : void 0,
     options: {
       fps: input.fps,
       quality: input.quality,
@@ -15743,8 +16719,8 @@ function buildRenderJobConfig(input, outputPath, log) {
 function resolvePreparedRenderOutput(prepared, rendersDir, log) {
   const { input, cleanupProjectDir } = prepared;
   const absoluteOutputPath = resolveOutputPath(input.projectDir, input.outputPath, rendersDir, log);
-  const outputDir = dirname13(absoluteOutputPath);
-  if (!existsSync19(outputDir)) mkdirSync11(outputDir, { recursive: true });
+  const outputDir = dirname15(absoluteOutputPath);
+  if (!existsSync23(outputDir)) mkdirSync13(outputDir, { recursive: true });
   return { input, cleanupProjectDir, absoluteOutputPath };
 }
 function validateRenderOverrides(body) {
@@ -15785,11 +16761,11 @@ function prepareProjectDirectory(projectDir, options) {
   const candidate = nonEmptyString(projectDir);
   if (!candidate) return null;
   const absProjectDir = resolve10(candidate);
-  if (!existsSync19(absProjectDir) || !statSync10(absProjectDir).isDirectory()) {
+  if (!existsSync23(absProjectDir) || !statSync11(absProjectDir).isDirectory()) {
     return { error: `Project directory not found: ${absProjectDir}` };
   }
   const entry = options.entryFile || "index.html";
-  if (!existsSync19(resolve10(absProjectDir, entry))) {
+  if (!existsSync23(resolve10(absProjectDir, entry))) {
     return { error: `Entry file "${entry}" not found in project directory: ${absProjectDir}` };
   }
   return { prepared: { input: { projectDir: absProjectDir, ...options } } };
@@ -15810,8 +16786,8 @@ async function resolveInlineRenderHtml(body) {
 }
 function materializeInlineProject(html, options) {
   const tempRoot = process.env.PRODUCER_TMP_PROJECT_DIR || tmpdir3();
-  const tempProjectDir = mkdtempSync4(join31(tempRoot, "producer-project-"));
-  writeFileSync7(join31(tempProjectDir, "index.html"), html, "utf-8");
+  const tempProjectDir = mkdtempSync4(join35(tempRoot, "producer-project-"));
+  writeFileSync8(join35(tempProjectDir, "index.html"), html, "utf-8");
   return {
     prepared: {
       input: { projectDir: tempProjectDir, ...options },
@@ -15872,7 +16848,7 @@ function createArtifactStore(ttlMs) {
 function cleanupTempDir(dir, log) {
   if (!dir) return;
   try {
-    rmSync11(dir, { recursive: true, force: true });
+    rmSync13(dir, { recursive: true, force: true });
   } catch (error) {
     log.warn("Failed to cleanup temp project dir", {
       cleanupProjectDir: dir,
@@ -15881,7 +16857,7 @@ function cleanupTempDir(dir, log) {
   }
 }
 function outputFileSize(path) {
-  return existsSync19(path) ? statSync10(path).size : 0;
+  return existsSync23(path) ? statSync11(path).size : 0;
 }
 function createBlockingProgressReporter(log, requestId) {
   let lastLoggedPct = -10;
@@ -16068,6 +17044,7 @@ function createRenderHandlers(options = {}) {
         outputUrl,
         fileSize,
         durationMs,
+        ...referenceBackgroundResult5(job[REFERENCE_BACKGROUND_FIELD3]),
         videoDurationSeconds: job.duration ?? null,
         outcome: job.outcome ?? "completed",
         warnings: job.warnings,
@@ -16155,6 +17132,7 @@ function createRenderHandlers(options = {}) {
             outputToken,
             outputUrl,
             fileSize,
+            ...referenceBackgroundResult5(job[REFERENCE_BACKGROUND_FIELD3]),
             videoDurationSeconds: job.duration ?? null,
             outcome: job.outcome ?? "completed",
             warnings: job.warnings,
@@ -16183,11 +17161,11 @@ function createRenderHandlers(options = {}) {
     if (!artifact) {
       return c.json({ success: false, error: "Output artifact not found or expired" }, 404);
     }
-    if (!existsSync19(artifact.path)) {
+    if (!existsSync23(artifact.path)) {
       store.delete(token);
       return c.json({ success: false, error: "Output artifact file missing" }, 404);
     }
-    const stats = statSync10(artifact.path);
+    const stats = statSync11(artifact.path);
     return new Response(createReadStream3(artifact.path), {
       headers: {
         "content-type": "video/mp4",

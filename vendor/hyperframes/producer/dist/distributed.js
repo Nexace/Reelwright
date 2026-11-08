@@ -1,15 +1,20 @@
 // src/services/distributed/plan.ts
+import {
+  REFERENCE_BACKGROUND_FIELD as REFERENCE_BACKGROUND_FIELD2,
+  referenceBackgroundResult as referenceBackgroundResult4,
+  createReferenceBackgroundRecorder as createReferenceBackgroundRecorder2
+} from "@hyperframes/engine";
 import { audioFailureDiagnostics as audioFailureDiagnostics3 } from "@hyperframes/engine";
 import {
   copyFileSync as copyFileSync6,
   cpSync as cpSync2,
-  existsSync as existsSync15,
+  existsSync as existsSync18,
   linkSync,
   mkdirSync as mkdirSync10,
   rmSync as rmSync7,
-  writeFileSync as writeFileSync7
+  writeFileSync as writeFileSync8
 } from "node:fs";
-import { extname as extname4, isAbsolute as isAbsolute3, join as join22, relative as relative5, sep as sep2 } from "node:path";
+import { extname as extname4, isAbsolute as isAbsolute3, join as join25, relative as relative5, sep as sep2 } from "node:path";
 import {
   fpsToNumber as fpsToNumber9,
   HF_COLOR_GRADING_ATTR as HF_COLOR_GRADING_ATTR2
@@ -20,7 +25,7 @@ import {
   normalizeVp9CpuUsed,
   resolveConfig as resolveConfig3,
   declareContentAddressedUrl,
-  renameWithRetry as renameWithRetry7,
+  renameWithRetry as renameWithRetry8,
   declareProbeFactsUrl
 } from "@hyperframes/engine";
 
@@ -66,13 +71,12 @@ var defaultLogger = createConsoleLogger("info");
 // src/services/renderOrchestrator.ts
 import { audioFailureDiagnostics as audioFailureDiagnostics2 } from "@hyperframes/engine";
 import {
-  existsSync as existsSync10,
+  existsSync as existsSync13,
   mkdirSync as mkdirSync6,
-  readFileSync as readFileSync6,
   readdirSync as readdirSync3,
   rmSync as rmSync5,
   statSync as statSync5,
-  writeFileSync as writeFileSync4,
+  writeFileSync as writeFileSync5,
   copyFileSync as copyFileSync5,
   appendFileSync
 } from "fs";
@@ -86,7 +90,6 @@ import {
   toFps as toFps2
 } from "@hyperframes/core";
 import { HF_AUDIO_GROUP_TAG } from "@hyperframes/core/audio-groups";
-import { extractStandaloneEntryFromIndex, isTemplateEntry } from "@hyperframes/core/compiler";
 import { HTML_BODY_CSS_HEIGHT_FIRST_RE, HTML_BODY_CSS_WIDTH_FIRST_RE } from "@hyperframes/parsers";
 import {
   extractMediaMetadata as extractMediaMetadata4,
@@ -94,7 +97,7 @@ import {
   closeCaptureSession as closeCaptureSession8,
   createCaptureSession as createCaptureSession8,
   initializeSession as initializeSession8,
-  createVideoFrameInjector,
+  createVideoFrameInjector as createVideoFrameInjector2,
   getEncoderPreset as getEncoderPreset3,
   distributeFrames as distributeFrames2,
   distributeFramesInterleaved as distributeFramesInterleaved2,
@@ -118,9 +121,14 @@ import {
   isDrawElementCaptureError,
   getDrawElementVerificationDetails,
   augmentProtocolTimeoutError,
-  augmentPageNavigationTimeoutError
+  augmentPageNavigationTimeoutError,
+  displaySize
 } from "@hyperframes/engine";
-import { join as join14, dirname as dirname8, resolve as resolve7 } from "path";
+import {
+  referenceBackgroundResult,
+  createReferenceBackgroundRecorder
+} from "@hyperframes/engine";
+import { join as join16, dirname as dirname10, resolve as resolve7 } from "path";
 import { randomUUID } from "crypto";
 
 // src/services/fileServer.ts
@@ -144,6 +152,7 @@ import { join, extname, resolve as resolve2, sep } from "node:path";
 import { injectScriptsAtHeadStart, injectScriptsIntoHtml } from "@hyperframes/core/compiler";
 import { fpsToNumber } from "@hyperframes/core";
 import { stripSdrPngColourTags } from "@hyperframes/core/compiler/png-colour-tags";
+import { openRangeEnd } from "@hyperframes/studio-server/media-range";
 
 // src/services/hyperframeRuntimeLoader.ts
 import { createHash } from "node:crypto";
@@ -262,7 +271,7 @@ var MIME_TYPES = {
   ".ttf": "font/ttf",
   ".otf": "font/otf"
 };
-function parseRangeHeader(header, size) {
+function parseRangeHeader(header, size, contentType = "application/octet-stream") {
   if (!header) return { kind: "absent" };
   const match = /^\s*bytes\s*=\s*(.*?)\s*$/i.exec(header);
   if (!match) return { kind: "absent" };
@@ -287,7 +296,7 @@ function parseRangeHeader(header, size) {
   if (!Number.isFinite(start)) return { kind: "absent" };
   if (rawEnd === "") {
     if (start >= size) return { kind: "unsatisfiable" };
-    return { kind: "satisfiable", start, end: size - 1 };
+    return { kind: "satisfiable", start, end: openRangeEnd(start, size - 1, contentType) };
   }
   if (!/^\d+$/.test(rawEnd)) return { kind: "absent" };
   const requestedEnd = Number(rawEnd);
@@ -755,7 +764,7 @@ function createFileServer(options) {
       }
       const totalSize = stat.size;
       const rangeHeader = c.req.header("range");
-      const rangeRequest = parseRangeHeader(rangeHeader, totalSize);
+      const rangeRequest = parseRangeHeader(rangeHeader, totalSize, contentType);
       if (rangeRequest.kind === "unsatisfiable") {
         return new Response(null, {
           status: 416,
@@ -1040,6 +1049,21 @@ function reportFrameProgress(job, stage, progress, onProgress, done, total) {
     total
   });
 }
+var lastExtractReportAt = /* @__PURE__ */ new WeakMap();
+function reportExtractProgress(job, done, total, onProgress) {
+  if (total <= 0) return;
+  const frames = Math.min(done, total);
+  reportThrottled(
+    lastExtractReportAt,
+    job,
+    "Extracting video frames",
+    10 + 10 * frames / total,
+    onProgress,
+    frames === total,
+    { code: "extract_video", done: frames, total },
+    "preprocessing"
+  );
+}
 var lastEncodeReportAt = /* @__PURE__ */ new WeakMap();
 function reportEncodeProgress(job, done, total, onProgress, from) {
   if (total <= 0) return;
@@ -1056,6 +1080,14 @@ function reportEncodeProgress(job, done, total, onProgress, from) {
   );
 }
 var workerPhasesByJob = /* @__PURE__ */ new WeakMap();
+function forgetWorkerPhases(job) {
+  workerPhasesByJob.delete(job);
+}
+function describeWorkerPhases(job) {
+  const phases = workerPhasesByJob.get(job);
+  if (!phases?.size) return void 0;
+  return `Last phase per worker: ${[...phases].map(([id, phase]) => `worker ${id} ${phase}`).join(", ")}.`;
+}
 function reportWorkerStartup(job, progress, onProgress) {
   const phase = progress.latestWorkerPhase;
   if (!phase) return;
@@ -1091,27 +1123,25 @@ var materializeFileSystem = {
   rmSync
 };
 var warnedSymlinkFallback = false;
+var copyCannotFix = (error) => ["ENOSPC", "EDQUOT", "EEXIST", "ENOENT"].includes(
+  error?.code ?? ""
+);
 function tryWindowsFrameJunction(fileSystem, src, dest) {
   if (process.platform !== "win32") return false;
   try {
     fileSystem.symlinkSync(src, dest, "junction");
     return true;
   } catch (error) {
-    const code = error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : void 0;
-    if (["EPERM", "EACCES", "UNKNOWN", "EINVAL", "ENOSYS", "EOPNOTSUPP", "ENOTSUP"].includes(
-      code ?? ""
-    )) {
-      return false;
-    }
-    throw error;
+    if (copyCannotFix(error)) throw error;
+    return false;
   }
 }
 function linkOrCopyFrameDir(fileSystem, src, dest) {
   try {
     fileSystem.symlinkSync(src, dest, "dir");
   } catch (err) {
+    if (copyCannotFix(err)) throw err;
     const code = err?.code;
-    if (code !== "EPERM" && code !== "EACCES" && code !== "UNKNOWN") throw err;
     if (tryWindowsFrameJunction(fileSystem, src, dest)) return;
     if (!warnedSymlinkFallback) {
       warnedSymlinkFallback = true;
@@ -1288,6 +1318,7 @@ import {
   getCapturePerfSummary as getCapturePerfSummary2,
   initializeSession as initializeSession2,
   prepareCaptureSessionForReuse as prepareCaptureSessionForReuse2,
+  resolveDeVerifyMinDb as resolveDeVerifyMinDb2,
   shouldDisableBrowserPoolForParallelWorker,
   spawnStreamingEncoder as spawnStreamingEncoder2
 } from "@hyperframes/engine";
@@ -1402,35 +1433,32 @@ import {
   prepareCaptureSessionForReuse,
   spawnStreamingEncoder
 } from "@hyperframes/engine";
+
+// src/services/render/stallClock.ts
+var SUSPEND_GAP_MS = 15e3;
+function createStallClock(now = () => Date.now()) {
+  let since = now();
+  let seen = since;
+  return {
+    reset() {
+      since = seen = now();
+    },
+    idle(expectedMs) {
+      const at = now();
+      const gap = at - seen;
+      seen = at;
+      if (gap > expectedMs + SUSPEND_GAP_MS) since += gap;
+      return at - since;
+    }
+  };
+}
+
+// src/services/render/stages/captureStreamingStage.ts
 var DEFAULT_CAPTURE_STALL_MS = 6e4;
 function resolveCaptureStallTimeoutMs() {
   const raw = process.env.HF_DE_STALL_MS ?? process.env.HF_DE_PARALLEL_STALL_MS;
   const parsed = raw ? Number(raw) : Number.NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_CAPTURE_STALL_MS;
-}
-
-// src/services/render/segmentManifest.ts
-import { renameWithRetry as renameWithRetry2 } from "@hyperframes/engine";
-
-// src/services/render/hdrMode.ts
-import {
-  analyzeCompositionHdr,
-  formatHdrAutoPromotionWarning,
-  HDR_AUTO_PROMOTION_PIPELINE,
-  isHdrColorSpace,
-  sanitizeHdrAutoPromotionAsset
-} from "@hyperframes/engine";
-function formatCarriesHdr(format) {
-  return format === "mp4";
-}
-function rendersSdrOnly(config) {
-  return config.hdrMode === "force-sdr" || !formatCarriesHdr(config.format ?? "mp4");
-}
-
-// src/services/render/captureBeyondViewport.ts
-function resolveVideoCaptureBeyondViewport(videoCount) {
-  if (videoCount <= 0) return void 0;
-  return true;
 }
 
 // src/services/render/captureCost.ts
@@ -1517,6 +1545,110 @@ async function measureCaptureCostFromSession(session, totalFrames, fps, log) {
     estimate,
     samples
   };
+}
+
+// src/services/render/deferredVideoFrames.ts
+import { dirname as dirname3, join as join4 } from "node:path";
+import {
+  createFrameLookupTable,
+  extractVideoFramesRange,
+  runVideoExtractionWithRetry
+} from "@hyperframes/engine";
+function contiguousRuns(sortedIndexes) {
+  const runs2 = [];
+  for (const index of sortedIndexes) {
+    const last = runs2[runs2.length - 1];
+    if (last && last.firstFrame + last.frames === index) last.frames++;
+    else runs2.push({ firstFrame: index, frames: 1 });
+  }
+  return runs2;
+}
+function shownDeferredFrameIndexes(source, frames, fps) {
+  const shown = /* @__PURE__ */ new Map();
+  const deferred = source.extracted.filter((video) => video.deferredRange);
+  if (deferred.length === 0) return shown;
+  const table = createFrameLookupTable(
+    source.videos,
+    deferred.map((video) => ({
+      ...video,
+      outputDir: "",
+      framePaths: new Map(Array.from({ length: video.totalFrames }, (_, i) => [i, String(i)]))
+    })),
+    resolveRenderFpsConfig(fps).value
+  );
+  for (const frame of frames) {
+    const globalTime = frame * fps.den / fps.num;
+    for (const [videoId, payload] of table.getActiveFramePayloads(globalTime)) {
+      const indexes = shown.get(videoId) ?? /* @__PURE__ */ new Set();
+      indexes.add(payload.frameIndex);
+      shown.set(videoId, indexes);
+    }
+  }
+  return shown;
+}
+async function extractDeferredFrames(input) {
+  const deferred = input.extracted.filter((video) => video.deferredRange);
+  if (deferred.length === 0) return [];
+  const shown = shownDeferredFrameIndexes(input, input.frames, input.fps);
+  return Promise.all(
+    deferred.map(async (video) => {
+      const outputDir = join4(input.outputRoot, video.videoId);
+      const indexes = [...shown.get(video.videoId) ?? []].sort((a, b) => a - b);
+      if (indexes.length === 0) {
+        return { ...video, outputDir, framePaths: /* @__PURE__ */ new Map(), ownedByLookup: false };
+      }
+      const range = video.deferredRange;
+      const extracted = await extractVideoFramesRange(
+        input.sourceOf(video),
+        video.videoId,
+        range.startTime,
+        range.durationSeconds,
+        {
+          fps: input.fps,
+          outputDir: input.outputRoot,
+          format: range.format,
+          frameRanges: contiguousRuns(indexes),
+          shownBox: input.shownBoxes?.get(video.videoId)
+        },
+        input.signal,
+        input.cfg
+      );
+      const missing = indexes.find((index) => !extracted.framePaths.has(index));
+      if (missing !== void 0) throw input.onMissingFrame(video, missing);
+      return { ...video, outputDir, framePaths: extracted.framePaths, ownedByLookup: false };
+    })
+  );
+}
+
+// src/services/render/segmentVideoFrames.ts
+import {
+  createFrameLookupTable as createFrameLookupTable2,
+  createVideoFrameInjector
+} from "@hyperframes/engine";
+
+// src/services/render/segmentManifest.ts
+import { renameWithRetry as renameWithRetry2 } from "@hyperframes/engine";
+
+// src/services/render/hdrMode.ts
+import {
+  analyzeCompositionHdr,
+  formatHdrAutoPromotionWarning,
+  gradingKeepsSdr,
+  HDR_AUTO_PROMOTION_PIPELINE,
+  isHdrColorSpace,
+  sanitizeHdrAutoPromotionAsset
+} from "@hyperframes/engine";
+function formatCarriesHdr(format) {
+  return format === "mp4";
+}
+function rendersSdrOnly(config, media) {
+  return config.hdrMode === "force-sdr" || gradingKeepsSdr(config.hdrMode, media) || !formatCarriesHdr(config.format ?? "mp4");
+}
+
+// src/services/render/captureBeyondViewport.ts
+function resolveVideoCaptureBeyondViewport(videoCount) {
+  if (videoCount <= 0) return void 0;
+  return true;
 }
 
 // src/services/render/observability.ts
@@ -1755,51 +1887,51 @@ var RenderStageStalledError = class extends CaptureFailure2 {
   code = "RENDER_STAGE_STALLED";
   owner = "system";
   retryable = false;
-  constructor(phase, silentMs, progress) {
+  constructor(phase, silentMs, progress, detail) {
     super({
       kind: "protocol_timeout",
-      message: `[Render] ${phase} stalled: no progress for ${silentMs}ms (stuck at ${progress}).`
+      message: `[Render] ${phase} stalled: no progress for ${silentMs}ms (stuck at ${progress}).${detail ? ` ${detail}` : ""}`
     });
     this.name = "RenderStageStalledError";
   }
 };
 var STALL_POLL_MS = 5e3;
 function watchStall(phase, rule) {
+  const detail = rule.detail ?? (() => void 0);
   let last = rule.progress();
   let budgetMs = rule.firstProgressMs;
-  let lastChangeAt = Date.now();
+  const silence = createStallClock();
+  const pollMs = Math.min(STALL_POLL_MS, rule.noProgressMs, rule.firstProgressMs);
   let attempt;
   let timer;
   let inTail = false;
   const restartWindow = (ms) => {
     last = rule.progress();
     budgetMs = ms;
-    lastChangeAt = Date.now();
+    silence.reset();
   };
   const tripped = new Promise((_, reject) => {
-    timer = setInterval(
-      () => {
-        const current = rule.progress();
-        if (rule.complete?.() && !inTail) {
-          inTail = true;
-          return restartWindow(rule.tailMs ?? rule.noProgressMs);
-        }
-        if (current !== last) return restartWindow(rule.noProgressMs);
-        if (Date.now() - lastChangeAt < budgetMs) return;
-        const error = new RenderStageStalledError(phase, budgetMs, current);
-        if (attempt && !attempt.signal.aborted) {
-          attempt.abort(error);
-          return restartWindow(rule.noProgressMs);
-        }
-        clearInterval(timer);
-        reject(error);
-      },
-      Math.min(STALL_POLL_MS, rule.noProgressMs, rule.firstProgressMs)
-    );
+    timer = setInterval(() => {
+      const current = rule.progress();
+      if (rule.complete?.() && !inTail) {
+        inTail = true;
+        return restartWindow(rule.tailMs ?? rule.noProgressMs);
+      }
+      if (current !== last) return restartWindow(rule.noProgressMs);
+      if (silence.idle(pollMs) < budgetMs) return;
+      const error = new RenderStageStalledError(phase, budgetMs, current, detail());
+      if (attempt && !attempt.signal.aborted) {
+        attempt.abort(error);
+        return restartWindow(rule.noProgressMs);
+      }
+      clearInterval(timer);
+      reject(error);
+    }, pollMs);
   });
   const openAttempt = (parent) => {
     attempt = new AbortController();
     inTail = false;
+    rule.attemptOpened?.();
     restartWindow(rule.firstProgressMs);
     return parent ? AbortSignal.any([parent, attempt.signal]) : attempt.signal;
   };
@@ -1861,14 +1993,17 @@ import {
 } from "@hyperframes/engine";
 
 // src/services/render/stages/compileStage.ts
-import { join as join7 } from "node:path";
+import { existsSync as existsSync7, writeFileSync as writeFileSync3 } from "node:fs";
+import { join as join8 } from "node:path";
 import { suggestMatchingPreset } from "@hyperframes/core";
+import { extractStandaloneEntryFromIndex, isTemplateEntry } from "@hyperframes/core/compiler";
+import { readTextFile as readTextFile2 } from "@hyperframes/parsers/asset-resolution";
 
 // src/services/htmlCompiler.ts
 import { decodedUrlPath } from "@hyperframes/parsers/asset-paths";
 import { createHash as createHash4 } from "node:crypto";
 import { createReadStream as createReadStream2, existsSync as existsSync6, mkdirSync as mkdirSync4, readFileSync as readFileSync4 } from "fs";
-import { join as join6, dirname as dirname5, resolve as resolve6, basename as basename3, relative as relative2 } from "path";
+import { join as join7, dirname as dirname6, resolve as resolve6, basename as basename3, relative as relative2 } from "path";
 import { parseHTML as parseHTML5 } from "linkedom";
 import {
   COMPOSITION_SOURCE_URL,
@@ -1920,7 +2055,8 @@ import {
 } from "@hyperframes/parsers/sub-composition-validity";
 import {
   isUnresolvedAssetPlaceholder,
-  readProjectFile
+  readProjectFile,
+  readTextFile
 } from "@hyperframes/parsers/asset-resolution";
 
 // src/services/renderMediaCollector.ts
@@ -1942,6 +2078,7 @@ import {
 } from "@hyperframes/core/media-timing";
 import {
   parseVideoElements,
+  hasGradedCanvas,
   parseImageElements,
   parseAudioElements,
   isSelfOrAncestorHidden,
@@ -2076,7 +2213,7 @@ function collectRenderMedia(html) {
     if (placed) audios.push(placed);
     else droppedMediaIds.add(elementId);
   }
-  return { videos, audios, images, droppedMediaIds };
+  return { videos, audios, images, droppedMediaIds, gradedCanvas: hasGradedCanvas(html) };
 }
 function placeAudio(audio, window2) {
   const authoredEnd = audio.end > 0 ? audio.end : Infinity;
@@ -2113,7 +2250,7 @@ import {
 // src/services/animatedGifPrep.ts
 import { createHash as createHash2 } from "node:crypto";
 import { copyFileSync as copyFileSync2, existsSync as existsSync4, mkdirSync as mkdirSync2, readFileSync as readFileSync2, rmSync as rmSync2, statSync as statSync2 } from "node:fs";
-import { dirname as dirname3, isAbsolute as isAbsolute2, join as join4, resolve as resolve4 } from "node:path";
+import { dirname as dirname4, isAbsolute as isAbsolute2, join as join5, resolve as resolve4 } from "node:path";
 import { parseHTML as parseHTML3 } from "linkedom";
 import { parseAnimatedGifMetadata } from "@hyperframes/core";
 import { DEFAULT_VP9_CPU_USED, runFfmpeg as runFfmpeg2, renameWithRetry as renameWithRetry3 } from "@hyperframes/engine";
@@ -2269,11 +2406,11 @@ async function runAnimatedGifTranscode(request) {
   throw result.error ?? new Error(`Animated GIF transcode failed (${result.exitCode}): ${result.stderr.slice(-500)}`);
 }
 async function ensurePreparedWebm(input) {
-  if (!existsSync4(dirname3(input.cachePath))) {
-    mkdirSync2(dirname3(input.cachePath), { recursive: true });
+  if (!existsSync4(dirname4(input.cachePath))) {
+    mkdirSync2(dirname4(input.cachePath), { recursive: true });
   }
-  if (!existsSync4(dirname3(input.outputPath))) {
-    mkdirSync2(dirname3(input.outputPath), { recursive: true });
+  if (!existsSync4(dirname4(input.outputPath))) {
+    mkdirSync2(dirname4(input.outputPath), { recursive: true });
   }
   if (!isUsableFile(input.cachePath)) {
     const tmpPath = `${input.cachePath}.tmp-${process.pid}-${Date.now()}`;
@@ -2356,7 +2493,7 @@ function replaceImageWithVideo(input) {
   return video;
 }
 async function prepareAnimatedGifInputs(html, options) {
-  const outputDir = options.outputDir ?? join4(options.downloadDir, PREPARED_GIF_SUBDIR);
+  const outputDir = options.outputDir ?? join5(options.downloadDir, PREPARED_GIF_SUBDIR);
   const outputSrcPrefix = normalizeRelPath(options.outputSrcPrefix ?? PREPARED_GIF_SUBDIR);
   const cacheDir = options.cacheDir ?? outputDir;
   const { document: document2 } = parseHTML3(html);
@@ -2383,8 +2520,8 @@ async function prepareAnimatedGifInputs(html, options) {
     );
     const hash = computePreparedGifHash(bytes, loopIterations, padSeconds);
     const filename = `${CACHE_SCHEMA}-${hash.slice(0, 24)}.webm`;
-    const cachePath = join4(cacheDir, filename);
-    const outputPath = join4(outputDir, filename);
+    const cachePath = join5(cacheDir, filename);
+    const outputPath = join5(outputDir, filename);
     const outputSrc = `${outputSrcPrefix}/${filename}`;
     await ensurePreparedWebm({
       sourcePath,
@@ -2429,7 +2566,7 @@ import {
   statSync as statSync3,
   writeFileSync as writeFileSync2
 } from "node:fs";
-import { dirname as dirname4, join as join5, resolve as resolve5 } from "node:path";
+import { dirname as dirname5, join as join6, resolve as resolve5 } from "node:path";
 import { parseHTML as parseHTML4 } from "linkedom";
 import { renameWithRetry as renameWithRetry4, runFfmpeg as runFfmpeg3, runFfprobe } from "@hyperframes/engine";
 
@@ -2675,8 +2812,8 @@ function isUsableFile2(path) {
   }
 }
 async function ensurePreparedJpeg(source, cachePath, outputPath, options) {
-  mkdirSync3(dirname4(cachePath), { recursive: true });
-  mkdirSync3(dirname4(outputPath), { recursive: true });
+  mkdirSync3(dirname5(cachePath), { recursive: true });
+  mkdirSync3(dirname5(outputPath), { recursive: true });
   if (!isUsableFile2(cachePath)) {
     const tmpPath = `${cachePath}.tmp-${process.pid}-${Date.now()}`;
     const inlinePath = `${tmpPath}.heic`;
@@ -2703,7 +2840,7 @@ async function ensurePreparedJpeg(source, cachePath, outputPath, options) {
   }
 }
 async function prepareHeifImageInputs(html, options) {
-  const outputDir = options.outputDir ?? join5(options.downloadDir, PREPARED_HEIF_SUBDIR);
+  const outputDir = options.outputDir ?? join6(options.downloadDir, PREPARED_HEIF_SUBDIR);
   const outputSrcPrefix = normalizeRelPath(options.outputSrcPrefix ?? PREPARED_HEIF_SUBDIR);
   const cacheDir = options.cacheDir ?? outputDir;
   const preparedAssets = /* @__PURE__ */ new Map();
@@ -2724,7 +2861,7 @@ async function prepareHeifImageInputs(html, options) {
   await Promise.all(
     [...unique].map(
       ([filename, source]) => withMediaProbeSlot(
-        () => ensurePreparedJpeg(source, join5(cacheDir, filename), join5(outputDir, filename), options)
+        () => ensurePreparedJpeg(source, join6(cacheDir, filename), join6(outputDir, filename), options)
       ).catch((error) => {
         if (!options.onFailure) throw error;
         failed.add(filename);
@@ -2736,8 +2873,8 @@ async function prepareHeifImageInputs(html, options) {
     if (failed.has(filename)) continue;
     const outputSrc = `${outputSrcPrefix}/${filename}`;
     img.setAttribute("src", outputSrc);
-    preparedAssets.set(outputSrc, join5(outputDir, filename));
-    preparedImages.push({ sourceSrc: src, outputSrc, outputPath: join5(outputDir, filename) });
+    preparedAssets.set(outputSrc, join6(outputDir, filename));
+    preparedImages.push({ sourceSrc: src, outputSrc, outputPath: join6(outputDir, filename) });
   }
   return { html: document2.toString(), preparedAssets, preparedImages };
 }
@@ -3061,7 +3198,7 @@ function detectShaderTransitionUsage(html) {
 async function resolveMediaDuration(src, mediaStart, playbackRate, baseDir, downloadDir, tagName, elementIdentity, log, urlByAbsentLocalPath, probes) {
   let filePath = src;
   if (isHttpUrl(src)) {
-    const remoteDir = join6(downloadDir, REMOTE_MEDIA_SUBDIR);
+    const remoteDir = join7(downloadDir, REMOTE_MEDIA_SUBDIR);
     if (!existsSync6(remoteDir)) mkdirSync4(remoteDir, { recursive: true });
     try {
       filePath = await downloadToTemp(src, remoteDir, void 0, void 0, void 0, {
@@ -3072,7 +3209,7 @@ async function resolveMediaDuration(src, mediaStart, playbackRate, baseDir, down
     }
   } else {
     filePath = decodedUrlPath(src);
-    if (!filePath.startsWith("/")) filePath = join6(baseDir, filePath);
+    if (!filePath.startsWith("/")) filePath = join7(baseDir, filePath);
     filePath = urlByAbsentLocalPath?.get(filePath) ?? filePath;
   }
   if (!isHttpUrl(filePath) && !existsSync6(filePath)) {
@@ -3233,7 +3370,7 @@ async function parseSubCompositions(html, projectDir, downloadDir, visited = /* 
     workItems.map(async (item) => {
       const { html: compiledSub } = await compileHtmlFile(
         rewriteUnresolvableGsapToCdn(item.rawSubHtml, projectDir, item.srcPath),
-        dirname5(item.filePath),
+        dirname6(item.filePath),
         downloadDir,
         void 0,
         urlByAbsentLocalPath,
@@ -3710,7 +3847,7 @@ async function localizeRemoteMediaSources(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join6(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join7(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote media download failed",
     "Localized remote media source(s)"
   );
@@ -3725,7 +3862,7 @@ async function localizeRemoteImageSources(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join6(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join7(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote image download failed",
     "Localized remote image source(s)"
   );
@@ -3741,7 +3878,7 @@ async function localizeRemoteBackgroundImages(html, downloadDir) {
   return downloadAndRewriteUrls(
     urlSet,
     html,
-    join6(downloadDir, REMOTE_MEDIA_SUBDIR),
+    join7(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote background-image download failed",
     "Localized remote background-image(s)",
     // Quoted url('..')/url("..") are rewritten by downloadAndRewriteUrls' default
@@ -3840,6 +3977,25 @@ ${fontFaceBlocks.join("\n")}
   }
   return result;
 }
+function projectStylesheetFontFamilies(html, projectDir) {
+  const families = [];
+  for (const [tag] of html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*>/gi)) {
+    const href = /\bhref=["']([^"']+)["']/i.exec(tag)?.[1];
+    if (!href || /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(href)) continue;
+    const sheet = resolve6(projectDir, decodedUrlPath(href).replace(/^(?:\.?\/)+/, ""));
+    if (!isPathInside2(sheet, projectDir) || !existsSync6(sheet)) continue;
+    for (const face of extractFontFaceBlocks(readFileSync4(sheet, "utf8"))) {
+      const family = /font-family\s*:\s*([^;}]+)/i.exec(face)?.[1]?.trim().replace(/^['"]|['"]$/g, "");
+      const shipsFile = [...face.matchAll(LOCAL_FONTFACE_URL_RE)].some(([, url = ""]) => {
+        const path = decodedUrlPath(url);
+        const file = path.startsWith("/") ? resolve6(projectDir, `.${path}`) : resolve6(dirname6(sheet), path);
+        return isPathInside2(file, projectDir) && existsSync6(file);
+      });
+      if (family && shipsFile) families.push(family);
+    }
+  }
+  return families;
+}
 function collectFontFaceUrls(html) {
   const styleBlockRe = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
   const urlSet = /* @__PURE__ */ new Set();
@@ -3870,13 +4026,11 @@ function collectFontFaceUrls(html) {
   }
   return urlSet;
 }
-async function localizeRemoteFontFaces(html, downloadDir) {
-  const processed = await inlineExternalFontStylesheets(html);
-  const urlSet = collectFontFaceUrls(processed);
+function localizeFontFaceUrls(html, downloadDir) {
   return downloadAndRewriteUrls(
-    urlSet,
-    processed,
-    join6(downloadDir, REMOTE_MEDIA_SUBDIR),
+    collectFontFaceUrls(html),
+    html,
+    join7(downloadDir, REMOTE_MEDIA_SUBDIR),
     "Remote font download failed",
     "Localized remote font face(s)",
     (h, url, relPath) => h.replaceAll(`url(${url})`, `url("${relPath}")`)
@@ -3989,7 +4143,7 @@ function rebaseDirectEntryAssetPaths(html, projectDir, htmlPath) {
   const { document: document2 } = parseHTML5(html);
   const assetExists = (path) => existsSync6(resolve6(projectDir, path));
   rewriteAssetPaths(
-    document2.querySelectorAll("[src], [href]"),
+    document2.querySelectorAll("[src], [href], [srcset]"),
     entryPath,
     (el, attr) => el.getAttribute(attr),
     (el, attr, value) => el.setAttribute(attr, value),
@@ -4008,11 +4162,7 @@ function rebaseDirectEntryAssetPaths(html, projectDir, htmlPath) {
   return document2.toString();
 }
 async function compileForRender(projectDir, htmlPath, downloadDir, options = {}) {
-  const entryHtml = rebaseDirectEntryAssetPaths(
-    readFileSync4(htmlPath, "utf-8"),
-    projectDir,
-    htmlPath
-  );
+  const entryHtml = rebaseDirectEntryAssetPaths(readTextFile(htmlPath), projectDir, htmlPath);
   const rawHtml = rewriteUnresolvableGsapToCdn(entryHtml, projectDir);
   assertSubCompositionsUsable(rawHtml, projectDir);
   const probes = /* @__PURE__ */ new Map();
@@ -4047,15 +4197,17 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   const hasShaderTransitions = detectShaderTransitionUsage(sanitizedHtml);
   const usesThreeDTransforms = detectThreeDTransformUsage(sanitizedHtml);
   const hasAncestorBackgroundImage = detectAncestorBackgroundImage(sanitizedHtml);
+  const fontSheetHtml = await inlineExternalFontStylesheets(
+    promoteCssImportsToLinkTags(sanitizedHtml)
+  );
   const normalizedFontHtml = normalizeSystemFontPrimaryFamilies(
-    injectTextRenderingRule(
-      coalesceHeadStylesAndBodyScripts(promoteCssImportsToLinkTags(sanitizedHtml))
-    )
+    injectTextRenderingRule(coalesceHeadStylesAndBodyScripts(fontSheetHtml))
   );
   const coalescedHtml = await injectDeterministicFontFaces(normalizedFontHtml, {
     logger: defaultLogger,
     failClosedFontFetch: options.failClosedFontFetch === true,
     allowSystemFontCapture: options.allowSystemFontCapture,
+    projectFontFamilies: projectStylesheetFontFamilies(fontSheetHtml, projectDir),
     abortSignal: options.abortSignal
   });
   const assembledHtml = await inlineExternalScripts(coalescedHtml);
@@ -4081,7 +4233,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   );
   const { html: htmlWithLocalImages, remoteMediaAssets: remoteImageAssets } = await localizeRemoteImageSources(htmlWithLocalMedia, downloadDir);
   const { html: htmlWithLocalBg, remoteMediaAssets: remoteBgAssets } = await localizeRemoteBackgroundImages(htmlWithLocalImages, downloadDir);
-  const { html: htmlWithLocalizedFonts, remoteMediaAssets: remoteFontAssets } = await localizeRemoteFontFaces(htmlWithLocalBg, downloadDir);
+  const { html: htmlWithLocalizedFonts, remoteMediaAssets: remoteFontAssets } = await localizeFontFaceUrls(htmlWithLocalBg, downloadDir);
   const {
     html: htmlWithJpegs,
     preparedAssets: preparedHeifAssets,
@@ -4131,7 +4283,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
   for (const [relPath, absPath] of preparedHeifAssets) {
     externalAssets.set(relPath, absPath);
   }
-  const { videos, audios, images, droppedMediaIds } = collectRenderMedia(html);
+  const { videos, audios, images, droppedMediaIds, gradedCanvas } = collectRenderMedia(html);
   const masterFxChain = parseMasterFxChain(html);
   const advised = /* @__PURE__ */ new Set();
   for (const video of videos) {
@@ -4170,6 +4322,7 @@ async function compileForRender(projectDir, htmlPath, downloadDir, options = {})
     audios,
     images,
     droppedMediaIds,
+    gradedCanvas,
     ...masterFxChain ? { masterFxChain } : {},
     unresolvedCompositions,
     externalAssets,
@@ -4549,11 +4702,36 @@ function adaptAspectAgnosticResolution(requested, aspectAgnostic, width, height,
   });
   return flipped;
 }
+function resolveEntryHtmlPath(input) {
+  const { projectDir, workDir, entryFile, log } = input;
+  const htmlPath = join8(projectDir, entryFile);
+  const rawEntry = readTextFile2(htmlPath);
+  if (entryFile === "index.html" || !isTemplateEntry(rawEntry)) return htmlPath;
+  const projectIndexPath = join8(projectDir, "index.html");
+  if (!existsSync7(projectIndexPath)) {
+    throw new Error(
+      `Template entry file "${entryFile}" requires a project index.html to extract its render shell.`
+    );
+  }
+  const standaloneHtml = extractStandaloneEntryFromIndex(
+    readTextFile2(projectIndexPath),
+    entryFile,
+    rawEntry
+  );
+  if (!standaloneHtml) {
+    throw new Error(
+      `Entry file "${entryFile}" is not mounted from index.html via data-composition-src, so it cannot be rendered independently.`
+    );
+  }
+  const wrapperPath = join8(workDir, "standalone-entry.html");
+  writeFileSync3(wrapperPath, standaloneHtml, "utf-8");
+  log.info("Extracted standalone entry from index.html host context", { entryFile });
+  return wrapperPath;
+}
 async function runCompileStage(input) {
   const {
     projectDir,
     workDir,
-    htmlPath,
     entryFile,
     job,
     cfg,
@@ -4564,8 +4742,9 @@ async function runCompileStage(input) {
     allowSystemFontCapture,
     abortSignal
   } = input;
+  const htmlPath = resolveEntryHtmlPath({ projectDir, workDir, entryFile, log });
   const compileStart = Date.now();
-  const compiled = await compileForRender(projectDir, htmlPath, join7(workDir, "downloads"), {
+  const compiled = await compileForRender(projectDir, htmlPath, join8(workDir, "downloads"), {
     log,
     failClosedFontFetch: failClosedFontFetch === true,
     allowSystemFontCapture,
@@ -4573,7 +4752,7 @@ async function runCompileStage(input) {
     variables: input.variables,
     urlByAbsentLocalPath: input.urlByAbsentLocalPath,
     pageMotionBlur: input.pageMotionBlur,
-    animatedGifCacheDir: cfg.extractCacheDir ? join7(cfg.extractCacheDir, "animated-gif") : void 0,
+    animatedGifCacheDir: cfg.extractCacheDir ? join8(cfg.extractCacheDir, "animated-gif") : void 0,
     ffmpegProcessTimeout: cfg.ffmpegProcessTimeout
   });
   assertNotAborted();
@@ -4623,13 +4802,14 @@ async function runCompileStage(input) {
     videos: compiled.videos,
     audios: compiled.audios,
     images: compiled.images,
+    gradedCanvas: compiled.gradedCanvas,
     masterFxChain: compiled.masterFxChain,
     width: compiled.width,
     height: compiled.height
   };
   await preflightCompositionAssetMediaTypes({
     projectDir,
-    compiledDir: join7(workDir, "compiled"),
+    compiledDir: join8(workDir, "compiled"),
     composition,
     signal: abortSignal
   });
@@ -4675,7 +4855,7 @@ async function runCompileStage(input) {
 
 // src/services/render/stages/probeStage.ts
 import { createHash as createHash5 } from "node:crypto";
-import { basename as basename4, join as join8 } from "node:path";
+import { basename as basename4, join as join9 } from "node:path";
 import { parseHTML as parseHTML6 } from "linkedom";
 import {
   closeCaptureSession as closeCaptureSession4,
@@ -4861,7 +5041,7 @@ async function runProbeStage(input) {
   );
   const hasVariableMedia = hasVariableBoundMedia(compiled.html, job.config.variables);
   const hasInsertedMedia = hasRuntimeMediaChanges(compiled.html);
-  const needsBrowser = probeRequiresBrowser({
+  const needsBrowser = cfg.videoLayerPassthrough || probeRequiresBrowser({
     durationSeconds: composition.duration,
     unresolvedCompositionCount: compiled.unresolvedCompositions.length,
     hasAutoStart,
@@ -4884,7 +5064,7 @@ async function runProbeStage(input) {
       });
       fileServer = await createFileServer({
         projectDir,
-        compiledDir: join8(workDir, "compiled"),
+        compiledDir: join9(workDir, "compiled"),
         port: 0,
         preHeadScripts: [VIRTUAL_TIME_SHIM],
         fps: job.config.fps
@@ -4893,6 +5073,7 @@ async function runProbeStage(input) {
       const motionBlur = job.config.motionBlur;
       const captureFormat = resolveCaptureImageFormat({ needsAlpha, motionBlur });
       const captureOpts = {
+        recordReferenceBackground: input.recordReferenceBackground,
         width,
         height,
         fps: job.config.fps,
@@ -4913,7 +5094,7 @@ async function runProbeStage(input) {
           log.info("Creating capture session...", { attempt, maxAttempts: PROBE_MAX_ATTEMPTS });
           probeSession = await createCaptureSession4(
             fileServer.url,
-            join8(workDir, "probe"),
+            join9(workDir, "probe"),
             captureOpts,
             null,
             probeCfg
@@ -4998,7 +5179,7 @@ async function runProbeStage(input) {
           });
           probeSession = await createCaptureSession4(
             fileServer.url,
-            join8(workDir, "probe-screenshot"),
+            join9(workDir, "probe-screenshot"),
             captureOpts,
             null,
             { ...probeCfg, forceScreenshot: true }
@@ -5036,7 +5217,7 @@ async function runProbeStage(input) {
             compiled,
             resolutions,
             projectDir,
-            join8(workDir, "downloads")
+            join9(workDir, "downloads")
           );
           assertNotAborted();
           composition.videos = compiled.videos;
@@ -5227,7 +5408,7 @@ async function runProbeStage(input) {
     }
     await preflightCompositionAssetMediaTypes({
       projectDir,
-      compiledDir: join8(workDir, "compiled"),
+      compiledDir: join9(workDir, "compiled"),
       composition,
       signal: abortSignal
     });
@@ -5393,14 +5574,15 @@ function validateDistributedDuration(input) {
 }
 
 // src/services/render/stages/extractVideosStage.ts
-import { existsSync as existsSync7 } from "node:fs";
-import { join as join9 } from "node:path";
+import { existsSync as existsSync8 } from "node:fs";
+import { join as join10 } from "node:path";
 import {
   classifyVideoExtractionError,
-  createFrameLookupTable,
+  createFrameLookupTable as createFrameLookupTable3,
   detectTransfer,
   extractAllVideoFrames,
   extractMediaMetadata as extractMediaMetadata3,
+  gradingKeepsSdr as gradingKeepsSdr2,
   isVideoPastTimelineEnd,
   isHdrColorSpace as isHdrColorSpace2,
   rebaseVideoToWindow,
@@ -5408,7 +5590,7 @@ import {
   resolveVideoExtractionWindow as resolveVideoExtractionWindow2,
   isHttpUrl as isHttpUrl2,
   resolveProjectRelativeSrc as resolveProjectRelativeSrc3,
-  runVideoExtractionWithRetry,
+  runVideoExtractionWithRetry as runVideoExtractionWithRetry2,
   safeVideoExtractionSourceIdentity,
   videoAudioId as videoAudioId2
 } from "@hyperframes/engine";
@@ -5492,17 +5674,23 @@ function resolveVideoExtractionPolicy(env = process.env) {
   const maxTransientRetries = failureMode !== "off" && env.HF_VIDEO_EXTRACTION_MAX_RETRIES?.trim() === "1" ? 1 : 0;
   return { failureMode, maxTransientRetries };
 }
+var MAX_NAMED_SOURCES = 5;
 var VideoExtractionStageError = class extends Error {
   constructor(code, retryable, failures, extractionFailure = buildExtractionFailureMetadata(
     failures.map((failure) => ({
       kind: failure.kind,
       affectedElementCount: failure.count
     }))
-  ), ffmpegReason) {
+  ), ffmpegReason, sources = []) {
     const total = failures.reduce((sum2, failure) => sum2 + failure.count, 0);
     const breakdown = failures.map((failure) => `${failure.kind}=${failure.count}`).join(",");
     const reason = ffmpegReason ? `: ffmpeg said: ${ffmpegReason}` : "";
-    super(`Video extraction failed for ${total} source(s) [${code}; ${breakdown}]${reason}`);
+    const shown = sources.slice(0, MAX_NAMED_SOURCES).join(", ");
+    const more = sources.length > MAX_NAMED_SOURCES ? ` and ${sources.length - MAX_NAMED_SOURCES} more` : "";
+    const files = sources.length > 0 ? ` (${shown}${more})` : "";
+    super(
+      `Video extraction failed for ${total} source(s) [${code}; ${breakdown}]${files}${reason}`
+    );
     this.code = code;
     this.retryable = retryable;
     this.failures = failures;
@@ -5522,17 +5710,24 @@ var VideoExtractionStageError = class extends Error {
   publicMetadata;
 };
 function assertVideoExtractionSucceeded(result) {
-  throwIfEncoderInterrupted(result);
+  throwIfHostFailure(result);
   const error = buildVideoExtractionStageError(result);
   if (error) throw error;
 }
-function throwIfEncoderInterrupted(result) {
+function throwIfHostFailure(result) {
   const interrupted = result.errors.find((failure) => failure.kind === "external_interruption");
-  if (!interrupted) return;
-  throw encoderFailureError("Video frame extraction failed", {
-    error: String(interrupted.error),
-    failureReason: "external_interruption"
-  });
+  if (interrupted) {
+    throw encoderFailureError("Video frame extraction failed", {
+      error: String(interrupted.error),
+      failureReason: "external_interruption"
+    });
+  }
+  const full = result.errors.filter((failure) => failure.kind === "disk_full").length;
+  if (full === 0) return;
+  throw Object.assign(
+    new Error(`ENOSPC: no space left on device, extracting the frames of ${full} video source(s)`),
+    { code: "ENOSPC" }
+  );
 }
 function buildVideoExtractionStageError(result) {
   if (result.success && result.errors.length === 0) return null;
@@ -5550,7 +5745,10 @@ function buildVideoExtractionStageError(result) {
     retryable,
     failures,
     extractionFailureMetadataFromResult(result),
-    result.errors.find((failure) => failure.ffmpegReason)?.ffmpegReason
+    result.errors.find((failure) => failure.ffmpegReason)?.ffmpegReason,
+    [
+      ...new Set(result.errors.flatMap((failure) => failure.source ? [failure.source] : []))
+    ].sort()
   );
 }
 function buildHdrProbeStageError(failures) {
@@ -5629,7 +5827,8 @@ async function runExtractVideosStage(input) {
     assertNotAborted,
     materializeSymlinks,
     deferRangeExtraction,
-    urlByAbsentLocalPath
+    urlByAbsentLocalPath,
+    skipFrameExtractionIds = []
   } = input;
   const stage2Start = Date.now();
   const extractionPolicy = resolveVideoExtractionPolicy();
@@ -5641,17 +5840,18 @@ async function runExtractVideosStage(input) {
   let failureToEnforce = null;
   let videoReadinessSkipIds = [];
   let videoMetadataHints = [];
+  const probesHdr = job.config.hdrMode !== "force-sdr" && !gradingKeepsSdr2(job.config.hdrMode, composition);
   const nativeHdrVideoIds = /* @__PURE__ */ new Set();
   const videoTransfers = /* @__PURE__ */ new Map();
   let hdrProbeTransientRetries = 0;
-  if (job.config.hdrMode !== "force-sdr" && composition.videos.length > 0) {
+  if (probesHdr && composition.videos.length > 0) {
     log?.info("Probing video color spaces...", { videoCount: composition.videos.length });
     const probeFailures = await Promise.all(
       composition.videos.map(async (v) => {
         const videoPath = resolveProjectRelativeSrc3(v.src, projectDir, compiledDir);
-        if (!existsSync7(videoPath)) return null;
+        if (!existsSync8(videoPath)) return null;
         try {
-          const attempted = extractionPolicy.maxTransientRetries === 0 ? { result: await extractMediaMetadata3(videoPath), retries: 0 } : await runVideoExtractionWithRetry(() => extractMediaMetadata3(videoPath), {
+          const attempted = extractionPolicy.maxTransientRetries === 0 ? { result: await extractMediaMetadata3(videoPath), retries: 0 } : await runVideoExtractionWithRetry2(() => extractMediaMetadata3(videoPath), {
             signal: abortSignal,
             maxTransientRetries: extractionPolicy.maxTransientRetries,
             onRetry: () => {
@@ -5683,11 +5883,11 @@ async function runExtractVideosStage(input) {
   const imageTransfers = /* @__PURE__ */ new Map();
   const hdrImageSrcPaths = /* @__PURE__ */ new Map();
   const imageColorSpaces = [];
-  if (job.config.hdrMode !== "force-sdr" && composition.images.length > 0) {
+  if (probesHdr && composition.images.length > 0) {
     const probed = await Promise.all(
       composition.images.map(async (img) => {
         const imgPath = resolveProjectRelativeSrc3(img.src, projectDir, compiledDir);
-        if (!existsSync7(imgPath)) return null;
+        if (!existsSync8(imgPath)) return null;
         const colorSpace = await probeColorSpaceSafely(imgPath, log);
         if (isHdrColorSpace2(colorSpace)) {
           nativeHdrImageIds.add(img.id);
@@ -5699,7 +5899,10 @@ async function runExtractVideosStage(input) {
     );
     imageColorSpaces.push(...probed);
   }
-  if (composition.videos.length > 0) {
+  if (skipFrameExtractionIds.length > 0) {
+    await appendVideoAudioFromProbe({ projectDir, compiledDir, composition, urlByAbsentLocalPath });
+    videoReadinessSkipIds = [...skipFrameExtractionIds];
+  } else if (composition.videos.length > 0) {
     const totalVideos = composition.videos.length;
     for (let i = 0; i < totalVideos; i++) {
       const v = composition.videos[i];
@@ -5708,6 +5911,8 @@ async function runExtractVideosStage(input) {
         safeVideoExtractionSourceLogMetadata(v.src)
       );
     }
+    let framesPlanned = 0;
+    let framesDone = 0;
     extractionResult = await extractAllVideoFrames(
       composition.videos,
       projectDir,
@@ -5716,15 +5921,20 @@ async function runExtractVideosStage(input) {
       // because short boundary counts can differ by one frame.
       {
         fps: job.config.fps,
-        outputDir: join9(compiledDir, "__hyperframes_video_frames"),
+        outputDir: join10(compiledDir, "__hyperframes_video_frames"),
         format: job.config.videoFrameFormat ?? "auto",
-        toneMapHdrToSdr: rendersSdrOnly(job.config),
+        toneMapHdrToSdr: rendersSdrOnly(job.config, composition),
         timelineEnd: composition.duration,
         maxTransientRetries: extractionPolicy.maxTransientRetries,
         collectProbeFailures: extractionPolicy.failureMode === "enforce",
         deferRangeExtraction,
-        contentKeyedDirs: [join9(compiledDir, REMOTE_MEDIA_SUBDIR)],
-        urlByAbsentLocalPath
+        contentKeyedDirs: [join10(compiledDir, REMOTE_MEDIA_SUBDIR)],
+        urlByAbsentLocalPath,
+        onProgress: ({ planned = 0, done = 0 }) => {
+          framesPlanned += planned;
+          framesDone += done;
+          reportExtractProgress(job, framesDone, framesPlanned, input.onProgress);
+        }
       },
       abortSignal,
       cfg,
@@ -5732,13 +5942,13 @@ async function runExtractVideosStage(input) {
     );
     extractionResult.phaseBreakdown.transientRetries = (extractionResult.phaseBreakdown.transientRetries ?? 0) + hdrProbeTransientRetries;
     assertNotAborted();
-    throwIfEncoderInterrupted(extractionResult);
+    throwIfHostFailure(extractionResult);
     failureToEnforce = applyVideoExtractionFailurePolicy(extractionResult, extractionPolicy, log);
     materializeExtractedFramesForCompiledDir(extractionResult.extracted, compiledDir, {
       materializeSymlinks
     });
     if (extractionResult.extracted.length > 0) {
-      frameLookup = createFrameLookupTable(
+      frameLookup = createFrameLookupTable3(
         composition.videos,
         extractionResult.extracted,
         resolveRenderFpsConfig(job.config.fps).value
@@ -5797,7 +6007,7 @@ async function appendVideoAudioFromProbe(input) {
     videos.map(async (video) => {
       const path = isHttpUrl2(video.src) ? video.src : resolveProjectRelativeSrc3(video.src, projectDir, compiledDir);
       const readFrom = urlByAbsentLocalPath?.get(path) ?? path;
-      if (!isHttpUrl2(readFrom) && !existsSync7(readFrom)) return null;
+      if (!isHttpUrl2(readFrom) && !existsSync8(readFrom)) return null;
       const metadata = await extractMediaMetadata3(readFrom);
       const window2 = await resolveFinalFrameExtractionWindow2(
         readFrom,
@@ -5816,8 +6026,17 @@ async function appendVideoAudioFromProbe(input) {
   );
 }
 
+// src/services/render/videoLayerPassthroughPlan.ts
+import {
+  buildVideoLayerInput,
+  isHttpUrl as isHttpUrl3,
+  qualifyVideoLayer,
+  resolveProjectRelativeSrc as resolveProjectRelativeSrc4
+} from "@hyperframes/engine";
+
 // src/services/render/stages/audioStage.ts
-import { join as join11 } from "node:path";
+import { existsSync as existsSync10 } from "node:fs";
+import { join as join13 } from "node:path";
 import {
   MIXED_AUDIO_FILENAME,
   audioFailureDiagnostics,
@@ -5826,10 +6045,20 @@ import {
   collectScratchLeftovers
 } from "@hyperframes/engine";
 
+// src/services/render/audioDeliveryLimit.ts
+import { existsSync as existsSync9 } from "node:fs";
+import { dirname as dirname8, join as join12 } from "node:path";
+import {
+  applyAudioFxChain,
+  describeFfmpegFailure as describeFfmpegFailure3,
+  encodeAac as encodeAac2,
+  renameWithRetry as renameWithRetry6
+} from "@hyperframes/engine";
+
 // src/services/render/audioPadTrim.ts
 import { spawn } from "node:child_process";
 import { mkdtempSync } from "node:fs";
-import { dirname as dirname6, join as join10 } from "node:path";
+import { dirname as dirname7, join as join11 } from "node:path";
 import {
   DEFAULT_CONFIG,
   describeFfmpegFailure as describeFfmpegFailure2,
@@ -5940,8 +6169,9 @@ var AUDIO_DURATION_TOLERANCE_SECONDS = 1e-3;
 var AAC_DELIVERY_TRUE_PEAK_DBFS = -1;
 var AAC_TRUE_PEAK_CORRECTION_HEADROOM_DB = 0.5;
 var MAX_TRUE_PEAK_CORRECTION_PASSES = 3;
+var gainFilter = (gainDb) => `volume=${gainDb.toFixed(3)}dB`;
 function aacTruePeakCorrectionFilter(targetDurationSeconds, attenuationDb) {
-  return `volume=${attenuationDb.toFixed(3)}dB,apad,atrim=0:${formatSeconds(targetDurationSeconds)}`;
+  return `${gainFilter(attenuationDb)},apad,atrim=0:${formatSeconds(targetDurationSeconds)}`;
 }
 function buildPadTrimAudioPlan(audioPath, outputPath, sourceDurationSeconds, targetDurationSeconds) {
   const delta = targetDurationSeconds - sourceDurationSeconds;
@@ -5979,7 +6209,7 @@ async function padOrTrimAudioToVideoFrameCount(input) {
   const probeAudio = input.probeAudioInfo ?? defaultProbeAudioInfo;
   const timeoutMs = input.timeoutMs ?? DEFAULT_CONFIG.ffmpegProcessTimeout;
   const runner = input.runFfmpeg ?? ((args) => defaultRunFfmpeg(args, timeoutMs, input.signal));
-  const encode = input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal);
+  const encode = input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath);
   const probeTruePeak = input.probeAudioTruePeakDbfs ?? (input.runFfmpeg || input.encodeAac ? void 0 : (audioPath, signal) => measureTruePeakDbfs(audioPath, { timeoutMs, signal }));
   const [videoResult, audioResult] = await Promise.allSettled([
     probeVideo(input.videoPath),
@@ -6019,22 +6249,27 @@ async function padOrTrimAudioToVideoFrameCount(input) {
     );
   }
   const targetDurationSeconds = videoInfo.frameCount * videoInfo.fpsDen / videoInfo.fpsNum;
-  const plan2 = buildPadTrimAudioPlan(
+  const plan = buildPadTrimAudioPlan(
     input.audioPath,
     input.outputPath,
     audioInfo.durationSeconds,
     targetDurationSeconds
   );
   try {
-    for (const step of plan2.steps) {
-      const ffmpegResult = step.kind === "copy" ? await runner(step.args) : await encode(input.audioPath, input.outputPath, targetDurationSeconds, step.filter);
+    for (const step of plan.steps) {
+      const ffmpegResult = step.kind === "copy" ? await runner(step.args) : await encode(
+        input.sourcePath ?? input.audioPath,
+        input.outputPath,
+        targetDurationSeconds,
+        step.filter
+      );
       if (!ffmpegResult.success) {
         return {
           success: false,
           outputPath: input.outputPath,
           targetDurationSeconds,
           sourceDurationSeconds: audioInfo.durationSeconds,
-          operation: plan2.operation,
+          operation: plan.operation,
           error: ffmpegResult.error,
           failureReason: ffmpegResult.failureReason
         };
@@ -6046,16 +6281,17 @@ async function padOrTrimAudioToVideoFrameCount(input) {
       outputPath: input.outputPath,
       targetDurationSeconds,
       sourceDurationSeconds: audioInfo.durationSeconds,
-      operation: plan2.operation,
-      error: `audioPadTrim: failed to materialize ${plan2.operation}: ${err instanceof Error ? err.message : String(err)}`
+      operation: plan.operation,
+      error: `audioPadTrim: failed to materialize ${plan.operation}: ${err instanceof Error ? err.message : String(err)}`
     };
   } finally {
-    for (const path of plan2.cleanupPaths) removeScratch(path);
+    for (const path of plan.cleanupPaths) removeScratch(path);
   }
   let loweredDb = 0;
   if (probeTruePeak) {
     const correction = await enforceAacTruePeak({
       audioPath: input.outputPath,
+      sourcePath: input.sourcePath,
       targetDurationSeconds,
       signal: input.signal,
       probeTruePeak,
@@ -6067,7 +6303,7 @@ async function padOrTrimAudioToVideoFrameCount(input) {
         outputPath: input.outputPath,
         targetDurationSeconds,
         sourceDurationSeconds: audioInfo.durationSeconds,
-        operation: plan2.operation,
+        operation: plan.operation,
         error: correction.error,
         failureReason: correction.failureReason
       };
@@ -6079,7 +6315,7 @@ async function padOrTrimAudioToVideoFrameCount(input) {
     outputPath: input.outputPath,
     targetDurationSeconds,
     sourceDurationSeconds: audioInfo.durationSeconds,
-    operation: plan2.operation,
+    operation: plan.operation,
     ...loweredDb > 0 ? { audioLoweredDb: loweredDb } : {}
   };
 }
@@ -6091,14 +6327,32 @@ async function constrainAacTruePeak(input) {
     targetDurationSeconds: input.targetDurationSeconds,
     signal: input.signal,
     probeTruePeak: input.probeTruePeakDbfs ?? ((audioPath, signal) => measureTruePeakDbfs(audioPath, { timeoutMs, signal })),
-    encode: input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath)
+    encode: input.encodeAac ?? defaultAacEncoder(timeoutMs, input.signal, input.sourcePath),
+    rewriteSource: input.rewriteSource ?? ((sourcePath, outputPath, filter) => defaultRunFfmpeg(
+      ["-i", sourcePath, "-af", filter, "-c:a", "pcm_f32le", "-y", outputPath],
+      timeoutMs,
+      input.signal
+    ))
   });
+}
+async function cutSource(input, scratchDir, attenuationDb) {
+  if (!input.sourcePath || !input.rewriteSource) return true;
+  const cutPath = join11(scratchDir, "source.wav");
+  try {
+    const result = await input.rewriteSource(input.sourcePath, cutPath, gainFilter(attenuationDb));
+    if (!result.success) throw new Error(result.error);
+    renameWithRetry5(cutPath, input.sourcePath, { copyFallback: true });
+    return true;
+  } catch {
+    removeScratch(input.sourcePath);
+    return false;
+  }
 }
 async function enforceAacTruePeak(input) {
   let scratchDir;
   try {
-    scratchDir = mkdtempSync(join10(dirname6(input.audioPath), ".true-peak-"));
-    const correctedPath = join10(scratchDir, "audio.m4a");
+    scratchDir = mkdtempSync(join11(dirname7(input.audioPath), ".true-peak-"));
+    const correctedPath = join11(scratchDir, "audio.m4a");
     const measurements = [];
     let attenuationDb = 0;
     let sourcePeakDbfs;
@@ -6113,8 +6367,10 @@ async function enforceAacTruePeak(input) {
       }
       if (truePeakDbfs <= AAC_DELIVERY_TRUE_PEAK_DBFS) {
         if (measuredPath !== correctedPath) return { success: true };
+        const sourceCut = await cutSource(input, scratchDir, attenuationDb);
         renameWithRetry5(correctedPath, input.audioPath, { copyFallback: true });
-        return { success: true, loweredDb: Number((-attenuationDb).toFixed(2)) };
+        const loweredDb = Number((-attenuationDb).toFixed(2));
+        return sourceCut ? { success: true, loweredDb } : { success: true, loweredDb, sourceStale: true };
       }
       if (pass === MAX_TRUE_PEAK_CORRECTION_PASSES) break;
       const headroomDb = AAC_TRUE_PEAK_CORRECTION_HEADROOM_DB * 2 ** pass;
@@ -6124,7 +6380,7 @@ async function enforceAacTruePeak(input) {
       const referenceDbfs = Math.max(truePeakDbfs, (sourcePeakDbfs ?? -Infinity) + attenuationDb);
       attenuationDb += AAC_DELIVERY_TRUE_PEAK_DBFS - headroomDb - referenceDbfs;
       const result = await input.encode(
-        input.audioPath,
+        input.sourcePath ?? input.audioPath,
         correctedPath,
         input.targetDurationSeconds,
         aacTruePeakCorrectionFilter(input.targetDurationSeconds, attenuationDb)
@@ -6286,6 +6542,75 @@ async function runFfprobeJson(args, signal) {
   }
 }
 
+// src/services/render/audioDeliveryLimit.ts
+var LIMIT_PASSES = 3;
+var LOWEST_CEILING_DBTP = AAC_DELIVERY_TRUE_PEAK_DBFS - 2;
+var PASS_HEADROOM_DB = 0.05;
+var limitChain = (ceiling) => ({
+  version: 1,
+  nodes: [{ type: "truepeak", id: "delivery", params: { ceiling } }]
+});
+async function limitDeliveryPeaks(input, deps = {
+  measure: measureTruePeakDbfs,
+  applyChain: applyAudioFxChain,
+  encode: encodeAac2,
+  rename: renameWithRetry6,
+  sourceExists: existsSync9
+}) {
+  const { audioPath, sourcePath, signal, timeoutMs } = input;
+  if (!deps.sourceExists(sourcePath)) return { success: true };
+  const peak = await deps.measure(audioPath, { timeoutMs, signal });
+  if (peak <= AAC_DELIVERY_TRUE_PEAK_DBFS) return { success: true };
+  const alternating = ["a", "b"].map(
+    (k) => join12(dirname8(sourcePath), `audio-source-limited-${k}.wav`)
+  );
+  let encodedFrom;
+  let ceiling = AAC_DELIVERY_TRUE_PEAK_DBFS;
+  for (let pass = 0; pass < LIMIT_PASSES; pass++) {
+    const limitedPath = alternating[pass % 2];
+    const result = await limitPass(input, deps, ceiling, limitedPath);
+    if ("encodeFailure" in result) return result.encodeFailure;
+    if ("limitFailed" in result) break;
+    encodedFrom = limitedPath;
+    if (result.peak <= AAC_DELIVERY_TRUE_PEAK_DBFS || ceiling <= LOWEST_CEILING_DBTP) break;
+    ceiling = Math.max(
+      ceiling - (result.peak - AAC_DELIVERY_TRUE_PEAK_DBFS) - PASS_HEADROOM_DB,
+      LOWEST_CEILING_DBTP
+    );
+  }
+  if (encodedFrom) deps.rename(encodedFrom, sourcePath, { copyFallback: true });
+  return { success: true };
+}
+async function limitPass(input, deps, ceiling, limitedPath) {
+  const { audioPath, sourcePath, signal, timeoutMs } = input;
+  try {
+    await deps.applyChain(sourcePath, limitChain(ceiling), limitedPath, {
+      trackId: "delivery",
+      signal
+    });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    input.warn?.("[audio] true-peak limit failed, the whole-mix cut applies", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return { limitFailed: true };
+  }
+  const encoded = await deps.encode(limitedPath, audioPath, input.targetDurationSeconds, {
+    signal,
+    timeout: timeoutMs
+  });
+  if (!encoded.success) {
+    return {
+      encodeFailure: {
+        success: false,
+        error: `[audioDeliveryLimit] ${describeFfmpegFailure3(encoded, timeoutMs)}`,
+        failureReason: encoded.failureReason
+      }
+    };
+  }
+  return { peak: await deps.measure(audioPath, { timeoutMs, signal }) };
+}
+
 // src/services/render/stages/audioStage.ts
 function assertAudioNotInterrupted(failures) {
   const interrupted = failures?.find((failure) => failure.reason === "external_interruption");
@@ -6309,28 +6634,55 @@ function runAudioStage(input) {
 }
 async function runAudioStageScoped(input) {
   const stageStart = Date.now();
-  const pcmSourcePath = join11(input.workDir, "audio-source.wav");
+  const pcmSourcePath = join13(input.workDir, "audio-source.wav");
   const duration = input.totalFrames * input.fps.den / input.fps.num;
+  let deliverySourcePath;
   try {
     const result = await mixAudioForDelivery(input, duration, pcmSourcePath);
     let audioLoweredDb;
     if (result.hasAudio) {
       const guardStart = Date.now();
-      const peak = await constrainAacTruePeak({
-        audioPath: result.audioOutputPath,
-        sourcePath: pcmSourcePath,
-        targetDurationSeconds: duration,
-        signal: input.abortSignal,
-        timeoutMs: input.ffmpegProcessTimeout
-      });
-      if (!peak.success) throw encoderFailureError("Audio true-peak check failed", peak);
-      audioLoweredDb = peak.loweredDb;
+      const guard = await guardDeliveryPeaks(
+        input,
+        result.audioOutputPath,
+        pcmSourcePath,
+        duration
+      );
+      audioLoweredDb = guard.loweredDb;
       input.log?.info("[audio] phases", { ...result.audioPhaseMs, guard: Date.now() - guardStart });
+      if (input.keepDeliverySource && !guard.sourceStale && existsSync10(pcmSourcePath)) {
+        deliverySourcePath = pcmSourcePath;
+      }
     }
-    return { ...result, audioLoweredDb, audioProcessMs: Date.now() - stageStart };
+    return {
+      ...result,
+      audioLoweredDb,
+      deliverySourcePath,
+      audioProcessMs: Date.now() - stageStart
+    };
   } finally {
-    removeScratch2(pcmSourcePath);
+    if (!deliverySourcePath) removeScratch2(pcmSourcePath);
   }
+}
+async function guardDeliveryPeaks(input, audioPath, sourcePath, duration) {
+  const limited = await limitDeliveryPeaks({
+    audioPath,
+    sourcePath,
+    targetDurationSeconds: duration,
+    signal: input.abortSignal,
+    timeoutMs: input.ffmpegProcessTimeout,
+    warn: (message, details) => input.log?.warn?.(message, details)
+  });
+  if (!limited.success) throw encoderFailureError("Audio true-peak limit failed", limited);
+  const peak = await constrainAacTruePeak({
+    audioPath,
+    sourcePath,
+    targetDurationSeconds: duration,
+    signal: input.abortSignal,
+    timeoutMs: input.ffmpegProcessTimeout
+  });
+  if (!peak.success) throw encoderFailureError("Audio true-peak check failed", peak);
+  return { loweredDb: peak.loweredDb, sourceStale: peak.sourceStale };
 }
 async function mixAudioForDelivery(input, duration, pcmSourcePath) {
   const {
@@ -6347,7 +6699,7 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
     assertNotAborted,
     log
   } = input;
-  const audioOutputPath = join11(workDir, MIXED_AUDIO_FILENAME);
+  const audioOutputPath = join13(workDir, MIXED_AUDIO_FILENAME);
   let hasAudio = false;
   let audioError;
   let audioFailures;
@@ -6358,7 +6710,7 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
       audioResult = await processCompositionAudio(
         audios,
         projectDir,
-        join11(workDir, "audio-work"),
+        join13(workDir, "audio-work"),
         audioOutputPath,
         duration,
         abortSignal,
@@ -6426,8 +6778,8 @@ async function mixAudioForDelivery(input, duration, pcmSourcePath) {
 }
 
 // src/services/render/stages/captureStage.ts
-import { existsSync as existsSync8, readdirSync, statfsSync } from "node:fs";
-import { join as join12 } from "node:path";
+import { existsSync as existsSync11, readdirSync, statfsSync } from "node:fs";
+import { join as join14 } from "node:path";
 import {
   classifyCaptureFailure as classifyCaptureFailure2,
   frameFileExtension,
@@ -6478,16 +6830,16 @@ function diskCaptureShortfallError(needBytes, freeBytes, framesDir, basis, remed
 }
 function measureCaptureFrameBytes(workDir, framesDir) {
   let total = sampleDirectoryBytes(framesDir);
-  if (!existsSync8(workDir)) return total;
+  if (!existsSync11(workDir)) return total;
   for (const attempt of readdirSync(workDir)) {
     if (/^retry-\d+-batch-\d+-worker-\d+$/.test(attempt)) {
-      total += sampleDirectoryBytes(join12(workDir, attempt));
+      total += sampleDirectoryBytes(join14(workDir, attempt));
       continue;
     }
     if (!/^capture-attempt-\d+$/.test(attempt)) continue;
-    const attemptDir = join12(workDir, attempt);
+    const attemptDir = join14(workDir, attempt);
     for (const name of readdirSync(attemptDir)) {
-      if (/^worker-\d+$/.test(name)) total += sampleDirectoryBytes(join12(attemptDir, name));
+      if (/^worker-\d+$/.test(name)) total += sampleDirectoryBytes(join14(attemptDir, name));
     }
   }
   return total;
@@ -6517,7 +6869,7 @@ async function runCaptureStage(input) {
     job,
     totalFrames,
     cfg,
-    plan: plan2,
+    plan,
     log,
     captureAttempts,
     buildCaptureOptions,
@@ -6528,8 +6880,8 @@ async function runCaptureStage(input) {
     dedupPerfs
   } = input;
   let { probeSession } = input;
-  let { workerCount } = plan2;
-  const { forceScreenshot } = plan2;
+  let { workerCount } = plan;
+  const { forceScreenshot } = plan;
   let lastBrowserConsole = [];
   const workerPageErrors = [];
   let captureBeyondViewport = probeSession?.options.captureBeyondViewport;
@@ -6815,16 +7167,16 @@ import {
 // src/services/render/stages/encodeStage.ts
 import {
   copyFileSync as copyFileSync4,
-  existsSync as existsSync9,
+  existsSync as existsSync12,
   mkdirSync as mkdirSync5,
   readdirSync as readdirSync2,
   readFileSync as readFileSync5,
   rmSync as rmSync4,
   statSync as statSync4,
-  writeFileSync as writeFileSync3
+  writeFileSync as writeFileSync4
 } from "node:fs";
 import { readFile as readFile2 } from "node:fs/promises";
-import { dirname as dirname7, join as join13 } from "node:path";
+import { dirname as dirname9, join as join15 } from "node:path";
 import {
   encodeFramesChunkedConcat,
   encodeFramesFromDir,
@@ -6917,7 +7269,7 @@ async function reencodeWithClearedWholeFrames(argsInput, run, startTime) {
     const error = "[FFmpeg] GIF output could not be parsed to clear its frames";
     return gifEncodeFailure(startTime, outputPath, error);
   }
-  writeFileSync3(outputPath, gif);
+  writeFileSync4(outputPath, gif);
   return null;
 }
 async function encodeGifFromDir(framesDir, framePattern, outputPath, input) {
@@ -6949,7 +7301,7 @@ async function encodeGifFromDir(framesDir, framePattern, outputPath, input) {
       const failure = await reencodeWithClearedWholeFrames(argsInput, run, startTime);
       if (failure) return failure;
     }
-    const fileSize = existsSync9(outputPath) ? statSync4(outputPath).size : 0;
+    const fileSize = existsSync12(outputPath) ? statSync4(outputPath).size : 0;
     return {
       success: true,
       outputPath,
@@ -7035,7 +7387,7 @@ function encodeWhileCapturing(input, totalFrames) {
         await new Promise((resolve10) => wake = resolve10);
       }
       if (signal.aborted) return;
-      const mergedPath = join13(input.framesDir, formatCaptureFrameName(next, "jpg"));
+      const mergedPath = join15(input.framesDir, formatCaptureFrameName(next, "jpg"));
       const frame = await readLandedFrame(landed.get(next), mergedPath);
       landed.delete(next);
       if (!await stream.writeFrame(frame)) {
@@ -7110,7 +7462,7 @@ async function runEncodeStage(input) {
   const stage5Start = Date.now();
   if (isPngSequence) {
     const encoded = startEncodeProgress(job, "Writing PNG sequence", onProgress);
-    if (!existsSync9(outputPath)) mkdirSync5(outputPath, { recursive: true });
+    if (!existsSync12(outputPath)) mkdirSync5(outputPath, { recursive: true });
     const captured = readdirSync2(framesDir).filter((name) => name.endsWith(".png")).sort();
     if (captured.length === 0) {
       throw new Error(
@@ -7118,11 +7470,11 @@ async function runEncodeStage(input) {
       );
     }
     captured.forEach((name, i) => {
-      const dst = join13(outputPath, formatExportFrameName(i, "png"));
-      copyFileSync4(join13(framesDir, name), dst);
+      const dst = join15(outputPath, formatExportFrameName(i, "png"));
+      copyFileSync4(join15(framesDir, name), dst);
     });
-    if (hasAudio && audioOutputPath && existsSync9(audioOutputPath)) {
-      copyFileSync4(audioOutputPath, join13(outputPath, MIXED_AUDIO_FILENAME2));
+    if (hasAudio && audioOutputPath && existsSync12(audioOutputPath)) {
+      copyFileSync4(audioOutputPath, join15(outputPath, MIXED_AUDIO_FILENAME2));
       log.info(
         `[Render] png-sequence: ${MIXED_AUDIO_FILENAME2} sidecar written to ${outputPath}/${MIXED_AUDIO_FILENAME2}`
       );
@@ -7142,7 +7494,7 @@ async function runEncodeStage(input) {
     const encodeResult2 = await encodeGifFromDir(framesDir, framePattern2, outputPath, {
       fps: job.config.fps,
       loop,
-      palettePath: join13(dirname7(videoOnlyPath), "gif-palette.png"),
+      palettePath: join15(dirname9(videoOnlyPath), "gif-palette.png"),
       preserveAlpha: needsAlpha,
       signal: abortSignal,
       timeout: engineCfg.ffmpegEncodeTimeout
@@ -7201,7 +7553,7 @@ function sampleDirectoryBytes(dir) {
       continue;
     }
     for (const name of entries) {
-      const full = join14(current, name);
+      const full = join16(current, name);
       try {
         const st = statSync5(full);
         if (st.isDirectory()) {
@@ -7277,18 +7629,14 @@ function hasUsableVideoDimensions(metadata) {
   return Number.isFinite(metadata.width) && Number.isFinite(metadata.height) && metadata.width > 0 && metadata.height > 0;
 }
 function collectVideoMetadataHints(extractedVideos) {
-  return extractedVideos.filter((video) => hasUsableVideoDimensions(video.metadata)).map((video) => ({
-    id: video.videoId,
-    width: video.metadata.width,
-    height: video.metadata.height
-  })).sort((a, b) => a.id.localeCompare(b.id));
+  return extractedVideos.filter((video) => hasUsableVideoDimensions(video.metadata)).map((video) => ({ id: video.videoId, ...displaySize(video.metadata) })).sort((a, b) => a.id.localeCompare(b.id));
 }
 function findMissingFrameRanges(totalFrames, framesDir, frameExt) {
   const ranges = [];
   let rangeStart = null;
   for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-    const framePath = join14(framesDir, formatCaptureFrameName(frameIndex, frameExt));
-    const missing = !existsSync10(framePath) || statSync5(framePath).size <= 8;
+    const framePath = join16(framesDir, formatCaptureFrameName(frameIndex, frameExt));
+    const missing = !existsSync13(framePath) || statSync5(framePath).size <= 8;
     if (missing && rangeStart === null) {
       rangeStart = frameIndex;
     } else if (!missing && rangeStart !== null) {
@@ -7304,7 +7652,7 @@ function findMissingFrameRanges(totalFrames, framesDir, frameExt) {
 function buildMissingFrameRetryBatches(ranges, maxWorkers, workDir, attempt, rangeStart = 0, stride = 1) {
   const workersPerBatch = Math.max(1, Math.floor(maxWorkers));
   const batches = [];
-  const outputDirFor = (batchIndex, workerId) => join14(workDir, `retry-${attempt}-batch-${batchIndex}-worker-${workerId}`);
+  const outputDirFor = (batchIndex, workerId) => join16(workDir, `retry-${attempt}-batch-${batchIndex}-worker-${workerId}`);
   if (stride > 1) {
     const spans = /* @__PURE__ */ new Map();
     for (const range of ranges) {
@@ -7362,7 +7710,9 @@ function frameStallRule(job, totalFrames) {
     noProgressMs,
     firstProgressMs: Math.max(FIRST_FRAME_STALL_MS, noProgressMs),
     complete: () => (job.framesRendered ?? 0) >= totalFrames,
-    tailMs: Math.max(TAIL_STALL_MS, noProgressMs)
+    tailMs: Math.max(TAIL_STALL_MS, noProgressMs),
+    detail: () => describeWorkerPhases(job),
+    attemptOpened: () => forgetWorkerPhases(job)
   };
 }
 function isRecoverableParallelCaptureError(error) {
@@ -7375,8 +7725,8 @@ function isRecoverableParallelCaptureError(error) {
 function countCapturedFrames(totalFrames, framesDir, frameExt) {
   let captured = 0;
   for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-    const framePath = join14(framesDir, formatCaptureFrameName(frameIndex, frameExt));
-    if (existsSync10(framePath)) captured++;
+    const framePath = join16(framesDir, formatCaptureFrameName(frameIndex, frameExt));
+    if (existsSync13(framePath)) captured++;
   }
   return captured;
 }
@@ -7401,7 +7751,7 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
       reason: attempt === 0 ? "initial" : pendingTransientRetry ? "transient-retry" : "retry"
     });
     pendingTransientRetry = false;
-    const attemptWorkDir = join14(options.workDir, `capture-attempt-${attempt}`);
+    const attemptWorkDir = join16(options.workDir, `capture-attempt-${attempt}`);
     const batches = missingRanges ? buildMissingFrameRetryBatches(
       missingRanges,
       currentWorkers,
@@ -7502,6 +7852,22 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
       }
       const remainingCount = countFrameRanges(remaining);
       const madeProgress = captureAttemptMadeProgress(frameCount, remainingCount);
+      if (options.allowRetry && !madeProgress && (currentWorkers > 1 || initializationRetriesUsed === 0 && failure.kind === "protocol_timeout") && /\bNetwork\.enable timed out|Navigation timeout of \d+ ms exceeded/i.test(failure.message)) {
+        initializationRetriesUsed++;
+        const nextWorkers2 = getNextRetryWorkerCount(currentWorkers);
+        options.log.warn(
+          "[Render] Browser initialization timed out; retrying with fewer workers.",
+          {
+            fromWorkers: currentWorkers,
+            toWorkers: nextWorkers2,
+            error: failure.message
+          }
+        );
+        currentWorkers = nextWorkers2;
+        missingRanges = remaining;
+        attempt++;
+        continue;
+      }
       if (options.allowRetry && isTransientCaptureRetryEligible(failure.kind, remaining, transientRetriesUsed)) {
         transientRetriesUsed++;
         options.log.warn(
@@ -7517,22 +7883,6 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
         missingRanges = remaining;
         attempt++;
         pendingTransientRetry = true;
-        continue;
-      }
-      if (options.allowRetry && !madeProgress && initializationRetriesUsed === 0 && failure.kind === "protocol_timeout" && /\bNetwork\.enable timed out/i.test(failure.message)) {
-        initializationRetriesUsed++;
-        const nextWorkers2 = getNextRetryWorkerCount(currentWorkers);
-        options.log.warn(
-          "[Render] Browser initialization timed out; retrying once with fresh sessions.",
-          {
-            fromWorkers: currentWorkers,
-            toWorkers: nextWorkers2,
-            error: failure.message
-          }
-        );
-        currentWorkers = nextWorkers2;
-        missingRanges = remaining;
-        attempt++;
         continue;
       }
       if (!madeProgress) {
@@ -7559,6 +7909,7 @@ async function executeDiskCaptureWithAdaptiveRetry(options) {
 }
 function createRenderJob(config) {
   return {
+    ...referenceBackgroundResult(void 0),
     id: randomUUID(),
     config: {
       ...config,
@@ -7593,28 +7944,26 @@ function explainStreamingEncodeGate(cfg, outputFormat, workerCount, durationSeco
 var DEFAULT_SEGMENTED_MIN_SECONDS = Number.POSITIVE_INFINITY;
 
 // src/services/distributed/planFrameCost.ts
-import { join as join17 } from "node:path";
+import { join as join19 } from "node:path";
 import {
   closeCaptureSession as closeCaptureSession9,
   createCaptureSession as createCaptureSession9,
-  createFrameLookupTable as createFrameLookupTable3,
+  createFrameLookupTable as createFrameLookupTable4,
   initializeSession as initializeSession9
 } from "@hyperframes/engine";
 
 // src/services/distributed/chunkFrames.ts
-import { existsSync as existsSync12, readdirSync as readdirSync4 } from "node:fs";
-import { extname as extname2, join as join16 } from "node:path";
+import { existsSync as existsSync15, readdirSync as readdirSync4 } from "node:fs";
+import { extname as extname2, join as join18 } from "node:path";
 import {
   compositionRequiresWebGpu as compositionRequiresWebGpu3,
-  createFrameLookupTable as createFrameLookupTable2,
-  createVideoFrameInjector as createVideoFrameInjector2,
-  extractVideoFramesRange
+  createVideoFrameInjector as createVideoFrameInjector3
 } from "@hyperframes/engine";
 
 // src/services/distributed/shared.ts
 import { execFile as execFileCallback } from "node:child_process";
-import { dirname as dirname9, join as join15 } from "node:path";
-import { existsSync as existsSync11, readFileSync as readFileSync7 } from "node:fs";
+import { dirname as dirname11, join as join17 } from "node:path";
+import { existsSync as existsSync14, readFileSync as readFileSync6 } from "node:fs";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { promisify as promisify2 } from "node:util";
 import {
@@ -7629,8 +7978,8 @@ function isPlanAudioArtifactPath(path) {
 }
 function resolvePlanAudioPath(planDir) {
   for (const name of [PLAN_AUDIO_RELATIVE_PATH, PLAN_AUDIO_LEGACY_RELATIVE_PATH]) {
-    const candidate = join15(planDir, name);
-    if (existsSync11(candidate)) return candidate;
+    const candidate = join17(planDir, name);
+    if (existsSync14(candidate)) return candidate;
   }
   return null;
 }
@@ -7887,13 +8236,13 @@ function buildSyntheticRenderJob(input) {
 var cachedProducerVersion = null;
 function readProducerVersion() {
   if (cachedProducerVersion !== null) return cachedProducerVersion;
-  const startDir = dirname9(fileURLToPath3(import.meta.url));
+  const startDir = dirname11(fileURLToPath3(import.meta.url));
   let current = startDir;
   for (let i = 0; i < 10; i++) {
-    const candidate = join15(current, "package.json");
-    if (existsSync11(candidate)) {
+    const candidate = join17(current, "package.json");
+    if (existsSync14(candidate)) {
       try {
-        const pkg = JSON.parse(readFileSync7(candidate, "utf-8"));
+        const pkg = JSON.parse(readFileSync6(candidate, "utf-8"));
         if (pkg.name === "@hyperframes/producer" && typeof pkg.version === "string") {
           cachedProducerVersion = pkg.version;
           return pkg.version;
@@ -7901,7 +8250,7 @@ function readProducerVersion() {
       } catch {
       }
     }
-    const parent = dirname9(current);
+    const parent = dirname11(current);
     if (parent === current) break;
     current = parent;
   }
@@ -7926,11 +8275,11 @@ var RenderChunkValidationError = class extends Error {
 };
 function createChunkVideoFrameInjectorFactory(frameLookup, options) {
   if (!(frameLookup instanceof Promise))
-    return () => createVideoFrameInjector2(frameLookup, options);
+    return () => createVideoFrameInjector3(frameLookup, options);
   return () => {
     let hook;
     return async (page, time, heldVideoTime) => {
-      hook ??= createVideoFrameInjector2(await frameLookup, options);
+      hook ??= createVideoFrameInjector3(await frameLookup, options);
       await hook?.(page, time, heldVideoTime);
     };
   };
@@ -7944,8 +8293,8 @@ function frameNumberFromFileName(name) {
 function rebuildExtractedFramesFromPlanDir(planDir, videos, indexMode = "dense-v1") {
   const result = [];
   for (const v of videos) {
-    const outputDir = join16(planDir, "video-frames", v.videoId);
-    if (!existsSync12(outputDir)) {
+    const outputDir = join18(planDir, "video-frames", v.videoId);
+    if (!existsSync15(outputDir)) {
       throw new Error(
         `[renderChunk] planDir missing extracted video frames for ${JSON.stringify(v.videoId)}: ${outputDir} not present. plan() should have written frames here; the planDir is malformed.`
       );
@@ -7963,7 +8312,7 @@ function rebuildExtractedFramesFromPlanDir(planDir, videos, indexMode = "dense-v
       if (!frameName) continue;
       const frameNumber = indexMode === "sparse-v2" ? frameNumberFromFileName(frameName) : null;
       const frameIndex = frameNumber === null ? i : frameNumber - 1;
-      framePaths.set(frameIndex, join16(outputDir, frameName));
+      framePaths.set(frameIndex, join18(outputDir, frameName));
     }
     result.push({
       videoId: v.videoId,
@@ -7979,15 +8328,6 @@ function rebuildExtractedFramesFromPlanDir(planDir, videos, indexMode = "dense-v
     });
   }
   return result;
-}
-function contiguousRuns(sortedIndexes) {
-  const runs2 = [];
-  for (const index of sortedIndexes) {
-    const last = runs2[runs2.length - 1];
-    if (last && last.firstFrame + last.frames === index) last.frames++;
-    else runs2.push({ firstFrame: index, frames: 1 });
-  }
-  return runs2;
 }
 function buildChunkCaptureOptions(input) {
   const { dimensions, encoder } = input;
@@ -8011,28 +8351,19 @@ function buildChunkCaptureOptions(input) {
     requiresWebGpu: compositionRequiresWebGpu3(input.html)
   };
 }
-function shownDeferredFrameIndexes(planVideos, frames, fps) {
-  const shown = /* @__PURE__ */ new Map();
-  const deferred = planVideos.extracted.filter((video) => video.deferredRange);
-  if (deferred.length === 0) return shown;
-  const table = createFrameLookupTable2(
-    planVideos.videos,
-    deferred.map((video) => ({
-      ...video,
-      outputDir: "",
-      framePaths: new Map(Array.from({ length: video.totalFrames }, (_, i) => [i, String(i)]))
-    })),
-    resolveRenderFpsConfig(fps).value
+function planExtractedFrames(planVideos) {
+  return planVideos.extracted.map((video) => ({
+    ...video,
+    outputDir: "",
+    framePaths: /* @__PURE__ */ new Map()
+  }));
+}
+function shownPlanFrameIndexes(planVideos, frames, fps) {
+  return shownDeferredFrameIndexes(
+    { videos: planVideos.videos, extracted: planExtractedFrames(planVideos) },
+    frames,
+    fps
   );
-  for (const frame of frames) {
-    const globalTime = frame * fps.den / fps.num;
-    for (const [videoId, payload] of table.getActiveFramePayloads(globalTime)) {
-      const indexes = shown.get(videoId) ?? /* @__PURE__ */ new Set();
-      indexes.add(payload.frameIndex);
-      shown.set(videoId, indexes);
-    }
-  }
-  return shown;
 }
 async function extractDeferredVideoFramesForChunk(input) {
   const deferred = input.planVideos.extracted.filter((video) => video.deferredRange);
@@ -8049,49 +8380,32 @@ async function extractDeferredVideoFramesForChunk(input) {
       url: remoteSources[path].split("?")[0]
     });
   }
-  if (deferred.length === 0) return [];
-  const shown = shownDeferredFrameIndexes(input.planVideos, input.frames, input.fps);
-  return Promise.all(
-    deferred.map(async (video) => {
-      const outputDir = join16(input.outputRoot, video.videoId);
-      const indexes = [...shown.get(video.videoId) ?? []].sort((a, b) => a - b);
-      if (indexes.length === 0) {
-        return { ...video, outputDir, framePaths: /* @__PURE__ */ new Map(), ownedByLookup: false };
-      }
-      const range = video.deferredRange;
+  const planned = new Map(input.planVideos.extracted.map((video) => [video.videoId, video]));
+  return extractDeferredFrames({
+    videos: input.planVideos.videos,
+    extracted: planExtractedFrames(input.planVideos),
+    frames: input.frames,
+    fps: input.fps,
+    outputRoot: input.outputRoot,
+    cfg: input.cfg,
+    shownBoxes: input.shownBoxes,
+    sourceOf: (video) => {
+      const range = planned.get(video.videoId).deferredRange;
       const remoteUrl = remoteSources[range.sourcePath];
-      const sourcePath = remoteUrl ?? join16(input.planDir, ...range.sourcePath.split("/"));
-      if (remoteUrl === void 0 && !existsSync12(sourcePath)) {
+      const sourcePath = remoteUrl ?? join18(input.planDir, ...range.sourcePath.split("/"));
+      if (remoteUrl === void 0 && !existsSync15(sourcePath)) {
         throw new RenderChunkValidationError(
           MISSING_PLAN_ARTIFACT,
           `[renderChunk] planDir is missing the source for video ${JSON.stringify(video.videoId)}: ${range.sourcePath}`
         );
       }
-      const extracted = await extractVideoFramesRange(
-        sourcePath,
-        video.videoId,
-        range.startTime,
-        range.durationSeconds,
-        {
-          fps: input.fps,
-          outputDir: input.outputRoot,
-          format: range.format,
-          frameRanges: contiguousRuns(indexes),
-          shownBox: input.shownBoxes?.get(video.videoId)
-        },
-        void 0,
-        input.cfg
-      );
-      const missing = indexes.find((index) => !extracted.framePaths.has(index));
-      if (missing !== void 0) {
-        throw new RenderChunkValidationError(
-          INVALID_VIDEO_METADATA,
-          `[renderChunk] video ${JSON.stringify(video.videoId)} has no frame ${missing}; the plan expected ${video.totalFrames} frames from ${range.sourcePath}.`
-        );
-      }
-      return { ...video, outputDir, framePaths: extracted.framePaths, ownedByLookup: false };
-    })
-  );
+      return sourcePath;
+    },
+    onMissingFrame: (video, index) => new RenderChunkValidationError(
+      INVALID_VIDEO_METADATA,
+      `[renderChunk] video ${JSON.stringify(video.videoId)} has no frame ${index}; the plan expected ${video.totalFrames} frames from ${planned.get(video.videoId).deferredRange.sourcePath}.`
+    )
+  });
 }
 
 // src/services/distributed/planFrameCost.ts
@@ -8109,12 +8423,12 @@ async function measurePlanSecondsPerFrame(input) {
       planVideos,
       frames: sampled,
       fps: fpsRatio,
-      outputRoot: join17(workDir, "frame-cost-video-frames"),
+      outputRoot: join19(workDir, "frame-cost-video-frames"),
       cfg: input.cfg
     })
   ];
-  const lookup = extracted.length > 0 ? createFrameLookupTable3(planVideos.videos, extracted, resolveRenderFpsConfig(fpsRatio).value) : null;
-  const compiledDir = join17(planDir, "compiled");
+  const lookup = extracted.length > 0 ? createFrameLookupTable4(planVideos.videos, extracted, resolveRenderFpsConfig(fpsRatio).value) : null;
+  const compiledDir = join19(planDir, "compiled");
   const fileServer = await createFileServer({
     projectDir: compiledDir,
     compiledDir,
@@ -8126,7 +8440,7 @@ async function measurePlanSecondsPerFrame(input) {
   try {
     session = await createCaptureSession9(
       fileServer.url,
-      join17(workDir, "frame-cost"),
+      join19(workDir, "frame-cost"),
       buildChunkCaptureOptions({
         dimensions: { ...input, fpsNum: fps, fpsDen: 1 },
         encoder: input,
@@ -8222,9 +8536,69 @@ function buildWeightedChunkSlices(weights, chunkCount, minFrames, maxFrames) {
   return slices;
 }
 
+// src/services/render/planReferenceBackground.ts
+import { join as join20 } from "node:path";
+import {
+  closeCaptureSession as closeCaptureSession10,
+  createCaptureSession as createCaptureSession10,
+  readReferenceBackground,
+  referenceBackgroundResult as referenceBackgroundResult2
+} from "@hyperframes/engine";
+async function readPlanReferenceBackground(input) {
+  let server;
+  let session;
+  try {
+    server = await createFileServer({
+      projectDir: input.projectDir,
+      compiledDir: join20(input.workDir, "compiled"),
+      port: 0,
+      preHeadScripts: [VIRTUAL_TIME_SHIM],
+      fps: input.options.fps
+    });
+    session = await createCaptureSession10(
+      server.url,
+      join20(input.workDir, "reference"),
+      {
+        ...input.options,
+        requiresWebGpu: false
+      },
+      null,
+      {
+        ...input.cfg,
+        forceScreenshot: true,
+        useDrawElement: false,
+        enablePageSideCompositing: false
+      }
+    );
+    const page = session.page;
+    await page.goto(`${server.url}/index.html`, {
+      waitUntil: "domcontentloaded",
+      timeout: input.cfg.pageNavigationTimeout
+    });
+    await page.evaluate("window.__hfFlushSync?.()");
+    await page.waitForFunction(
+      '!!(window.__hf && typeof window.__hf.seek === "function" && window.__hf.duration > 0)',
+      { timeout: input.cfg.playerReadyTimeout, polling: 100 }
+    );
+    return referenceBackgroundResult2(await readReferenceBackground(page));
+  } catch (error) {
+    input.log.debug("Reference background unavailable", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return referenceBackgroundResult2(void 0);
+  } finally {
+    if (session) await closeCaptureSession10(session).catch(() => void 0);
+    if (server) closeFileServerSafely(server, "reference background", input.log);
+  }
+}
+
 // src/services/render/stages/freezePlan.ts
-import { existsSync as existsSync13, mkdirSync as mkdirSync7, readFileSync as readFileSync8, readdirSync as readdirSync5, writeFileSync as writeFileSync5 } from "node:fs";
-import { join as join18, relative as relative3, resolve as resolve8 } from "node:path";
+import { existsSync as existsSync16, mkdirSync as mkdirSync7, readFileSync as readFileSync7, readdirSync as readdirSync5, writeFileSync as writeFileSync6 } from "node:fs";
+import { join as join21, relative as relative3, resolve as resolve8 } from "node:path";
+import {
+  REFERENCE_BACKGROUND_FIELD,
+  referenceBackgroundResult as referenceBackgroundResult3
+} from "@hyperframes/engine";
 
 // src/services/distributed/planProtocol.ts
 var PLAN_SCHEMA_VERSION = 1;
@@ -8239,7 +8613,6 @@ var PLAN_PROTOCOL_V1 = Object.freeze({
   artifactLayout: PLAN_ARTIFACT_LAYOUT,
   hashSchema: PLAN_HASH_SCHEMA
 });
-var CURRENT_PLAN_PROTOCOL = PLAN_PROTOCOL_V1;
 var PLAN_PROTOCOL_V2 = Object.freeze({
   schemaVersion: PLAN_V2_SCHEMA_VERSION,
   artifactLayout: PLAN_V2_ARTIFACT_LAYOUT,
@@ -8261,9 +8634,6 @@ var DISTRIBUTED_RENDER_CAPABILITIES = Object.freeze({
   }),
   chunkFrameRange: true
 });
-function getDistributedRenderCapabilities() {
-  return DISTRIBUTED_RENDER_CAPABILITIES;
-}
 var PlanProtocolUnsupportedError = class extends Error {
   // Public adapters inspect this typed code even though OSS producer does not.
   // fallow-ignore-next-line unused-class-member
@@ -8417,7 +8787,7 @@ function planFileSha256(absolutePath, digests) {
   return sha256;
 }
 async function prehashPlanFiles(dir, digests) {
-  if (!existsSync13(dir)) return;
+  if (!existsSync16(dir)) return;
   for (const { absolutePath } of listPlanFiles(dir)) {
     if (!digests.has(absolutePath)) digests.set(absolutePath, await sha256FileAsync(absolutePath));
   }
@@ -8442,7 +8812,7 @@ function listPlanFiles(planDir) {
   function walk(dir) {
     const entries = readdirSync5(dir, { withFileTypes: true });
     for (const entry of entries) {
-      const full = join18(dir, entry.name);
+      const full = join21(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
       } else if (entry.isFile()) {
@@ -8463,7 +8833,7 @@ function collectPlanAssetShas(planDir, digests) {
   const assets = [];
   for (const file of files) {
     if (file.planRelativePath === COMPILED_INDEX_RELATIVE_PATH) {
-      compositionHtml = readFileSync8(file.absolutePath);
+      compositionHtml = readFileSync7(file.absolutePath);
       continue;
     }
     if (HASH_EXCLUDED_PLAN_FILES.has(file.planRelativePath)) continue;
@@ -8483,23 +8853,23 @@ var PLAN_REMOTE_FILES_RELATIVE_PATH = "meta/remote-files.json";
 function writePlanRemoteFiles(planDir, files) {
   if (files.length === 0) return;
   const sorted = [...files].sort((a, b) => a.path < b.path ? -1 : 1);
-  writeFileSync5(join18(planDir, PLAN_REMOTE_FILES_RELATIVE_PATH), JSON.stringify(sorted), "utf-8");
+  writeFileSync6(join21(planDir, PLAN_REMOTE_FILES_RELATIVE_PATH), JSON.stringify(sorted), "utf-8");
 }
 function readPlanRemoteFiles(planDir) {
-  const path = join18(planDir, PLAN_REMOTE_FILES_RELATIVE_PATH);
-  return existsSync13(path) ? JSON.parse(readFileSync8(path, "utf-8")) : [];
+  const path = join21(planDir, PLAN_REMOTE_FILES_RELATIVE_PATH);
+  return existsSync16(path) ? JSON.parse(readFileSync7(path, "utf-8")) : [];
 }
 function recomputePlanHashFromPlanDir(planDir, digests) {
-  const planJsonPath = join18(planDir, "plan.json");
-  const encoderJsonPath = join18(planDir, "meta", "encoder.json");
-  if (!existsSync13(planJsonPath)) {
+  const planJsonPath = join21(planDir, "plan.json");
+  const encoderJsonPath = join21(planDir, "meta", "encoder.json");
+  if (!existsSync16(planJsonPath)) {
     throw new Error(`[freezePlan] plan.json missing: ${planJsonPath}`);
   }
-  if (!existsSync13(encoderJsonPath)) {
+  if (!existsSync16(encoderJsonPath)) {
     throw new Error(`[freezePlan] meta/encoder.json missing: ${encoderJsonPath}`);
   }
-  const planJson = JSON.parse(readFileSync8(planJsonPath, "utf-8"));
-  const encoderConfigCanonicalJson = readFileSync8(encoderJsonPath, "utf-8");
+  const planJson = JSON.parse(readFileSync7(planJsonPath, "utf-8"));
+  const encoderConfigCanonicalJson = readFileSync7(encoderJsonPath, "utf-8");
   const { compositionHtml, assets } = collectPlanAssetShas(planDir, digests);
   return computePlanHash({
     compositionHtml,
@@ -8525,21 +8895,21 @@ async function freezePlan(input) {
     hasAudio,
     digests
   } = input;
-  if (!existsSync13(planDir)) {
+  if (!existsSync16(planDir)) {
     throw new Error(`[freezePlan] planDir does not exist: ${planDir}`);
   }
-  const metaDir = join18(planDir, "meta");
-  if (!existsSync13(metaDir)) mkdirSync7(metaDir, { recursive: true });
-  writeFileSync5(
-    join18(metaDir, "composition.json"),
+  const metaDir = join21(planDir, "meta");
+  if (!existsSync16(metaDir)) mkdirSync7(metaDir, { recursive: true });
+  writeFileSync6(
+    join21(metaDir, "composition.json"),
     `${JSON.stringify(composition, null, 2)}
 `,
     "utf-8"
   );
   const encoderForCanonical = stripUndefined(encoder);
   const encoderConfigCanonicalJson = canonicalJsonStringify(encoderForCanonical);
-  writeFileSync5(join18(metaDir, "encoder.json"), encoderConfigCanonicalJson, "utf-8");
-  writeFileSync5(join18(metaDir, "chunks.json"), `${JSON.stringify(chunks, null, 2)}
+  writeFileSync6(join21(metaDir, "encoder.json"), encoderConfigCanonicalJson, "utf-8");
+  writeFileSync6(join21(metaDir, "chunks.json"), `${JSON.stringify(chunks, null, 2)}
 `, "utf-8");
   const { compositionHtml, assets } = collectPlanAssetShas(planDir, digests);
   const planHash = computePlanHash({
@@ -8552,6 +8922,7 @@ async function freezePlan(input) {
     dimensions
   });
   const planJson = {
+    ...referenceBackgroundResult3(composition[REFERENCE_BACKGROUND_FIELD]),
     protocol: PLAN_PROTOCOL_V1,
     planHash,
     producerVersion,
@@ -8563,8 +8934,8 @@ async function freezePlan(input) {
     duration: durationSeconds,
     hasAudio
   };
-  const planJsonPath = join18(planDir, "plan.json");
-  writeFileSync5(planJsonPath, `${JSON.stringify(planJson, null, 2)}
+  const planJsonPath = join21(planDir, "plan.json");
+  writeFileSync6(planJsonPath, `${JSON.stringify(planJson, null, 2)}
 `, "utf-8");
   return { planJsonPath, planHash };
 }
@@ -8605,16 +8976,16 @@ function applyRuntimeEnvSnapshot(snapshot, env = process.env) {
 }
 
 // src/services/distributed/chunkAudio.ts
-import { closeSync as closeSync4, existsSync as existsSync14, ftruncateSync, mkdirSync as mkdirSync9, openSync as openSync4, readFileSync as readFileSync9 } from "node:fs";
-import { writeFileSync as writeFileSync6, writeSync } from "node:fs";
-import { join as join20 } from "node:path";
-import { appendRenderProvenanceArgs, describeFfmpegFailure as describeFfmpegFailure3, runFfmpeg as runFfmpeg7 } from "@hyperframes/engine";
+import { closeSync as closeSync4, existsSync as existsSync17, ftruncateSync, mkdirSync as mkdirSync9, openSync as openSync4, readFileSync as readFileSync8 } from "node:fs";
+import { writeFileSync as writeFileSync7, writeSync } from "node:fs";
+import { join as join23 } from "node:path";
+import { appendRenderProvenanceArgs, describeFfmpegFailure as describeFfmpegFailure4, runFfmpeg as runFfmpeg7 } from "@hyperframes/engine";
 
 // src/services/distributed/mp4Stitch.ts
 import { createReadStream as createReadStream4, createWriteStream, mkdirSync as mkdirSync8, mkdtempSync as mkdtempSync2, rmSync as rmSync6 } from "node:fs";
 import { open } from "node:fs/promises";
-import { renameWithRetry as renameWithRetry6 } from "@hyperframes/engine";
-import { dirname as dirname10, join as join19 } from "node:path";
+import { renameWithRetry as renameWithRetry7 } from "@hyperframes/engine";
+import { dirname as dirname12, join as join22 } from "node:path";
 import { finished, pipeline } from "node:stream/promises";
 function boxAt(src, off, at, limit) {
   let size = src.readUInt32BE(off);
@@ -8837,10 +9208,10 @@ function buildStbl(stsd, track) {
   );
 }
 var codecOf = (track) => track.stsd.toString("latin1", 20, 24);
-var sameTrack = (track, plan2) => track.handler === plan2.handler && track.timescale === plan2.timescale && codecOf(track) === codecOf(plan2);
-function planTracksOf(tracks, plan2, index) {
+var sameTrack = (track, plan) => track.handler === plan.handler && track.timescale === plan.timescale && codecOf(track) === codecOf(plan);
+function planTracksOf(tracks, plan, index) {
   let next = 0;
-  const matched = plan2.map((planTrack) => {
+  const matched = plan.map((planTrack) => {
     const track = tracks[next];
     if (track && sameTrack(track, planTrack)) return tracks[next++];
     if (planTrack.handler === "soun") return null;
@@ -8861,22 +9232,22 @@ function sourceTracks(layouts, audio) {
   if (audio && (audioTracks.length !== 1 || audioTracks[0].handler !== "soun")) {
     throw new Error("[mp4Stitch] the separate audio file must hold one audio track");
   }
-  const plan2 = [...chunkPlan, ...audioTracks];
+  const plan = [...chunkPlan, ...audioTracks];
   const chunks = layouts.map((layout, i) => {
     const tracks = readTracks(layout.moov);
     if (audio && tracks.some((track) => track.handler === "soun")) {
       throw new Error(`[mp4Stitch] chunk ${i} carries its own audio`);
     }
-    return planTracksOf(tracks, plan2, i);
+    return planTracksOf(tracks, plan, i);
   });
   return {
-    plan: plan2,
+    plan,
     chunkTrackCount: chunkPlan.length,
     sources: audio ? [[...chunkPlan.map(() => null), audioTracks[0]], ...chunks] : chunks
   };
 }
 function buildStitchedHeader(layouts, audio) {
-  const { plan: plan2, chunkTrackCount, sources } = sourceTracks(layouts, audio);
+  const { plan, chunkTrackCount, sources } = sourceTracks(layouts, audio);
   const sourceLayouts = audio ? [audio, ...layouts] : layouts;
   const payloadBases = [];
   let payloadBytes = 0;
@@ -8888,10 +9259,10 @@ function buildStitchedHeader(layouts, audio) {
   const root = boxAt(template, 0, 0, template.length);
   const mvhd = child2(template, root, "mvhd");
   const movieTimescale = timescaleOf(template, mvhd);
-  const chunkTrackIds = plan2.slice(0, chunkTrackCount).map((track) => idOf(template, child2(template, track.trak, "tkhd")));
+  const chunkTrackIds = plan.slice(0, chunkTrackCount).map((track) => idOf(template, child2(template, track.trak, "tkhd")));
   const audioTrackId = Math.max(...chunkTrackIds) + 1;
   const buildMoov = (dataStart2) => {
-    const traks = plan2.map((track, t) => {
+    const traks = plan.map((track, t) => {
       const parts = sources.flatMap((tracks, chunk) => {
         const part = tracks[t];
         return part ? [{ ...part, chunk }] : [];
@@ -8978,15 +9349,15 @@ async function writeStitchedMp4(chunkPaths, outputPath, audioPath) {
   const sourcePaths = audioPath ? [audioPath, ...chunkPaths] : chunkPaths;
   const layouts = await Promise.all(sourcePaths.map((path) => readMp4Layout(fileRange(path))));
   const header = audioPath ? buildStitchedHeader(layouts.slice(1), layouts[0]) : buildStitchedHeader(layouts);
-  mkdirSync8(dirname10(outputPath), { recursive: true });
+  mkdirSync8(dirname12(outputPath), { recursive: true });
   const workDir = mkdtempSync2(`${outputPath}.stitch-`);
-  const out = createWriteStream(join19(workDir, "out.mp4"));
+  const out = createWriteStream(join22(workDir, "out.mp4"));
   try {
     out.write(header);
     for (const [i, path] of sourcePaths.entries()) await copyPayload(path, layouts[i], i, out);
     out.end();
     await finished(out);
-    renameWithRetry6(join19(workDir, "out.mp4"), outputPath);
+    renameWithRetry7(join22(workDir, "out.mp4"), outputPath);
   } finally {
     out.destroy();
     rmSync6(workDir, { recursive: true, force: true });
@@ -9078,9 +9449,9 @@ async function writeChunkAudioSlices(input) {
       offset += track.sizes[offsets.length - 1];
     }
   });
-  const bytes = readFileSync9(input.audioPath);
+  const bytes = readFileSync8(input.audioPath);
   const layout = { sizeBytes: bytes.length, payloadStart, payloadEnd, partStarts: {} };
-  mkdirSync9(join20(input.planDir, SLICE_DIR), { recursive: true });
+  mkdirSync9(join23(input.planDir, SLICE_DIR), { recursive: true });
   input.chunks.forEach((_, index) => {
     const cut = audioCutForChunk(grid, input.chunks, index, input.fps);
     if (!cut) return;
@@ -9088,17 +9459,17 @@ async function writeChunkAudioSlices(input) {
     const start = offsets[cut.firstPacket];
     layout.partStarts[index] = start;
     const end = offsets[last] + track.sizes[last];
-    writeFileSync6(join20(input.planDir, chunkAudioSlicePath(index)), bytes.subarray(start, end));
+    writeFileSync7(join23(input.planDir, chunkAudioSlicePath(index)), bytes.subarray(start, end));
   });
   const frame = [bytes.subarray(0, payloadStart), bytes.subarray(payloadEnd)];
-  writeFileSync6(join20(input.planDir, SLICE_FRAME), Buffer.concat(frame));
-  writeFileSync6(join20(input.planDir, SLICE_LAYOUT), JSON.stringify(layout));
+  writeFileSync7(join23(input.planDir, SLICE_FRAME), Buffer.concat(frame));
+  writeFileSync7(join23(input.planDir, SLICE_LAYOUT), JSON.stringify(layout));
 }
 function chunkAudioSource(planDir, chunkIndex, scratchPath) {
-  const layoutPath = join20(planDir, SLICE_LAYOUT);
-  if (!existsSync14(layoutPath)) return resolvePlanAudioPath(planDir);
-  const layout = JSON.parse(readFileSync9(layoutPath, "utf-8"));
-  const frame = readFileSync9(join20(planDir, SLICE_FRAME));
+  const layoutPath = join23(planDir, SLICE_LAYOUT);
+  if (!existsSync17(layoutPath)) return resolvePlanAudioPath(planDir);
+  const layout = JSON.parse(readFileSync8(layoutPath, "utf-8"));
+  const frame = readFileSync8(join23(planDir, SLICE_FRAME));
   const fd = openSync4(scratchPath, "w");
   try {
     writeSync(fd, frame, 0, layout.payloadStart, 0);
@@ -9111,7 +9482,7 @@ function chunkAudioSource(planDir, chunkIndex, scratchPath) {
     );
     const start = layout.partStarts[chunkIndex];
     if (start !== void 0) {
-      const part = readFileSync9(join20(planDir, chunkAudioSlicePath(chunkIndex)));
+      const part = readFileSync8(join23(planDir, chunkAudioSlicePath(chunkIndex)));
       writeSync(fd, part, 0, part.length, start);
     }
     ftruncateSync(fd, layout.sizeBytes);
@@ -9139,7 +9510,7 @@ async function muxChunkWithAudio(input) {
   const result = await runFfmpeg7(args, { signal: input.signal, timeout: input.timeoutMs });
   if (!result.success) {
     throw new Error(
-      `[chunkAudio] chunk mux failed: ${describeFfmpegFailure3(result, input.timeoutMs)}`
+      `[chunkAudio] chunk mux failed: ${describeFfmpegFailure4(result, input.timeoutMs)}`
     );
   }
   const slice = input.chunks[input.chunkIndex];
@@ -9167,7 +9538,7 @@ async function muxChunkWithAudio(input) {
 // src/services/distributed/planSize.ts
 import { createHash as createHash7 } from "node:crypto";
 import { lstatSync, readdirSync as readdirSync6 } from "node:fs";
-import { extname as extname3, join as join21, relative as relative4 } from "node:path";
+import { extname as extname3, join as join24, relative as relative4 } from "node:path";
 var MAX_TOP_COMPONENTS = 10;
 var SOURCE_MEDIA_EXTENSIONS = /* @__PURE__ */ new Set([
   ".aac",
@@ -9279,7 +9650,7 @@ function walkRegularFiles(dir, visit) {
     return;
   }
   for (const entry of entries) {
-    const full = join21(dir, entry.name);
+    const full = join24(dir, entry.name);
     if (entry.isDirectory()) {
       walkRegularFiles(full, visit);
     } else if (entry.isFile()) {
@@ -9495,13 +9866,13 @@ function assertPositiveInteger(name, value) {
 }
 var FREEZE_OWNED_PLAN_FILES = [
   "plan.json",
-  join22("meta", "composition.json"),
-  join22("meta", "encoder.json"),
-  join22("meta", "chunks.json")
+  join25("meta", "composition.json"),
+  join25("meta", "encoder.json"),
+  join25("meta", "chunks.json")
 ];
 function removeFreezeOwnedPlanFiles(planDir) {
   for (const relativePath of FREEZE_OWNED_PLAN_FILES) {
-    rmSync7(join22(planDir, relativePath), { force: true });
+    rmSync7(join25(planDir, relativePath), { force: true });
   }
 }
 function buildChunkSlices(totalFrames, chunkCount, effectiveChunkSize) {
@@ -9656,19 +10027,19 @@ function createVideoSourceShipper(input) {
     const known = shipped.get(srcPath);
     if (known) return known;
     const stagedRel = pathInside(input.workVideoFramesDir, srcPath);
-    const current = stagedRel === null ? srcPath : join22(input.planDir, "video-frames", stagedRel);
+    const current = stagedRel === null ? srcPath : join25(input.planDir, "video-frames", stagedRel);
     let result = null;
     for (const root of stagedRel === null ? [input.workCompiledDir, input.projectDir] : []) {
       const rel = pathInside(root, srcPath);
-      if (rel !== null && (existsSync15(join22(input.planDir, "compiled", rel)) || input.isRemote(srcPath))) {
+      if (rel !== null && (existsSync18(join25(input.planDir, "compiled", rel)) || input.isRemote(srcPath))) {
         result = ["compiled", ...rel.split(sep2)].join("/");
         break;
       }
     }
     if (result === null) {
       result = `video-sources/${shipped.size}${extname4(current)}`;
-      const destination = join22(input.planDir, ...result.split("/"));
-      mkdirSync10(join22(input.planDir, "video-sources"), { recursive: true });
+      const destination = join25(input.planDir, ...result.split("/"));
+      mkdirSync10(join25(input.planDir, "video-sources"), { recursive: true });
       try {
         linkSync(current, destination);
       } catch {
@@ -9688,7 +10059,7 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
     useGpu: false,
     browserGpuMode: "software"
   });
-  if (!existsSync15(planDir)) mkdirSync10(planDir, { recursive: true });
+  if (!existsSync18(planDir)) mkdirSync10(planDir, { recursive: true });
   const log = config.logger ?? defaultLogger;
   const sizeLimitBytes = options.executionPlanSizeLimitBytes ?? config.planDirSizeLimitBytes ?? PLAN_DIR_SIZE_LIMIT_BYTES;
   const abortSignal = config.abortSignal;
@@ -9717,14 +10088,14 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
     variables: config.variables
   });
   const entryFile = config.entryFile ?? "index.html";
-  const htmlPath = join22(projectDir, entryFile);
-  if (!existsSync15(htmlPath)) {
+  const htmlPath = join25(projectDir, entryFile);
+  if (!existsSync18(htmlPath)) {
     throw new Error(`[plan] entry file not found: ${htmlPath}`);
   }
-  const workDir = join22(planDir, ".plan-work");
+  const workDir = join25(planDir, ".plan-work");
   rmSync7(workDir, { recursive: true, force: true });
   mkdirSync10(workDir, { recursive: true });
-  const compiledDir = join22(workDir, "compiled");
+  const compiledDir = join25(workDir, "compiled");
   mkdirSync10(compiledDir, { recursive: true });
   let stageStarted = Date.now();
   cpSync2(projectDir, compiledDir, {
@@ -9738,10 +10109,10 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
     }
   });
   logPlanStage(log, "copy", stageStarted);
-  const finalCompiledDir = join22(planDir, "compiled");
+  const finalCompiledDir = join25(planDir, "compiled");
   const needsAlpha = outputNeedsAlpha(config.format);
   const remoteFiles = Object.entries(options.remoteFiles ?? {});
-  const remoteLocalPath = (rel) => join22(projectDir, ...rel.split("/"));
+  const remoteLocalPath = (rel) => join25(projectDir, ...rel.split("/"));
   for (const [, file] of remoteFiles) {
     declareContentAddressedUrl(file.url, file.sha256);
     if (file.probeFactsUrl) declareProbeFactsUrl(file.url, file.probeFactsUrl);
@@ -9762,7 +10133,6 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
     urlByAbsentLocalPath,
     projectDir,
     workDir,
-    htmlPath,
     entryFile,
     job,
     cfg,
@@ -9791,6 +10161,9 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
   }
   stageStarted = Date.now();
   const probeResult = await runProbeStage({
+    recordReferenceBackground: createReferenceBackgroundRecorder2(
+      (result) => Object.assign(job, result)
+    ),
     projectDir,
     workDir,
     job,
@@ -9808,6 +10181,21 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
     subTimelineWaitMemo: {}
   });
   logPlanStage(log, "probe", stageStarted);
+  if (!probeResult.probeSession) {
+    stageStarted = Date.now();
+    Object.assign(
+      job,
+      await readPlanReferenceBackground({
+        projectDir,
+        workDir,
+        cfg,
+        log,
+        options: { width, height, fps: job.config.fps, variables: job.config.variables }
+      })
+    );
+    assertNotAborted();
+    logPlanStage(log, "reference_background", stageStarted);
+  }
   compiled = probeResult.compiled;
   job.duration = probeResult.duration;
   job.totalFrames = probeResult.totalFrames;
@@ -9820,8 +10208,8 @@ async function compilePlanComposition(projectDir, config, planDir, options) {
   if (probeResult.fileServer) closeFileServerSafely(probeResult.fileServer, "plan", log);
   if (probeResult.probeSession) {
     try {
-      const { closeCaptureSession: closeCaptureSession11 } = await import("@hyperframes/engine");
-      await closeCaptureSession11(probeResult.probeSession);
+      const { closeCaptureSession: closeCaptureSession12 } = await import("@hyperframes/engine");
+      await closeCaptureSession12(probeResult.probeSession);
     } catch (err) {
       log.warn("[plan] probe session close failed", {
         error: err instanceof Error ? err.message : String(err)
@@ -9927,18 +10315,18 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
   let stageStarted = Date.now();
   const extractResult = await extractPlanVideos(c, options.deferVideoExtraction);
   logPlanStage(log, "extract", stageStarted);
-  const stagedVideoFrames = join22(compiledDir, "__hyperframes_video_frames");
-  const videoFramesDst = join22(planDir, "video-frames");
-  if (existsSync15(videoFramesDst)) rmSync7(videoFramesDst, { recursive: true, force: true });
-  const videoSourcesDir = join22(planDir, "video-sources");
+  const stagedVideoFrames = join25(compiledDir, "__hyperframes_video_frames");
+  const videoFramesDst = join25(planDir, "video-frames");
+  if (existsSync18(videoFramesDst)) rmSync7(videoFramesDst, { recursive: true, force: true });
+  const videoSourcesDir = join25(planDir, "video-sources");
   rmSync7(videoSourcesDir, { recursive: true, force: true });
-  if (existsSync15(stagedVideoFrames)) {
-    renameWithRetry7(stagedVideoFrames, videoFramesDst);
+  if (existsSync18(stagedVideoFrames)) {
+    renameWithRetry8(stagedVideoFrames, videoFramesDst);
   } else {
     mkdirSync10(videoFramesDst, { recursive: true });
   }
-  if (existsSync15(finalCompiledDir)) rmSync7(finalCompiledDir, { recursive: true, force: true });
-  renameWithRetry7(compiledDir, finalCompiledDir);
+  if (existsSync18(finalCompiledDir)) rmSync7(finalCompiledDir, { recursive: true, force: true });
+  renameWithRetry8(compiledDir, finalCompiledDir);
   const shipVideoSource = createVideoSourceShipper({
     planDir,
     projectDir,
@@ -9967,7 +10355,7 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
       };
     })
   });
-  mkdirSync10(join22(planDir, "meta"), { recursive: true });
+  mkdirSync10(join25(planDir, "meta"), { recursive: true });
   writePlanRemoteFiles(
     planDir,
     remoteFiles.map(([rel, { sha256, sizeBytes }]) => ({
@@ -9976,8 +10364,8 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
       sizeBytes
     }))
   );
-  writeFileSync7(
-    join22(planDir, PLAN_VIDEOS_META_RELATIVE_PATH),
+  writeFileSync8(
+    join25(planDir, PLAN_VIDEOS_META_RELATIVE_PATH),
     JSON.stringify(planVideosJson, null, 2),
     "utf-8"
   );
@@ -10056,11 +10444,11 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
   if (audioResult?.audioError) {
     applyDistributedAudioWarningPolicy(job, audioResult.audioError, audioResult.audioFailures, log);
   }
-  const planAudioPath = join22(planDir, PLAN_AUDIO_RELATIVE_PATH);
-  if (audioResult?.hasAudio && existsSync15(audioResult.audioOutputPath)) {
-    renameWithRetry7(audioResult.audioOutputPath, planAudioPath);
+  const planAudioPath = join25(planDir, PLAN_AUDIO_RELATIVE_PATH);
+  if (audioResult?.hasAudio && existsSync18(audioResult.audioOutputPath)) {
+    renameWithRetry8(audioResult.audioOutputPath, planAudioPath);
   }
-  if (chunksCarryAudio && existsSync15(planAudioPath)) {
+  if (chunksCarryAudio && existsSync18(planAudioPath)) {
     if (options.sliceChunkAudio) {
       stageStarted = Date.now();
       await writeChunkAudioSlices({
@@ -10089,6 +10477,7 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
     separateAudio
   });
   const compositionJson = {
+    ...referenceBackgroundResult4(job[REFERENCE_BACKGROUND_FIELD2]),
     durationSeconds: job.duration ?? 0,
     width,
     height,
@@ -10144,6 +10533,7 @@ async function buildLocalExecutionPlan(projectDir, config, executionPlanDir, opt
     log
   });
   return {
+    ...referenceBackgroundResult4(job[REFERENCE_BACKGROUND_FIELD2]),
     executionPlanDir: planDir,
     executionPlanHash: planHash,
     chunkCount,
@@ -10171,61 +10561,49 @@ async function buildPlanAudio(projectDir, config, workRoot, outputPath, options 
     if (mixed.audioError) {
       applyDistributedAudioWarningPolicy(c.job, mixed.audioError, mixed.audioFailures, c.log);
     }
-    if (!mixed.hasAudio || !existsSync15(mixed.audioOutputPath)) return { hasAudio: false };
-    renameWithRetry7(mixed.audioOutputPath, outputPath);
+    if (!mixed.hasAudio || !existsSync18(mixed.audioOutputPath)) return { hasAudio: false };
+    renameWithRetry8(mixed.audioOutputPath, outputPath);
     return { hasAudio: true };
   } finally {
     rmSync7(c.workDir, { recursive: true, force: true });
   }
 }
-async function plan(projectDir, config, planDir, options = {}) {
-  const executionPlan = await buildLocalExecutionPlan(projectDir, config, planDir, options);
-  return {
-    planDir: executionPlan.executionPlanDir,
-    planProtocol: PLAN_PROTOCOL_V1,
-    planHash: executionPlan.executionPlanHash,
-    chunkCount: executionPlan.chunkCount,
-    totalFrames: executionPlan.totalFrames,
-    fps: executionPlan.fps,
-    width: executionPlan.width,
-    height: executionPlan.height,
-    format: executionPlan.format,
-    ffmpegVersion: executionPlan.ffmpegVersion,
-    producerVersion: executionPlan.producerVersion
-  };
-}
 
 // src/services/distributed/planV2.ts
 import {
+  REFERENCE_BACKGROUND_FIELD as REFERENCE_BACKGROUND_FIELD3,
+  referenceBackgroundResult as referenceBackgroundResult5
+} from "@hyperframes/engine";
+import {
   copyFileSync as copyFileSync8,
-  existsSync as existsSync17,
+  existsSync as existsSync20,
   lstatSync as lstatSync2,
   mkdirSync as mkdirSync12,
   mkdtempSync as mkdtempSync4,
-  readFileSync as readFileSync10,
+  readFileSync as readFileSync9,
   readdirSync as readdirSync7,
   rmSync as rmSync9,
   statSync as statSync7,
-  writeFileSync as writeFileSync9
+  writeFileSync as writeFileSync10
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname as dirname12, isAbsolute as isAbsolute4, join as join25, relative as relative6, resolve as resolve9, sep as sep3 } from "node:path";
+import { dirname as dirname14, isAbsolute as isAbsolute4, join as join28, relative as relative6, resolve as resolve9, sep as sep3 } from "node:path";
 import { DISTRIBUTED_FPS, isDistributedFps } from "@hyperframes/core";
-import { createFrameLookupTable as createFrameLookupTable4, renameWithRetry as renameWithRetry9 } from "@hyperframes/engine";
+import { createFrameLookupTable as createFrameLookupTable5, renameWithRetry as renameWithRetry10 } from "@hyperframes/engine";
 
 // src/services/distributed/planV2Publisher.ts
 import {
   copyFileSync as copyFileSync7,
-  existsSync as existsSync16,
+  existsSync as existsSync19,
   linkSync as linkSync2,
   mkdirSync as mkdirSync11,
   mkdtempSync as mkdtempSync3,
   rmSync as rmSync8,
   statSync as statSync6,
-  writeFileSync as writeFileSync8
+  writeFileSync as writeFileSync9
 } from "node:fs";
-import { renameWithRetry as renameWithRetry8 } from "@hyperframes/engine";
-import { dirname as dirname11, join as join24 } from "node:path";
+import { renameWithRetry as renameWithRetry9 } from "@hyperframes/engine";
+import { dirname as dirname13, join as join27 } from "node:path";
 
 // src/services/distributed/planV2Errors.ts
 var PLAN_V2_INTEGRITY_UNRECOVERABLE = "PLAN_V2_INTEGRITY_UNRECOVERABLE";
@@ -10240,7 +10618,7 @@ var PlanV2IntegrityError = class extends Error {
 };
 
 // src/services/distributed/planV2Layout.ts
-import { join as join23 } from "node:path";
+import { join as join26 } from "node:path";
 var SHA256_PATTERN = /^[0-9a-f]{64}$/;
 function assertPlanV2Sha256(value, field) {
   if (typeof value !== "string" || !SHA256_PATTERN.test(value)) {
@@ -10250,7 +10628,7 @@ function assertPlanV2Sha256(value, field) {
 }
 function planV2BlobPath(root, sha256) {
   const digest = assertPlanV2Sha256(sha256, "artifact sha256");
-  return join23(root, "artifacts", "sha256", digest.slice(0, 2), digest);
+  return join26(root, "artifacts", "sha256", digest.slice(0, 2), digest);
 }
 
 // src/services/distributed/planV2Publisher.ts
@@ -10285,13 +10663,13 @@ var LocalPlanV2ArtifactPublisher = class {
   #linkFile;
   #committed = false;
   constructor(destinationDir, options = {}) {
-    if (existsSync16(destinationDir)) {
+    if (existsSync19(destinationDir)) {
       throw new PlanV2IntegrityError(`output directory already exists: ${destinationDir}`);
     }
     this.destinationDir = destinationDir;
     this.#linkFile = options.linkFile ?? linkSync2;
-    mkdirSync11(dirname11(destinationDir), { recursive: true });
-    this.temporaryDir = mkdtempSync3(join24(dirname11(destinationDir), ".plan-v2-publish-"));
+    mkdirSync11(dirname13(destinationDir), { recursive: true });
+    this.temporaryDir = mkdtempSync3(join27(dirname13(destinationDir), ".plan-v2-publish-"));
   }
   async putBlob(blob) {
     const digest = assertPlanV2Sha256(blob.sha256, "published blob sha256");
@@ -10302,10 +10680,10 @@ var LocalPlanV2ArtifactPublisher = class {
       );
     }
     const destinationPath = planV2BlobPath(this.temporaryDir, digest);
-    if (existsSync16(destinationPath)) return;
-    mkdirSync11(dirname11(destinationPath), { recursive: true });
-    const stagingDir = mkdtempSync3(join24(dirname11(destinationPath), ".plan-v2-blob-"));
-    const temporaryPath = join24(stagingDir, "blob");
+    if (existsSync19(destinationPath)) return;
+    mkdirSync11(dirname13(destinationPath), { recursive: true });
+    const stagingDir = mkdtempSync3(join27(dirname13(destinationPath), ".plan-v2-blob-"));
+    const temporaryPath = join27(stagingDir, "blob");
     try {
       try {
         this.#linkFile(blob.sourcePath, temporaryPath);
@@ -10313,21 +10691,21 @@ var LocalPlanV2ArtifactPublisher = class {
         if (!canFallbackToCopy(error)) throw error;
         copyFileSync7(blob.sourcePath, temporaryPath);
       }
-      renameWithRetry8(temporaryPath, destinationPath);
+      renameWithRetry9(temporaryPath, destinationPath);
     } finally {
       rmSync8(stagingDir, { recursive: true, force: true });
     }
   }
   async commitManifest(manifestBytes) {
     for (const digest of new Set(manifestDigests(manifestBytes))) {
-      if (!existsSync16(planV2BlobPath(this.temporaryDir, digest))) {
+      if (!existsSync19(planV2BlobPath(this.temporaryDir, digest))) {
         throw new PlanV2IntegrityError(
           `cannot commit manifest before referenced blob is durable: ${digest}`
         );
       }
     }
-    writeFileSync8(join24(this.temporaryDir, "plan.json"), manifestBytes, "utf-8");
-    renameWithRetry8(this.temporaryDir, this.destinationDir);
+    writeFileSync9(join27(this.temporaryDir, "plan.json"), manifestBytes, "utf-8");
+    renameWithRetry9(this.temporaryDir, this.destinationDir);
     this.#committed = true;
   }
   async abort() {
@@ -10351,7 +10729,7 @@ function isNonNegativeIntegerArray(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "number" && Number.isInteger(item) && item >= 0);
 }
 function readJsonFile(path, label) {
-  const contents = readFileSync10(path, "utf-8");
+  const contents = readFileSync9(path, "utf-8");
   try {
     const parsed = JSON.parse(contents);
     return parsed;
@@ -10371,7 +10749,7 @@ function listFiles(root) {
   const rootResolved = resolve9(root);
   function walk(dir) {
     for (const entry of readdirSync7(dir, { withFileTypes: true })) {
-      const absolutePath = join25(dir, entry.name);
+      const absolutePath = join28(dir, entry.name);
       if (entry.isDirectory()) {
         walk(absolutePath);
       } else if (entry.isFile()) {
@@ -10398,13 +10776,13 @@ function assertValidExtractionCacheCompleteSentinel(path) {
   }
 }
 function validateExtractionCacheCompleteSentinels(executionPlanDir) {
-  const videoRoot = join25(executionPlanDir, "video-frames");
-  if (!existsSync17(videoRoot)) return;
+  const videoRoot = join28(executionPlanDir, "video-frames");
+  if (!existsSync20(videoRoot)) return;
   for (const videoEntry of readdirSync7(videoRoot, { withFileTypes: true })) {
     if (!videoEntry.isDirectory()) continue;
-    const videoDir = join25(videoRoot, videoEntry.name);
+    const videoDir = join28(videoRoot, videoEntry.name);
     if (readdirSync7(videoDir).includes(EXTRACTION_CACHE_COMPLETE_SENTINEL)) {
-      const sentinelPath = join25(videoDir, EXTRACTION_CACHE_COMPLETE_SENTINEL);
+      const sentinelPath = join28(videoDir, EXTRACTION_CACHE_COMPLETE_SENTINEL);
       assertValidExtractionCacheCompleteSentinel(sentinelPath);
     }
   }
@@ -10451,7 +10829,7 @@ function listVideoFramePaths(executionPlanDir, videos) {
     if (video.deferredRange) {
       const framePaths2 = /* @__PURE__ */ new Map();
       for (let index = 0; index < video.totalFrames; index++) {
-        framePaths2.set(index, join25(outputDir, String(index)));
+        framePaths2.set(index, join28(outputDir, String(index)));
       }
       return { ...video, outputDir, framePaths: framePaths2, ownedByLookup: false };
     }
@@ -10459,7 +10837,7 @@ function listVideoFramePaths(executionPlanDir, videos) {
     const framePaths = /* @__PURE__ */ new Map();
     for (const frameName of frameNames) {
       if (frameName === EXTRACTION_CACHE_COMPLETE_SENTINEL) {
-        assertValidExtractionCacheCompleteSentinel(join25(outputDir, frameName));
+        assertValidExtractionCacheCompleteSentinel(join28(outputDir, frameName));
         continue;
       }
       const match = /(\d+)(?=\.[^.]+$)/.exec(frameName);
@@ -10478,7 +10856,7 @@ function listVideoFramePaths(executionPlanDir, videos) {
           `duplicate extracted frame index ${frameIndex} in ${outputDir}`
         );
       }
-      framePaths.set(frameIndex, join25(outputDir, frameName));
+      framePaths.set(frameIndex, join28(outputDir, frameName));
     }
     return {
       ...video,
@@ -10499,8 +10877,8 @@ function parsePlanVideosJson2(value) {
   }
 }
 function materializeExtractedVideoDirectories(planDir) {
-  const videosPath = join25(planDir, PLAN_VIDEOS_META_RELATIVE_PATH);
-  if (!existsSync17(videosPath)) return;
+  const videosPath = join28(planDir, PLAN_VIDEOS_META_RELATIVE_PATH);
+  if (!existsSync20(videosPath)) return;
   const videos = parsePlanVideosJson2(readJsonFile(videosPath, PLAN_VIDEOS_META_RELATIVE_PATH));
   for (const video of videos.extracted) {
     mkdirSync12(resolveExtractedVideoOutputDir(planDir, video.videoId), { recursive: true });
@@ -10533,13 +10911,13 @@ function parseChunkSlices(value) {
   });
 }
 function buildVideoChunkDependencies(executionPlanDir, dimensions) {
-  const videoRoot = join25(executionPlanDir, "video-frames");
-  const hasExtractedFrames = existsSync17(videoRoot) && listFiles(videoRoot).length > 0;
-  const videosPath = join25(executionPlanDir, PLAN_VIDEOS_META_RELATIVE_PATH);
-  if (!existsSync17(videosPath)) {
+  const videoRoot = join28(executionPlanDir, "video-frames");
+  const hasExtractedFrames = existsSync20(videoRoot) && listFiles(videoRoot).length > 0;
+  const videosPath = join28(executionPlanDir, PLAN_VIDEOS_META_RELATIVE_PATH);
+  if (!existsSync20(videosPath)) {
     return hasExtractedFrames ? { mode: "full-source-pack", dependencies: null } : { mode: "exact-rendered-frames", dependencies: /* @__PURE__ */ new Map() };
   }
-  const chunksPath = join25(executionPlanDir, "meta", "chunks.json");
+  const chunksPath = join28(executionPlanDir, "meta", "chunks.json");
   const videos = readJsonFile(videosPath, PLAN_VIDEOS_META_RELATIVE_PATH);
   const chunks = readJsonFile(chunksPath, "meta/chunks.json");
   const parsedVideos = parsePlanVideosJson2(videos);
@@ -10547,7 +10925,7 @@ function buildVideoChunkDependencies(executionPlanDir, dimensions) {
   const extracted = listVideoFramePaths(executionPlanDir, parsedVideos);
   const fpsNum = readPositiveInteger2(dimensions.fpsNum, "dimensions.fpsNum");
   const fpsDen = readPositiveInteger2(dimensions.fpsDen, "dimensions.fpsDen");
-  const table = createFrameLookupTable4(
+  const table = createFrameLookupTable5(
     parsedVideos.videos,
     extracted,
     resolveRenderFpsConfig({ num: fpsNum, den: fpsDen }).value
@@ -10593,13 +10971,13 @@ function computeManifestHash(manifest) {
   return sha256Hex(`${PLAN_V2_HASH_PREFIX}${canonicalJsonStringify(manifestPayload(manifest))}`);
 }
 function writeBlob(sourcePath, destinationPath) {
-  if (existsSync17(destinationPath)) return;
-  mkdirSync12(dirname12(destinationPath), { recursive: true });
-  const temporaryDir = mkdtempSync4(join25(dirname12(destinationPath), ".plan-v2-blob-"));
-  const temporaryPath = join25(temporaryDir, "blob");
+  if (existsSync20(destinationPath)) return;
+  mkdirSync12(dirname14(destinationPath), { recursive: true });
+  const temporaryDir = mkdtempSync4(join28(dirname14(destinationPath), ".plan-v2-blob-"));
+  const temporaryPath = join28(temporaryDir, "blob");
   try {
     copyFileSync8(sourcePath, temporaryPath);
-    renameWithRetry9(temporaryPath, destinationPath);
+    renameWithRetry10(temporaryPath, destinationPath);
   } finally {
     rmSync9(temporaryDir, { recursive: true, force: true });
   }
@@ -10632,8 +11010,8 @@ async function putTasks(tasks) {
   if (failure) throw failure.reason;
 }
 function buildPlanV2Publication(executionPlanDir, digests) {
-  const executionPlanPath = join25(executionPlanDir, "plan.json");
-  if (!existsSync17(executionPlanPath)) {
+  const executionPlanPath = join28(executionPlanDir, "plan.json");
+  if (!existsSync20(executionPlanPath)) {
     throw new PlanV2IntegrityError(`execution plan is missing plan.json: ${executionPlanPath}`);
   }
   const executionPlanValue = readJsonFile(executionPlanPath, "execution plan.json");
@@ -10660,7 +11038,7 @@ function buildPlanV2Publication(executionPlanDir, digests) {
   }
   validateExtractionCacheCompleteSentinels(executionPlanDir);
   const videoDependencyPlan = buildVideoChunkDependencies(executionPlanDir, dimensions);
-  const encoder = readJsonFile(join25(executionPlanDir, "meta", "encoder.json"), "meta/encoder.json");
+  const encoder = readJsonFile(join28(executionPlanDir, "meta", "encoder.json"), "meta/encoder.json");
   const files = listFiles(executionPlanDir);
   const chunkAudio = !isRecord3(encoder) || encoder.chunksCarryAudio !== true ? "none" : files.some((file) => chunkAudioSliceTarget(file.path) !== null) ? "sliced" : "whole";
   for (const file of files) {
@@ -10713,33 +11091,30 @@ function buildPlanV2Publication(executionPlanDir, digests) {
   };
 }
 function createPlanV2FromExecutionPlan(executionPlanDir, planV2Dir) {
-  if (existsSync17(planV2Dir)) {
+  if (existsSync20(planV2Dir)) {
     throw new PlanV2IntegrityError(`output directory already exists: ${planV2Dir}`);
   }
   const publication = buildPlanV2Publication(executionPlanDir);
   if (publication.storedBlobs.length > 0) {
     throw new PlanV2IntegrityError("a local plan v2 directory cannot reference remote files");
   }
-  mkdirSync12(dirname12(planV2Dir), { recursive: true });
-  const tempDir = mkdtempSync4(join25(dirname12(planV2Dir), ".plan-v2-build-"));
+  mkdirSync12(dirname14(planV2Dir), { recursive: true });
+  const tempDir = mkdtempSync4(join28(dirname14(planV2Dir), ".plan-v2-build-"));
   try {
     for (const blob of publication.blobs) {
       writeBlob(blob.sourcePath, planV2BlobPath(tempDir, blob.sha256));
     }
-    writeFileSync9(
-      join25(tempDir, "plan.json"),
+    writeFileSync10(
+      join28(tempDir, "plan.json"),
       canonicalJsonStringify(publication.manifest),
       "utf-8"
     );
-    renameWithRetry9(tempDir, planV2Dir);
+    renameWithRetry10(tempDir, planV2Dir);
     return resultFromManifest(planV2Dir, publication.manifest);
   } catch (error) {
     rmSync9(tempDir, { recursive: true, force: true });
     throw error;
   }
-}
-function createPlanV2FromV1(executionPlanDir, planV2Dir) {
-  return createPlanV2FromExecutionPlan(executionPlanDir, planV2Dir);
 }
 async function publishPlanV2FromExecutionPlan(executionPlanDir, publisher) {
   return publishExecutionPlan(executionPlanDir, publisher, {});
@@ -10770,11 +11145,8 @@ async function publishExecutionPlan(executionPlanDir, publisher, { digests, log 
     throw error;
   }
 }
-async function publishPlanV2FromV1(executionPlanDir, publisher) {
-  return publishPlanV2FromExecutionPlan(executionPlanDir, publisher);
-}
 async function planV2WithPublisher(projectDir, config, publisher, options = {}) {
-  const stagingRoot = mkdtempSync4(join25(options.stagingParentDir ?? tmpdir(), ".execution-plan-"));
+  const stagingRoot = mkdtempSync4(join28(options.stagingParentDir ?? tmpdir(), ".execution-plan-"));
   const digests = /* @__PURE__ */ new Map();
   try {
     await buildLocalExecutionPlan(projectDir, config, stagingRoot, {
@@ -10785,7 +11157,7 @@ async function planV2WithPublisher(projectDir, config, publisher, options = {}) 
       // artifactTargets ships every compiled/ file to all chunks, so each is in the manifest.
       whileAudioMixes: () => putBlobs(
         publisher,
-        listFiles(join25(stagingRoot, "compiled")).map(
+        listFiles(join28(stagingRoot, "compiled")).map(
           (file) => publishBlobFor(file.absolutePath, digests)
         )
       ),
@@ -10805,19 +11177,24 @@ async function planV2WithPublisher(projectDir, config, publisher, options = {}) 
   }
 }
 async function planV2(projectDir, config, planV2Dir) {
-  if (existsSync17(planV2Dir)) {
+  if (existsSync20(planV2Dir)) {
     throw new PlanV2IntegrityError(`output directory already exists: ${planV2Dir}`);
   }
   const publisher = new LocalPlanV2ArtifactPublisher(planV2Dir);
   const manifest = await planV2WithPublisher(projectDir, config, publisher, {
-    stagingParentDir: dirname12(planV2Dir)
+    stagingParentDir: dirname14(planV2Dir)
   });
   return resultFromManifest(planV2Dir, manifest);
 }
 function resultFromManifest(planV2Dir, manifest) {
+  const artifact = manifest.artifacts.find((entry) => entry.path === "plan.json");
+  const executionPlan = artifact ? readJsonFile(verifyBlob(planV2Dir, artifact), "execution plan.json") : null;
   return {
+    ...referenceBackgroundResult5(
+      isRecord3(executionPlan) ? executionPlan[REFERENCE_BACKGROUND_FIELD3] : void 0
+    ),
     planDir: planV2Dir,
-    manifestPath: join25(planV2Dir, "plan.json"),
+    manifestPath: join28(planV2Dir, "plan.json"),
     planProtocol: PLAN_PROTOCOL_V2,
     planHash: manifest.planHash,
     sourcePlanV1Hash: getPlanV2ExecutionPlanHash(manifest),
@@ -10832,8 +11209,8 @@ function resultFromManifest(planV2Dir, manifest) {
     limitations: manifest.limitations
   };
 }
-function getPlanV2ExecutionPlanHash(plan2) {
-  return plan2.sourcePlanV1Hash;
+function getPlanV2ExecutionPlanHash(plan) {
+  return plan.sourcePlanV1Hash;
 }
 function readString2(value, field) {
   if (typeof value !== "string" || value.length === 0) {
@@ -10953,8 +11330,8 @@ function parsePlanV2Manifest(value) {
   return parsed;
 }
 function readPlanV2Manifest(planV2Dir) {
-  const manifestPath = join25(planV2Dir, "plan.json");
-  if (!existsSync17(manifestPath)) {
+  const manifestPath = join28(planV2Dir, "plan.json");
+  if (!existsSync20(manifestPath)) {
     throw new PlanV2IntegrityError(`missing v2 manifest: ${manifestPath}`);
   }
   const value = readJsonFile(manifestPath, "v2 manifest");
@@ -10973,7 +11350,7 @@ function listPlanV2ArtifactsForTarget(manifest, target) {
 }
 function verifyBlob(planV2Dir, artifact) {
   const sourcePath = planV2BlobPath(planV2Dir, artifact.sha256);
-  if (!existsSync17(sourcePath)) {
+  if (!existsSync20(sourcePath)) {
     throw new PlanV2IntegrityError(`missing content-addressed artifact ${artifact.sha256}`);
   }
   const stats = statSync7(sourcePath);
@@ -10986,7 +11363,7 @@ function verifyBlob(planV2Dir, artifact) {
   return sourcePath;
 }
 function materializePlanV2Target(planV2Dir, target, destinationDir, options = {}) {
-  if (existsSync17(destinationDir)) {
+  if (existsSync20(destinationDir)) {
     throw new PlanV2IntegrityError(`materialization destination already exists: ${destinationDir}`);
   }
   const manifest = readPlanV2Manifest(planV2Dir);
@@ -10998,17 +11375,17 @@ function materializePlanV2Target(planV2Dir, target, destinationDir, options = {}
     artifact,
     sourcePath: verifyBlob(planV2Dir, artifact)
   }));
-  mkdirSync12(dirname12(destinationDir), { recursive: true });
-  const tempDir = mkdtempSync4(join25(dirname12(destinationDir), ".plan-v2-materialize-"));
+  mkdirSync12(dirname14(destinationDir), { recursive: true });
+  const tempDir = mkdtempSync4(join28(dirname14(destinationDir), ".plan-v2-materialize-"));
   try {
     for (const { artifact, sourcePath } of verified) {
-      const destinationPath = join25(tempDir, ...artifact.path.split("/"));
-      mkdirSync12(dirname12(destinationPath), { recursive: true });
+      const destinationPath = join28(tempDir, ...artifact.path.split("/"));
+      mkdirSync12(dirname14(destinationPath), { recursive: true });
       copyFileSync8(sourcePath, destinationPath);
     }
     if (target.role === "chunk") materializeExtractedVideoDirectories(tempDir);
-    writeFileSync9(
-      join25(tempDir, PLAN_V2_MATERIALIZATION_MARKER),
+    writeFileSync10(
+      join28(tempDir, PLAN_V2_MATERIALIZATION_MARKER),
       canonicalJsonStringify({
         manifest,
         target,
@@ -11016,7 +11393,7 @@ function materializePlanV2Target(planV2Dir, target, destinationDir, options = {}
       }),
       "utf-8"
     );
-    renameWithRetry9(tempDir, destinationDir);
+    renameWithRetry10(tempDir, destinationDir);
   } catch (error) {
     rmSync9(tempDir, { recursive: true, force: true });
     throw error;
@@ -11031,7 +11408,7 @@ function materializePlanV2Target(planV2Dir, target, destinationDir, options = {}
     // Join the artifact's OWN name, not the current constant: a plan written
     // before the container change carries the legacy name, and materializing it
     // under the new one would point at a file that was never written.
-    audioPath: target.role === "assembler" ? audioArtifact ? join25(destinationDir, audioArtifact.path) : null : null
+    audioPath: target.role === "assembler" ? audioArtifact ? join28(destinationDir, audioArtifact.path) : null : null
   };
 }
 function assertRemoteSources(remoteSources, artifacts) {
@@ -11050,8 +11427,8 @@ function validatePlanV2MaterializedTarget(planDir, expectedTarget) {
   return readValidatedPlanV2Materialization(planDir, expectedTarget)?.manifest ?? null;
 }
 function readValidatedPlanV2Materialization(planDir, expectedTarget) {
-  const markerPath = join25(planDir, PLAN_V2_MATERIALIZATION_MARKER);
-  if (!existsSync17(markerPath)) return null;
+  const markerPath = join28(planDir, PLAN_V2_MATERIALIZATION_MARKER);
+  if (!existsSync20(markerPath)) return null;
   const marker = readJsonFile(markerPath, "materialization marker");
   if (!isRecord3(marker) || !isRecord3(marker.manifest) || !isRecord3(marker.target)) {
     throw new PlanV2IntegrityError("malformed materialization marker");
@@ -11068,8 +11445,8 @@ function readValidatedPlanV2Materialization(planDir, expectedTarget) {
   assertRemoteSources(remoteSources, required);
   for (const artifact of required) {
     if (Object.hasOwn(remoteSources, artifact.path)) continue;
-    const path = join25(planDir, ...artifact.path.split("/"));
-    if (!existsSync17(path) || statSync7(path).size !== artifact.sizeBytes) {
+    const path = join28(planDir, ...artifact.path.split("/"));
+    if (!existsSync20(path) || statSync7(path).size !== artifact.sizeBytes) {
       throw new PlanV2IntegrityError(
         `materialized artifact missing or truncated: ${artifact.path}`
       );
@@ -11084,32 +11461,36 @@ function readValidatedPlanV2Materialization(planDir, expectedTarget) {
 // src/services/distributed/planV2Execution.ts
 import { mkdtempSync as mkdtempSync6, rmSync as rmSync12 } from "node:fs";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join28 } from "node:path";
+import { join as join31 } from "node:path";
 
 // src/services/distributed/assemble.ts
 import {
+  REFERENCE_BACKGROUND_FIELD as REFERENCE_BACKGROUND_FIELD4,
+  referenceBackgroundResult as referenceBackgroundResult6
+} from "@hyperframes/engine";
+import {
   cpSync as cpSync3,
-  existsSync as existsSync18,
+  existsSync as existsSync21,
   mkdirSync as mkdirSync13,
   mkdtempSync as mkdtempSync5,
-  readFileSync as readFileSync11,
+  readFileSync as readFileSync10,
   readdirSync as readdirSync8,
   rmSync as rmSync10,
   statSync as statSync8,
-  writeFileSync as writeFileSync10
+  writeFileSync as writeFileSync11
 } from "node:fs";
-import { dirname as dirname13, join as join26 } from "node:path";
+import { dirname as dirname15, join as join29 } from "node:path";
 import {
   appendRateCapArgs as appendRateCapArgs2,
   appendRenderProvenanceArgs as appendRenderProvenanceArgs2,
-  describeFfmpegFailure as describeFfmpegFailure4,
+  describeFfmpegFailure as describeFfmpegFailure5,
   getEncoderPreset as getEncoderPreset5,
   MIXED_AUDIO_FILENAME as MIXED_AUDIO_FILENAME4,
   muxVideoWithAudio as muxVideoWithAudio2,
   resolveConfig as resolveConfig4,
   runFfmpeg as runFfmpeg8,
   appendSoftwareEncoderThreadsArg,
-  renameWithRetry as renameWithRetry10
+  renameWithRetry as renameWithRetry11
 } from "@hyperframes/engine";
 import { fpsToFfmpegArg as fpsToFfmpegArg3 } from "@hyperframes/core";
 function cfrRateControlArgs(locked) {
@@ -11123,28 +11504,32 @@ async function assemble(planDir, chunkOutputs, audioPath, outputPath, options) {
   const start = Date.now();
   const log = options?.logger ?? defaultLogger;
   const cfr = options?.cfr === true;
-  const plan2 = readAssemblePlan(planDir, chunkOutputs);
+  const plan = readAssemblePlan(planDir, chunkOutputs);
   const chunkPaths = chunkOutputs.flat();
-  if (plan2.dimensions.format === "png-sequence") {
-    return mergePngFrameDirs(chunkPaths, outputPath, plan2.totalFrames, audioPath, start);
+  if (plan.dimensions.format === "png-sequence") {
+    return {
+      ...mergePngFrameDirs(chunkPaths, outputPath, plan.totalFrames, audioPath, start),
+      ...referenceBackgroundResult6(plan[REFERENCE_BACKGROUND_FIELD4])
+    };
   }
   if (chunksAreStitchedMp4(planDir, cfr)) {
     const separateAudio = stitchesSeparateAudio(planDir) && audioPath !== null;
     await writeStitchedMp4(chunkPaths, outputPath, separateAudio ? audioPath : void 0);
     return {
+      ...referenceBackgroundResult6(plan[REFERENCE_BACKGROUND_FIELD4]),
       outputPath,
       durationMs: Date.now() - start,
-      framesEncoded: plan2.totalFrames,
+      framesEncoded: plan.totalFrames,
       fileSize: statSync8(outputPath).size
     };
   }
-  const format = plan2.dimensions.format;
+  const format = plan.dimensions.format;
   const cfrEncoder = cfr ? readCfrEncoder(planDir, format) : null;
-  if (!existsSync18(dirname13(outputPath))) {
-    mkdirSync13(dirname13(outputPath), { recursive: true });
+  if (!existsSync21(dirname15(outputPath))) {
+    mkdirSync13(dirname15(outputPath), { recursive: true });
   }
   const workDir = mkdtempSync5(`${outputPath}.assemble-work-`);
-  const fps = { num: plan2.dimensions.fpsNum, den: plan2.dimensions.fpsDen };
+  const fps = { num: plan.dimensions.fpsNum, den: plan.dimensions.fpsDen };
   const stageMs = {};
   const ctx = {
     workDir,
@@ -11163,10 +11548,10 @@ async function assemble(planDir, chunkOutputs, audioPath, outputPath, options) {
   };
   try {
     const videoSources = cfrEncoder ? [await reencodeCfr(ctx, chunkPaths, cfrEncoder)] : chunkPaths;
-    const finalPath = join26(workDir, `output.${format}`);
-    const audio = audioPath !== null && existsSync18(audioPath) ? audioPath : null;
+    const finalPath = join29(workDir, `output.${format}`);
+    const audio = audioPath !== null && existsSync21(audioPath) ? audioPath : null;
     await writeJoined(ctx, videoSources, audio, finalPath);
-    renameWithRetry10(finalPath, outputPath);
+    renameWithRetry11(finalPath, outputPath);
     log.info("[assemble] stage timings", {
       ...stageMs,
       chunks: chunkPaths.length,
@@ -11182,27 +11567,28 @@ async function assemble(planDir, chunkOutputs, audioPath, outputPath, options) {
       });
     }
   }
-  const fileSize = existsSync18(outputPath) ? statSync8(outputPath).size : 0;
+  const fileSize = existsSync21(outputPath) ? statSync8(outputPath).size : 0;
   return {
+    ...referenceBackgroundResult6(plan[REFERENCE_BACKGROUND_FIELD4]),
     outputPath,
     durationMs: Date.now() - start,
-    framesEncoded: plan2.totalFrames,
+    framesEncoded: plan.totalFrames,
     fileSize
   };
 }
 function readAssemblePlan(planDir, chunkPaths) {
-  const planJsonPath = join26(planDir, "plan.json");
-  const chunksJsonPath = join26(planDir, "meta", "chunks.json");
-  if (!existsSync18(planJsonPath)) {
+  const planJsonPath = join29(planDir, "plan.json");
+  const chunksJsonPath = join29(planDir, "meta", "chunks.json");
+  if (!existsSync21(planJsonPath)) {
     throw new Error(`[assemble] planDir missing plan.json: ${planJsonPath}`);
   }
-  const plan2 = JSON.parse(readFileSync11(planJsonPath, "utf-8"));
-  readPlanProtocolV1(plan2, DISTRIBUTED_RENDER_CAPABILITIES.roles.assembler);
+  const plan = JSON.parse(readFileSync10(planJsonPath, "utf-8"));
+  readPlanProtocolV1(plan, DISTRIBUTED_RENDER_CAPABILITIES.roles.assembler);
   validatePlanV2MaterializedTarget(planDir, { role: "assembler" });
-  if (!existsSync18(chunksJsonPath)) {
+  if (!existsSync21(chunksJsonPath)) {
     throw new Error(`[assemble] planDir missing meta/chunks.json: ${chunksJsonPath}`);
   }
-  const chunks = JSON.parse(readFileSync11(chunksJsonPath, "utf-8"));
+  const chunks = JSON.parse(readFileSync10(chunksJsonPath, "utf-8"));
   if (chunkPaths.length !== chunks.length) {
     throw new Error(
       `[assemble] chunkPaths length (${chunkPaths.length}) does not match chunks.json length (${chunks.length}). Adapters must pass one path per chunk, ordered by index.`
@@ -11214,11 +11600,11 @@ function readAssemblePlan(planDir, chunkPaths) {
     }
   }
   for (const path of chunkPaths.flat()) {
-    if (!existsSync18(path)) {
+    if (!existsSync21(path)) {
       throw new Error(`[assemble] chunk path does not exist: ${path}`);
     }
   }
-  return plan2;
+  return plan;
 }
 function videoInputArgs(ctx, videoSources) {
   return videoSources.length === 1 ? ["-i", videoSources[0]] : concatDemuxerInput(videoSources, ctx.workDir, ctx.fpsArg);
@@ -11243,7 +11629,7 @@ function cfrEncodeArgs(inputArgs, encoder, fpsArg) {
   return args;
 }
 async function reencodeCfr(ctx, chunkPaths, encoder) {
-  const cfrOutputPath = join26(ctx.workDir, `cfr.${ctx.format}`);
+  const cfrOutputPath = join29(ctx.workDir, `cfr.${ctx.format}`);
   const cfrArgs = cfrEncodeArgs(videoInputArgs(ctx, chunkPaths), encoder, ctx.fpsArg);
   appendRenderProvenanceArgs2(cfrArgs, cfrOutputPath);
   cfrArgs.push("-y", cfrOutputPath);
@@ -11270,7 +11656,7 @@ async function writeJoined(ctx, videoSources, audioPath, finalPath) {
     );
     return;
   }
-  const paddedAudioPath = join26(ctx.workDir, "audio-padded.m4a");
+  const paddedAudioPath = join29(ctx.workDir, "audio-padded.m4a");
   const padTrimResult = await ctx.timed(
     "audioMs",
     () => padOrTrimAudioToVideoFrameCount({
@@ -11310,9 +11696,9 @@ async function writeJoined(ctx, videoSources, audioPath, finalPath) {
   }
 }
 function concatDemuxerInput(chunkPaths, workDir, fpsArg) {
-  const listPath = join26(workDir, "concat-list.txt");
+  const listPath = join29(workDir, "concat-list.txt");
   const body = chunkPaths.map((path) => `file '${path.replace(/'/g, "'\\''")}'`).join("\n");
-  writeFileSync10(listPath, `${body}
+  writeFileSync11(listPath, `${body}
 `, "utf-8");
   return ["-r", fpsArg, "-f", "concat", "-safe", "0", "-i", listPath];
 }
@@ -11330,7 +11716,7 @@ async function runAssembleFfmpeg(args, step, signal, timeout) {
   const result = await runFfmpeg8(args, { signal, timeout });
   if (!result.success) {
     throw encoderFailureError(`[assemble] ffmpeg ${step} failed`, {
-      error: describeFfmpegFailure4(result, timeout),
+      error: describeFfmpegFailure5(result, timeout),
       failureReason: result.failureReason
     });
   }
@@ -11348,13 +11734,13 @@ function stitchesSeparateAudio(planDir) {
   return lockedAudio(planDir).separateAudio === true;
 }
 function planFormat(planDir) {
-  const plan2 = JSON.parse(readFileSync11(join26(planDir, "plan.json"), "utf-8"));
-  return plan2.dimensions.format;
+  const plan = JSON.parse(readFileSync10(join29(planDir, "plan.json"), "utf-8"));
+  return plan.dimensions.format;
 }
 function lockedAudio(planDir) {
-  const encoderJsonPath = join26(planDir, "meta", "encoder.json");
-  if (!existsSync18(encoderJsonPath)) return {};
-  return JSON.parse(readFileSync11(encoderJsonPath, "utf-8"));
+  const encoderJsonPath = join29(planDir, "meta", "encoder.json");
+  if (!existsSync21(encoderJsonPath)) return {};
+  return JSON.parse(readFileSync10(encoderJsonPath, "utf-8"));
 }
 function readCfrEncoder(planDir, format) {
   if (format !== "mp4") {
@@ -11362,11 +11748,11 @@ function readCfrEncoder(planDir, format) {
       `[assemble] cfr=true is only supported for format="mp4" (got "${format}"). Stream-copy paths for webm and mov already produce exact avg_frame_rate; cfr re-encode is not needed.`
     );
   }
-  const encoderJsonPath = join26(planDir, "meta", "encoder.json");
-  if (!existsSync18(encoderJsonPath)) {
+  const encoderJsonPath = join29(planDir, "meta", "encoder.json");
+  if (!existsSync21(encoderJsonPath)) {
     throw new Error(`[assemble] planDir missing meta/encoder.json: ${encoderJsonPath}`);
   }
-  const encoderJson = JSON.parse(readFileSync11(encoderJsonPath, "utf-8"));
+  const encoderJson = JSON.parse(readFileSync10(encoderJsonPath, "utf-8"));
   if (encoderJson.encoder === "libx265-software") {
     throw new Error(
       `[assemble] cfr=true is not yet supported with codec: "h265". The cfr re-encode pass uses libx264 and would silently transcode the h265 chunks. Either disable cfr or render with codec: "h264".`
@@ -11375,7 +11761,7 @@ function readCfrEncoder(planDir, format) {
   return encoderJson;
 }
 function mergePngFrameDirs(chunkPaths, outputPath, totalFrames, audioPath, startTimeMs) {
-  if (existsSync18(outputPath)) rmSync10(outputPath, { recursive: true, force: true });
+  if (existsSync21(outputPath)) rmSync10(outputPath, { recursive: true, force: true });
   mkdirSync13(outputPath, { recursive: true });
   let globalIdx = 0;
   for (const chunkDir of chunkPaths) {
@@ -11389,8 +11775,8 @@ function mergePngFrameDirs(chunkPaths, outputPath, totalFrames, audioPath, start
       throw new Error(`[assemble] png-sequence chunk has no frames: ${chunkDir}`);
     }
     for (const frame of frames) {
-      const dst = join26(outputPath, formatExportFrameName(globalIdx, "png"));
-      cpSync3(join26(chunkDir, frame), dst);
+      const dst = join29(outputPath, formatExportFrameName(globalIdx, "png"));
+      cpSync3(join29(chunkDir, frame), dst);
       globalIdx += 1;
     }
   }
@@ -11399,14 +11785,14 @@ function mergePngFrameDirs(chunkPaths, outputPath, totalFrames, audioPath, start
       `[assemble] png-sequence frame count mismatch: merged ${globalIdx} frames vs plan.totalFrames=${totalFrames}. Using on-disk count.`
     );
   }
-  if (audioPath !== null && existsSync18(audioPath)) {
-    const sidecar = join26(outputPath, MIXED_AUDIO_FILENAME4);
+  if (audioPath !== null && existsSync21(audioPath)) {
+    const sidecar = join29(outputPath, MIXED_AUDIO_FILENAME4);
     cpSync3(audioPath, sidecar);
   }
   let fileSize = 0;
   for (const name of readdirSync8(outputPath)) {
     try {
-      fileSize += statSync8(join26(outputPath, name)).size;
+      fileSize += statSync8(join29(outputPath, name)).size;
     } catch {
     }
   }
@@ -11420,17 +11806,17 @@ function mergePngFrameDirs(chunkPaths, outputPath, totalFrames, audioPath, start
 
 // src/services/distributed/renderChunk.ts
 import { randomBytes } from "node:crypto";
-import { existsSync as existsSync19, mkdirSync as mkdirSync14, readFileSync as readFileSync12, readdirSync as readdirSync9, rmSync as rmSync11, writeFileSync as writeFileSync11 } from "node:fs";
+import { existsSync as existsSync22, mkdirSync as mkdirSync14, readFileSync as readFileSync11, readdirSync as readdirSync9, rmSync as rmSync11, writeFileSync as writeFileSync12 } from "node:fs";
 import { cpus } from "node:os";
-import { join as join27 } from "node:path";
+import { join as join30 } from "node:path";
 import {
   assertSwiftShader,
   BROWSER_GPU_NOT_SOFTWARE as BROWSER_GPU_NOT_SOFTWARE4,
   calculateOptimalWorkers as calculateOptimalWorkers2,
   classifyCaptureFailure as classifyCaptureFailure4,
-  closeCaptureSession as closeCaptureSession10,
-  createCaptureSession as createCaptureSession10,
-  createFrameLookupTable as createFrameLookupTable5,
+  closeCaptureSession as closeCaptureSession11,
+  createCaptureSession as createCaptureSession11,
+  createFrameLookupTable as createFrameLookupTable6,
   deriveBeginFrameProbeTimeTicks as deriveBeginFrameProbeTimeTicks2,
   getEncoderPreset as getEncoderPreset6,
   initializeSession as initializeSession10,
@@ -11472,10 +11858,10 @@ function resolveChunkFrameRange(slice, chunkIndex, frameRange) {
   return { startFrame, endFrame };
 }
 var distributedCaptureSessionDependencies = {
-  createCaptureSession: createCaptureSession10,
+  createCaptureSession: createCaptureSession11,
   assertSwiftShader,
   initializeSession: initializeSession10,
-  closeCaptureSession: closeCaptureSession10,
+  closeCaptureSession: closeCaptureSession11,
   readWebGlVendorInfo: readWebGlVendorInfoFromCanvas
 };
 async function createVerifiedDistributedCaptureSession(serverUrl, framesDir, captureOptions, cfg, dependencies = distributedCaptureSessionDependencies) {
@@ -11543,10 +11929,10 @@ async function beginFrameSessionNeedsScreenshotFallback(session, probe = probeBe
   return !await probe(session.page, timeoutMs, probeTick, session.beginFrameIntervalMs);
 }
 function hashChunkOutput(outputPath, kind) {
-  if (kind === "file") return sha256Hex(readFileSync12(outputPath));
+  if (kind === "file") return sha256Hex(readFileSync11(outputPath));
   const entries = readdirSync9(outputPath).filter((name) => /\.(png|jpg|jpeg)$/i.test(name)).sort();
   const lines = entries.map(
-    (name) => `${name}\0${sha256Hex(readFileSync12(join27(outputPath, name)))}`
+    (name) => `${name}\0${sha256Hex(readFileSync11(join30(outputPath, name)))}`
   );
   return sha256Hex(lines.join("\0"));
 }
@@ -11563,17 +11949,17 @@ function resolveLockedVp9CpuUsed(lockedEncoder) {
 async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
   const start = Date.now();
   const log = defaultLogger;
-  const planJsonPath = join27(planDir, "plan.json");
-  const encoderJsonPath = join27(planDir, "meta", "encoder.json");
-  const chunksJsonPath = join27(planDir, "meta", "chunks.json");
-  if (!existsSync19(planJsonPath)) {
+  const planJsonPath = join30(planDir, "plan.json");
+  const encoderJsonPath = join30(planDir, "meta", "encoder.json");
+  const chunksJsonPath = join30(planDir, "meta", "chunks.json");
+  if (!existsSync22(planJsonPath)) {
     throw new RenderChunkValidationError(
       MISSING_PLAN_ARTIFACT,
       `[renderChunk] planDir is missing required artifact: ${planJsonPath}`
     );
   }
-  const plan2 = JSON.parse(readFileSync12(planJsonPath, "utf-8"));
-  readPlanProtocolV1(plan2, DISTRIBUTED_RENDER_CAPABILITIES.roles.chunk);
+  const plan = JSON.parse(readFileSync11(planJsonPath, "utf-8"));
+  readPlanProtocolV1(plan, DISTRIBUTED_RENDER_CAPABILITIES.roles.chunk);
   const planHashStarted = Date.now();
   const v2Materialization = readValidatedPlanV2Materialization(planDir, {
     role: "chunk",
@@ -11582,20 +11968,20 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
   const v2Manifest = v2Materialization?.manifest ?? null;
   const remoteSources = v2Materialization?.remoteSources ?? {};
   for (const required of [encoderJsonPath, chunksJsonPath]) {
-    if (!existsSync19(required)) {
+    if (!existsSync22(required)) {
       throw new RenderChunkValidationError(
         MISSING_PLAN_ARTIFACT,
         `[renderChunk] planDir is missing required artifact: ${required}`
       );
     }
   }
-  const encoder = JSON.parse(readFileSync12(encoderJsonPath, "utf-8"));
-  const chunks = JSON.parse(readFileSync12(chunksJsonPath, "utf-8"));
-  const videosJsonPath = join27(planDir, PLAN_VIDEOS_META_RELATIVE_PATH);
+  const encoder = JSON.parse(readFileSync11(encoderJsonPath, "utf-8"));
+  const chunks = JSON.parse(readFileSync11(chunksJsonPath, "utf-8"));
+  const videosJsonPath = join30(planDir, PLAN_VIDEOS_META_RELATIVE_PATH);
   let planVideos = null;
-  if (existsSync19(videosJsonPath)) {
+  if (existsSync22(videosJsonPath)) {
     try {
-      planVideos = validatePlanVideosForChunk(JSON.parse(readFileSync12(videosJsonPath, "utf-8")));
+      planVideos = validatePlanVideosForChunk(JSON.parse(readFileSync11(videosJsonPath, "utf-8")));
     } catch (err) {
       if (err instanceof RenderChunkValidationError) throw err;
       throw new RenderChunkValidationError(
@@ -11623,18 +12009,18 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
   }
   const range = resolveChunkFrameRange(slice, chunkIndex, options?.frameRange);
   const framesInChunk = range.endFrame - range.startFrame;
-  const compiledDir = join27(planDir, "compiled");
-  if (!existsSync19(compiledDir)) {
+  const compiledDir = join30(planDir, "compiled");
+  if (!existsSync22(compiledDir)) {
     throw new RenderChunkValidationError(
       MISSING_PLAN_ARTIFACT,
       `[renderChunk] planDir missing compiled/ directory: ${compiledDir}`
     );
   }
   const ffmpegVersion = await readFfmpegVersion();
-  if (ffmpegVersion !== plan2.ffmpegVersion) {
+  if (ffmpegVersion !== plan.ffmpegVersion) {
     throw new RenderChunkValidationError(
       FFMPEG_VERSION_MISMATCH,
-      `[renderChunk] ffmpeg version on this worker does not match planDir. planDir: ${JSON.stringify(plan2.ffmpegVersion)}; worker: ${JSON.stringify(ffmpegVersion)}. Distributed retries require byte-identical ffmpeg builds across workers. Re-plan from a worker matching this version, or run all renders on an image with the planDir's ffmpeg.`
+      `[renderChunk] ffmpeg version on this worker does not match planDir. planDir: ${JSON.stringify(plan.ffmpegVersion)}; worker: ${JSON.stringify(ffmpegVersion)}. Distributed retries require byte-identical ffmpeg builds across workers. Re-plan from a worker matching this version, or run all renders on an image with the planDir's ffmpeg.`
     );
   }
   if (encoder.browserGpuMode !== "software") {
@@ -11643,12 +12029,12 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       `[renderChunk] planDir requires browserGpuMode=software, got ${JSON.stringify(encoder.browserGpuMode)}.`
     );
   }
-  const recomputedPlanHash = v2Manifest === null ? recomputePlanHashFromPlanDir(planDir) : plan2.planHash;
+  const recomputedPlanHash = v2Manifest === null ? recomputePlanHashFromPlanDir(planDir) : plan.planHash;
   const planHashMs = Date.now() - planHashStarted;
-  if (recomputedPlanHash !== plan2.planHash) {
+  if (recomputedPlanHash !== plan.planHash) {
     throw new RenderChunkValidationError(
       PLAN_HASH_MISMATCH,
-      `[renderChunk] planDir content fingerprint does not match plan.json.planHash. plan.json: ${plan2.planHash}; recomputed: ${recomputedPlanHash}. Likely a corrupted artifact (partial S3 download, manual tampering) or a planDir produced by an incompatible producer version. Re-plan and re-fan-out.`
+      `[renderChunk] planDir content fingerprint does not match plan.json.planHash. plan.json: ${plan.planHash}; recomputed: ${recomputedPlanHash}. Likely a corrupted artifact (partial S3 download, manual tampering) or a planDir produced by an incompatible producer version. Re-plan and re-fan-out.`
     );
   }
   if (!encoder.runtimeEnv || typeof encoder.runtimeEnv !== "object") {
@@ -11660,16 +12046,16 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
   const envRestore = applyRuntimeEnvSnapshot(encoder.runtimeEnv);
   try {
     const job = buildSyntheticRenderJob({
-      fps: { num: plan2.dimensions.fpsNum, den: plan2.dimensions.fpsDen },
+      fps: { num: plan.dimensions.fpsNum, den: plan.dimensions.fpsDen },
       quality: encoder.quality,
-      format: plan2.dimensions.format,
+      format: plan.dimensions.format,
       crf: encoder.crf,
       bitrate: encoder.bitrate,
       hdrMode: "force-sdr",
       entryFile: "index.html"
     });
     job.totalFrames = framesInChunk;
-    job.duration = framesInChunk * plan2.dimensions.fpsDen / plan2.dimensions.fpsNum;
+    job.duration = framesInChunk * plan.dimensions.fpsDen / plan.dimensions.fpsNum;
     const cfg = {
       ...resolveConfig5(),
       browserGpuMode: "software",
@@ -11681,13 +12067,13 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
     };
     const workDir = `${outputChunkPath}.work.${process.pid}.${randomBytes(4).toString("hex")}`;
     mkdirSync14(workDir, { recursive: true });
-    const framesDir = join27(workDir, "captured-frames");
+    const framesDir = join30(workDir, "captured-frames");
     mkdirSync14(framesDir, { recursive: true });
     const videoFramesDir = `${workDir}.video-frames`;
     const chunkFrameNumbers = Array.from({ length: framesInChunk }, (_, i) => range.startFrame + i);
-    const chunkFps = { num: plan2.dimensions.fpsNum, den: plan2.dimensions.fpsDen };
+    const chunkFps = { num: plan.dimensions.fpsNum, den: plan.dimensions.fpsDen };
     const deferredVideos = planVideos?.extracted.filter((video) => video.deferredRange) ?? [];
-    const shownFrames = planVideos ? shownDeferredFrameIndexes(planVideos, chunkFrameNumbers, chunkFps) : /* @__PURE__ */ new Map();
+    const shownFrames = planVideos ? shownPlanFrameIndexes(planVideos, chunkFrameNumbers, chunkFps) : /* @__PURE__ */ new Map();
     const remoteVideoIds = new Set(
       planVideos?.extracted.filter(
         (video) => video.deferredRange && Object.hasOwn(remoteSources, video.deferredRange.sourcePath)
@@ -11700,13 +12086,13 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       preHeadScripts: [buildVirtualTimeShim({ seedRandomFromFrame: true })],
       // These dimensions are frozen by the controller from the render job, so
       // chunk runtime seek quantization stays on the same fps grid as capture.
-      fps: { num: plan2.dimensions.fpsNum, den: plan2.dimensions.fpsDen }
+      fps: { num: plan.dimensions.fpsNum, den: plan.dimensions.fpsDen }
     });
     const captureOptions = buildChunkCaptureOptions({
-      dimensions: plan2.dimensions,
+      dimensions: plan.dimensions,
       encoder,
       videoCount: planVideos?.videos.length ?? 0,
-      html: readFileSync12(join27(compiledDir, "index.html"), "utf-8"),
+      html: readFileSync11(join30(compiledDir, "index.html"), "utf-8"),
       // The plan ships a deferred source only to chunks that show it; don't wait on the rest.
       skipReadinessVideoIds: deferredVideos.filter(
         (video) => !shownFrames.get(video.videoId)?.size || remoteVideoIds.has(video.videoId)
@@ -11777,7 +12163,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
             "[renderChunk] BeginFrame liveness probe failed; using screenshot capture for the entire chunk",
             { chunkIndex }
           );
-          await closeCaptureSession10(session).catch(() => {
+          await closeCaptureSession11(session).catch(() => {
           });
           session = null;
           const screenshotBootStarted = Date.now();
@@ -11841,7 +12227,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       deferredVideoFrames.catch(() => {
       });
       const videoFrameLookup = planVideos && planVideos.extracted.length > 0 ? deferredVideoFrames.then(
-        (deferred) => createFrameLookupTable5(
+        (deferred) => createFrameLookupTable6(
           planVideos.videos,
           [
             ...rebuildExtractedFramesFromPlanDir(
@@ -11860,9 +12246,9 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
         videoFrameLookup,
         frameCacheOptions(cfg, chunkWorkerCount)
       );
-      const isPngSequence = plan2.dimensions.format === "png-sequence";
+      const isPngSequence = plan.dimensions.format === "png-sequence";
       outputKind = isPngSequence ? "frame-dir" : "file";
-      const presetFormat = isPngSequence ? "mp4" : plan2.dimensions.format;
+      const presetFormat = isPngSequence ? "mp4" : plan.dimensions.format;
       const basePreset = getEncoderPreset6(
         job.config.quality,
         presetFormat,
@@ -11874,10 +12260,10 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       const effectiveBitrate = encoder.crf != null ? void 0 : encoder.bitrate;
       const videoOnlyPath = encoder.chunksCarryAudio ? `${outputChunkPath}.video.mp4` : outputChunkPath;
       if (isPngSequence) {
-        if (!existsSync19(outputChunkPath)) mkdirSync14(outputChunkPath, { recursive: true });
+        if (!existsSync22(outputChunkPath)) mkdirSync14(outputChunkPath, { recursive: true });
       } else {
-        const outDir = join27(outputChunkPath, "..");
-        if (!existsSync19(outDir)) mkdirSync14(outDir, { recursive: true });
+        const outDir = join30(outputChunkPath, "..");
+        if (!existsSync22(outDir)) mkdirSync14(outDir, { recursive: true });
       }
       const encodeInput = {
         job,
@@ -11885,9 +12271,9 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
         outputPath: videoOnlyPath,
         framesDir,
         videoOnlyPath,
-        width: Math.round(plan2.dimensions.width * encoder.deviceScaleFactor),
-        height: Math.round(plan2.dimensions.height * encoder.deviceScaleFactor),
-        needsAlpha: plan2.dimensions.format !== "mp4",
+        width: Math.round(plan.dimensions.width * encoder.deviceScaleFactor),
+        height: Math.round(plan.dimensions.height * encoder.deviceScaleFactor),
+        needsAlpha: plan.dimensions.format !== "mp4",
         captureImageFormat: captureOptions.format ?? "jpeg",
         // The encoder writes video only; audio joins at assemble time or in the
         // chunk that carries audio. Suppressing `hasAudio` skips the png-sequence audio
@@ -11946,7 +12332,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
             useLayeredComposite: false,
             usePageSideCompositing: false,
             hasHdrContent: false,
-            needsAlpha: plan2.dimensions.format !== "mp4"
+            needsAlpha: plan.dimensions.format !== "mp4"
           });
           if (capturePlan.kind !== "sdr_disk") {
             throw new Error(`Distributed chunk requires sdr_disk plan; got ${capturePlan.kind}`);
@@ -12036,7 +12422,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
           outputPath: outputChunkPath,
           chunks: audioChunks.chunks,
           chunkIndex: audioChunks.index,
-          fps: { num: plan2.dimensions.fpsNum, den: plan2.dimensions.fpsDen },
+          fps: { num: plan.dimensions.fpsNum, den: plan.dimensions.fpsDen },
           timeoutMs: cfg.ffmpegProcessTimeout
         });
         rmSync11(videoOnlyPath, { force: true });
@@ -12050,7 +12436,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       });
       if (session) {
         try {
-          await closeCaptureSession10(session);
+          await closeCaptureSession11(session);
         } catch (err) {
           log.warn("[renderChunk] error closing capture session in finally", {
             error: err instanceof Error ? err.message : String(err)
@@ -12066,7 +12452,7 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
     const durationMs = Date.now() - start;
     const perfPath = `${outputChunkPath}.perf.json`;
     const perfPayload = {
-      planHash: plan2.planHash,
+      planHash: plan.planHash,
       chunkIndex,
       startFrame: range.startFrame,
       endFrame: range.endFrame,
@@ -12084,10 +12470,10 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
       videoShownBoxes: Object.fromEntries(shownBoxes ?? []),
       sha256,
       outputKind,
-      producerVersion: plan2.producerVersion,
+      producerVersion: plan.producerVersion,
       ffmpegVersion
     };
-    writeFileSync11(perfPath, `${JSON.stringify(perfPayload, null, 2)}
+    writeFileSync12(perfPath, `${JSON.stringify(perfPayload, null, 2)}
 `, "utf-8");
     try {
       rmSync11(workDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
@@ -12120,8 +12506,8 @@ async function renderChunk(planDir, chunkIndex, outputChunkPath, options) {
 
 // src/services/distributed/planV2Execution.ts
 async function renderChunkV2(planV2Dir, chunkIndex, outputChunkPath, options) {
-  const workRoot = mkdtempSync6(join28(tmpdir2(), "hf-plan-v2-chunk-"));
-  const materializedPlanDir = join28(workRoot, "plan");
+  const workRoot = mkdtempSync6(join31(tmpdir2(), "hf-plan-v2-chunk-"));
+  const materializedPlanDir = join31(workRoot, "plan");
   try {
     materializePlanV2Target(planV2Dir, { role: "chunk", chunkIndex }, materializedPlanDir);
     return await renderChunk(materializedPlanDir, chunkIndex, outputChunkPath, options);
@@ -12130,8 +12516,8 @@ async function renderChunkV2(planV2Dir, chunkIndex, outputChunkPath, options) {
   }
 }
 async function assembleV2(planV2Dir, chunkPaths, outputPath, options) {
-  const workRoot = mkdtempSync6(join28(tmpdir2(), "hf-plan-v2-assembler-"));
-  const materializedPlanDir = join28(workRoot, "plan");
+  const workRoot = mkdtempSync6(join31(tmpdir2(), "hf-plan-v2-assembler-"));
+  const materializedPlanDir = join31(workRoot, "plan");
   try {
     const materialized = materializePlanV2Target(
       planV2Dir,
@@ -12423,7 +12809,7 @@ function validateIntDimension(field, value) {
 // src/services/distributed/projectHash.ts
 import { closeSync as closeSync5, openSync as openSync5, readdirSync as readdirSync10, readSync as readSync4, realpathSync as realpathSync2, statSync as statSync9 } from "node:fs";
 import { createHash as createHash8 } from "node:crypto";
-import { join as join29 } from "node:path";
+import { join as join32 } from "node:path";
 var SITE_ID_SCHEME = "site-v2\0";
 var READ_CHUNK_BYTES = 256 * 1024;
 function listSiteFiles(projectDir) {
@@ -12432,7 +12818,7 @@ function listSiteFiles(projectDir) {
   function walk(dir, rel) {
     for (const name of readdirSync10(dir).sort()) {
       if (rel === "" && PLAN_PROJECT_DIR_SKIP_SEGMENTS.has(name)) continue;
-      const full = join29(dir, name);
+      const full = join32(dir, name);
       const relPath = rel === "" ? name : `${rel}/${name}`;
       let stat;
       try {
@@ -12462,7 +12848,7 @@ function hashProjectDir(projectDir, files = listSiteFiles(projectDir)) {
   for (const rel of files) {
     hash.update(rel);
     hash.update("\0");
-    const fd = openSync5(join29(projectDir, rel), "r");
+    const fd = openSync5(join32(projectDir, rel), "r");
     try {
       let read;
       while ((read = readSync4(fd, chunk, 0, chunk.length, null)) > 0) {
@@ -12504,7 +12890,7 @@ var isMissing = (result) => result.error?.code === "ENOENT";
 var ffmpegIsMissing = async (signal) => isMissing(await runFfmpeg9(["-version"], { signal }));
 
 // src/services/distributed/probeFacts.ts
-import { writeFileSync as writeFileSync12 } from "node:fs";
+import { writeFileSync as writeFileSync13 } from "node:fs";
 import { extname as extname6 } from "node:path";
 import { buildProbeFactsText } from "@hyperframes/engine";
 var PROBE_FACTS_EXTENSIONS = /* @__PURE__ */ new Set([".mp4", ".mov", ".m4v", ".webm", ".mkv"]);
@@ -12513,7 +12899,7 @@ function wantsProbeFacts(path) {
 }
 async function buildProbeFacts(inputPath, outputPath, signal) {
   try {
-    writeFileSync12(outputPath, await buildProbeFactsText(inputPath, signal));
+    writeFileSync13(outputPath, await buildProbeFactsText(inputPath, signal));
     return "built";
   } catch (error) {
     if (signal?.aborted) throw error;
@@ -12524,12 +12910,10 @@ export {
   AUDIO_SIDECAR_MIN_BYTES,
   CHUNK_EXCEEDS_WORKER_TIMEOUT,
   CHUNK_FRAME_RANGE_INVALID,
-  CURRENT_PLAN_PROTOCOL,
   ChunkExceedsWorkerTimeoutError,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_MAX_PARALLEL_CHUNKS,
   DISTRIBUTED_DURATION_OUT_OF_RANGE,
-  DISTRIBUTED_RENDER_CAPABILITIES,
   FFMPEG_VERSION_MISMATCH,
   FORMAT_NOT_SUPPORTED_IN_DISTRIBUTED,
   FormatNotSupportedInDistributedError,
@@ -12538,25 +12922,19 @@ export {
   LocalPlanV2ArtifactPublisher,
   MAX_DISTRIBUTED_DURATION_SECONDS,
   MIN_CHUNK_SIZE,
-  PLAN_ARTIFACT_LAYOUT,
   PLAN_AUDIO_LEGACY_RELATIVE_PATH,
   PLAN_AUDIO_RELATIVE_PATH,
   PLAN_DIR_SIZE_LIMIT_BYTES,
   PLAN_HASH_MISMATCH,
-  PLAN_HASH_SCHEMA,
   PLAN_PROJECT_DIR_SKIP_SEGMENTS,
   PLAN_PROTOCOL_UNSUPPORTED,
-  PLAN_PROTOCOL_V1,
   PLAN_PROTOCOL_V2,
-  PLAN_SCHEMA_VERSION,
-  PLAN_TOO_LARGE,
   PLAN_V2_ARTIFACT_LAYOUT,
   PLAN_V2_HASH_SCHEMA,
   PLAN_V2_INTEGRITY_UNRECOVERABLE,
   PLAN_V2_MATERIALIZATION_MARKER,
   PLAN_V2_SCHEMA_VERSION,
   PlanProtocolUnsupportedError,
-  PlanTooLargeError,
   PlanV2IntegrityError,
   PlanValidationError,
   PlanVideosMetadataError,
@@ -12571,8 +12949,6 @@ export {
   buildStitchedHeader,
   chunksAreStitchedMp4,
   createPlanV2FromExecutionPlan,
-  createPlanV2FromV1,
-  getDistributedRenderCapabilities,
   getPlanV2ExecutionPlanHash,
   hashProjectDir,
   isPlanAudioArtifactPath,
@@ -12582,15 +12958,11 @@ export {
   materializePlanV2Target,
   measurePlanDirBytes,
   muxChunkWithAudio,
-  plan,
   planV2,
   planV2WithPublisher,
   plansSeparateAudio,
   publishPlanV2FromExecutionPlan,
-  publishPlanV2FromV1,
   readMp4Layout,
-  readPlanProtocol,
-  readPlanProtocolV1,
   readPlanV2Manifest,
   readWebGlVendorInfoFromCanvas2 as readWebGlVendorInfoFromCanvas,
   rejectUnsupportedDistributedFormat,

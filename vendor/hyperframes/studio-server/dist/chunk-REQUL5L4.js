@@ -13,7 +13,11 @@ import {
   mintHfId,
   walkCompositionDescendants
 } from "@hyperframes/parsers/hf-ids";
-import { readClipTiming, writeClipTiming } from "@hyperframes/core/composition-contract";
+import {
+  readClipTiming,
+  SPLIT_BOUNDARY_EPSILON_S,
+  writeClipTiming
+} from "@hyperframes/core/composition-contract";
 import { relinkSplitHalves } from "@hyperframes/core/media-link";
 
 // src/helpers/sourceStyleMutation.ts
@@ -78,7 +82,40 @@ function parseSourceDocument(raw) {
   );
   return { document, wrappedFragment: !hasDocumentShell };
 }
+function dropCssRulesForId(document, id) {
+  const idToken = `#${id}`;
+  const namesId = (selector) => {
+    let found = false;
+    selectorParser((selectors) => {
+      selectors.walkIds((node) => {
+        let up = node.parent;
+        while (up && !(up.type === "pseudo" && up.value === ":not")) up = up.parent;
+        if (node.value === id && !up) found = true;
+      });
+    }).processSync(selector);
+    return found;
+  };
+  for (const styleEl of document.querySelectorAll("style")) {
+    const css = styleEl.textContent ?? "";
+    if (!css.includes(idToken)) continue;
+    let root;
+    try {
+      root = postcss.parse(css);
+    } catch {
+      continue;
+    }
+    let dropped = false;
+    root.walkRules((rule) => {
+      if (rule.selectors.length > 0 && rule.selectors.every(namesId)) {
+        rule.remove();
+        dropped = true;
+      }
+    });
+    if (dropped) styleEl.textContent = root.toString();
+  }
+}
 function duplicateCssRulesForId(document, originalId, newId) {
+  dropCssRulesForId(document, newId);
   const idToken = `#${originalId}`;
   const transform = selectorParser((selectors) => {
     selectors.walkIds((node) => {
@@ -161,7 +198,9 @@ function removeElementsFromHtml(source, targets) {
   for (const target of targets) {
     const element = findTargetElement(document, target);
     if (!element) continue;
+    const id = element.getAttribute("id");
     removeElementWithGsapCascade(document, element);
+    if (id && !document.getElementById(id)) dropCssRulesForId(document, id);
     removed = true;
   }
   if (!removed) return source;
@@ -304,13 +343,20 @@ function probeElementsInSource(source, targets) {
 function probeElementInSource(source, target) {
   return probeElementsInSource(source, [target])[0] ?? false;
 }
+var refused = (html, refusal) => ({
+  html,
+  matched: false,
+  newId: null,
+  refusal
+});
 function resolveElementTiming(el) {
   const timing = readClipTiming(el);
   return { start: timing.start ?? 0, duration: timing.duration ?? 0 };
 }
+var roundMs = (seconds) => Math.round(seconds * 1e3) / 1e3;
 function setElementDuration(el, start, duration, trackIndex) {
   writeClipTiming(el, {
-    start: Math.round(start * 1e3) / 1e3,
+    start: typeof start === "number" ? Math.round(start * 1e3) / 1e3 : start,
     duration: Math.round(duration * 1e3) / 1e3,
     ...trackIndex != null ? { trackIndex } : {}
   });
@@ -323,25 +369,32 @@ function isWindowOf(media, row) {
 function splitElementInHtml(source, target, splitTime, newId, fallbackTiming) {
   const { document, wrappedFragment } = parseSourceDocument(source);
   const el = findTargetElement(document, target);
-  if (!el || !isHTMLElement(el)) return { html: source, matched: false, newId: null };
+  if (!el || !isHTMLElement(el)) return refused(source, "target-not-found");
   const timedMediaSelector = "video[data-start], audio[data-start]";
   const innerMedia = el.hasAttribute("data-start") || resolveElementTiming(el).duration > 0 || el.matches("[data-composition-src], [data-composition-id]") ? null : el.querySelector(timedMediaSelector);
   const timedMedia = innerMedia && isWindowOf(resolveElementTiming(innerMedia), fallbackTiming) ? innerMedia : null;
   const timed = timedMedia ?? el;
   const timing = resolveElementTiming(timed);
   let { start, duration } = timing;
+  const reference = readClipTiming(timed).startExpression;
+  const startsAfter = reference?.kind === "reference" ? reference : null;
+  if (startsAfter) {
+    if (!fallbackTiming) return refused(source, "reference-without-range");
+    start = fallbackTiming.start;
+  }
   if (duration <= 0 && fallbackTiming && fallbackTiming.duration > 0) {
     start = fallbackTiming.start;
     duration = fallbackTiming.duration;
   }
-  if (duration <= 0 || splitTime <= start || splitTime >= start + duration) {
-    return { html: source, matched: false, newId: null };
+  if (duration <= 0) return refused(source, "no-duration");
+  if (splitTime < start + SPLIT_BOUNDARY_EPSILON_S || splitTime > start + duration - SPLIT_BOUNDARY_EPSILON_S) {
+    return refused(source, "outside-clip");
   }
   newId = nextUniqueId(document, newId);
   const firstDuration = splitTime - start;
   const secondDuration = duration - firstDuration;
   const clone = el.cloneNode(true);
-  if (!isHTMLElement(clone)) return { html: source, matched: false, newId: null };
+  if (!isHTMLElement(clone)) return refused(source, "target-not-found");
   clone.setAttribute("id", newId);
   dedupeClonedCompositionId(document, clone);
   clone.removeAttribute("data-hf-id");
@@ -352,7 +405,12 @@ function splitElementInHtml(source, target, splitTime, newId, fallbackTiming) {
     duplicateCssRulesForId(document, timedMedia.id, mediaId);
     clonedTimed.setAttribute("id", mediaId);
   }
-  setElementDuration(clonedTimed, splitTime, secondDuration, fallbackTiming?.track);
+  setElementDuration(
+    clonedTimed,
+    startsAfter ? { ...startsAfter, offset: roundMs(startsAfter.offset + firstDuration) } : splitTime,
+    secondDuration,
+    fallbackTiming?.track
+  );
   const playbackStartAttr = timed.hasAttribute("data-playback-start") ? "data-playback-start" : timed.hasAttribute("data-media-start") ? "data-media-start" : timed.matches("[data-composition-src], [data-composition-id]") ? "data-playback-start" : timed.matches("audio, video") ? "data-media-start" : null;
   if (playbackStartAttr) {
     const readAttr = (name) => timed.getAttribute(name);
@@ -370,7 +428,7 @@ function splitElementInHtml(source, target, splitTime, newId, fallbackTiming) {
   if (originalId) {
     duplicateCssRulesForId(document, originalId, newId);
   }
-  setElementDuration(timed, start, firstDuration, fallbackTiming?.track);
+  setElementDuration(timed, startsAfter ?? start, firstDuration, fallbackTiming?.track);
   if (el.nextSibling) {
     el.parentElement.insertBefore(clone, el.nextSibling);
   } else {

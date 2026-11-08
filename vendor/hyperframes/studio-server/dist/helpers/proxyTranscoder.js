@@ -15,14 +15,16 @@ import {
   getProxyCachePath,
   proxyActivityMark,
   proxyCopyProgress,
+  proxyWindowSeconds,
   resolveProxies,
   resolveProxy,
+  resolveStill,
   retryProxyCopy,
   sourceFolderKind,
   waitForProxy
-} from "../chunk-KPCW4DQM.js";
-import "../chunk-FUTDRYQK.js";
-import "../chunk-X73QTST2.js";
+} from "../chunk-F4AQECCT.js";
+import "../chunk-66YZA32N.js";
+import "../chunk-Y6EZUBYR.js";
 import "../chunk-QF7MFJJU.js";
 import "../chunk-SVQFE44C.js";
 import "../chunk-L3HJVTQE.js";
@@ -43,8 +45,10 @@ export {
   getProxyCachePath,
   proxyActivityMark,
   proxyCopyProgress,
+  proxyWindowSeconds,
   resolveProxies,
   resolveProxy,
+  resolveStill,
   retryProxyCopy,
   sourceFolderKind,
   waitForProxy

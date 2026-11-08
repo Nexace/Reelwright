@@ -115,7 +115,7 @@ Build-time MathJax or Typst glyph paths → real `write()` and TransformMatching
 arrows/braces; polar/complex/parametric/implicit plots, calculus helpers, grid warp, vector fields; Three.js 3D scenes.
 Owns: tools/math2.js, vendor/{mathjax,flubber}/, tools/commands/tex.mjs.
 
-**10l — Higgsfield connector depth (M)** · needs 10.0
+**10l — Higgsfield connector depth (M)** · ~~needs 10.0~~ **Dropped by the owner 2026-11-09** (the 0.2 connector stays as it is; its parity rows are exceptions)
 `gen --ref/--opt` (upload via presigned URL, image-to-video, motion transfer, duration/aspect), locked style block,
 version-on-overwrite, `--resume`/`--redo` with retry cap, spend cap for batches, `review` command. Mocked tests only;
 no paid call without asking. Owns: tools/gen*, tools/gen/, docs/CONNECTORS.md.

@@ -5,7 +5,7 @@ import { renameWithRetry } from "@hyperframes/core/rename-retry";
 import { removeScratch } from "@hyperframes/core/remove-scratch";
 import { join, dirname, isAbsolute, relative } from "path";
 import { parseHTML } from "linkedom";
-import { extractAudioMetadata, ffmpegSeekSeconds } from "../utils/ffprobe.js";
+import { extractAudioMetadata, ffmpegSeekSeconds, formatFfmpegSeconds, } from "../utils/ffprobe.js";
 import { isNotMediaPayload } from "../utils/notMediaPayload.js";
 import { urlInputArgs } from "../utils/urlInput.js";
 import { clampAudioGain, clipGain } from "@hyperframes/core/audio-gain";
@@ -550,7 +550,7 @@ async function extractAudioSegment(srcPath, outputPath, stage, mediaStart, durat
                 "-stream_loop",
                 "-1",
                 "-t",
-                String(sourceDuration),
+                formatFfmpegSeconds(sourceDuration),
                 "-i",
                 cyclePath,
                 "-vn",
@@ -560,7 +560,7 @@ async function extractAudioSegment(srcPath, outputPath, stage, mediaStart, durat
                 "48000",
                 ...outputArgs,
                 "-t",
-                String(duration),
+                formatFfmpegSeconds(duration),
                 "-y",
                 outputPath,
             ], { signal, timeout: ffmpegProcessTimeout });
@@ -598,14 +598,19 @@ async function extractAudioSegment(srcPath, outputPath, stage, mediaStart, durat
         ...(readsUrl ? FAIL_ON_READ_ERROR_INSTEAD_OF_ENDING_THERE : []),
         ...urlInputArgs(readFrom),
         ...(inputSeek
-            ? ["-ss", String(ffmpegStart - warmUp), "-t", String(sourceDuration + warmUp)]
+            ? [
+                "-ss",
+                formatFfmpegSeconds(ffmpegStart - warmUp),
+                "-t",
+                formatFfmpegSeconds(sourceDuration + warmUp),
+            ]
             : []),
         "-i",
         readFrom,
     ];
     args.push("-vn", "-acodec", "pcm_s16le", "-ar", "48000", ...outputArgs);
     if (normalizedPlaybackRate !== 1 || options?.padToDuration)
-        args.push("-t", String(duration));
+        args.push("-t", formatFfmpegSeconds(duration));
     args.push("-y", outputPath);
     const result = await runFfmpeg(args, { signal, timeout: ffmpegProcessTimeout });
     if (signal?.aborted) {
@@ -660,7 +665,7 @@ async function generateSilence(outputPath, duration, signal, config) {
         "-i",
         "anullsrc=r=48000:cl=stereo",
         "-t",
-        String(duration),
+        formatFfmpegSeconds(duration),
         "-acodec",
         "pcm_s16le",
         "-y",
@@ -761,7 +766,7 @@ async function mixAudioTracksFlat(tracks, outputPath, totalDuration, signal, con
             "-ar",
             "48000",
             "-t",
-            String(totalDuration),
+            formatFfmpegSeconds(totalDuration),
             "-y",
             outputPath,
         ];
@@ -923,7 +928,7 @@ async function mixGroupMembersFlat(memberTracks, outputPath, totalDuration, sign
                 "-ar",
                 "48000",
                 "-t",
-                String(totalDuration),
+                formatFfmpegSeconds(totalDuration),
                 "-y",
                 outputPath,
             ];

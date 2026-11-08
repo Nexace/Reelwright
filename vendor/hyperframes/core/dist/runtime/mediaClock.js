@@ -6,3 +6,7 @@ export function startsSoundOnlyInsideATap() {
     const { userAgent, maxTouchPoints } = navigator;
     return /iP(hone|ad|od)/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1);
 }
+export function isWebKit() {
+    const { userAgent } = navigator;
+    return /AppleWebKit/.test(userAgent) && !/Chrom(e|ium)\/|Edg\/|Android/.test(userAgent);
+}

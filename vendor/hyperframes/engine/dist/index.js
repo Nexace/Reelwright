@@ -29,6 +29,7 @@
  *   getFrameAtTime, detectGpuEncoder) return a nullable value instead of throwing.
  *
  */
+export { REFERENCE_BACKGROUND_FIELD, referenceBackgroundResult, createReferenceBackgroundRecorder, readReferenceBackground, } from "./services/referenceBackground.js";
 // ── Configuration ──────────────────────────────────────────────────────────────
 export { resolveConfig, resolvePageNavigationTimeout, validateEngineConfigSnapshot, DEFAULT_CONFIG, scaleProtocolTimeoutForComposition, shouldClampToScreenshotForConcreteGpu, applyConcreteGpuScreenshotClamp, explainDrawElementDisabled, resolveExtractCacheDir, defaultExtractCacheDir, EXTRACT_CACHE_DIR_DISABLED_ALIASES, } from "./config.js";
 export { SDR_RGB_TO_BT709_FILTER, SDR_RGB_TO_TAGGED_BT709_FILTER, } from "./utils/sdrCaptureColor.js";
@@ -41,17 +42,21 @@ export { augmentProtocolTimeoutError, isProtocolTimeoutError, } from "./services
 export { augmentPageNavigationTimeoutError, isPageNavigationTimeoutError, } from "./services/pageNavigationTimeoutErrorHint.js";
 // ── Frame capture pipeline ──────────────────────────────────────────────────────
 export { forcePreservedDrawingBuffer } from "./services/drawElementService.js";
-export { createCaptureSession, initializeSession, closeCaptureSession, captureFrame, captureFrameToBuffer, captureFrameToBufferPipelined, captureFramesBatchPipelined, DrawElementVerificationError, isDrawElementVerificationError, getDrawElementVerificationDetails, recaptureDrawElementFrameForVerify, completeDeferredDrawElementInit, writeCapturedFrame, discardWarmupCapture, getCompositionDuration, getCompositionLengthSource, getCapturePerfSummary, percentileOf, prepareCaptureSessionForReuse, deriveBeginFrameProbeTimeTicks, isTransientBrowserError, isMemoryExhaustionError, VfxFailureError, waitForImagesReady, evaluateHfDiagnostic, buildZeroDurationDiagnostic, } from "./services/frameCapture.js";
+export { createCaptureSession, initializeSession, closeCaptureSession, captureFrame, captureFrameToBuffer, captureFrameToBufferPipelined, captureFramesBatchPipelined, DrawElementVerificationError, isDrawElementVerificationError, getDrawElementVerificationDetails, recaptureDrawElementFrameForVerify, completeDeferredDrawElementInit, writeCapturedFrame, discardWarmupCapture, getCompositionDuration, getCompositionLengthSource, getCapturePerfSummary, percentileOf, prepareCaptureSessionForReuse, deriveBeginFrameProbeTimeTicks, isTransientBrowserError, isMemoryExhaustionError, VfxFailureError, waitForImagesReady, evaluateHfDiagnostic, buildZeroDurationDiagnostic, applyVideoMetadataHints, } from "./services/frameCapture.js";
 export { CaptureFailure, classifyCaptureFailure, isFatalCaptureFailure, } from "./services/captureFailure.js";
 export { createChromeMemorySampler, } from "./services/chromeMemorySampler.js";
 // ── Screenshot (BeginFrame) ─────────────────────────────────────────────────────
 export { installMediaRenderIdBridge } from "./services/mediaRenderIdBridge.js";
+export { holdRenderFrameVideos } from "./services/renderFrameVideoHold.js";
 export { beginFrameCapture, pageScreenshotCapture, getCdpSession, injectVideoFramesBatch, syncVideoFrameVisibility, cdpSessionCache, probeBeginFrameLiveness, initTransparentBackground, capturesAlpha, captureAlphaPng, applyDomLayerMask, removeDomLayerMask, DOM_LAYER_MASK_STYLE_ID, } from "./services/screenshotService.js";
 // ── Encoding ───────────────────────────────────────────────────────────────────
 export { buildEncoderArgs, encodeFramesFromDir, buildConcatArgs, concatVideoFiles, encodeFramesChunkedConcat, muxVideoWithAudio, applyFaststart, packageHls, detectGpuEncoder, getCachedGpuEncoder, ENCODER_PRESETS, getEncoderPreset, PRORES_PROFILES, PRORES_PROFILE_NAMES, isProresProfile, appendRateCapArgs, keyframeIntervalToGopSize, HLS_MASTER_PLAYLIST, HLS_VIDEO_PLAYLIST, HLS_AUDIO_PLAYLIST, } from "./services/chunkEncoder.js";
 export { spawnStreamingEncoder, createFrameReorderBuffer, } from "./services/streamingEncoder.js";
+export { spawnChunkStreamingEncoder, buildChunkStreamingArgs, BT709_LIMITED, } from "./services/chunkStreamingEncoder.js";
+export { resolveInPageEncode, } from "./services/inPageEncodeEligibility.js";
 // ── Media processing ───────────────────────────────────────────────────────────
-export { parseVideoElements, parseImageElements, extractVideoFramesRange, extractAllVideoFrames, isVideoPastTimelineEnd, resolveTimelineExtractionWindow, resolveVideoExtractionWindow, rebaseVideoToWindow, resolveFinalFrameExtractionWindow, resolveFrameFormat, resolveVideoExtractionDuration, resolvePlayableVideoDuration, videoStartOnMediaTimeline, ffmpegSeekSeconds, extractionFrameCountForDuration, resolveProjectRelativeSrc, getFrameAtTime, isVideoHiddenBeforeStreamStart, createFrameLookupTable, FrameLookupTable, analyzeClipMediaFit, classifyVideoExtractionError, isVideoSourceExtractionError, runVideoExtractionWithRetry, safeVideoExtractionSourceIdentity, VideoSourceExtractionError, VIDEO_FRAME_FORMATS, isVideoFrameFormat, EXTRACT_CACHE_MIN_AGE_MS, sdrCanvasColourFilters, } from "./services/videoFrameExtractor.js";
+export { parseVideoElements, hasGradedCanvas, parseImageElements, extractVideoFramesRange, extractAllVideoFrames, isVideoPastTimelineEnd, resolveTimelineExtractionWindow, resolveVideoExtractionWindow, rebaseVideoToWindow, resolveFinalFrameExtractionWindow, resolveFrameFormat, resolveVideoExtractionDuration, resolvePlayableVideoDuration, videoStartOnMediaTimeline, ffmpegSeekSeconds, extractionFrameCountForDuration, resolveProjectRelativeSrc, getFrameAtTime, isVideoHiddenBeforeStreamStart, createFrameLookupTable, FrameLookupTable, analyzeClipMediaFit, classifyVideoExtractionError, isVideoSourceExtractionError, runVideoExtractionWithRetry, safeVideoExtractionSourceIdentity, VideoSourceExtractionError, VIDEO_FRAME_FORMATS, isVideoFrameFormat, EXTRACT_CACHE_MIN_AGE_MS, sdrCanvasColourFilters, buildVideoLayerInput, } from "./services/videoFrameExtractor.js";
+export { qualifyVideoLayer } from "./services/videoLayerPassthrough.js";
 export { isSelfOrAncestorHidden } from "./services/mediaHidden.js";
 export { directorySizeBytes, gcExtractionCache } from "./services/extractionCache.js";
 export { resolveReferencedStart, resolveReferencedDuration, } from "./services/referenceResolver.js";
@@ -71,11 +76,13 @@ export { frameSequencePath } from "./services/extractedFrameIndex.js";
 export { assertSwiftShader, readWebGlVendorInfo, SwiftShaderAssertionError, BROWSER_GPU_NOT_SOFTWARE, } from "./utils/assertSwiftShader.js";
 export { isBrowserSafePort, listenOnBrowserSafePort, settleOnBrowserSafePort, } from "./utils/browserSafePort.js";
 export { readWebGlVendorInfoFromCanvas } from "./utils/readWebGlVendorInfoFromCanvas.js";
-export { extractMediaMetadata, extractVideoMetadata, extractFinalVideoFrameTimestamp, extractAudioMetadata, declareContentAddressedUrl, declareProbeFactsUrl, PROBE_FACTS_VERSION, buildProbeFactsText, probeMediaProfile, runFfprobe, analyzeKeyframeIntervals, } from "./utils/ffprobe.js";
+export { extractMediaMetadata, displaySize, extractVideoMetadata, extractFinalVideoFrameTimestamp, extractAudioMetadata, declareContentAddressedUrl, declareProbeFactsUrl, PROBE_FACTS_VERSION, buildProbeFactsText, probeMediaProfile, runFfprobe, analyzeKeyframeIntervals, } from "./utils/ffprobe.js";
 export { NOT_MEDIA_PAYLOAD, NotMediaPayloadError, assertMediaPayload, fingerprintElementId, isNotMediaPayload, } from "./utils/notMediaPayload.js";
-export { _setDownloadFetchForTests, assertPublicHttpsUrl, isBlockedNetworkHost, downloadToTemp, fetchPublicHttpsText, isHttpUrl, safeDownloadUrlIdentity, writeUrlDownloadTelemetry, } from "./utils/urlDownloader.js";
+export { _setDownloadFetchForTests, assertPublicHttpsUrl, downloadToTemp, fetchPublicHttpsText, isHttpUrl, safeDownloadUrlIdentity, writeUrlDownloadTelemetry, } from "./utils/urlDownloader.js";
+export { isBlockedNetworkHost } from "./utils/networkPolicy.js";
 export { runFfmpeg, formatFfmpegError, describeFfmpegFailure, isExternalFfmpegInterruption, } from "./utils/runFfmpeg.js";
 export { aacSegmentCount, encodeAac } from "./services/aacEncode.js";
+export { applyAudioFxChain } from "./services/audioFxRender.js";
 export { ManagedChildProcess, } from "./utils/managedChildProcess.js";
 export { assertConfiguredFfmpegBinariesExist, getFfmpegBinary, getFfprobeBinary, FFMPEG_PATH_ENV, FFPROBE_PATH_ENV, } from "./utils/ffmpegBinaries.js";
 export { trackChildProcess, killTrackedProcesses } from "./utils/processTracker.js";
@@ -92,7 +99,7 @@ export { TRANSITIONS, crossfade, sampleRgb48le, hdrToLinear, linearToHdr, conver
 export { initHdrReadback, uploadAndReadbackHdrFrame, float16ToPqRgb, buildHdrChromeArgs, launchHdrBrowser, } from "./services/hdrCapture.js";
 export { captureScreenshotWithAlpha } from "./services/screenshotService.js";
 export { hideVideoElements, showVideoElements, queryVideoElementBounds, queryElementStacking, measureVideoShownBoxes, } from "./services/videoFrameInjector.js";
-export { isHdrColorSpace, detectTransfer, getHdrEncoderColorParams, analyzeCompositionHdr, findHdrAutoPromotion, formatHdrAutoPromotionWarning, sanitizeHdrAutoPromotionAsset, DEFAULT_HDR10_MASTERING, HDR_AUTO_PROMOTION_PIPELINE, } from "./utils/hdr.js";
+export { isHdrColorSpace, detectTransfer, getHdrEncoderColorParams, analyzeCompositionHdr, findHdrAutoPromotion, gradingKeepsSdr, formatHdrAutoPromotionWarning, sanitizeHdrAutoPromotionAsset, DEFAULT_HDR10_MASTERING, HDR_AUTO_PROMOTION_PIPELINE, } from "./utils/hdr.js";
 export { renderProvenanceArgs, appendRenderProvenanceArgs, readRenderProvenance, PROVENANCE_RENDERER_TAG, PROVENANCE_VERSION_TAG, PROVENANCE_RENDERER_NAME, PROVENANCE_VERSION, } from "./utils/renderProvenance.js";
 export { DrawElementCaptureError, isDrawElementCaptureError, } from "./services/drawElementCaptureError.js";
 export { inAgentSandbox, isOneProcessOverPipe, machServiceDenied, oneProcessOverPipe, pipeLaunchClosedOnMac, sandboxDeniedRemediation, } from "./services/sandboxLaunch.js";

@@ -1,0 +1,25 @@
+<template>
+  <div data-composition-id="tag" data-width="520" data-height="84">
+    <div class="tag-pill"><i class="tag-dot"></i><span>nested composition</span><b class="tag-bar"><u></u></b></div>
+    <style>
+      [data-composition-id="tag"] { font-family: var(--kit-label-font, monospace); }
+      [data-composition-id="tag"] .tag-pill { position: absolute; inset: 0; display: flex; align-items: center; gap: 18px; padding: 0 28px;
+        border-radius: 42px; background: var(--kit-surface, #151a22); border: var(--kit-border, 1px solid #333); color: var(--kit-ink, #fff);
+        font-size: 24px; letter-spacing: 2px; text-transform: uppercase; box-shadow: var(--kit-shadow, none); }
+      [data-composition-id="tag"] .tag-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--kit-accent, #4af); }
+      [data-composition-id="tag"] .tag-bar { margin-left: auto; width: 90px; height: 8px; border-radius: 4px; background: rgba(128,128,128,.3); overflow: hidden; }
+      [data-composition-id="tag"] .tag-bar u { display: block; height: 100%; width: 100%; background: var(--kit-accent, #4af); transform-origin: 0 50%; }
+    </style>
+    <script>
+      (function () {
+        const root = document.currentScript.parentNode, dot = root.querySelector('.tag-dot'), bar = root.querySelector('.tag-bar u');
+        // a plain { seek(t) } timeline: pure function of the local time t (seconds)
+        window.__timelines = window.__timelines || {};
+        window.__timelines['tag'] = { seek(t) {
+          bar.style.transform = 'scaleX(' + Math.min(1, t / 1.6) + ')';
+          dot.style.opacity = 0.55 + 0.45 * Math.sin(t * 9);
+        } };
+      })();
+    </script>
+  </div>
+</template>

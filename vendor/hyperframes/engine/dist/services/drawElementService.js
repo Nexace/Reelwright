@@ -944,7 +944,9 @@ export async function produceDrawElementFrameBatch(page, times, width, height, q
                 if (aw.__hf && typeof aw.__hf.seek === "function")
                     aw.__hf.seek(t);
                 await aw.__hfWaitForSeekCompletion?.();
-                await aw.__hfDecodeDynamicCssBackgroundImages?.();
+                const late = await aw.__hfDecodeDynamicCssBackgroundImages?.();
+                if (late?.length)
+                    (aw.__hf_css_background_late ??= []).push(...late);
                 aw.__hf3d?.update();
                 const accel = (aw.__hf_accel_canvases ?? []).filter((c) => root.contains(c));
                 for (const c of accel) {
@@ -1074,5 +1076,9 @@ export async function produceDrawElementFrameBatch(page, times, width, height, q
             }
         }
     }
-    return { encodeResults, failedAt: outcome.failedAt, error: outcome.error };
+    const lateBackgrounds = await page.evaluate(() => {
+        const w = window;
+        return w.__hf_css_background_late?.splice(0) ?? [];
+    });
+    return { encodeResults, failedAt: outcome.failedAt, error: outcome.error, lateBackgrounds };
 }

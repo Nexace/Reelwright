@@ -14,7 +14,7 @@ import { compositionStyle, cssStyleMergeKey, hasSameLink, } from "./scriptRuns.j
 import { rewriteAssetPath, rewriteAssetPaths, rewriteCssAssetUrls, rewriteInlineStyleAssetUrls, } from "./rewriteSubCompPaths.js";
 import { warnUnknownEnumValues } from "../runtime/getVariables.js";
 import { createCompositionCssScoper, AUTHORED_SOURCE_BEGIN, AUTHORED_SOURCE_END, wrapInlineScriptWithErrorBoundary, scopedModulePrelude, wrapScopedCompositionScript, } from "./compositionScoping.js";
-import { namespaceCollidingSvgIds, rewriteSvgIdReferencesInCss, } from "./svgIdNamespacing.js";
+import { namespaceCollidingSvgIds, sceneClipRoots, rewriteSvgIdReferencesInCss, } from "./svgIdNamespacing.js";
 import { checkSubCompositionUsability, resolveSubCompositionContent, } from "@hyperframes/parsers/sub-composition-validity";
 import { enumerateNestedCompositionHosts, planCompositionAssembly, extractedCompositionAssets, } from "./compositionAssembly.js";
 import { SCENE_NO_SWAP_ATTR, SCENE_PART_ATTR } from "../sceneParts.js";
@@ -263,10 +263,10 @@ export function inlineSubCompositions(document, hosts, options) {
         // Determine composition IDs
         let compId;
         let runtimeCompId;
-        if (hostIdentityMap) {
-            const identity = hostIdentityMap.get(hostEl);
-            compId = identity?.authoredCompositionId || null;
-            runtimeCompId = identity?.runtimeCompositionId || compId || "";
+        const identity = hostIdentityMap?.get(hostEl);
+        if (identity) {
+            compId = identity.authoredCompositionId || null;
+            runtimeCompId = identity.runtimeCompositionId || compId || "";
         }
         else {
             compId = hostEl.getAttribute("data-composition-id") || null;
@@ -444,8 +444,8 @@ export function inlineSubCompositions(document, hosts, options) {
         // Rewrite relative asset paths before inlining so ../foo.svg from
         // compositions/ resolves correctly when the content moves to root.
         const assetEls = innerRoot
-            ? innerRoot.querySelectorAll("[src], [href]")
-            : contentDoc.querySelectorAll("[src], [href]");
+            ? innerRoot.querySelectorAll("[src], [href], [srcset]")
+            : contentDoc.querySelectorAll("[src], [href], [srcset]");
         rewriteAssetPaths(assetEls, src, (el, attr) => el.getAttribute(attr), (el, attr, val) => {
             el.setAttribute(attr, val);
         }, assetExists);
@@ -459,6 +459,9 @@ export function inlineSubCompositions(document, hosts, options) {
         }
         if (innerRoot?.hasAttribute("data-timeline-locked")) {
             hostEl.setAttribute("data-timeline-locked", "");
+        }
+        if (innerRoot?.hasAttribute("data-no-timeline")) {
+            hostEl.setAttribute("data-no-timeline", "");
         }
         // Copy dimension attributes from inner root to host if missing
         if (innerRoot) {
@@ -541,6 +544,8 @@ export function inlineSubCompositions(document, hosts, options) {
     // `<style>` text gets the same substitution its DOM just received. See
     // svgIdNamespacing.ts for why this is a rename, unlike the sibling
     // getElementById/media-id fixes.
+    const hostRoots = svgIdScopes.map(({ root }) => root);
+    const clips = sceneClipRoots(document, hostRoots);
     const svgIdMaps = namespaceCollidingSvgIds(document, [
         ...svgIdScopes.map(({ root, namespace, exclude, styleStart, styleEnd }) => ({
             root,
@@ -552,9 +557,14 @@ export function inlineSubCompositions(document, hosts, options) {
             root: document.documentElement,
             namespace: "",
             referenceTarget: "document",
-            exclude: svgIdScopes.map(({ root }) => root),
+            exclude: [...hostRoots, ...clips],
             cssTexts: rootStyles.map((style) => style.textContent ?? ""),
         },
+        ...clips.map((root, index) => ({
+            root,
+            namespace: `clip-${index}`,
+            exclude: hostRoots.filter((host) => root.contains(host)),
+        })),
     ]);
     svgIdMaps.slice(0, svgIdScopes.length).forEach((idMap, index) => {
         const { styleStart, styleEnd } = svgIdScopes[index];

@@ -1,8 +1,6 @@
-import { collectExternalStyles, lintHyperframeHtml } from "@hyperframes/lint";
+import { linkedSources, lintHyperframeHtml } from "@hyperframes/lint";
 export async function validateHyperframeHtmlContract(html, project) {
-    const result = await lintHyperframeHtml(html, project && {
-        externalStyles: collectExternalStyles(project.dir, html, project.compSrcPath),
-    });
+    const result = await lintHyperframeHtml(html, project && linkedSources(project.dir, html, project.compSrcPath));
     const missingKeys = result.findings
         .filter((finding) => finding.severity === "error")
         .map((finding) => finding.message);

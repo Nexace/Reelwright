@@ -1,10 +1,11 @@
 import { timeAtSourceTime } from "../speedRamp.js";
-import { MEDIA_HARD_SYNC_SECONDS } from "./mediaSteer.js";
 import { playRangeHoldTime } from "./protocol.js";
 /** GSAP's own `lagSmoothing` default — see the PR body for why this clock needs its own copy. */
 const STALL_THRESHOLD_MS = 500;
 const STALL_ADJUSTED_LAG_MS = 33;
 const HAVE_FUTURE_DATA = 3;
+const AUDIO_START_WAIT_MS = 1500;
+const MEDIA_SYNC_STEER_TOLERANCE_SECONDS = 0.04;
 export class TransportClock {
     _baseTime = 0;
     _playStartMs = null;
@@ -18,6 +19,7 @@ export class TransportClock {
     /** Wall-clock time of the last `now()` read while playing; null while paused. */
     _lastReadMs = null;
     _lastNow = 0;
+    _audioStart = null;
     constructor(opts) {
         this._baseTime = opts?.initialTime ?? 0;
         this._rate = opts?.rate ?? 1;
@@ -48,7 +50,6 @@ export class TransportClock {
                 return this._baseTime;
             }
         }
-        // Monotonic fallback
         this._applyStallCorrection();
         const elapsed = (this._nowMs() - this._playStartMs) / 1000;
         const t = this._baseTime + elapsed * this._rate;
@@ -59,17 +60,34 @@ export class TransportClock {
         const { el, compositionStart, mediaStart, rate } = source;
         if (el.paused || !Number.isFinite(el.currentTime))
             return null;
-        if (el.seeking)
-            return this._lastNow;
         const spec = rate ?? 1;
         const time = timeAtSourceTime(spec, el.currentTime - mediaStart) + compositionStart;
-        return time >= this._lastNow ? time : this._heldTimeWhenBehind(el, this._lastNow - time, spec);
+        const held = this._heldUntilAudioOutputStarts(el.seeking, time);
+        if (held !== undefined)
+            return held;
+        if (time >= this._lastNow)
+            return time;
+        const wrapped = el.loop && this._lastNow - time > timeAtSourceTime(spec, el.duration) / 2;
+        return !wrapped && el.readyState < HAVE_FUTURE_DATA ? this._lastNow : null;
     }
-    _heldTimeWhenBehind(el, behind, spec) {
-        if (el.loop && behind > timeAtSourceTime(spec, el.duration) / 2)
-            return null;
-        const buffering = el.readyState < HAVE_FUTURE_DATA;
-        return buffering || behind <= MEDIA_HARD_SYNC_SECONDS ? this._lastNow : null;
+    _heldUntilAudioOutputStarts(seeking, time) {
+        const pending = this._pendingAudioStart();
+        if (seeking)
+            return pending ? this._lastNow : null;
+        if (!pending)
+            return undefined;
+        pending.from ??= time;
+        const startsHere = Math.abs(pending.from - pending.at) <= MEDIA_SYNC_STEER_TOLERANCE_SECONDS;
+        if (startsHere && time === pending.from)
+            return time;
+        this._audioStart = null;
+        return undefined;
+    }
+    _pendingAudioStart() {
+        const pending = this._audioStart;
+        if (pending && this._nowMs() - pending.sinceMs > AUDIO_START_WAIT_MS)
+            this._audioStart = null;
+        return this._audioStart;
     }
     /** Folds a >500ms gap since the last read into `_playStartMs` so it's never reported as played time. */
     _applyStallCorrection() {
@@ -90,6 +108,7 @@ export class TransportClock {
         if (this._baseTime >= this.getEnd())
             return false;
         this._playStartMs = this._nowMs();
+        this._audioStart = { sinceMs: this._playStartMs, at: this._baseTime, from: null };
         this._lastNow = this._baseTime;
         // Not a stall: the gap since the clock was last read (possibly a long
         // paused idle) says nothing about lost playback time, since none was
@@ -113,6 +132,7 @@ export class TransportClock {
         this._lastNow = clamped;
         if (this._playStartMs !== null) {
             this._playStartMs = this._nowMs();
+            this._audioStart = { sinceMs: this._playStartMs, at: clamped, from: null };
             // Same reasoning as `play()`: the seek itself, not any elapsed gap
             // since the last read, is why the reported time is moving now.
             this._lastReadMs = null;
@@ -171,6 +191,7 @@ export class TransportClock {
         this._audioSource = null;
     }
     /** The element the playhead currently follows, if the source is one. */
+    // fallow-ignore-next-line unused-class-member
     audioElement() {
         return this._audioSource && "el" in this._audioSource ? this._audioSource.el : null;
     }
@@ -186,6 +207,13 @@ export class TransportClock {
                 return "audio";
         }
         return "monotonic";
+    }
+    followedClock() {
+        if (this.getSource() === "monotonic")
+            return "monotonic";
+        return this._audioSource && "webAudio" in this._audioSource && this._audioSource.webAudio
+            ? "webaudio"
+            : "audio";
     }
     snapshot() {
         return {

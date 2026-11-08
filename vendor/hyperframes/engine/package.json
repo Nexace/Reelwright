@@ -1,6 +1,6 @@
 {
   "name": "@hyperframes/engine",
-  "version": "0.8.217",
+  "version": "0.9.19",
   "description": "Seekable web page to video rendering engine (Puppeteer + FFmpeg)",
   "repository": {
     "type": "git",
@@ -9,6 +9,8 @@
   },
   "files": [
     "dist",
+    "!dist/services/__fixtures__/blurDifferential.*",
+    "!dist/services/__fixtures__/motionBlur",
     "README.md"
   ],
   "type": "module",
@@ -43,7 +45,11 @@
       "import": "./dist/utils/shaderTransitions.js",
       "types": "./dist/utils/shaderTransitions.d.ts"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./network-policy": {
+      "import": "./dist/utils/networkPolicy.js",
+      "types": "./dist/utils/networkPolicy.d.ts"
+    }
   },
   "publishConfig": {
     "access": "public"
@@ -55,8 +61,8 @@
     "puppeteer": "~25.11.0",
     "puppeteer-core": "^25.11.0",
     "undici": "7.25.0",
-    "@hyperframes/core": "^0.8.217",
-    "@hyperframes/parsers": "^0.8.217"
+    "@hyperframes/core": "^0.9.19",
+    "@hyperframes/parsers": "^0.9.19"
   },
   "engines": {
     "node": ">=22"

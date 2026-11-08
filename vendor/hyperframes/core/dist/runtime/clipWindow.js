@@ -1,4 +1,5 @@
 import { sameInstant } from "../clipFacts.js";
+import { exportClipWindow } from "../inline-scripts/parityContract.js";
 export const hasClipStarted = (time, start) => time >= start || sameInstant(time, start);
 /** Half-open: two back-to-back clips never both hold the shared boundary instant, float sums included. */
 export const isInClipWindow = (time, start, end) => hasClipStarted(time, start) && time < end && !sameInstant(time, end);
@@ -11,3 +12,8 @@ export const isClipVisibleAt = (time, start, end, compositionDuration) => isInCl
     (hasClipStarted(time, start) &&
         compositionDuration > 0 &&
         end >= compositionDuration - TERMINAL_EPSILON_SECONDS);
+/** The one on-screen rule render, snapshot and preview share: edges a hair off a frame count as on it. */
+export const isClipOnScreenAt = (time, start, end, fps, compositionDuration) => {
+    const snapped = exportClipWindow(start, end, fps);
+    return isClipVisibleAt(time, snapped.start, snapped.end, compositionDuration);
+};

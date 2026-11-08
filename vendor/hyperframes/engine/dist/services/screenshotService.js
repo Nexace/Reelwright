@@ -81,11 +81,14 @@ frameTimeTicks, intervalMs) {
  * Requires chrome-headless-shell with --enable-begin-frame-control and
  * --deterministic-mode flags.
  */
-// Cache the last valid screenshot buffer per page for hasDamage=false frames.
-// When Chrome reports no visual change, we reuse the previous frame rather than
-// attempting Page.captureScreenshot (which times out in beginFrame mode since
-// the compositor is paused).
+// The last buffer beginFrameCapture returned per page. A screenshot BeginFrame always
+// reports damage, so a frame is reused only when a screenshot-less BeginFrame right after
+// the seek reports none. Any BeginFrame sent elsewhere moves the display past this buffer:
+// call forgetBeginFrameCapture first.
 const lastFrameCache = new WeakMap();
+export function forgetBeginFrameCapture(page) {
+    lastFrameCache.delete(page);
+}
 const PENDING_FRAME_RETRIES = 5;
 async function sendBeginFrame(client, params) {
     for (let attempt = 0;; attempt++) {
@@ -115,14 +118,30 @@ export async function beginFrameCapture(page, options, frameTimeTicks, interval)
         quality: isPng ? undefined : (options.quality ?? 80),
         optimizeForSpeed: true,
     };
-    const result = await sendBeginFrame(client, { frameTimeTicks, interval, screenshot });
+    // With a cached buffer, a screenshot-less BeginFrame first draws the seek and reports
+    // whether it changed anything. The screenshot after it is not displayed: a displayed
+    // screenshot frame leaves damage the next probe would report, and a settle frame to
+    // absorb it would draw page changes that nothing captures.
+    const cached = lastFrameCache.get(page);
+    let screenshotTicks = frameTimeTicks;
+    if (cached) {
+        const probe = await sendBeginFrame(client, { frameTimeTicks, interval });
+        if (!probe.hasDamage)
+            return { buffer: cached, hasDamage: false };
+        screenshotTicks = frameTimeTicks + interval / 2;
+    }
+    const result = await sendBeginFrame(client, {
+        frameTimeTicks: screenshotTicks,
+        interval,
+        screenshot,
+        noDisplayUpdates: cached !== undefined,
+    });
     let buffer;
     if (result.screenshotData) {
         buffer = Buffer.from(result.screenshotData, "base64");
         lastFrameCache.set(page, buffer);
     }
     else {
-        const cached = lastFrameCache.get(page);
         if (cached) {
             buffer = cached;
         }
@@ -239,12 +258,12 @@ export function capturesAlpha(options) {
     return options.transparent ?? options.format === "png";
 }
 const TRANSPARENT_BG_STYLE_ID = "__hf_transparent_bg__";
-export async function initTransparentBackground(page, { clearCompositionRoot = false } = {}) {
+export async function initTransparentBackground(page, { clearCompositionRoot = false, hideElementIds = [], } = {}) {
     const client = await getCdpSession(page);
     await client.send("Emulation.setDefaultBackgroundColorOverride", {
         color: { r: 0, g: 0, b: 0, a: 0 },
     });
-    await page.evaluate((styleId, clearCompositionRoot) => {
+    await page.evaluate((styleId, clearCompositionRoot, hideIds) => {
         const selector = clearCompositionRoot ? "html,body,[data-composition-id]" : "html,body";
         let style = document.getElementById(styleId);
         if (!style) {
@@ -252,8 +271,11 @@ export async function initTransparentBackground(page, { clearCompositionRoot = f
             style.id = styleId;
             document.head.appendChild(style);
         }
-        style.textContent = `${selector}{background:transparent !important;background-color:transparent !important;background-image:none !important;}`;
-    }, TRANSPARENT_BG_STYLE_ID, clearCompositionRoot);
+        const hidden = hideIds.map((id) => `#${CSS.escape(id)}`).join(",");
+        style.textContent =
+            `${selector}{background:transparent !important;background-color:transparent !important;background-image:none !important;}` +
+                (hidden ? `${hidden}{visibility:hidden !important;}` : "");
+    }, TRANSPARENT_BG_STYLE_ID, clearCompositionRoot, [...hideElementIds]);
 }
 /**
  * Capture a transparent-background PNG screenshot without setting the

@@ -58,5 +58,20 @@ KIT.start({ dur: 6, render: (t) => { A.set(t); B.set(t); C.set(t); D.set(t); } }
     assert.ok(r.morphing && r.morphed, "non-matching morph runs and hands over");
     assert.ok(r.gone, "unwrite ends hidden");
     assert.ok(r.same, "same t gives identical styles");
+    // review regressions: \color kept, \boxed hollow, nested-svg pieces (stretched delimiters) inside the formula's box
+    const q = await page.evaluate(() => {
+      const c = KIT.tex('\\textcolor{red}{x}+y', { x: 100, y: 300, size: 40 }), b = KIT.tex('\\boxed{y}', { x: 300, y: 300, size: 40 });
+      const n = KIT.tex('\\left(\\begin{matrix}a\\\\b\\\\c\\\\d\\end{matrix}\\right)', { x: 500, y: 200, size: 30 });
+      for (const x of [c, b, n]) { x.write({ at: 0, dur: 1 }); x.set(5); }
+      const svgBox = n.el.getBoundingClientRect(), pad = 4;
+      const inside = n.glyphs.every((g) => { const r = g.el.getBoundingClientRect(); return r.left >= svgBox.left - pad && r.right <= svgBox.right + pad && r.top >= svgBox.top - pad && r.bottom <= svgBox.bottom + pad; });
+      const red = c.glyphs.filter((g) => getComputedStyle(g.el).color === 'rgb(255, 0, 0)').length;
+      const rule = b.glyphs.find((g) => g.key === 'rule'), hollow = rule && rule.el.style.fillOpacity === '0' && rule.el.style.strokeOpacity === '1';
+      for (const x of [c, b, n]) x.el.remove();
+      return { red, hollow, inside, parts: n.glyphs.length };
+    });
+    assert.equal(q.red, 1, "\\textcolor{red}{x} colours only x red");
+    assert.ok(q.hollow, "\\boxed rule is an outline, not a filled block");
+    assert.ok(q.inside && q.parts > 4, "stretched delimiter pieces sit inside the formula (nested svg x/y/viewBox applied)");
   },
 };

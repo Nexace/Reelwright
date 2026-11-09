@@ -23,6 +23,8 @@ written glyph by glyph and rearranged, a complex plane warped by z², and a sadd
 - **Typesetting finishes before READY.** `MathJax.tex2svg` is synchronous once its script has loaded, and `KIT.tex` typesets
   when it is created (while film.js loads), so no frame ever renders a half-typeset equation. There is no build step
   (`tools/commands/tex.mjs` in the plan is not needed).
+- `\textcolor` / `\color` in the source are kept per glyph (TeX rule: `\color{red}` colours the rest of its group), `\boxed`
+  draws as an outline, and stretched delimiters, over/underbraces and long arrows land in place (MathJax nests `<svg>`s for them).
 - `color(match, c)` matches the glyph sequence `match` renders to; a substring that renders differently on its own (size,
   variant, a stretched `\left(`) is not found, and every run with the same glyphs is coloured. `pathArc` moves each glyph's
   centre along the arc without rotating it. Mid-morph, extra subpaths grow from or shrink to a dot.

@@ -107,6 +107,11 @@ export default {
     assert.deepEqual(r.morph.map((m) => m[2]), [1, 2, 2, 1], "morph path counts");
     r.morph.forEach(([a, b], i) => assert.ok(a < 0.5 && b < 0.5, `morph ${i}: p=0 off by ${a.toFixed(2)} px, p=1 off by ${b.toFixed(2)} px`));
     assert.deepEqual(r.pure, r.pure.map(() => 0), "set(t) not pure for some items, per time");
+    const ann = await page.evaluate(() => {   // review: a 2-subpath annulus morphs to a circle keeping its hole until it closes
+      const M = KIT.math, m = M.morphShapes(M.shape.annulus(100, 100, 50, 25), M.shape.circle(100, 100, 40), { in: 0, dur: 1 });
+      m.set(0.3); const d = m.els.map((e) => e.getAttribute('d')).join(' '), rings = (d.match(/M/g) || []).length; m.el.remove(); return rings;
+    });
+    assert.ok(ann >= 2, "annulus → circle keeps both rings mid-morph (got " + ann + ")");
     console.log(`  math2 check: ${Object.keys(r.lens).length} shapes parse, circle ${r.circle.toFixed(2)}, ${r.n} items pure, morph ends within 0.5 px`);
   },
 };

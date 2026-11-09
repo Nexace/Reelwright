@@ -49,13 +49,22 @@
     const err = svg && svg.querySelector('[data-mjx-error]');
     if (!svg || err) throw new Error(`KIT.tex: ${err ? err.getAttribute('data-mjx-error') : 'no output'} in "${tex}"`);
     const parts = [...svg.querySelectorAll('path, rect')].filter((e) => !e.hasAttribute('data-background'));
-    return { svg, parts, keys: parts.map((e) => (e.tagName === 'rect' ? 'rule' : e.getAttribute('data-c') || 'path')) };
+    // a \color{...} in the source is an ancestor fill (not currentColor): it becomes that glyph's own colour
+    const tint = (e) => { for (let a = e; a && a !== svg; a = a.parentNode) { const f = a.getAttribute && a.getAttribute('fill'); if (f && f !== 'currentColor' && f !== 'none') return f; } return null; };
+    return { svg, parts, tints: parts.map(tint), hollow: parts.map((e) => e.tagName === 'rect' && e.getAttribute('fill') === 'none'),   // \boxed: an outline
+      keys: parts.map((e) => (e.tagName === 'rect' ? 'rule' : e.getAttribute('data-c') || 'path')) };
   };
   const toUser = (e, root) => {   // the element's transforms up to MathJax's <svg>, as one matrix
     let m = new DOMMatrix();
     for (let a = e; a && a !== root; a = a.parentNode) {
       const c = a.transform && a.transform.baseVal.consolidate();
       if (c) m = DOMMatrix.fromMatrix(c.matrix).multiply(m);
+      if (a.tagName === 'svg') {   // a nested <svg> (stretched delimiters, over/underbraces, arrows): its x/y and viewBox stretch
+        const n = (k) => +a.getAttribute(k) || 0, vb = (a.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+        let v = new DOMMatrix().translate(n('x'), n('y'));
+        if (vb.length === 4 && vb[2] && vb[3]) v = v.scale((n('width') || vb[2]) / vb[2], (n('height') || vb[3]) / vb[3]).translate(-vb[0], -vb[1]);
+        m = v.multiply(m);
+      }
     }
     return m;
   };
@@ -98,7 +107,7 @@
       grp.appendChild(el);
       const ubox = boxOf(el.getBBox(), M), s = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) || 1;
       return { el, key: src.keys[i], box: boxOf({ x: ubox.x, y: ubox.y, width: ubox.w, height: ubox.h }, toStage),
-        d, M, m: M.toString(), ubox, len: el.getTotalLength(), sw: (3 * K.u) / (k * s), color };
+        d, M, m: M.toString(), ubox, len: el.getTotalLength(), sw: (3 * K.u) / (k * s), color: src.tints[i] || color, hollow: src.hollow[i] };
     });
     const order = G.map((_, i) => i).sort((a, b) => G[a].box.x - G[b].box.x || G[a].box.y - G[b].box.y);
     const rank = []; order.forEach((g, r) => (rank[g] = r));
@@ -109,7 +118,8 @@
       g.el.setAttribute('transform', s.m || g.m);
       const a = s.a ?? 1, st = g.el.style;
       st.opacity = s.op; st.visibility = s.op > 0.001 ? 'visible' : 'hidden';
-      st.fillOpacity = s.fill ?? 1; st.strokeOpacity = s.stroke ?? 0; st.strokeWidth = g.sw + 'px';
+      const fill = s.fill ?? 1, stroke = s.stroke ?? 0;   // a hollow rule (\boxed) keeps its outline where others fill
+      st.fillOpacity = g.hollow ? 0 : fill; st.strokeOpacity = g.hollow ? Math.max(fill, stroke) : stroke; st.strokeWidth = g.sw + 'px';
       st.strokeDasharray = a < 1 ? `${g.len} ${g.len}` : 'none'; st.strokeDashoffset = a < 1 ? g.len * (1 - a) : 0;
       st.color = s.color || g.color; st.fillRule = s.d ? 'evenodd' : 'nonzero';
     };

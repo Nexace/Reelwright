@@ -242,7 +242,10 @@
   M.morphShapes = (from, to, o = {}) => {
     const fl = window.flubber;
     if (!fl) throw new Error('KIT.math.morphShapes: load vendor/flubber/flubber.min.js before tools/math2.js');
-    const A = [].concat(from), B = [].concat(to), t0 = o.in ?? 0, t1 = t0 + (o.dur ?? K.dur(1)), opt = o.flubber;
+    // flubber morphs one ring per path: split every d into its subpaths (an annulus is two) and route by ring count
+    const A = [].concat(from).flatMap((d) => fl.splitPathString(d)), B = [].concat(to).flatMap((d) => fl.splitPathString(d));
+    const t0 = o.in ?? 0, t1 = t0 + (o.dur ?? K.dur(1)), opt = o.flubber;
+    if (A.length > 1 && B.length > 1 && A.length !== B.length) throw new Error(`KIT.math.morphShapes: ${A.length} subpaths → ${B.length}: give equal counts, or one on a side`);
     const interps = A.length === 1 && B.length === 1 ? [fl.interpolate(A[0], B[0], opt)] : A.length === 1 ? fl.separate(A[0], B, opt) :
       B.length === 1 ? fl.combine(A, B[0], opt) : [fl.interpolateAll(A, B, { ...opt, single: true })];
     const root = layer(o.parent);

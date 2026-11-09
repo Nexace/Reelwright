@@ -52,6 +52,10 @@ KIT.start({ dur: 6, render: (t) => s3.set(t) });`,
     assert.equal(r.verts, 17 * 13, "surface vertices = (nu+1)(nv+1)");
     assert.equal(r.d0, 0, "helix drawRange at p = 0"); assert.equal(r.d1, r.total, "helix drawRange at p = 1");
     assert.ok(r.moves && r.end.phi === 80 && r.end.theta === -20 && r.end.zoom === 1.15, "orient window ends exactly on its target");
+    const ax = await page.evaluate(() => new Promise((ok) => { setTimeout(() => ok('build never ran'), 10000); KIT.math3d.scene(KIT.el('div', 'scene', KIT.stage), (a) => { try {   // review: { axes } option
+      const A = a.axes({ x: [-2, 2, 1], y: [-2, 2, 1], z: [-1, 1, 1] }), d = a.dot([1, 1, 0.5], { axes: A }), s = a.surface((u, v) => [u, v, 0], { axes: A, resolution: [2, 2] });
+      const arr = [...d.obj.position.toArray()]; s.obj.traverse((o) => { if (o.geometry) arr.push(...o.geometry.attributes.position.array); }); ok(arr.length > 6 && arr.every(Number.isFinite)); } catch (e) { ok('threw: ' + e.message); } }); })); 
+    assert.equal(ax, true, "objects built with { axes } have finite positions");
     console.log("      math3d check: mapping, camera order-independence, 17x13 vertices, helix drawRange 0/" + r.total + " OK");
   },
 };

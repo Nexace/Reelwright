@@ -1,5 +1,5 @@
 // node tools/selfcheck/tex-offline.mjs — vendored MathJax (vendor/mathjax) typesets with the network blocked: a page loads
-// config.js + tex-svg.js with every non-file:// request aborted, typesets formulas that pull in several TeX packages, and must
+// config.js + tex-svg-full.js with every non-file:// request aborted, typesets formulas that pull in several TeX packages, and must
 // attempt no request outside the repo. Also checks that tex2svg is synchronous (done before READY can resolve).
 import assert from "node:assert/strict";
 import fs from "node:fs";

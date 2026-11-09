@@ -106,7 +106,7 @@
         side: THREE.DoubleSide, opacity: o.opacity ?? 1, transparent: (o.opacity ?? 1) < 1, ...o.mat });
       const lineMat = (c = col.ink, opacity = 1) => new THREE.LineBasicMaterial({ color: c, opacity, transparent: opacity < 1 });
       const edgesOf = (geo, c = col.ink) => new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), lineMat(c, 0.7));
-      const map = (o) => (o.axes ? o.axes.c2p : (p) => p);
+      const map = (o) => (o.axes ? (p) => o.axes.c2p(...p) : (p) => p);   // c2p takes (x, y, z), callers pass [x, y, z]
       const tex = (cv) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; };
       const label = (text, size = 0.4) => {
         const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64;
@@ -244,7 +244,7 @@
           const g = cv.getContext('2d'), rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
           rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.35, 'rgba(255,255,255,0.45)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
           g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
-          const mat = new THREE.PointsMaterial({ color: rgb ? '#ffffff' : o.color || col.accent, size: o.size ?? 6, sizeAttenuation: false, map: tex(cv),
+          const mat = new THREE.PointsMaterial({ color: rgb ? '#ffffff' : o.color || col.accent, size: (o.size ?? 6) * K.u, sizeAttenuation: false, map: tex(cv),
             vertexColors: !!rgb, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
           return handle(o.name, new THREE.Points(geo, mat), [mat]);
         } };

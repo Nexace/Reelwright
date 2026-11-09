@@ -1,0 +1,342 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): transitions-3d v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/transitions-3d/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/transitions-3d/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/transitions-3d/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Helvetica"; font-weight: 400; font-display: block; src: url("compositions/transitions-3d/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Helvetica"; font-weight: 600; font-display: block; src: url("compositions/transitions-3d/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Arial"; font-weight: 400; font-display: block; src: url("compositions/transitions-3d/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Arial"; font-weight: 600; font-display: block; src: url("compositions/transitions-3d/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Segoe UI"; font-weight: 400; font-display: block; src: url("compositions/transitions-3d/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Segoe UI"; font-weight: 600; font-display: block; src: url("compositions/transitions-3d/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="main"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="main"]:not(:has([data-hf-inner-root])), [data-composition-id="main"] > [data-hf-inner-root], [data-composition-id="main"] * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="main"]:not(:has([data-hf-inner-root])), [data-composition-id="main"] > [data-hf-inner-root] {
+        background: #000;
+        overflow: hidden;
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+
+      [data-composition-id="main"] .scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        transform-style: preserve-3d;
+      }
+
+      [data-composition-id="main"] .scene-inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        backface-visibility: hidden;
+      }
+
+      [data-composition-id="main"] #scene1 {
+        z-index: 1;
+      }
+      [data-composition-id="main"] #scene2 {
+        z-index: 2;
+        opacity: 0;
+      }
+
+      [data-composition-id="main"] #s1 {
+        background: #1b263b;
+      }
+      [data-composition-id="main"] #s2 {
+        background: #e07a5f;
+      }
+
+      [data-composition-id="main"] .big-text {
+        font-size: 200px;
+        font-weight: 900;
+        line-height: 1;
+        user-select: none;
+        pointer-events: none;
+      }
+      [data-composition-id="main"] #s1 .big-text {
+        color: rgba(255, 255, 255, 0.08);
+      }
+      [data-composition-id="main"] #s2 .big-text {
+        color: rgba(255, 255, 255, 0.15);
+      }
+
+      [data-composition-id="main"] .label {
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        margin-top: 12px;
+      }
+      [data-composition-id="main"] #s1 .label {
+        color: #778da9;
+      }
+      [data-composition-id="main"] #s2 .label {
+        color: #fff;
+      }
+
+      [data-composition-id="main"] #info-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 1920px;
+        height: 80px;
+        background: rgba(0, 0, 0, 0.88);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+      }
+      [data-composition-id="main"] #info-bar span {
+        color: #fff;
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: 2px;
+      }
+
+      [data-composition-id="main"] #title-card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        background: #0d1b2a;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        opacity: 0;
+      }
+      [data-composition-id="main"] #title-card .category {
+        font-size: 64px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+      }
+      [data-composition-id="main"] #title-card .subtitle {
+        font-size: 24px;
+        font-weight: 400;
+        color: #778da9;
+        margin-top: 16px;
+        letter-spacing: 4px;
+      }
+
+      [data-composition-id="main"] #outro-card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        background: #0d1b2a;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        opacity: 0;
+      }
+      [data-composition-id="main"] #outro-card .category {
+        font-size: 48px;
+        font-weight: 700;
+        color: #778da9;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+      }
+
+      /* 3D perspective wrapper */
+      [data-composition-id="main"]:not(:has([data-hf-inner-root])), [data-composition-id="main"] > [data-hf-inner-root] {
+        perspective: 1200px;
+      }
+    
+</style>
+<div
+      id="composition"
+      data-composition-id="main"
+      data-block-start="0"
+      data-block-duration="11"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="title-card">
+        <div class="category">3D Transitions</div>
+        <div class="subtitle">1 Transition</div>
+      </div>
+
+      <div id="scene1" class="scene">
+        <div id="s1" class="scene-inner">
+          <div class="big-text">ONE</div>
+          <div class="label">Scene A</div>
+        </div>
+      </div>
+
+      <div id="scene2" class="scene">
+        <div id="s2" class="scene-inner">
+          <div class="big-text">TWO</div>
+          <div class="label">Scene B</div>
+        </div>
+      </div>
+
+      <div id="info-bar"><span id="info-text">Transition Name</span></div>
+
+      <div id="outro-card">
+        <div class="category">End of 3D Transitions</div>
+      </div>
+    </div>
+<script>
+(function () { // transitions-3d: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/transitions-3d/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["main" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("transitions-3d" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\"","400 1em \"Helvetica\"","600 1em \"Helvetica\"","400 1em \"Arial\"","600 1em \"Arial\"","400 1em \"Segoe UI\"","600 1em \"Segoe UI\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      __rwTL = __rwTL || {};
+
+      (function () {
+        var tl = gsap.timeline({ paused: true });
+        var t = 0;
+
+        function resetScenes() {
+          tl.set(
+            "#scene1",
+            {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              scale: 1,
+              scaleX: 1,
+              rotation: 0,
+              rotationY: 0,
+              filter: "none",
+              clipPath: "none",
+              zIndex: 1,
+              skewX: 0,
+            },
+            t,
+          );
+          tl.set(
+            "#scene2",
+            {
+              opacity: 0,
+              x: 0,
+              y: 0,
+              scale: 1,
+              scaleX: 1,
+              rotation: 0,
+              rotationY: 0,
+              filter: "none",
+              clipPath: "none",
+              zIndex: 2,
+              skewX: 0,
+            },
+            t,
+          );
+          tl.set(
+            "#s1",
+            {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              scale: 1,
+              rotation: 0,
+              rotationY: 0,
+              filter: "none",
+              skewX: 0,
+              clipPath: "none",
+            },
+            t,
+          );
+          tl.set(
+            "#s2",
+            {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              scale: 1,
+              rotation: 0,
+              rotationY: 0,
+              filter: "none",
+              skewX: 0,
+              clipPath: "none",
+            },
+            t,
+          );
+        }
+
+        /* ── Title card (3s) ── */
+        tl.set("#title-card", { opacity: 1 }, 0);
+        tl.to("#title-card", { opacity: 0, duration: 0.5 }, 2.5);
+        t = 3;
+
+        /* ── Demo 1: 3D Card Flip ── */
+        resetScenes();
+        tl.set("#info-text", { textContent: "3D Card Flip" }, t);
+        tl.to("#info-bar", { opacity: 1, duration: 0.3 }, t);
+        t += 1.5;
+        var T = t;
+        tl.set("#scene2", { opacity: 1 }, T);
+        tl.set("#s2", { rotationY: -180 }, T);
+        tl.to("#s1", { rotationY: 180, duration: 0.6, ease: "power2.inOut" }, T);
+        tl.to("#s2", { rotationY: 0, duration: 0.6, ease: "power2.inOut" }, T);
+        tl.set("#scene1", { opacity: 0 }, T + 0.65);
+        t = T + 1.5;
+        tl.to("#info-bar", { opacity: 0, duration: 0.3 }, t);
+        t += 0.5;
+
+        /* ── Outro (3s) ── */
+        tl.set("#outro-card", { opacity: 1 }, t);
+        tl.to("#outro-card", { opacity: 0, duration: 0.5 }, t + 2.5);
+
+        __rwTL["main"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["main"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["main"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

@@ -4,6 +4,7 @@
 // KIT.vfx(host, nodes) → set(id, key, v) data-vfx-chain kernels, renderer hyperframes only
 // KIT.mount(name, { start, dur, playbackStart, vars, parent }) → host   compositions/<name>.html, seeked from render(t)
 //                                                                      (docs/playbook/nested-compositions.md)
+// KIT.block(name, { start, dur, vars }) → KIT.mount (a block from `reelwright add`); KIT.block(name) is engine.js's component
 // Name lists below ported from HyperFrames core/dist/colorGrading.js + parsers/dist/colorGradingContract.js and
 // core/src/vfx.ts, v0.9.19 (Apache-2.0, Copyright HeyGen)
 'use strict';
@@ -137,6 +138,9 @@
     });
     return host;
   };
+  // KIT.block(name, { start, dur, vars }) → KIT.mount for a HyperFrames block; KIT.block(name[, parent]) stays the component call
+  const block = K.block;
+  K.block = (name, o, ...rest) => o && !(o instanceof Node) && 'dur' in o ? K.mount(name, o) : block(name, o, ...rest);
   const s = K.start;
   K.start = (o) => s({ ...o, render: (t) => { o.render(t); for (const m of mounts) m(t); } });
 })();

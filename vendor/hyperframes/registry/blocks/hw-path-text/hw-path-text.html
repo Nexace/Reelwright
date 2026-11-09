@@ -1,0 +1,232 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): hw-path-text v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/hw-path-text/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="hw-path-text"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      @font-face {
+        font-family: "Caveat";
+        src: url("compositions/hw-path-text/fonts/caveat/700.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      [data-composition-id="hw-path-text"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-path-text"] > [data-hf-inner-root], [data-composition-id="hw-path-text"] *, [data-composition-id="hw-path-text"] *::before, [data-composition-id="hw-path-text"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="hw-path-text"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-path-text"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="hw-path-text"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-path-text"] > [data-hf-inner-root] {
+        --hw-font-print: "Caveat", cursive;
+        --hw-font-script: "Caveat", cursive;
+        --hw-ink: #f4f2ec;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent;
+        font-family: var(--hw-font-print, "Caveat", cursive);
+      }
+      [data-composition-id="hw-path-text"] #hw-pt-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      /* The textPath carrier is geometry only — without fill:none it inherits
+         SVG's default black fill and renders as a solid blob under the text. */
+      [data-composition-id="hw-path-text"] #hw-pt-path {
+        fill: none;
+      }
+      [data-composition-id="hw-path-text"] #hw-pt-guide {
+        fill: none;
+        stroke: rgba(244, 242, 236, 0.22);
+        stroke-width: 3;
+        stroke-dasharray: 2 14;
+        stroke-linecap: round;
+      }
+      [data-composition-id="hw-path-text"] #hw-pt-svg text {
+        font-family: var(--hw-font-print, "Caveat", cursive);
+        font-weight: 700;
+        fill: var(--hw-ink);
+      }
+      [data-composition-id="hw-path-text"] #hw-pt-svg tspan {
+        opacity: 0;
+      }
+    
+</style>
+<div
+      id="hw-pt-root"
+      data-composition-id="hw-path-text"
+      data-block-start="0"
+      data-block-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <svg id="hw-pt-svg" viewBox="0 0 1920 1080">
+        <path id="hw-pt-path" d=""></path>
+        <path id="hw-pt-guide" d=""></path>
+        <text id="hw-pt-text" font-size="92">
+          <textPath id="hw-pt-tp" href="#hw-pt-path" startOffset="4%"></textPath>
+        </text>
+      </svg>
+      <div
+        id="hw-pt-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="6"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // hw-path-text: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/hw-path-text/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["hw-path-text" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("hw-path-text" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["700 1em \"Caveat\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters ----
+           Handwriting along any path — custom path text, natively via
+           SVG textPath (no Fusion overlay). CONFIG.d is the whole design. */
+        var CONFIG = {
+          text: "come on this wild journey with me...",
+          d: "M 220 700 C 520 480, 900 820, 1230 560 S 1700 380, 1780 420",
+          fontSize: 92,
+          showGuide: true, // faint dotted guide under the writing
+          typeCharDelay: 0.05,
+          seed: 12,
+          boil: { enabled: true, amp: 1.4, rot: 0.3, frameDrop: 3 },
+          animationOut: true,
+        };
+
+        var DUR = 6;
+        function clamp(v, lo, hi) {
+          return Math.min(hi, Math.max(lo, v));
+        }
+        var OUT = clamp(DUR * 0.06, 0.25, 0.6);
+
+        /* hw family runtime */
+        window.hwOnUpdate = function (tl, fn) {
+          if (!tl.__hwRenders) {
+            tl.__hwRenders = [];
+            tl.eventCallback("onUpdate", function () {
+              for (var i = 0; i < tl.__hwRenders.length; i++) tl.__hwRenders[i]();
+            });
+          }
+          tl.__hwRenders.push(fn);
+          fn();
+        };
+        window.hwHash = function (n, seed) {
+          var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+          return (x - Math.floor(x)) * 2 - 1;
+        };
+        window.hwBoil = function (tl, target, opts) {
+          opts = opts || {};
+          var amp = opts.amp !== undefined ? opts.amp : 1.6;
+          var rot = opts.rot !== undefined ? opts.rot : 0.5;
+          var fps = opts.fps || 30;
+          var drop = opts.frameDrop || 3;
+          var seed = opts.seed || 1;
+          var els = gsap.utils.toArray(target);
+          window.hwOnUpdate(tl, function () {
+            var step = Math.floor((tl.time() * fps) / drop);
+            for (var i = 0; i < els.length; i++) {
+              gsap.set(els[i], {
+                x: window.hwHash(step * 3 + i * 97, seed) * amp,
+                y: window.hwHash(step * 3 + 1 + i * 97, seed) * amp,
+                rotation: (opts.baseRot || 0) + window.hwHash(step * 3 + 2 + i * 97, seed) * rot,
+              });
+            }
+          });
+        };
+
+        var pathEl = document.getElementById("hw-pt-path");
+        var guide = document.getElementById("hw-pt-guide");
+        pathEl.setAttribute("d", CONFIG.d);
+        if (CONFIG.showGuide) guide.setAttribute("d", CONFIG.d);
+        document.getElementById("hw-pt-text").setAttribute("font-size", CONFIG.fontSize);
+
+        /* per-char tspans along the path */
+        var NS = "http://www.w3.org/2000/svg";
+        var tp = document.getElementById("hw-pt-tp");
+        Array.from(CONFIG.text).forEach(function (ch) {
+          var t = document.createElementNS(NS, "tspan");
+          t.textContent = ch;
+          tp.appendChild(t);
+        });
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* guide draws first, then the handwriting types along it */
+        if (CONFIG.showGuide) {
+          var glen = guide.getTotalLength();
+          gsap.set(guide, { strokeDasharray: "2 14", strokeDashoffset: glen });
+          tl.to(guide, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.2);
+        }
+        var chars = tp.querySelectorAll("tspan");
+        var delay = Math.min(CONFIG.typeCharDelay, 2.6 / Math.max(1, chars.length));
+        tl.to(chars, { opacity: 1, duration: 0.03, stagger: delay, ease: "none" }, 0.7);
+
+        if (CONFIG.boil.enabled) {
+          window.hwBoil(tl, "#hw-pt-svg", {
+            amp: CONFIG.boil.amp,
+            rot: CONFIG.boil.rot,
+            frameDrop: CONFIG.boil.frameDrop,
+            seed: CONFIG.seed,
+          });
+        }
+
+        if (CONFIG.animationOut) {
+          tl.to("#hw-pt-svg", { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+        }
+        tl.set("#hw-pt-root", { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["hw-path-text"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["hw-path-text"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["hw-path-text"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

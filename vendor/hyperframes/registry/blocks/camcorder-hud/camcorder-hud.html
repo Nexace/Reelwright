@@ -1,0 +1,200 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): camcorder-hud v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/camcorder-hud/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="camcorder-hud"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="camcorder-hud"]:not(:has([data-hf-inner-root])), [data-composition-id="camcorder-hud"] > [data-hf-inner-root], [data-composition-id="camcorder-hud"] *, [data-composition-id="camcorder-hud"] *::before, [data-composition-id="camcorder-hud"] *::after {
+        box-sizing: border-box;
+      }
+
+      [data-composition-id="camcorder-hud"]:not(:has([data-hf-inner-root])), [data-composition-id="camcorder-hud"] > [data-hf-inner-root],
+      [data-composition-id="camcorder-hud"]:not(:has([data-hf-inner-root])), [data-composition-id="camcorder-hud"] > [data-hf-inner-root] {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud {
+        --hf-camcorder-color: #fff;
+        --hf-camcorder-accent: #f12c2c;
+        --hf-camcorder-inset: 5vmin;
+        --hf-camcorder-font-size: 3.7vmin;
+        position: absolute;
+        inset: 0;
+        color: var(--hf-camcorder-color);
+        font-family: monospace;
+        font-size: var(--hf-camcorder-font-size);
+        font-weight: 700;
+        line-height: 1.25;
+        pointer-events: none;
+        -webkit-text-stroke: 0.12vmin rgb(0 0 0 / 92%);
+        text-shadow: 0 0.2vmin 0.6vmin rgb(0 0 0 / 90%);
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-corner {
+        position: absolute;
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-record {
+        top: var(--hf-camcorder-inset);
+        left: var(--hf-camcorder-inset);
+        display: flex;
+        align-items: center;
+        gap: 1.8vmin;
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-record-dot {
+        width: 2.2vmin;
+        height: 2.2vmin;
+        border-radius: 50%;
+        background: var(--hf-camcorder-accent);
+        box-shadow: 0 0 0.9vmin color-mix(in srgb, var(--hf-camcorder-accent) 55%, transparent);
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-battery {
+        top: var(--hf-camcorder-inset);
+        right: var(--hf-camcorder-inset);
+        width: 7vmin;
+        height: 3.5vmin;
+        border: 0.35vmin solid currentcolor;
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-battery::before {
+        position: absolute;
+        top: 0.7vmin;
+        left: 0.7vmin;
+        width: 4.7vmin;
+        height: 1.4vmin;
+        background: currentcolor;
+        content: "";
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-battery::after {
+        position: absolute;
+        top: 0.7vmin;
+        right: -1vmin;
+        width: 0.7vmin;
+        height: 1.4vmin;
+        background: currentcolor;
+        content: "";
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-date {
+        bottom: var(--hf-camcorder-inset);
+        left: var(--hf-camcorder-inset);
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-counter {
+        right: var(--hf-camcorder-inset);
+        bottom: var(--hf-camcorder-inset);
+        text-align: right;
+      }
+
+      [data-composition-id="camcorder-hud"] #ch-hud .ch-mode {
+        display: block;
+        margin-bottom: 0.7vmin;
+        font-size: 2.6vmin;
+      }
+    
+</style>
+<div
+      id="camcorder-hud"
+      data-composition-id="camcorder-hud"
+      data-block-start="0"
+      data-block-duration="4"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="ch-hud" data-hf-counter-start="0" aria-hidden="true">
+        <div class="ch-corner ch-record"><span class="ch-record-dot"></span><span>REC</span></div>
+        <div class="ch-corner ch-battery"></div>
+        <div class="ch-corner ch-date">JAN 01 2000<br />12:00 AM</div>
+        <div class="ch-corner ch-counter">
+          <span class="ch-mode">SP · 16:9</span><span class="ch-counter-value">00:00:00</span>
+        </div>
+      </div>
+    </div>
+<script>
+(function () { // camcorder-hud: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/camcorder-hud/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["camcorder-hud" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("camcorder-hud" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all([].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      __rwTL = __rwTL || {};
+
+      var hud = document.getElementById("ch-hud");
+      var counter = hud && hud.querySelector(".ch-counter-value");
+      var recordDot = hud && hud.querySelector(".ch-record-dot");
+      var host = hud && hud.closest("[data-composition-id]");
+      if (!hud || !counter || !recordDot || !host) {
+        throw new Error("Camcorder HUD could not find its composition host");
+      }
+
+      var compositionId = host.getAttribute("data-composition-id");
+      var duration = Number(host.getAttribute("data-block-duration")) || 4;
+      var counterStart = Number(hud.getAttribute("data-hf-counter-start")) || 0;
+      var state = { seconds: 0 };
+
+      function formatCounter(value) {
+        var seconds = Math.max(0, Math.floor(value));
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var remainder = seconds % 60;
+        return [hours, minutes, remainder]
+          .map(function (part) {
+            return String(part).padStart(2, "0");
+          })
+          .join(":");
+      }
+
+      function updateHud() {
+        counter.textContent = formatCounter(counterStart + state.seconds);
+        recordDot.style.opacity = Math.floor(state.seconds / 0.55) % 2 === 0 ? "1" : "0.25";
+      }
+
+      var tl = gsap.timeline({ paused: true });
+      tl.to(state, { seconds: duration, duration: duration, ease: "none", onUpdate: updateHud }, 0);
+      updateHud();
+      __rwTL[compositionId] = tl;
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["camcorder-hud"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["camcorder-hud"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

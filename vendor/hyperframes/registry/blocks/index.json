@@ -1,0 +1,6090 @@
+{
+ "version": "0.9.19",
+ "blocks": {
+  "ai-answer-rank": {
+   "status": "supported",
+   "title": "AI Answer Rank",
+   "description": "Is your brand in the AI answer? A question types into a chat card, the assistant answers with a ranked list of three picks, then re-ranks: the promoted brand slides into its slot, the picks below step down, and the brand row lands with the one accent highlight and a check. For answer-engine and AI-visibility marketing",
+   "duration": 9,
+   "width": 1080,
+   "height": 1080,
+   "tags": [
+    "mock-ui",
+    "ai",
+    "chat",
+    "ranking",
+    "list",
+    "marketing",
+    "ad-template",
+    "square"
+   ],
+   "id": "ai-answer-rank",
+   "vars": [
+    {
+     "id": "prompt",
+     "default": "What's the best CRM for a small team?"
+    },
+    {
+     "id": "lead",
+     "default": "Here are the top picks:"
+    },
+    {
+     "id": "rowA",
+     "default": "Brand A"
+    },
+    {
+     "id": "rowB",
+     "default": "Brand B"
+    },
+    {
+     "id": "rowC",
+     "default": "Brand C"
+    },
+    {
+     "id": "brand",
+     "default": "Your brand"
+    },
+    {
+     "id": "brandRank",
+     "default": "1"
+    },
+    {
+     "id": "accent",
+     "default": "#16a34a"
+    },
+    {
+     "id": "ink",
+     "default": "#18181b"
+    },
+    {
+     "id": "ground",
+     "default": "#fcfcfb"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "ai-chat-reveal": {
+   "status": "supported",
+   "title": "AI Chat Reveal",
+   "description": "A question is typed on a rising keyboard, sent, and answered by an AI that streams its reply word by word on a measured token rhythm - thinking dot, uneven bursts, bulleted list - before the app cuts to a branded closing card",
+   "duration": 19.3333,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "ai",
+    "chat",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "ai-chat-reveal",
+   "vars": [
+    {
+     "id": "botName",
+     "default": "Assistant"
+    },
+    {
+     "id": "userMessage",
+     "default": "How do I turn my HTML into real video?"
+    },
+    {
+     "id": "answer1",
+     "default": "You do not need an editor. HyperFrames renders the HTML you already write into deterministic, pixel-perfect video."
+    },
+    {
+     "id": "answer2",
+     "default": "It is markup, not magic."
+    },
+    {
+     "id": "answer3",
+     "default": "What you get out of the box:"
+    },
+    {
+     "id": "bullet1",
+     "default": "A catalog of motion primitives you install and own"
+    },
+    {
+     "id": "bullet2",
+     "default": "GSAP timelines that seek to any frame"
+    },
+    {
+     "id": "bullet3",
+     "default": "4K renders from a single CLI command"
+    },
+    {
+     "id": "ecHeadline",
+     "default": "It's not magic.|It's HTML."
+    },
+    {
+     "id": "ecSub",
+     "default": "Open-source video rendering — write HTML, ship pixel-perfect video."
+    },
+    {
+     "id": "ecCta",
+     "default": "Try HyperFrames"
+    },
+    {
+     "id": "ecFooter",
+     "default": "HYPERFRAMES.HEYGEN.COM"
+    },
+    {
+     "id": "brandLogo",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Helvetica Neue → bundled Inter",
+    "font Arial → bundled Inter",
+    "variable brandLogo: sample assets/hyperframes-logo-white.svg left out (licence unknown) — pass vars.brandLogo"
+   ]
+  },
+  "app-showcase": {
+   "status": "supported",
+   "title": "App Showcase",
+   "description": "Fitness app product showcase with three floating smartphone screens",
+   "duration": 5.5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "showcase",
+    "app",
+    "3d"
+   ],
+   "id": "app-showcase",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font DM Sans → bundled Inter"
+   ]
+  },
+  "apple-money-count": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "aurora": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "bar-chart-race": {
+   "status": "supported",
+   "title": "Bar Chart Race",
+   "description": "Ranked bars grow and overtake each other as a time series advances, with the axis rescaling as values climb and the accent handing over to whoever leads",
+   "duration": 12,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data",
+    "chart",
+    "statistics",
+    "ranking"
+   ],
+   "id": "bar-chart-race",
+   "vars": [
+    {
+     "id": "title",
+     "default": "Streaming Subscribers by Service"
+    },
+    {
+     "id": "subtitle",
+     "default": "Ranked by reported subscribers"
+    },
+    {
+     "id": "periods",
+     "default": "2019, 2020, 2021, 2022, 2023, 2024"
+    },
+    {
+     "id": "series",
+     "default": "Northwind: 42, 58, 71, 96, 118, 131\nCobalt: 30, 46, 68, 92, 126, 168\nFerry: 55, 62, 66, 70, 74, 79\nMarlow: 18, 33, 52, 61, 88, 104\nAster: 25, 28, 44, 58, 63, 72\nPell: 12, 20, 39, 47, 55, 90\nQuill: 8, 11, 15, 24, 40, 66\nDunmore: 35, 37, 38, 40, 42, 44"
+    },
+    {
+     "id": "barCount",
+     "default": 6
+    },
+    {
+     "id": "periodDuration",
+     "default": 2
+    },
+    {
+     "id": "valuePrefix",
+     "default": "$"
+    },
+    {
+     "id": "valueSuffix",
+     "default": "M"
+    },
+    {
+     "id": "valueDecimals",
+     "default": 0
+    },
+    {
+     "id": "accent",
+     "default": "#c8452d"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "beat-freeze-cut": {
+   "status": "supported",
+   "title": "Beat Freeze Cut",
+   "description": "A beat-driven speed ramp, freeze-frame hit, and hard-cut sequence for music-led promos and montages.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "music",
+    "beat-driven",
+    "freeze-frame"
+   ],
+   "id": "beat-freeze-cut",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "blob": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "blue-sweater-intro-video": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "camcorder-hud": {
+   "status": "supported",
+   "title": "Camcorder HUD",
+   "description": "Responsive REC, battery, editable date placeholder, and timeline-driven counter overlay for creator-camera and camcorder treatments",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "camcorder",
+    "camera",
+    "recording",
+    "hud",
+    "overlay",
+    "creator",
+    "media-treatment-overlay"
+   ],
+   "id": "camcorder-hud",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "camera-dolly-zoom": {
+   "status": "supported",
+   "title": "Dolly Zoom (Vertigo Shot)",
+   "description": "Camera tracks toward or away from the subject while the field of view changes the opposite way, so the subject holds its frame size while the background collapses behind it or rushes in. Focal length is solved from dolly distance every frame against d * tan(FOV/2) = const, not keyframed beside it. Requires depth: the subject sits on the z = 0 plane and the content behind it must be layered or genuinely 3D (translateZ at two or more distinct depths) -- a flat element gains nothing from this move.",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "camera",
+    "depth",
+    "3d",
+    "cinematic"
+   ],
+   "id": "camera-dolly-zoom",
+   "vars": [
+    {
+     "id": "direction",
+     "default": "out"
+    },
+    {
+     "id": "strength",
+     "default": 2
+    },
+    {
+     "id": "subjectDistance",
+     "default": 1400
+    },
+    {
+     "id": "easing",
+     "default": "power2.inOut"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "canopy-part-title": {
+   "status": "unsupported",
+   "reason": "needs three addon examples/jsm/postprocessing/EffectComposer.js (not vendored)"
+  },
+  "carousel-circle-1": {
+   "status": "supported",
+   "title": "Circle Carousel 1",
+   "description": "Image cards ride a circle with a size gradient by depth angle, sweeping in fast-slow-fast swings (Circle style 1); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-circle-1",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-circle-2": {
+   "status": "supported",
+   "title": "Circle Carousel 2",
+   "description": "Image cards ride a circle with a size gradient by depth angle, sweeping in fast-slow-fast swings (Circle style 2); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-circle-2",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-circle-3": {
+   "status": "supported",
+   "title": "Circle Carousel 3",
+   "description": "Image cards ride a circle with a size gradient by depth angle, sweeping in fast-slow-fast swings (Circle style 3); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-circle-3",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-circle-4": {
+   "status": "supported",
+   "title": "Circle Carousel 4",
+   "description": "Image cards ride a circle with a size gradient by depth angle, sweeping in fast-slow-fast swings (Circle style 4); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-circle-4",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-circle-5": {
+   "status": "supported",
+   "title": "Circle Carousel 5",
+   "description": "Image cards ride a circle with a size gradient by depth angle, sweeping in fast-slow-fast swings (Circle style 5); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-circle-5",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-orbit-1": {
+   "status": "supported",
+   "title": "Orbit Carousel 1",
+   "description": "Image cards on a spinning 3D Fibonacci sphere, billboarded to the camera, sized by camera distance (Orbit style 1); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "orbit",
+    "3d"
+   ],
+   "id": "carousel-orbit-1",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-orbit-2": {
+   "status": "supported",
+   "title": "Orbit Carousel 2",
+   "description": "Image cards on a spinning 3D Fibonacci sphere, billboarded to the camera, sized by camera distance (Orbit style 2); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "orbit",
+    "3d"
+   ],
+   "id": "carousel-orbit-2",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-orbit-3": {
+   "status": "supported",
+   "title": "Orbit Carousel 3",
+   "description": "Image cards on a spinning 3D Fibonacci sphere, billboarded to the camera, sized by camera distance (Orbit style 3); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "orbit",
+    "3d"
+   ],
+   "id": "carousel-orbit-3",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-orbit-4": {
+   "status": "supported",
+   "title": "Orbit Carousel 4",
+   "description": "Image cards on a spinning 3D Fibonacci sphere, billboarded to the camera, sized by camera distance (Orbit style 4); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "orbit",
+    "3d"
+   ],
+   "id": "carousel-orbit-4",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-orbit-5": {
+   "status": "supported",
+   "title": "Orbit Carousel 5",
+   "description": "Image cards on a spinning 3D Fibonacci sphere, billboarded to the camera, sized by camera distance (Orbit style 5); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "orbit",
+    "3d"
+   ],
+   "id": "carousel-orbit-5",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-path-1": {
+   "status": "supported",
+   "title": "Path Carousel 1",
+   "description": "Image cards ride an open bezier path (arc, V, diagonal, wave, S-curve) with depth scaling and tangent rotation (Path style 1); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "path"
+   ],
+   "id": "carousel-path-1",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-path-2": {
+   "status": "supported",
+   "title": "Path Carousel 2",
+   "description": "Image cards ride an open bezier path (arc, V, diagonal, wave, S-curve) with depth scaling and tangent rotation (Path style 2); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "path"
+   ],
+   "id": "carousel-path-2",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-path-3": {
+   "status": "supported",
+   "title": "Path Carousel 3",
+   "description": "Image cards ride an open bezier path (arc, V, diagonal, wave, S-curve) with depth scaling and tangent rotation (Path style 3); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "path"
+   ],
+   "id": "carousel-path-3",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-path-4": {
+   "status": "supported",
+   "title": "Path Carousel 4",
+   "description": "Image cards ride an open bezier path (arc, V, diagonal, wave, S-curve) with depth scaling and tangent rotation (Path style 4); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "path"
+   ],
+   "id": "carousel-path-4",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-path-5": {
+   "status": "supported",
+   "title": "Path Carousel 5",
+   "description": "Image cards ride an open bezier path (arc, V, diagonal, wave, S-curve) with depth scaling and tangent rotation (Path style 5); 24 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "path"
+   ],
+   "id": "carousel-path-5",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image13",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image14",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image15",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image16",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image17",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image18",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image19",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image20",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image21",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image22",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image23",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image24",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12",
+    "variable image13: sample assets/carousel-images/pl-chb-2.jpg isn't shipped upstream — pass vars.image13",
+    "variable image14: sample assets/carousel-images/pl-chb.jpg isn't shipped upstream — pass vars.image14",
+    "variable image15: sample assets/carousel-images/pl-homework.jpg isn't shipped upstream — pass vars.image15",
+    "variable image16: sample assets/carousel-images/pl-sleeping.jpg isn't shipped upstream — pass vars.image16",
+    "variable image17: sample assets/carousel-images/pl-y2k.jpg isn't shipped upstream — pass vars.image17",
+    "variable image18: sample assets/carousel-images/track-back-together.jpg isn't shipped upstream — pass vars.image18",
+    "variable image19: sample assets/carousel-images/track-bitter-with-the-sweet.jpg isn't shipped upstream — pass vars.image19",
+    "variable image20: sample assets/carousel-images/track-cleaning-windows.jpg isn't shipped upstream — pass vars.image20",
+    "variable image21: sample assets/carousel-images/track-dixie-chicken-live-at-the-rainbow-theatre-london-u.jpg isn't shipped upstream — pass vars.image21",
+    "variable image22: sample assets/carousel-images/track-dweller-on-the-threshold.jpg isn't shipped upstream — pass vars.image22",
+    "variable image23: sample assets/carousel-images/track-far-east-man.jpg isn't shipped upstream — pass vars.image23",
+    "variable image24: sample assets/carousel-images/track-funky-shit.jpg isn't shipped upstream — pass vars.image24"
+   ]
+  },
+  "carousel-text-circle-1": {
+   "status": "supported",
+   "title": "Text + Circle Carousel 1",
+   "description": "A headline mask-reveals word by word while a circle carousel converges from off-frame and threads the line, collapses to centre, hard-cuts to a second line that arrives at 1.4× (Circle style 1).",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "title-card",
+    "kinetic-text",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-text-circle-1",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "line1",
+     "default": "Carousels are so in"
+    },
+    {
+     "id": "line2",
+     "default": "so we made them in hf"
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-text-circle-2": {
+   "status": "supported",
+   "title": "Text + Circle Carousel 2",
+   "description": "A headline mask-reveals word by word while a circle carousel converges from off-frame and threads the line, collapses to centre, hard-cuts to a second line that arrives at 1.4× (Circle style 2).",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "title-card",
+    "kinetic-text",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-text-circle-2",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "line1",
+     "default": "Carousels are so in"
+    },
+    {
+     "id": "line2",
+     "default": "so we made them in hf"
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-text-circle-3": {
+   "status": "supported",
+   "title": "Text + Circle Carousel 3",
+   "description": "A headline mask-reveals word by word while a circle carousel converges from off-frame and threads the line, collapses to centre, hard-cuts to a second line that arrives at 1.4× (Circle style 3).",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "title-card",
+    "kinetic-text",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-text-circle-3",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "line1",
+     "default": "Carousels are so in"
+    },
+    {
+     "id": "line2",
+     "default": "so we made them in hf"
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-text-circle-4": {
+   "status": "supported",
+   "title": "Text + Circle Carousel 4",
+   "description": "A headline mask-reveals word by word while a circle carousel converges from off-frame and threads the line, collapses to centre, hard-cuts to a second line that arrives at 1.4× (Circle style 4).",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "title-card",
+    "kinetic-text",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-text-circle-4",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "line1",
+     "default": "Carousels are so in"
+    },
+    {
+     "id": "line2",
+     "default": "so we made them in hf"
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-text-circle-5": {
+   "status": "supported",
+   "title": "Text + Circle Carousel 5",
+   "description": "A headline mask-reveals word by word while a circle carousel converges from off-frame and threads the line, collapses to centre, hard-cuts to a second line that arrives at 1.4× (Circle style 5).",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "title-card",
+    "kinetic-text",
+    "images",
+    "showcase",
+    "circle"
+   ],
+   "id": "carousel-text-circle-5",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "line1",
+     "default": "Carousels are so in"
+    },
+    {
+     "id": "line2",
+     "default": "so we made them in hf"
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-vision-1": {
+   "status": "supported",
+   "title": "Vision Carousel 1",
+   "description": "A ring of large image cards tilted into a row under a 3D camera, each card turning toward the centre (Vision style 1); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "vision",
+    "3d"
+   ],
+   "id": "carousel-vision-1",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-vision-2": {
+   "status": "supported",
+   "title": "Vision Carousel 2",
+   "description": "A ring of large image cards tilted into a row under a 3D camera, each card turning toward the centre (Vision style 2); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "vision",
+    "3d"
+   ],
+   "id": "carousel-vision-2",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-vision-3": {
+   "status": "supported",
+   "title": "Vision Carousel 3",
+   "description": "A ring of large image cards tilted into a row under a 3D camera, each card turning toward the centre (Vision style 3); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "vision",
+    "3d"
+   ],
+   "id": "carousel-vision-3",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-vision-4": {
+   "status": "supported",
+   "title": "Vision Carousel 4",
+   "description": "A ring of large image cards tilted into a row under a 3D camera, each card turning toward the centre (Vision style 4); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "vision",
+    "3d"
+   ],
+   "id": "carousel-vision-4",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "carousel-vision-5": {
+   "status": "supported",
+   "title": "Vision Carousel 5",
+   "description": "A ring of large image cards tilted into a row under a 3D camera, each card turning toward the centre (Vision style 5); 12 image slots.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "carousel",
+    "gallery",
+    "images",
+    "showcase",
+    "vision",
+    "3d"
+   ],
+   "id": "carousel-vision-5",
+   "vars": [
+    {
+     "id": "image1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image5",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image6",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image7",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image8",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image9",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image10",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image11",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "image12",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "speed",
+     "default": 1
+    },
+    {
+     "id": "background",
+     "default": "#EDEDEF"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "variable image1: sample assets/carousel-images/artist-bob-seger.jpg isn't shipped upstream — pass vars.image1",
+    "variable image2: sample assets/carousel-images/artist-dire-straits.jpg isn't shipped upstream — pass vars.image2",
+    "variable image3: sample assets/carousel-images/artist-faces.jpg isn't shipped upstream — pass vars.image3",
+    "variable image4: sample assets/carousel-images/artist-little-feat.jpg isn't shipped upstream — pass vars.image4",
+    "variable image5: sample assets/carousel-images/artist-north-mississippi-allstars.jpg isn't shipped upstream — pass vars.image5",
+    "variable image6: sample assets/carousel-images/artist-sea-level.jpg isn't shipped upstream — pass vars.image6",
+    "variable image7: sample assets/carousel-images/artist-taj-mahal.jpg isn't shipped upstream — pass vars.image7",
+    "variable image8: sample assets/carousel-images/artist-tool.jpg isn't shipped upstream — pass vars.image8",
+    "variable image9: sample assets/carousel-images/artist-van-morrison.jpg isn't shipped upstream — pass vars.image9",
+    "variable image10: sample assets/carousel-images/pl-10-songs.jpg isn't shipped upstream — pass vars.image10",
+    "variable image11: sample assets/carousel-images/pl-bangers.jpg isn't shipped upstream — pass vars.image11",
+    "variable image12: sample assets/carousel-images/pl-bhindi-bhagee.jpg isn't shipped upstream — pass vars.image12"
+   ]
+  },
+  "chatgpt-exchange": {
+   "status": "supported",
+   "title": "ChatGPT Exchange",
+   "description": "A portrait ChatGPT-style exchange types and sends a prompt, streams an answer, assembles a comparison table, and scrolls back through the result",
+   "duration": 14.9,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "ai",
+    "chat",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "chatgpt-exchange",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter"
+   ]
+  },
+  "chromatic-radial-split": {
+   "status": "supported",
+   "title": "Chromatic Radial Split",
+   "description": "Shader transition with chromatic aberration radial split",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "chrome-orb": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "cinemagraph": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "cinematic-zoom": {
+   "status": "supported",
+   "title": "Cinematic Zoom",
+   "description": "Shader transition with dramatic zoom blur",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "claude-exchange": {
+   "status": "supported",
+   "title": "Claude Exchange",
+   "description": "A portrait Claude-style exchange types a prompt, works through search and reasoning steps, then streams a detailed answer with citations and actions",
+   "duration": 21.4,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "ai",
+    "chat",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "claude-exchange",
+   "vars": [],
+   "fonts": [
+    "eb-garamond",
+    "inter"
+   ],
+   "notes": []
+  },
+  "code-3d-extrude": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "code-diff": {
+   "status": "supported",
+   "title": "Code Diff",
+   "description": "An edit shown as a colored diff — removed lines collapse in red, added lines expand in green.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "code",
+    "code-animation",
+    "diff",
+    "developer"
+   ],
+   "id": "code-diff",
+   "vars": [],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
+  },
+  "code-highlight": {
+   "status": "unsupported",
+   "reason": "failed verification: t=2: 56815 px differ between seek orders / mount times; t=3: 56815 px differ between seek orders / mount times; t=4: 56815 px differ between seek orders / mount times"
+  },
+  "code-morph": {
+   "status": "unsupported",
+   "reason": "failed verification: t=1.4: 13569 px differ between seek orders / mount times; t=2.8: 16583 px differ between seek orders / mount times; t=4.2: 2961 px differ between seek orders / mount times"
+  },
+  "code-particle-assemble": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "code-scroll": {
+   "status": "unsupported",
+   "reason": "failed verification: t=2.4: 105384 px differ between seek orders / mount times; t=3.6: 153732 px differ between seek orders / mount times; t=4.8: 153732 px differ between seek orders / mount times"
+  },
+  "code-shader-dissolve": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "code-slice-hero": {
+   "status": "supported",
+   "title": "Code Slice Hero",
+   "description": "A tiled headline surface flips cell by cell under a sweeping depth field to reveal the rear headline.",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-motion",
+    "transition",
+    "typography",
+    "tiles",
+    "flip",
+    "webgl2",
+    "shadows",
+    "two-headlines"
+   ],
+   "id": "code-slice-hero",
+   "vars": [
+    {
+     "id": "headline",
+     "default": "MAKE IT"
+    },
+    {
+     "id": "reverseHeadline",
+     "default": "MATTER."
+    },
+    {
+     "id": "direction",
+     "default": "left-to-right"
+    },
+    {
+     "id": "sweepDuration",
+     "default": 4.2
+    },
+    {
+     "id": "sweepEaseStrength",
+     "default": 3
+    },
+    {
+     "id": "flipDuration",
+     "default": 0.75
+    },
+    {
+     "id": "cursorRadius",
+     "default": 210
+    },
+    {
+     "id": "cursorFalloff",
+     "default": 1.4
+    },
+    {
+     "id": "cursorDepth",
+     "default": 80
+    },
+    {
+     "id": "tiltStrength",
+     "default": 55
+    },
+    {
+     "id": "noiseStrength",
+     "default": 2
+    },
+    {
+     "id": "flipBounce",
+     "default": 0.15
+    },
+    {
+     "id": "cellSize",
+     "default": 112
+    },
+    {
+     "id": "formationScale",
+     "default": 1
+    },
+    {
+     "id": "fontSize",
+     "default": 310
+    },
+    {
+     "id": "behindColor",
+     "default": "#212121"
+    },
+    {
+     "id": "shadowStrength",
+     "default": 0.19
+    },
+    {
+     "id": "shadowSoftness",
+     "default": 4
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "code-snippet-apple-terminal-pro": {
+   "status": "unsupported",
+   "reason": "failed verification: t=2.4: 1958 px differ between seek orders / mount times; t=7.2: 1958 px differ between seek orders / mount times"
+  },
+  "code-snippet-dark-2026": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: background.jpeg"
+  },
+  "code-snippet-dark-modern": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: background.jpeg"
+  },
+  "code-typing": {
+   "status": "unsupported",
+   "reason": "failed verification: t=1: 224 px differ between seek orders / mount times; t=2: 224 px differ between seek orders / mount times; t=3: 192 px differ between seek orders / mount times"
+  },
+  "color-wheel": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "cosmic-orb": {
+   "status": "supported",
+   "title": "Cosmic Orb",
+   "description": "An iridescent soap-bubble planet: a slowly spinning sphere of nebula bands, dust lanes and twinkling stars wrapped in a refracting glass limb with chromatic aberration at the edge.",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "webgl",
+    "shader",
+    "background",
+    "showcase",
+    "3d"
+   ],
+   "id": "cosmic-orb",
+   "vars": [
+    {
+     "id": "hue",
+     "default": 268
+    },
+    {
+     "id": "accent",
+     "default": 196
+    },
+    {
+     "id": "spin",
+     "default": 0.035
+    },
+    {
+     "id": "stars",
+     "default": 1
+    },
+    {
+     "id": "glow",
+     "default": 1
+    },
+    {
+     "id": "size",
+     "default": 0.86
+    },
+    {
+     "id": "pulse",
+     "default": 0
+    },
+    {
+     "id": "pulseEnvelope",
+     "default": ""
+    },
+    {
+     "id": "backdrop",
+     "default": "#04040a"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "cross-warp-morph": {
+   "status": "supported",
+   "title": "Cross Warp Morph",
+   "description": "Shader transition with cross-warped morphing",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "cuboid-carousel": {
+   "status": "supported",
+   "title": "Cuboid Carousel",
+   "description": "A chain of bevelled cuboids rides a travelling wave as a content carousel.",
+   "duration": 6.67,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-motion",
+    "carousel",
+    "cards",
+    "travelling-wave",
+    "pbr",
+    "shadows",
+    "room-environment"
+   ],
+   "id": "cuboid-carousel",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "data-chart": {
+   "status": "supported",
+   "title": "Data Chart",
+   "description": "Animated bar + line chart with staggered reveal, NYT-style typography, and value labels",
+   "duration": 15,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data",
+    "chart",
+    "statistics"
+   ],
+   "id": "data-chart",
+   "vars": [],
+   "fonts": [
+    "libre-baskerville",
+    "work-sans"
+   ],
+   "notes": [
+    "font Libre Franklin → bundled Work Sans"
+   ]
+  },
+  "domain-warp-dissolve": {
+   "status": "supported",
+   "title": "Domain Warp Dissolve",
+   "description": "Shader transition with fractal noise domain warping",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "editorial-flash-overlay": {
+   "status": "supported",
+   "title": "Editorial Flash Overlay",
+   "description": "Finite neutral-warm light layers for a seek-safe camera-flash cut or social reveal",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "flash",
+    "editorial",
+    "social",
+    "light",
+    "transition",
+    "overlay",
+    "media-treatment-overlay"
+   ],
+   "id": "editorial-flash-overlay",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "exploded-stack": {
+   "status": "unsupported",
+   "reason": "needs three addon examples/jsm/geometries/RoundedBoxGeometry.js (not vendored)"
+  },
+  "extruded-logo": {
+   "status": "unsupported",
+   "reason": "needs three addon examples/jsm/loaders/FontLoader.js (not vendored)"
+  },
+  "falling-lines": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "flash-through-white": {
+   "status": "supported",
+   "title": "Flash Through White",
+   "description": "Shader transition with white flash crossfade",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "flowchart": {
+   "status": "unsupported",
+   "reason": "failed verification: page error: Cannot read properties of undefined (reading 'hold5'); page error: KIT.mount: compositions/flowchart.html didn't register window.__timelines[\"flowchart\"] with seek(t); HyperFrames runtime never became ready"
+  },
+  "flowchart-vertical": {
+   "status": "unsupported",
+   "reason": "failed verification: page error: Cannot read properties of undefined (reading 'hold5'); page error: KIT.mount: compositions/flowchart-vertical.html didn't register window.__timelines[\"flowchart-vertical\"] with seek(t); HyperFrames runtime never became ready"
+  },
+  "flowing-gradient": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "fractal-noise": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "freeze-frame-dressing": {
+   "status": "unsupported",
+   "reason": "failed verification: t=1.6: 5963 px differ between seek orders / mount times; t=2.4: 6029 px differ between seek orders / mount times; t=3.2: 6029 px differ between seek orders / mount times"
+  },
+  "frost": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "frost-sequence-camera-orbit": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "gabor-noise": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "gallery-tunnel": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "glass-hero": {
+   "status": "supported",
+   "title": "Glass Hero",
+   "description": "A solid glass object rises in front of a giant headline and keeps turning, so the type bends and splits into colour through it.",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-object",
+    "three-js",
+    "webgl",
+    "glass",
+    "refraction",
+    "hero",
+    "title-card"
+   ],
+   "id": "glass-hero",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font GH Caption 500 → bundled Inter 400",
+    "font inter 900 (fontsource) → bundled Inter 600"
+   ]
+  },
+  "glass-shard-title": {
+   "status": "unsupported",
+   "reason": "loads d3-delaunay from cdn.jsdelivr.net (not vendored)"
+  },
+  "glitch": {
+   "status": "supported",
+   "title": "Glitch",
+   "description": "Shader transition with digital glitch artifacts",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "godrays": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "goo": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "gooey-split": {
+   "status": "supported",
+   "title": "Gooey Split",
+   "description": "A dot splits into a three-dot menu with a gooey metaball neck, spins into a swirl mark under directional shutter motion blur, then breaks back into three dots and merges into one. The goo is an SVG blur-and-threshold filter on the dots; the blur integrates each part along its real trajectory, so the smear follows the direction and speed of the spin.",
+   "duration": 4.7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "effect",
+    "gooey",
+    "metaball",
+    "motion-blur",
+    "morph",
+    "logo",
+    "icon"
+   ],
+   "id": "gooey-split",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "gravitational-lens": {
+   "status": "supported",
+   "title": "Gravitational Lens",
+   "description": "Shader transition with gravitational lensing distortion",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "halftone-field": {
+   "status": "supported",
+   "title": "Halftone Field",
+   "description": "A full-bleed halftone light field: a grid of dots whose size and colour track a slow flowing simplex-noise field, so broad bands of light sweep across a mostly-black frame like a giant LED wall showing a plasma. Built to run under type.",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "webgl",
+    "shader",
+    "background",
+    "texture",
+    "halftone"
+   ],
+   "id": "halftone-field",
+   "vars": [
+    {
+     "id": "frequency",
+     "default": 2
+    },
+    {
+     "id": "speed",
+     "default": 5
+    },
+    {
+     "id": "cellSize",
+     "default": 54
+    },
+    {
+     "id": "gamma",
+     "default": 12
+    },
+    {
+     "id": "paletteBias",
+     "default": 2
+    },
+    {
+     "id": "palette1",
+     "default": "#00AAFF"
+    },
+    {
+     "id": "palette2",
+     "default": "#C2FF67"
+    },
+    {
+     "id": "palette3",
+     "default": "#6600FF"
+    },
+    {
+     "id": "palette4",
+     "default": "#000000"
+    },
+    {
+     "id": "background",
+     "default": "#000000"
+    },
+    {
+     "id": "quantize",
+     "default": false
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "heatmap": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "heygen-avatar-promo-card": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "hologram": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "holographic": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "hw-frame": {
+   "status": "supported",
+   "title": "Sketched Frame",
+   "description": "Media in a hand-drawn border with corner doodles and a handwritten caption; the unit tilts slightly and boils (images inside the block; keep live footage in the host)",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "frame",
+    "media"
+   ],
+   "id": "hw-frame",
+   "vars": [],
+   "fonts": [
+    "caveat"
+   ],
+   "notes": [
+    "font Caveat 700 → bundled Caveat 700"
+   ]
+  },
+  "hw-path-text": {
+   "status": "supported",
+   "title": "Text Along a Path",
+   "description": "Handwriting flowing along any SVG path with a per-character reveal; the path is the only geometry input",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "typography",
+    "path",
+    "overlay"
+   ],
+   "id": "hw-path-text",
+   "vars": [],
+   "fonts": [
+    "caveat"
+   ],
+   "notes": [
+    "font Caveat 700 → bundled Caveat 700"
+   ]
+  },
+  "hw-pipeline": {
+   "status": "supported",
+   "title": "Hand-Drawn Flowchart",
+   "description": "Wobbled boxes with handwritten labels joined by curved connectors, drawing on in sequence from a node list",
+   "duration": 7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "diagram",
+    "data-viz",
+    "overlay"
+   ],
+   "id": "hw-pipeline",
+   "vars": [],
+   "fonts": [
+    "caveat"
+   ],
+   "notes": [
+    "font Caveat 700 → bundled Caveat 700"
+   ]
+  },
+  "hw-scribble-transition": {
+   "status": "supported",
+   "title": "Scribble Transition",
+   "description": "Overlay transition: scribble bands accumulate to cover the frame with a solid backstop, the host cuts beneath, and the scribble clears",
+   "duration": 2.2,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "transition",
+    "wipe"
+   ],
+   "id": "hw-scribble-transition",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "hw-text-cloud": {
+   "status": "supported",
+   "title": "Speech Bubble",
+   "description": "Hand-drawn speech bubble with a positionable tail: outline draws on, paper fill fades in, handwritten text types per character; boils",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "speech-bubble",
+    "overlay"
+   ],
+   "id": "hw-text-cloud",
+   "vars": [],
+   "fonts": [
+    "caveat"
+   ],
+   "notes": [
+    "font Caveat 700 → bundled Caveat 700"
+   ]
+  },
+  "hw-title": {
+   "status": "supported",
+   "title": "Handwritten Title",
+   "description": "Handwritten display text with a scalar-driven word-by-word highlight sweep and a seeded squiggle underline sized to the text; boils",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "handwritten",
+    "typography",
+    "title-card",
+    "overlay"
+   ],
+   "id": "hw-title",
+   "vars": [],
+   "fonts": [
+    "caveat"
+   ],
+   "notes": [
+    "font Caveat 700 → bundled Caveat 700"
+   ]
+  },
+  "hw-write-title": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/baked/caveat-pen.js"
+  },
+  "instagram-follow": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/avatar.jpg"
+  },
+  "ios26-liquid-glass": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+  },
+  "lens-flare": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "light-edge": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "light-leak": {
+   "status": "supported",
+   "title": "Light Leak",
+   "description": "Shader transition with cinematic light leak overlay",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "liquid-glass-notification": {
+   "status": "unsupported",
+   "reason": "needs the three r128 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "liquid-glass-widgets": {
+   "status": "unsupported",
+   "reason": "needs the three r128 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "liquid-metal": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "logo-outro": {
+   "status": "supported",
+   "title": "Logo Outro",
+   "description": "Cinematic logo reveal with piece-by-piece assembly, glow bloom, tagline fade-in, and URL pill",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "branding",
+    "outro",
+    "logo"
+   ],
+   "id": "logo-outro",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "lottie-character-walk": {
+   "status": "supported",
+   "title": "Lottie Character Walk",
+   "description": "A jointed flat character walks in on planted feet, stops and points at a card; the body acting is a Lottie file and the stage is GSAP.",
+   "duration": 7.5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "character",
+    "character-animation",
+    "mascot",
+    "walk-cycle",
+    "gesture",
+    "pointing",
+    "puppet",
+    "lottie",
+    "explainer"
+   ],
+   "id": "lottie-character-walk",
+   "vars": [
+    {
+     "id": "title",
+     "default": "Meet your guide"
+    },
+    {
+     "id": "body",
+     "default": "Walks in on planted feet, then points the way."
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "lower-third-bild": {
+   "status": "supported",
+   "title": "Lower Third — BILD Style",
+   "description": "News-style lower third with tight-fit text boxes: white headline bar with red drop-shadow, red sub-line with white drop-shadow.",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "broadcast",
+    "lower-third",
+    "news",
+    "overlay"
+   ],
+   "id": "lower-third-bild",
+   "vars": [
+    {
+     "id": "TXT_MAIN_1_Line",
+     "default": "BILD EXKLUSIV"
+    },
+    {
+     "id": "TXT_SUB",
+     "default": "Sonderbericht"
+    }
+   ],
+   "fonts": [
+    "barlow"
+   ],
+   "notes": [
+    "font Barlow Condensed 700 → bundled Barlow 900",
+    "font Barlow Condensed 800 → bundled Barlow 900"
+   ]
+  },
+  "lt-accent-underline": {
+   "status": "supported",
+   "title": "Lower Third — Accent Underline",
+   "description": "Cardless lower third for footage overlay: name rises, an accent rule draws left-to-right, role fades in; text-shadowed for legibility",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "id": "lt-accent-underline",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "space-mono"
+   ],
+   "notes": [
+    "font Oswald → bundled Bebas Neue"
+   ]
+  },
+  "lt-bold-block": {
+   "status": "supported",
+   "title": "Lower Third — Bold Block",
+   "description": "High-energy podcast lower third: solid dark block wipes in, uppercase name slams up, accent tag pops",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "id": "lt-bold-block",
+   "vars": [],
+   "fonts": [
+    "archivo",
+    "archivo-black",
+    "space-mono"
+   ],
+   "notes": []
+  },
+  "lt-clean-bar": {
+   "status": "supported",
+   "title": "Lower Third — Clean Bar",
+   "description": "Minimal white-card lower third for podcasts/interviews: accent tab, name + role, clip-wipe entrance",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview"
+   ],
+   "id": "lt-clean-bar",
+   "vars": [],
+   "fonts": [
+    "montserrat"
+   ],
+   "notes": []
+  },
+  "lt-color-block": {
+   "status": "supported",
+   "title": "Lower Third — Color Block",
+   "description": "High-energy lower third: bold accent-color block slides in with overshoot, condensed name + mono role",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "id": "lt-color-block",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "space-mono"
+   ],
+   "notes": [
+    "font League Gothic → bundled Bebas Neue"
+   ]
+  },
+  "lt-dark-card": {
+   "status": "supported",
+   "title": "Lower Third — Dark Card",
+   "description": "Charcoal card lower third for bright footage: name, drawn accent underline, role; slide-up entrance",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "dark"
+   ],
+   "id": "lt-dark-card",
+   "vars": [],
+   "fonts": [
+    "montserrat"
+   ],
+   "notes": []
+  },
+  "lt-kicker-name": {
+   "status": "supported",
+   "title": "Lower Third — Kicker Name",
+   "description": "Cardless lower third with an accent eyebrow/kicker tag, heavy name, and a drawn baseline; for footage",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "id": "lt-kicker-name",
+   "vars": [],
+   "fonts": [
+    "archivo",
+    "archivo-black",
+    "space-mono"
+   ],
+   "notes": []
+  },
+  "lt-mask-reveal": {
+   "status": "supported",
+   "title": "Lower Third — Mask Reveal",
+   "description": "Cardless lower third: an accent sweep crosses and clip-path-reveals a heavy name, role fades up; for footage",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "id": "lt-mask-reveal",
+   "vars": [],
+   "fonts": [
+    "montserrat"
+   ],
+   "notes": []
+  },
+  "lt-neon-border": {
+   "status": "supported",
+   "title": "Neon Border",
+   "description": "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role.",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "glow",
+    "loop",
+    "video-primitive"
+   ],
+   "id": "lt-neon-border",
+   "vars": [
+    {
+     "id": "name",
+     "default": "Dr. Maya Chen"
+    },
+    {
+     "id": "role",
+     "default": "Host · Neuroscientist"
+    },
+    {
+     "id": "accent",
+     "default": "#cc9149"
+    },
+    {
+     "id": "movement",
+     "default": "step"
+    },
+    {
+     "id": "speed",
+     "default": 1.6
+    },
+    {
+     "id": "cornerRadius",
+     "default": 26
+    },
+    {
+     "id": "thickness",
+     "default": 5
+    },
+    {
+     "id": "arcLength",
+     "default": 22
+    },
+    {
+     "id": "glow",
+     "default": 1
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "lt-side-rule": {
+   "status": "supported",
+   "title": "Lower Third — Side Rule",
+   "description": "Cardless lower third with a vertical accent bar; condensed display name + mono role, text-shadowed for footage",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "id": "lt-side-rule",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "jetbrains-mono"
+   ],
+   "notes": [
+    "font League Gothic → bundled Bebas Neue"
+   ]
+  },
+  "lt-soft-pill": {
+   "status": "supported",
+   "title": "Lower Third — Soft Pill",
+   "description": "Rounded white pill lower third for podcasts/interviews: status dot, name + role, scale-pop entrance",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "id": "lt-soft-pill",
+   "vars": [],
+   "fonts": [
+    "montserrat"
+   ],
+   "notes": []
+  },
+  "lt-stack-bars": {
+   "status": "supported",
+   "title": "Lower Third — Stack Bars",
+   "description": "Two stacked bars: a dark name bar wipes from the left, an accent role bar wipes from the right",
+   "duration": 4.8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "id": "lt-stack-bars",
+   "vars": [],
+   "fonts": [
+    "archivo",
+    "archivo-black",
+    "space-mono"
+   ],
+   "notes": []
+  },
+  "macos-notification": {
+   "status": "supported",
+   "title": "macOS Notification",
+   "description": "Animated macOS-style notification banner with app icon and message",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "social",
+    "overlay",
+    "notification"
+   ],
+   "id": "macos-notification",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "macos-tahoe-liquid-glass": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+  },
+  "marble": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "mesh-gradient": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "message-thread-reveal": {
+   "status": "supported",
+   "title": "Message Thread Reveal",
+   "description": "A full text conversation plays out on a phone - bubbles popping in, typing indicators, a shared link card, emoji, delivered receipts - with the whole thread scrolling up beat by beat until a closing card lands. The complete chat ad-template, measured message by message",
+   "duration": 25.7667,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "chat",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "message-thread-reveal",
+   "vars": [
+    {
+     "id": "contactName",
+     "default": "Rachel"
+    },
+    {
+     "id": "questionMessage",
+     "default": "what r u using for the launch video??"
+    },
+    {
+     "id": "teaserMessage",
+     "default": "wait look 👀"
+    },
+    {
+     "id": "cardImage",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "cardTitle",
+     "default": "HyperFrames | Write HTML, render pixel-perfect video"
+    },
+    {
+     "id": "cardDomain",
+     "default": "hyperframes.heygen.com"
+    },
+    {
+     "id": "reactionMessage",
+     "default": "OMG IT'S HTML"
+    },
+    {
+     "id": "reactionEmoji",
+     "default": "🤯🤯🤯"
+    },
+    {
+     "id": "benefitMessage",
+     "default": "renders in 4K. no editor"
+    },
+    {
+     "id": "discoveryMessage",
+     "default": "where did u find this"
+    },
+    {
+     "id": "sourceMessage",
+     "default": "on heygen"
+    },
+    {
+     "id": "workflowMessage",
+     "default": "u just write plain html tags"
+    },
+    {
+     "id": "ownershipMessage",
+     "default": "the code is yours forever"
+    },
+    {
+     "id": "installMessage",
+     "default": "installing rn"
+    },
+    {
+     "id": "thanksMessage",
+     "default": "ty bestie 💚"
+    },
+    {
+     "id": "brandLogo",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "ecProof",
+     "default": "12,000+ creators"
+    },
+    {
+     "id": "ecFeature1",
+     "default": "Write|plain HTML"
+    },
+    {
+     "id": "ecFeature2",
+     "default": "Render|pixel-perfect"
+    },
+    {
+     "id": "ecFeature3",
+     "default": "Own|every line"
+    },
+    {
+     "id": "ecCta",
+     "default": "Start rendering free"
+    }
+   ],
+   "fonts": [
+    "inter",
+    "source-serif-4"
+   ],
+   "notes": [
+    "font Georgia → bundled Source Serif 4",
+    "font Times New Roman → bundled Source Serif 4",
+    "variable cardImage: sample assets/card-image.jpg left out (licence unknown) — pass vars.cardImage",
+    "variable brandLogo: sample assets/hyperframes-logo-black.svg left out (licence unknown) — pass vars.brandLogo"
+   ]
+  },
+  "mk-background": {
+   "status": "supported",
+   "title": "Minimal Gradient Background",
+   "description": "Procedural soft-blob gradient backdrop in a minimalist presentation style: two radial blobs drifting over a base color, with an animatable rounded-card bar mask and optional frosted-glass mode",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "background",
+    "gradient",
+    "minimal",
+    "professional",
+    "presentation"
+   ],
+   "id": "mk-background",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-callout-highlight": {
+   "status": "supported",
+   "title": "Word-Sweep Highlight",
+   "description": "A sentence whose word-by-word emphasis is driven by a single scalar — tween it to sync the highlight with a voiceover",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "typography",
+    "karaoke",
+    "captions",
+    "minimal"
+   ],
+   "id": "mk-callout-highlight",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-clone-wall-transition": {
+   "status": "supported",
+   "title": "Text Clone Wall Transition",
+   "description": "Overlay transition: a tiled word wall covers the frame, inverts via difference blending, and clears — hard-cut the content beneath while covered",
+   "duration": 2.4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "typography",
+    "wipe"
+   ],
+   "id": "mk-clone-wall-transition",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-line-graph": {
+   "status": "supported",
+   "title": "Minimal Line Graph",
+   "description": "One or two SVG series draw on with dots popping and value labels riding the draw front; dim baseline axis, x-labels, color-dot legend",
+   "duration": 7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data-viz",
+    "chart",
+    "graph",
+    "minimal"
+   ],
+   "id": "mk-line-graph",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-placeholder-grid": {
+   "status": "supported",
+   "title": "Rounded Media Grid",
+   "description": "N-up rounded-corner media grid (2-up, 3-up, 4-up, 3x2, hero plus two): per-cell inside-scale framing, staggered box-in entrance, slow settle",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "placeholder",
+    "media",
+    "grid",
+    "minimal"
+   ],
+   "id": "mk-placeholder-grid",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-progress-stat": {
+   "status": "supported",
+   "title": "Count-Up Stat Card",
+   "description": "Big-numeral statistic with count-up, label, thin progress track filling to value/max, and caption; light and dark schemes",
+   "duration": 7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data-viz",
+    "stat",
+    "minimal"
+   ],
+   "id": "mk-progress-stat",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "mk-specs-list": {
+   "status": "supported",
+   "title": "Specs Checklist",
+   "description": "Left-aligned specs/traits checklist over footage or a board: rows slide in staggered with an accent underline sweep; light and dark schemes",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data-viz",
+    "list",
+    "minimal",
+    "professional"
+   ],
+   "id": "mk-specs-list",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "nebula": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "news-ticker": {
+   "status": "supported",
+   "title": "News Ticker",
+   "description": "Premium broadcast-style lower-third ticker with live label, headline ribbon, and scrolling news crawl.",
+   "duration": 7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "lower-third",
+    "overlay",
+    "news",
+    "ticker"
+   ],
+   "id": "news-ticker",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "north-korea-locked-down": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/korea-map.png"
+  },
+  "notes-reveal": {
+   "status": "supported",
+   "title": "Notes Reveal",
+   "description": "A personal note is typed character by character in a notes app - caret riding every letter, the page scrolling up on measured settle curves as each line lands - then cuts to a hand-lettered paper card with a marker headline and a ticked checklist",
+   "duration": 24.85,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "notes",
+    "typing",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "notes-reveal",
+   "vars": [
+    {
+     "id": "titleL1",
+     "default": "Things nobody told me"
+    },
+    {
+     "id": "titleL2",
+     "default": "about video."
+    },
+    {
+     "id": "noteLine1",
+     "default": "my videos sucked"
+    },
+    {
+     "id": "noteLine2",
+     "default": "my tools cost $$$"
+    },
+    {
+     "id": "noteLine3",
+     "default": "and re-edits never end."
+    },
+    {
+     "id": "noteLine4",
+     "default": "then i tried writing html only"
+    },
+    {
+     "id": "noteLine5",
+     "default": "started HyperFrames three weeks ago"
+    },
+    {
+     "id": "noteLine6",
+     "default": "the grind is gone, but more than that —"
+    },
+    {
+     "id": "noteLine7",
+     "default": "I ship videos weekly."
+    },
+    {
+     "id": "cardTop",
+     "default": "THE POWER"
+    },
+    {
+     "id": "cardMid",
+     "default": "OF"
+    },
+    {
+     "id": "cardBottom",
+     "default": "ONE FILE"
+    },
+    {
+     "id": "check1Label",
+     "default": "WRITE"
+    },
+    {
+     "id": "check1Value",
+     "default": "HTML"
+    },
+    {
+     "id": "check2Label",
+     "default": "RENDER"
+    },
+    {
+     "id": "check2Value",
+     "default": "IN 4K"
+    },
+    {
+     "id": "check3Label",
+     "default": "SHIP"
+    },
+    {
+     "id": "check3Value",
+     "default": "TODAY"
+    },
+    {
+     "id": "brandLogo",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "brandDomain",
+     "default": "hyperframes.heygen.com"
+    }
+   ],
+   "fonts": [
+    "ibm-plex-mono",
+    "inter",
+    "patrick-hand"
+   ],
+   "notes": [
+    "font Permanent Marker 400 → bundled Patrick Hand 400",
+    "font Courier Prime 400 → bundled IBM Plex Mono 500",
+    "font Courier Prime 700 → bundled IBM Plex Mono 500",
+    "variable brandLogo: sample assets/hyperframes-logo-black.svg left out (licence unknown) — pass vars.brandLogo"
+   ]
+  },
+  "notification-cascade": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/desk-backdrop.jpg"
+  },
+  "nyc-paris-flight": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "obsidian": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "orbit-card": {
+   "status": "supported",
+   "title": "Orbit Card",
+   "description": "A single feature card orbits a dot sphere on approved Blender camera motion.",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-motion",
+    "cards",
+    "feature-reveal",
+    "dots",
+    "orbit",
+    "blender-motion",
+    "sphere"
+   ],
+   "id": "orbit-card",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "organic-light-leak-overlay": {
+   "status": "supported",
+   "title": "Organic Light Leak Overlay",
+   "description": "Finite CSS light-leak overlay for memory beats and motivated transitions",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "light-leak",
+    "film",
+    "memory",
+    "transition",
+    "overlay",
+    "media-treatment-overlay"
+   ],
+   "id": "organic-light-leak-overlay",
+   "vars": [],
+   "fonts": [],
+   "notes": []
+  },
+  "oscilloscope-trace": {
+   "status": "supported",
+   "title": "Oscilloscope Trace",
+   "description": "CRT oscilloscope beam sweeping a waveform across a 10x8 graticule, with closed-form phosphor persistence: the tail decays as exp(-age/tau) and brightens where the beam slows",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "instrument",
+    "data",
+    "showcase",
+    "retro"
+   ],
+   "id": "oscilloscope-trace",
+   "vars": [
+    {
+     "id": "waveform",
+     "default": "sine"
+    },
+    {
+     "id": "frequency",
+     "default": 12
+    },
+    {
+     "id": "amplitude",
+     "default": 3
+    },
+    {
+     "id": "persistenceMs",
+     "default": 100
+    },
+    {
+     "id": "phosphorColor",
+     "default": "#5dff8f"
+    },
+    {
+     "id": "sweepRate",
+     "default": 5
+    },
+    {
+     "id": "dataSeries",
+     "default": ""
+    }
+   ],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
+  },
+  "plasma": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "plastic": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "prism": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "product-turntable": {
+   "status": "unsupported",
+   "reason": "needs three addon examples/jsm/environments/RoomEnvironment.js (not vendored)"
+  },
+  "rack-focus": {
+   "status": "supported",
+   "title": "Rack Focus",
+   "description": "A focus pull with real aperture bokeh: the focal plane travels from a near subject to a far one, so one resolves as the other blows into hard-edged polygon discs that clip to a cat's eye toward the corners. A focus pull only reads against content at two clearly separated depths, so this block carries its own depth-layered night exterior and puts both subject depths on variables.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "webgl",
+    "shader",
+    "camera",
+    "depth",
+    "cinematic",
+    "showcase"
+   ],
+   "id": "rack-focus",
+   "vars": [
+    {
+     "id": "nearfocus",
+     "default": 1.2
+    },
+    {
+     "id": "farfocus",
+     "default": 80
+    },
+    {
+     "id": "focallength",
+     "default": 85
+    },
+    {
+     "id": "aperture",
+     "default": 1.8
+    },
+    {
+     "id": "blades",
+     "default": 6
+    },
+    {
+     "id": "catseye",
+     "default": 0.62
+    },
+    {
+     "id": "pullstart",
+     "default": 1.2
+    },
+    {
+     "id": "pullduration",
+     "default": 3.2
+    },
+    {
+     "id": "pullease",
+     "default": "power2.inOut"
+    },
+    {
+     "id": "bokeh",
+     "default": 1
+    },
+    {
+     "id": "backdrop",
+     "default": "#05060a"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "reddit-post": {
+   "status": "supported",
+   "title": "Reddit Post Card",
+   "description": "Animated Reddit post card overlay with upvotes and comments",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "social",
+    "overlay",
+    "reddit"
+   ],
+   "id": "reddit-post",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font DM Sans → bundled Inter"
+   ]
+  },
+  "ridged-burn": {
+   "status": "supported",
+   "title": "Ridged Burn",
+   "description": "Shader transition with ridged turbulence burn effect",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "ripple-waves": {
+   "status": "supported",
+   "title": "Ripple Waves",
+   "description": "Shader transition with concentric ripple wave distortion",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "ripples": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "sdf-iris": {
+   "status": "supported",
+   "title": "SDF Iris",
+   "description": "Shader transition with signed distance field iris reveal",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "share-sheet-carousel": {
+   "status": "supported",
+   "title": "Share-Sheet Carousel",
+   "description": "A share sheet springs up from the bottom of the phone and cycles previews inside its card on a fast cut rhythm while the blurred ground swaps behind it, ending on an accept tap",
+   "duration": 7.2333,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "share-sheet",
+    "vertical",
+    "ad-template"
+   ],
+   "id": "share-sheet-carousel",
+   "vars": [
+    {
+     "id": "shareTitle",
+     "default": "Share"
+    },
+    {
+     "id": "senderName",
+     "default": "HyperFrames"
+    },
+    {
+     "id": "itemLabel",
+     "default": "a video"
+    },
+    {
+     "id": "stripText",
+     "default": "OPEN-SOURCE VIDEO ENGINE · SHIP FROM HTML"
+    },
+    {
+     "id": "acceptLabel",
+     "default": "Accept"
+    },
+    {
+     "id": "declineLabel",
+     "default": "Decline"
+    },
+    {
+     "id": "slideImage1",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "slideImage2",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "slideImage3",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "slideImage4",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    },
+    {
+     "id": "brandLogo",
+     "default": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Helvetica Neue → bundled Inter",
+    "variable brandLogo: sample assets/hyperframes-logo-black.svg left out (licence unknown) — pass vars.brandLogo",
+    "variable slideImage1: sample assets/slide-01.jpg left out (licence unknown) — pass vars.slideImage1",
+    "variable slideImage2: sample assets/slide-02.jpg left out (licence unknown) — pass vars.slideImage2",
+    "variable slideImage3: sample assets/slide-03.jpg left out (licence unknown) — pass vars.slideImage3",
+    "variable slideImage4: sample assets/slide-04.jpg left out (licence unknown) — pass vars.slideImage4"
+   ]
+  },
+  "sine-wave": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "slack-notification-ad": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/img/heygen-mark.svg, assets/img/slack-mark.svg"
+  },
+  "snow": {
+   "status": "supported",
+   "title": "Snow",
+   "description": "Seek-safe falling-snow overlay: sparse or dense flakes drift down with size, speed and opacity correlated per flake for depth, radial-masked so the frame center stays clear",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "snow",
+    "snowfall",
+    "winter",
+    "weather",
+    "overlay",
+    "ambient",
+    "particles",
+    "media-treatment-overlay",
+    "loopable"
+   ],
+   "id": "snow",
+   "vars": [
+    {
+     "id": "density",
+     "default": "sparse"
+    },
+    {
+     "id": "speed",
+     "default": "calm"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "spain-map": {
+   "status": "unsupported",
+   "reason": "needs d3 + topojson + atlas data (not vendored)"
+  },
+  "spiral": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "spiral-galaxy": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "split-flap-board": {
+   "status": "supported",
+   "title": "Split-Flap Board",
+   "description": "Solari-style departure board: every cell walks its drum forward through the intervening characters of a fixed alphabet until it lands on its target, so the text resolves as a mechanical cascade instead of a fade.",
+   "duration": 3.5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "text",
+    "kinetic",
+    "mechanical",
+    "split-flap",
+    "solari",
+    "departure-board",
+    "reveal"
+   ],
+   "id": "split-flap-board",
+   "vars": [
+    {
+     "id": "boardText",
+     "default": "NOW BOARDING"
+    },
+    {
+     "id": "flapAlphabet",
+     "default": " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,'"
+    },
+    {
+     "id": "flipDuration",
+     "default": 0.09
+    },
+    {
+     "id": "cellStagger",
+     "default": 0.05
+    },
+    {
+     "id": "cellCount",
+     "default": 12
+    }
+   ],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
+  },
+  "spotify-card": {
+   "status": "supported",
+   "title": "Spotify Now Playing",
+   "description": "Animated Spotify now-playing card with album art and progress bar",
+   "duration": 5,
+   "width": 1080,
+   "height": 1920,
+   "tags": [
+    "social",
+    "overlay",
+    "spotify"
+   ],
+   "id": "spotify-card",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "starfield": {
+   "status": "supported",
+   "title": "Starfield",
+   "description": "Seek-safe night-sky overlay: sparse or dense stars in three size tiers that twinkle and drift in two parallax layers, radial-masked to keep the frame center clear",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "starfield",
+    "night-sky",
+    "stars",
+    "twinkle",
+    "sky",
+    "weather",
+    "overlay",
+    "ambient",
+    "particles",
+    "media-treatment-overlay",
+    "loopable"
+   ],
+   "id": "starfield",
+   "vars": [
+    {
+     "id": "density",
+     "default": "sparse"
+    },
+    {
+     "id": "tone",
+     "default": "warm"
+    },
+    {
+     "id": "speed",
+     "default": "slow"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "strands": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "stripes": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "sun-burst": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "swirl": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "swirl-vortex": {
+   "status": "supported",
+   "title": "Swirl Vortex",
+   "description": "Shader transition with swirling vortex distortion",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "thermal-distortion": {
+   "status": "supported",
+   "title": "Thermal Distortion",
+   "description": "Shader transition with heat haze thermal distortion",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "thin-film": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "thread-message-stack": {
+   "status": "supported",
+   "title": "Thread Message Stack",
+   "description": "A source-owned editable conversation stack with arbitrary incoming and outgoing messages",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "social",
+    "conversation",
+    "messages"
+   ],
+   "id": "thread-message-stack",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Helvetica Neue → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "tiktok-follow": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/avatar.jpg"
+  },
+  "transitions-3d": {
+   "status": "supported",
+   "title": "3D Transitions",
+   "description": "Showcase of 3D perspective flip and rotate transitions",
+   "duration": 11,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-blur": {
+   "status": "supported",
+   "title": "Blur Transitions",
+   "description": "Showcase of blur-based transitions between scenes",
+   "duration": 20,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-cover": {
+   "status": "supported",
+   "title": "Cover Transitions",
+   "description": "Showcase of cover/uncover slide transitions",
+   "duration": 21,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-destruction": {
+   "status": "supported",
+   "title": "Destruction Transitions",
+   "description": "Showcase of destructive break-apart transitions",
+   "duration": 14,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-dissolve": {
+   "status": "supported",
+   "title": "Dissolve Transitions",
+   "description": "Showcase of dissolve and fade transitions",
+   "duration": 24,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase",
+    "crossfade"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-distortion": {
+   "status": "supported",
+   "title": "Distortion Transitions",
+   "description": "Showcase of warp and distortion transitions",
+   "duration": 21,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-grid": {
+   "status": "supported",
+   "title": "Grid Transitions",
+   "description": "Showcase of grid-based tile transitions",
+   "duration": 11,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-light": {
+   "status": "supported",
+   "title": "Light Transitions",
+   "description": "Showcase of light-based glow and flash transitions",
+   "duration": 21,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-mechanical": {
+   "status": "supported",
+   "title": "Mechanical Transitions",
+   "description": "Showcase of mechanical shutter and iris transitions",
+   "duration": 15,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-other": {
+   "status": "supported",
+   "title": "Other Transitions",
+   "description": "Showcase of miscellaneous creative transitions",
+   "duration": 20,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-push": {
+   "status": "supported",
+   "title": "Push Transitions",
+   "description": "Showcase of push and slide transitions",
+   "duration": 24,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-radial": {
+   "status": "supported",
+   "title": "Radial Transitions",
+   "description": "Showcase of radial wipe and reveal transitions",
+   "duration": 20,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "transitions-scale": {
+   "status": "supported",
+   "title": "Scale Transitions",
+   "description": "Showcase of scale and zoom transitions",
+   "duration": 15,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font Helvetica → bundled Inter",
+    "font Arial → bundled Inter",
+    "font Segoe UI → bundled Inter"
+   ]
+  },
+  "ui-3d-reveal": {
+   "status": "supported",
+   "title": "3D UI Reveal",
+   "description": "Perspective 3D reveal animation for UI elements",
+   "duration": 13,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "showcase",
+    "3d",
+    "reveal"
+   ],
+   "id": "ui-3d-reveal",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "us-map": {
+   "status": "unsupported",
+   "reason": "needs d3 + topojson + atlas data (not vendored)"
+  },
+  "us-map-bubble": {
+   "status": "unsupported",
+   "reason": "needs d3 + topojson + atlas data (not vendored)"
+  },
+  "us-map-flow": {
+   "status": "unsupported",
+   "reason": "needs d3 + topojson + atlas data (not vendored)"
+  },
+  "us-map-hex": {
+   "status": "supported",
+   "title": "US Hex Grid Map",
+   "description": "Animated hexagonal tile grid map — each state as an equal-weight hex with data fill and abbreviation label",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "hexgrid",
+    "tilegrid"
+   ],
+   "id": "us-map-hex",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "vfx-anamorphic-flare": {
+   "status": "supported",
+   "title": "Anamorphic Streak Flare",
+   "description": "A drifting field of bright points, each one throwing the long horizontal blue-violet streak a real anamorphic cinema lens produces. Built from the measured filter constants: a 0.3 high-pass, 80 horizontal taps at quarter resolution, a samples/3 gain and a 0x7a8aff tint.",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "vfx",
+    "background",
+    "showcase",
+    "optical",
+    "canvas"
+   ],
+   "id": "vfx-anamorphic-flare",
+   "vars": [
+    {
+     "id": "intensity",
+     "default": 5
+    },
+    {
+     "id": "threshold",
+     "default": 0.3
+    },
+    {
+     "id": "streakLength",
+     "default": 1
+    },
+    {
+     "id": "tint",
+     "default": "#7a8aff"
+    },
+    {
+     "id": "bloomRadius",
+     "default": 0
+    },
+    {
+     "id": "timeScale",
+     "default": 0.5
+    },
+    {
+     "id": "emitters",
+     "default": 140
+    },
+    {
+     "id": "backdrop",
+     "default": "#04040a"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "vfx-iphone-device": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+  },
+  "vfx-liquid-background": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "vfx-liquid-glass": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+  },
+  "vfx-magnetic": {
+   "status": "unsupported",
+   "reason": "failed verification: t=3: 5944 px differ between seek orders / mount times; t=6: 5944 px differ between seek orders / mount times; t=9: 5944 px differ between seek orders / mount times"
+  },
+  "vfx-portal": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "vfx-shatter": {
+   "status": "unsupported",
+   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+  },
+  "vfx-text-cursor": {
+   "status": "unsupported",
+   "reason": "failed verification: t=3.2: 204565 px differ between seek orders / mount times"
+  },
+  "voronoi": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "vpn-youtube-spot": {
+   "status": "unsupported",
+   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+  },
+  "water": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "waveform": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "week-in-merges": {
+   "status": "supported",
+   "title": "Week in Merges",
+   "description": "Each author's avatar bounces across their row at a speed set by how many pull requests they merged",
+   "duration": 16,
+   "width": 1080,
+   "height": 1350,
+   "tags": [
+    "data",
+    "chart",
+    "ranking",
+    "leaderboard"
+   ],
+   "id": "week-in-merges",
+   "vars": [
+    {
+     "id": "eyebrow",
+     "default": "ACME / WEEK IN MERGES"
+    },
+    {
+     "id": "title",
+     "default": "Pull requests merged this week"
+    },
+    {
+     "id": "period",
+     "default": "1 September - 7 September 2026 · America/Los_Angeles"
+    },
+    {
+     "id": "total",
+     "default": "12 PRs"
+    },
+    {
+     "id": "footer",
+     "default": "Speed proportional to merges · By PR author"
+    },
+    {
+     "id": "source",
+     "default": "Example org · 1 repo · Bots · 0"
+    },
+    {
+     "id": "rows",
+     "default": "[{\"name\":\"Ada\",\"merges\":12,\"avatar\":\"\"},{\"name\":\"Bao\",\"merges\":7,\"avatar\":\"\"},{\"name\":\"Cam\",\"merges\":4,\"avatar\":\"\"},{\"name\":\"Dee\",\"merges\":2,\"avatar\":\"\"},{\"name\":\"Eli\",\"merges\":1,\"avatar\":\"\"}]"
+    },
+    {
+     "id": "rows_max",
+     "default": 12
+    },
+    {
+     "id": "overflow",
+     "default": ""
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "weight-wave": {
+   "status": "supported",
+   "title": "Weight Wave",
+   "description": "A crest of thickness travels along a headline: each character swells from light to black and leans forward as the wave passes, driven by the wght and slnt variable-font axes rather than by transforms.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "typography",
+    "kinetic-type",
+    "title",
+    "variable-font",
+    "text"
+   ],
+   "id": "weight-wave",
+   "vars": [
+    {
+     "id": "text",
+     "default": "PRESSURE MOVES THROUGH TYPE"
+    },
+    {
+     "id": "color",
+     "default": "#f5f5f7"
+    },
+    {
+     "id": "background",
+     "default": "#0b0b0d"
+    },
+    {
+     "id": "weightFrom",
+     "default": 400
+    },
+    {
+     "id": "weightTo",
+     "default": 1000
+    },
+    {
+     "id": "crestWidth",
+     "default": 4
+    },
+    {
+     "id": "sweepSpeed",
+     "default": 0.5
+    },
+    {
+     "id": "slant",
+     "default": -12
+    },
+    {
+     "id": "direction",
+     "default": "ltr"
+    }
+   ],
+   "fonts": [],
+   "notes": []
+  },
+  "whip-pan": {
+   "status": "supported",
+   "title": "Whip Pan",
+   "description": "Shader transition simulating a fast camera whip pan",
+   "duration": 4,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "transition",
+    "shader"
+   ],
+   "id": "main",
+   "vars": [],
+   "fonts": [
+    "bebas-neue",
+    "inter",
+    "jetbrains-mono",
+    "space-mono"
+   ],
+   "notes": [
+    "font Lato → bundled Inter"
+   ]
+  },
+  "wireframe-portal-title": {
+   "status": "unsupported",
+   "reason": "loads clipper-lib from cdn.jsdelivr.net (not vendored)"
+  },
+  "world-map": {
+   "status": "unsupported",
+   "reason": "needs d3 + topojson + atlas data (not vendored)"
+  },
+  "worley-noise": {
+   "status": "unsupported",
+   "reason": "needs WebGPU hardware"
+  },
+  "x-post": {
+   "status": "supported",
+   "title": "X Post Card",
+   "description": "Animated X/Twitter post card overlay with engagement metrics",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "social",
+    "overlay",
+    "twitter"
+   ],
+   "id": "x-post",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "yt-comment-card": {
+   "status": "supported",
+   "title": "Comment Cards",
+   "description": "Social comments typing on over footage: avatar pop, username and time, per-character typewriter, likes row; image avatars or initials chips",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "social",
+    "comments",
+    "creator",
+    "overlay"
+   ],
+   "id": "yt-comment-card",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "yt-lcd-background": {
+   "status": "supported",
+   "title": "Scanline Board Background",
+   "description": "Textured paper board: scanlines with slow drift, optional pixel grid, static grain, and display text with a blur-focus entrance and chromatic-fringe title",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "background",
+    "texture",
+    "creator"
+   ],
+   "id": "yt-lcd-background",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "yt-logo-intro": {
+   "status": "supported",
+   "title": "Logo Intro Sequence",
+   "description": "Logo stamp pops on a lined board, a kicker line gives way to the title with an accent arrow chip; seeded line distortion",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "logo",
+    "intro",
+    "creator"
+   ],
+   "id": "yt-logo-intro",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "yt-lower-third": {
+   "status": "unsupported",
+   "reason": "asset licence unknown: assets/avatar.jpg"
+  },
+  "yt-prism-title": {
+   "status": "supported",
+   "title": "Chromatic Fringe Title",
+   "description": "Display title on a transparent root: blur-focus entrance, red/blue fringe that settles then breathes, perspective bow, slow scale drift",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "typography",
+    "title-card",
+    "creator"
+   ],
+   "id": "yt-prism-title",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  },
+  "yt-vertical-fill": {
+   "status": "supported",
+   "title": "Vertical Media Filler",
+   "description": "Portrait media filling a widescreen frame via blurred-scale, mirror, or copy side fills; grid texture and foreground contrast lift (images inside the block; keep live footage in the host)",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "placeholder",
+    "vertical",
+    "media"
+   ],
+   "id": "yt-vertical-fill",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
+  }
+ }
+}

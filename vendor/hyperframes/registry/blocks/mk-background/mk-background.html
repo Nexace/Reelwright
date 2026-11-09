@@ -1,0 +1,275 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): mk-background v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/mk-background/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/mk-background/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/mk-background/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="mk-background"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="mk-background"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-background"] > [data-hf-inner-root], [data-composition-id="mk-background"] *, [data-composition-id="mk-background"] *::before, [data-composition-id="mk-background"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="mk-background"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-background"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="mk-background"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-background"] > [data-hf-inner-root] {
+        /* ---- mk tokens: override these in the host to re-skin the family ---- */
+        --mk-font: "Inter", "Inter", sans-serif;
+        --mk-stage: #f5f5f7;
+        --mk-base: #ffffff;
+        --mk-blob-1: #ff7ac8;
+        --mk-blob-2: #45d6c8;
+        --mk-stage-dark: #000000;
+        --mk-base-dark: #0a0a0c;
+        --mk-blob-1-dark: #7d5cff;
+        --mk-blob-2-dark: #2d1b69;
+        --mk-radius-card: 40px;
+        --mk-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--mk-stage);
+      }
+      [data-composition-id="mk-background"].mk-dark {
+        background: var(--mk-stage-dark);
+      }
+      /* The "Bar" — an animatable rounded-rect mask. Full-bleed by default,
+         animatable down to a floating card over the stage. */
+      [data-composition-id="mk-background"] #mk-bg-card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        border-radius: 0;
+        background: var(--mk-base);
+        box-shadow: var(--mk-shadow);
+      }
+      [data-composition-id="mk-background"] .mk-dark #mk-bg-card {
+        background: var(--mk-base-dark);
+      }
+      /* Soft radial blobs — the procedural "mesh gradient". Two oversized
+         radial gradients with a long falloff, drifting slowly. */
+      [data-composition-id="mk-background"] .mk-bg-blob {
+        position: absolute;
+        border-radius: 50%;
+        will-change: transform;
+      }
+      [data-composition-id="mk-background"] #mk-bg-blob1 {
+        background: radial-gradient(
+          circle closest-side,
+          var(--mk-blob-1) 0%,
+          rgba(255, 255, 255, 0) 72%
+        );
+      }
+      [data-composition-id="mk-background"] #mk-bg-blob2 {
+        background: radial-gradient(
+          circle closest-side,
+          var(--mk-blob-2) 0%,
+          rgba(255, 255, 255, 0) 72%
+        );
+      }
+      [data-composition-id="mk-background"] .mk-dark #mk-bg-blob1 {
+        background: radial-gradient(
+          circle closest-side,
+          var(--mk-blob-1-dark) 0%,
+          rgba(0, 0, 0, 0) 72%
+        );
+      }
+      [data-composition-id="mk-background"] .mk-dark #mk-bg-blob2 {
+        background: radial-gradient(
+          circle closest-side,
+          var(--mk-blob-2-dark) 0%,
+          rgba(0, 0, 0, 0) 72%
+        );
+      }
+    
+</style>
+<div
+      id="mk-bg-root"
+      data-composition-id="mk-background"
+      data-block-start="0"
+      data-block-duration="10"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="mk-bg-card">
+        <div id="mk-bg-blob1" class="mk-bg-blob" data-layout-allow-overflow></div>
+        <div id="mk-bg-blob2" class="mk-bg-blob" data-layout-allow-overflow></div>
+      </div>
+      <div
+        id="mk-bg-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="10"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // mk-background: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/mk-background/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["mk-background" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("mk-background" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters (inspector-style CONFIG) ---- */
+        var CONFIG = {
+          scheme: "light", // "light" | "dark"
+          animationIn: true, // fade/settle entrance
+          animationOut: true, // fade exit
+          drift: true, // ambient blob motion
+          // Soft BG blobs: center as fraction of canvas, radius in px
+          blob1: { x: 0.28, y: 0.32, r: 950, opacity: 0.85 },
+          blob2: { x: 0.74, y: 0.66, r: 1100, opacity: 0.8 },
+          // Bar mask (rounded-rect card). demo:true plays full-bleed -> card -> full-bleed
+          bar: {
+            demo: true, // full-bleed -> rounded card -> full-bleed showcase
+            x: 240,
+            y: 140,
+            width: 1440,
+            height: 800,
+            roundness: 40,
+          },
+          // Content opacity + frost only matter with footage beneath the block
+          contentOpacity: 1,
+          frostBlur: 0, // px; e.g. 24 for the frosted-card look over footage
+        };
+
+        var W = 1920,
+          H = 1080,
+          DUR = 10;
+
+        var root = document.getElementById("mk-bg-root");
+        var card = document.getElementById("mk-bg-card");
+        var blob1 = document.getElementById("mk-bg-blob1");
+        var blob2 = document.getElementById("mk-bg-blob2");
+
+        if (CONFIG.scheme === "dark") root.classList.add("mk-dark");
+
+        function placeBlob(el, b) {
+          var d = b.r * 2;
+          el.style.width = d + "px";
+          el.style.height = d + "px";
+          el.style.left = b.x * W - b.r + "px";
+          el.style.top = b.y * H - b.r + "px";
+          el.style.opacity = String(b.opacity);
+        }
+        placeBlob(blob1, CONFIG.blob1);
+        placeBlob(blob2, CONFIG.blob2);
+
+        card.style.opacity = String(CONFIG.contentOpacity);
+        if (CONFIG.frostBlur > 0) {
+          card.style.backdropFilter = "blur(" + CONFIG.frostBlur + "px) saturate(1.4)";
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* entrance — fade + blobs settle (power3, no bounce) */
+        if (CONFIG.animationIn) {
+          tl.from(root, { opacity: 0, duration: 0.7, ease: "power2.out" }, 0);
+          tl.from([blob1, blob2], { scale: 1.14, duration: 1.2, ease: "power3.out" }, 0);
+        }
+
+        /* ambient drift — slow sine yoyo, seek-safe timeline tweens */
+        if (CONFIG.drift) {
+          tl.to(
+            blob1,
+            { x: 70, y: 42, duration: 2.35, ease: "sine.inOut", yoyo: true, repeat: 3 },
+            0.3,
+          );
+          tl.to(
+            blob2,
+            { x: -84, y: -36, duration: 2.35, ease: "sine.inOut", yoyo: true, repeat: 3 },
+            0.3,
+          );
+        }
+
+        /* bar-mask demo: full-bleed -> rounded card over the stage -> full-bleed.
+           Offset via x/y transforms, not top/left: layout properties snap to
+           integer device pixels and stutter under seek-by-frame capture. The
+           card's CSS base is top:0/left:0, so the transform values match 1:1. */
+        if (CONFIG.bar.demo) {
+          tl.to(
+            card,
+            {
+              y: CONFIG.bar.y,
+              x: CONFIG.bar.x,
+              width: CONFIG.bar.width,
+              height: CONFIG.bar.height,
+              borderRadius: CONFIG.bar.roundness,
+              duration: 1.1,
+              ease: "power3.inOut",
+            },
+            3.8,
+          );
+          tl.to(
+            card,
+            {
+              y: 0,
+              x: 0,
+              width: W,
+              height: H,
+              borderRadius: 0,
+              duration: 1.0,
+              ease: "power3.inOut",
+            },
+            7.6,
+          );
+        }
+
+        /* exit + hard kill */
+        if (CONFIG.animationOut) {
+          tl.to(root, { opacity: 0, duration: 0.4, ease: "power2.in" }, DUR - 0.45);
+        }
+        tl.set(root, { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["mk-background"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["mk-background"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["mk-background"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

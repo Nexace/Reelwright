@@ -1,0 +1,355 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): hw-pipeline v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/hw-pipeline/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="hw-pipeline"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      @font-face {
+        font-family: "Caveat";
+        src: url("compositions/hw-pipeline/fonts/caveat/700.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      [data-composition-id="hw-pipeline"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-pipeline"] > [data-hf-inner-root], [data-composition-id="hw-pipeline"] *, [data-composition-id="hw-pipeline"] *::before, [data-composition-id="hw-pipeline"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="hw-pipeline"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-pipeline"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="hw-pipeline"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-pipeline"] > [data-hf-inner-root] {
+        --hw-font-print: "Caveat", cursive;
+        --hw-font-script: "Caveat", cursive;
+        --hw-ink: #f4f2ec;
+        /* Warm marker accent, matching hw-frame / hw-title / hw-underline. The
+           previous #6d6dff read as a default UI blue against the family's ink. */
+        --hw-accent: #ffb020;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage or boards */
+        font-family: var(--hw-font-print, "Caveat", cursive);
+      }
+      [data-composition-id="hw-pipeline"] #hw-pl-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      [data-composition-id="hw-pipeline"] #hw-pl-svg path {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      [data-composition-id="hw-pipeline"] .hw-pl-box {
+        stroke: var(--hw-ink);
+        stroke-width: 6;
+      }
+      [data-composition-id="hw-pipeline"] .hw-pl-conn {
+        stroke: var(--hw-accent);
+        stroke-width: 5;
+      }
+      [data-composition-id="hw-pipeline"] .hw-pl-label {
+        position: absolute;
+        text-align: center;
+        font-weight: 700;
+        color: var(--hw-ink);
+        white-space: nowrap;
+        opacity: 0;
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+      }
+    
+</style>
+<div
+      id="hw-pl-root"
+      data-composition-id="hw-pipeline"
+      data-block-start="0"
+      data-block-duration="7"
+      data-width="1920"
+      data-height="1080"
+    >
+      <svg id="hw-pl-svg" viewBox="0 0 1920 1080"></svg>
+      <div id="hw-pl-labels"></div>
+      <div
+        id="hw-pl-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="7"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // hw-pipeline: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/hw-pipeline/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["hw-pipeline" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("hw-pipeline" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["700 1em \"Caveat\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters ----
+           A flowchart "pipeline": wobbled boxes joined by curved
+           connectors, drawing on in sequence, all boiling. */
+        var CONFIG = {
+          nodes: [{ label: "Idea" }, { label: "Record" }, { label: "Shine!" }],
+          boxW: 320,
+          boxH: 170,
+          gap: 190, // px between boxes
+          y: 455, // top of the row; x centers automatically
+          fontSize: 56,
+          seed: 11,
+          boil: { enabled: true, amp: 1.6, rot: 0.4, frameDrop: 3 },
+          animationOut: true,
+        };
+
+        var DUR = 7;
+        function clamp(v, lo, hi) {
+          return Math.min(hi, Math.max(lo, v));
+        }
+        var OUT = clamp(DUR * 0.06, 0.25, 0.6);
+
+        /* hw family runtime */
+        window.hwOnUpdate = function (tl, fn) {
+          if (!tl.__hwRenders) {
+            tl.__hwRenders = [];
+            tl.eventCallback("onUpdate", function () {
+              for (var i = 0; i < tl.__hwRenders.length; i++) tl.__hwRenders[i]();
+            });
+          }
+          tl.__hwRenders.push(fn);
+          fn();
+        };
+        window.hwHash = function (n, seed) {
+          var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+          return (x - Math.floor(x)) * 2 - 1;
+        };
+        window.hwBoil = function (tl, target, opts) {
+          opts = opts || {};
+          var amp = opts.amp !== undefined ? opts.amp : 1.6;
+          var rot = opts.rot !== undefined ? opts.rot : 0.5;
+          var fps = opts.fps || 30;
+          var drop = opts.frameDrop || 3;
+          var seed = opts.seed || 1;
+          var els = gsap.utils.toArray(target);
+          window.hwOnUpdate(tl, function () {
+            var step = Math.floor((tl.time() * fps) / drop);
+            for (var i = 0; i < els.length; i++) {
+              gsap.set(els[i], {
+                x: window.hwHash(step * 3 + i * 97, seed) * amp,
+                y: window.hwHash(step * 3 + 1 + i * 97, seed) * amp,
+                rotation: (opts.baseRot || 0) + window.hwHash(step * 3 + 2 + i * 97, seed) * rot,
+              });
+            }
+          });
+        };
+        window.hwWobbleRect = function (w, h, r, seed, amp) {
+          amp = amp === undefined ? 3.5 : amp;
+          function wob(n) {
+            return window.hwHash(n, seed) * amp;
+          }
+          var d = "M " + (r + wob(1)) + " " + wob(2);
+          d += " L " + (w / 2 + wob(3)) + " " + wob(4);
+          d += " L " + (w - r + wob(5)) + " " + wob(6);
+          d += " Q " + (w + wob(7)) + " " + wob(8) + " " + (w + wob(9)) + " " + (r + wob(10));
+          d += " L " + (w + wob(11)) + " " + (h / 2 + wob(12));
+          d += " L " + (w + wob(13)) + " " + (h - r + wob(14));
+          d +=
+            " Q " +
+            (w + wob(15)) +
+            " " +
+            (h + wob(16)) +
+            " " +
+            (w - r + wob(17)) +
+            " " +
+            (h + wob(18));
+          d += " L " + (w / 2 + wob(19)) + " " + (h + wob(20));
+          d += " L " + (r + wob(21)) + " " + (h + wob(22));
+          d += " Q " + wob(23) + " " + (h + wob(24)) + " " + wob(25) + " " + (h - r + wob(26));
+          d += " L " + wob(27) + " " + (h / 2 + wob(28));
+          d += " L " + wob(29) + " " + (r + wob(30));
+          d += " Q " + wob(31) + " " + wob(32) + " " + (r + wob(33)) + " " + wob(34);
+          return d;
+        };
+
+        var NS = "http://www.w3.org/2000/svg";
+        var svg = document.getElementById("hw-pl-svg");
+        var labels = document.getElementById("hw-pl-labels");
+        var n = CONFIG.nodes.length;
+        var totalW = n * CONFIG.boxW + (n - 1) * CONFIG.gap;
+        var x0 = (1920 - totalW) / 2;
+
+        var boxes = [],
+          conns = [],
+          labelEls = [];
+        CONFIG.nodes.forEach(function (node, i) {
+          var bx = x0 + i * (CONFIG.boxW + CONFIG.gap);
+          /* outer g owns the translate (GSAP transforms REPLACE the SVG
+             transform attribute — never boil the element that carries it);
+             inner g is the boil target */
+          var gOuter = document.createElementNS(NS, "g");
+          gOuter.setAttribute("transform", "translate(" + bx + " " + CONFIG.y + ")");
+          var g = document.createElementNS(NS, "g");
+          g.setAttribute("id", "hw-pl-box-g-" + i);
+          gOuter.appendChild(g);
+          var p = document.createElementNS(NS, "path");
+          p.setAttribute("class", "hw-pl-box");
+          p.setAttribute("id", "hw-pl-box-" + i);
+          p.setAttribute("d", window.hwWobbleRect(CONFIG.boxW, CONFIG.boxH, 24, CONFIG.seed + i));
+          g.appendChild(p);
+          svg.appendChild(gOuter);
+          boxes.push(p);
+
+          var label = document.createElement("div");
+          label.className = "hw-pl-label";
+          label.id = "hw-pl-label-" + i;
+          label.textContent = node.label;
+          label.style.left = bx + "px";
+          label.style.top = CONFIG.y + CONFIG.boxH / 2 - CONFIG.fontSize * 0.62 + "px";
+          label.style.width = CONFIG.boxW + "px";
+          label.style.fontSize = CONFIG.fontSize + "px";
+          labels.appendChild(label);
+          labelEls.push(label);
+
+          if (i < n - 1) {
+            var cx = bx + CONFIG.boxW,
+              cy = CONFIG.y + CONFIG.boxH / 2;
+            var ex = cx + CONFIG.gap,
+              ey = cy;
+            var c = document.createElementNS(NS, "path");
+            c.setAttribute("class", "hw-pl-conn");
+            c.setAttribute("id", "hw-pl-conn-" + i);
+            var sx = cx + 10,
+              tx = ex - 10;
+            var qx = cx + CONFIG.gap / 2 + window.hwHash(i * 9 + 2, CONFIG.seed) * 16,
+              qy = cy - 46 - window.hwHash(i * 9 + 3, CONFIG.seed) * 12;
+            /* Barbs follow the curve's incoming tangent. A quadratic's tangent
+               at its end is (end - control); barbs fixed to horizontal left the
+               head detached from a curve that arrives descending. Symmetric
+               length and angle, so it reads as one arrowhead. */
+            var ang = Math.atan2(ey - qy, tx - qx) + Math.PI;
+            var BARB = 26,
+              SPREAD = 0.42;
+            var b1x = tx + BARB * Math.cos(ang - SPREAD),
+              b1y = ey + BARB * Math.sin(ang - SPREAD);
+            var b2x = tx + BARB * Math.cos(ang + SPREAD),
+              b2y = ey + BARB * Math.sin(ang + SPREAD);
+            c.setAttribute(
+              "d",
+              "M " +
+                sx +
+                " " +
+                cy +
+                " Q " +
+                qx +
+                " " +
+                qy +
+                " " +
+                tx +
+                " " +
+                ey +
+                " M " +
+                tx +
+                " " +
+                ey +
+                " L " +
+                b1x +
+                " " +
+                b1y +
+                " M " +
+                tx +
+                " " +
+                ey +
+                " L " +
+                b2x +
+                " " +
+                b2y,
+            );
+            svg.appendChild(c);
+            conns.push(c);
+          }
+        });
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* sequence: box draws -> label -> connector -> next box... */
+        var t = 0.3;
+        CONFIG.nodes.forEach(function (_, i) {
+          var p = boxes[i];
+          var len = p.getTotalLength();
+          gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+          tl.to(p, { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" }, t);
+          tl.to(labelEls[i], { opacity: 1, duration: 0.35, ease: "power2.out" }, t + 0.45);
+          t += 0.7;
+          if (i < conns.length) {
+            var c = conns[i];
+            var cl = c.getTotalLength();
+            gsap.set(c, { strokeDasharray: cl, strokeDashoffset: cl });
+            tl.to(c, { strokeDashoffset: 0, duration: 0.45, ease: "power2.inOut" }, t);
+            t += 0.5;
+          }
+        });
+
+        if (CONFIG.boil.enabled) {
+          var targets = boxes.map(function (_, i) {
+            return "#hw-pl-box-g-" + i;
+          });
+          window.hwBoil(tl, targets.concat([".hw-pl-conn", ".hw-pl-label"]), {
+            amp: CONFIG.boil.amp,
+            rot: CONFIG.boil.rot,
+            frameDrop: CONFIG.boil.frameDrop,
+            seed: CONFIG.seed,
+          });
+        }
+
+        if (CONFIG.animationOut) {
+          tl.to([svg, labels], { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+        }
+        tl.set("#hw-pl-root", { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["hw-pipeline"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["hw-pipeline"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["hw-pipeline"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

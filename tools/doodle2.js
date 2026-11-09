@@ -126,7 +126,7 @@
   let grains = 0;
   D.grain = (svg, o = {}) => {
     const size = o.size ?? 256, cell = o.cell ?? 4, seed = o.seed ?? 8, key = `${seed}-${size}-${cell}`;
-    const have = svg.querySelector(`mask[data-kit-grain="${key}"]`);
+    const have = [...svg.querySelectorAll('mask[data-kit-grain]')].find((m) => m.getAttribute('data-kit-grain') === key);
     if (have) return `url(#${have.id})`;
     if (size % cell) throw new Error(`doodle.grain: size ${size} is not a multiple of cell ${cell} (the tile would not repeat seamlessly)`);
     const id = 'kit-grain-' + grains++, href = tile(seed, size, cell), big = { x: -1e4, y: -1e4, width: 2e4, height: 2e4 };

@@ -1,0 +1,13 @@
+{
+  "title": "QA test film — hf/index.html is broken on purpose, the hf-lint check should report it",
+  "renderer": "hyperframes",
+  "out": "out/qa-broken-lint.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "lead": 0.5,
+  "tail": 1.5,
+  "lines": [
+    { "id": "one", "gap": 0.0, "text": "This film is broken on purpose." },
+    { "id": "two", "gap": 0.6, "text": "The lint check should say why." }
+  ]
+}

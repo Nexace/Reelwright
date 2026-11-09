@@ -12,6 +12,7 @@ import {
   finishSnapshotRun,
   forgetRecordedArtifacts,
   historyCache,
+  isUncopiedMedia,
   listProjectHistories,
   onRestoredInPlace,
   openProjectHistory,
@@ -23,7 +24,7 @@ import {
   recordRenderSuccess,
   registerRenderOutput,
   retainSnapshotOutput
-} from "../chunk-UMPRW7BV.js";
+} from "../chunk-Z6G2NBCQ.js";
 import "../chunk-QF7MFJJU.js";
 import "../chunk-SVQFE44C.js";
 import "../chunk-L3HJVTQE.js";
@@ -41,6 +42,7 @@ export {
   finishSnapshotRun,
   forgetRecordedArtifacts,
   historyCache,
+  isUncopiedMedia,
   listProjectHistories,
   onRestoredInPlace,
   openProjectHistory,

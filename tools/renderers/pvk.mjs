@@ -2,14 +2,28 @@
 // Env: PAGES=6 (more = faster, more RAM), FPS (default project.json fps or 60), BROWSER=chrome|chromium
 // frames: cached in <project>/.cache/frames/ by what each frame shows (see fingerprint); REELWRIGHT_NO_CACHE=1
 // (--no-cache) renders every frame; REELWRIGHT_FRAMES_DIR renders into another folder (verify).
+// project.json "output" ({format, alpha, hdr, prores, crf, gifFps, hlsSegment, scale}, see encode) and "motionBlur" ({shutter, samples}
+// or true) are opt-in: with neither set, frames and the mp4 are exactly what they were. alpha: frames are PNGs with a
+// transparent page (the film must not paint a stage background); motionBlur: each frame is the average of `samples`
+// sub-frames rendered across the shutter (docs/playbook/motion-blur.md, output-formats.md).
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
+import { pagesMedia, mediaMix } from "./media.mjs";
+import { shaderPass } from "./shader_pass.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
+const SHOT_ALPHA = { type: "png", omitBackground: true };
+// html/body and the kit's #stage (the theme paints its background there) transparent for alpha output, injected
+// after load so the film's own CSS stays untouched; anything else the film paints stays in the frame
+export const TRANSPARENT = "html, body, #stage { background: transparent !important; background-image: none !important; }";
+// project.json "motionBlur": true | {shutter (deg, default 180), samples (default 8)} → null when off
+export const blurOf = (P) => { const m = P.motionBlur; if (!m) return null;
+  return { shutter: Number(m.shutter ?? 180), samples: Math.max(2, Math.round(Number(m.samples ?? 8))) }; };
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
 // What a frame shows, in the page after render(t): the DOM (render(t) sets inline styles) minus what can't paint,
 // video times, scroll offsets and canvas pixels. null (never cached) when a canvas can't be read.
@@ -44,8 +58,11 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
   const FPS = Number(process.env.FPS || P.fps || 60);
   const N = Number(process.env.PAGES || 4);
   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
+  const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
+  if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
+  const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
 
-  async function openPages(n) {
+  async function openPages(n, alpha = false) {
     const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files"]);
     const pages = [], loaded = new Set();   // every file a page requested (frame cache key)
     let errors = 0;
@@ -57,6 +74,8 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href);
       const ok = await p.evaluate(() => window.READY).catch((e) => { console.error(e.message); return false; });
       if (!ok || errors) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
+      if (alpha) await p.addStyleTag({ content: TRANSPARENT });
+      await pagesMedia(DIR, p, FPS, path.join(DIR, "film"), { frames: mode !== "info" });   // KIT.video / KIT.audio (tools/media.js)
       pages.push(p);
     }
     return { browser, pages, loaded };
@@ -77,11 +96,27 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
     }).join("\n"));
     return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], platform: `${process.platform}-${process.arch}`,
-      browser: process.env.BROWSER || "", version: browser.version(), shot: SHOT }));
+      browser: process.env.BROWSER || "", version: browser.version(), shot: SHOTOPT }));
   }
   async function shot(p, t, file) {
     await p.evaluate((t) => window.render(t), t);
     fs.writeFileSync(file, await p.screenshot(SHOT));
+  }
+  // frames-mode screenshot (alpha-aware); with motionBlur: `samples` sub-frames spread over the shutter, averaged by ffmpeg
+  async function frameShot(p, f, file) {
+    if (!MB) { await p.evaluate((t) => window.render(t), f / FPS); return fs.writeFileSync(file, await p.screenshot(SHOTOPT)); }
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-mb-"));
+    try {
+      for (let i = 0; i < MB.samples; i++) {
+        const t = Math.max(0, f / FPS + (i / MB.samples - 0.5) * MB.shutter / 360 / FPS);
+        await p.evaluate((t) => window.render(t), t);
+        fs.writeFileSync(path.join(tmp, `s${String(i).padStart(2, "0")}.${EXT}`), await p.screenshot(SHOTOPT));
+      }
+      const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-framerate", "1", "-i", path.join(tmp, `s%02d.${EXT}`),
+        "-vf", `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
+        ...(ALPHA ? [] : ["-q:v", "2"]), file], { stdio: "inherit" });
+      if (r.status !== 0) { console.error("motion blur: ffmpeg failed"); process.exit(r.status || 1); }
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   }
 
   if (mode === "info") {
@@ -99,16 +134,17 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     fs.mkdirSync(out, { recursive: true });
     try { for (const t of ts) await shot(pages[0], t, path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg")); }
     finally { await browser.close(); }
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })));
     console.log("stills →", out, ts.join(", "));
   } else if (mode === "frames") {
-    const { browser, pages, loaded } = await openPages(N);
+    const { browser, pages, loaded } = await openPages(N, ALPHA);
     const dur = await pages[0].evaluate(() => window.FILM.DUR);
     const from = Number(a3 || 0), to = Number(a4 || Math.ceil(dur * FPS));
     const out = process.env.REELWRIGHT_FRAMES_DIR || path.join(DIR, "frames");   // verify renders elsewhere
-    const name = (f) => path.join(out, "f" + String(f).padStart(5, "0") + ".jpg");
+    const name = (f) => path.join(out, "f" + String(f).padStart(5, "0") + "." + EXT);
     fs.mkdirSync(out, { recursive: true });
     // a full render of a film that got shorter: drop the old tail, so frames/ holds exactly this film
-    if (!a3 && !a4) for (const f of fs.readdirSync(out)) if (/^f\d{5}\.jpg$/.test(f) && Number(f.slice(1, 6)) >= to) fs.rmSync(path.join(out, f));
+    if (!a3 && !a4) for (const f of fs.readdirSync(out)) if (new RegExp(`^f\\d{5}\\.${EXT}$`).test(f) && Number(f.slice(1, 6)) >= to) fs.rmSync(path.join(out, f));
     const t0 = Date.now();
     let done = 0, todo = [];
     // each page takes a contiguous run of the list (frames rendered in order, like a single page would)
@@ -120,9 +156,11 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     } };
     const all = Array.from({ length: to - from }, (_, i) => from + i);
     try {
-      if (process.env.REELWRIGHT_NO_CACHE) {
+      // shortcut: motion blur skips the frame cache (the fingerprint sees one instant, not the shutter window);
+      // key it on the shutter + samples if blurred films get long
+      if (process.env.REELWRIGHT_NO_CACHE || MB) {
         todo = all;
-        await split(all, async (p, f) => { await shot(p, f / FPS, name(f)); progress(); });
+        await split(all, async (p, f) => { await frameShot(p, f, name(f)); progress(); });
       } else {
         // fingerprint what each frame shows; a frame whose key is cached is copied, the rest are screenshotted
         const fp = {};
@@ -130,10 +168,10 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
         const global = await globalKey(browser, pages[0], loaded);
         const CACHE = path.join(DIR, ".cache", "frames");
         fs.mkdirSync(CACHE, { recursive: true });
-        const key = (f) => fp[f] != null && path.join(CACHE, sha(global + sha(fp[f])).slice(0, 40) + ".jpg");
+        const key = (f) => fp[f] != null && path.join(CACHE, sha(global + sha(fp[f])).slice(0, 40) + "." + EXT);
         todo = all.filter((f) => !key(f) || !fs.existsSync(key(f)));
         await split(todo, async (p, f) => {
-          await shot(p, f / FPS, name(f));
+          await frameShot(p, f, name(f));
           if (key(f)) { fs.copyFileSync(name(f), key(f) + ".tmp"); fs.renameSync(key(f) + ".tmp", key(f)); }
           progress();
         });
@@ -141,33 +179,90 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
         for (const f of all) if (!miss.has(f)) fs.copyFileSync(key(f), name(f));
       }
     } finally { await browser.close(); }
+    // KIT.shader windows: always recomposited after the cache step (the cache holds the crossfade)
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })));
     const shots = [];   // runs of consecutive re-rendered frames
     for (const f of todo) { const s = shots[shots.length - 1]; if (s && s[1] === f - 1) s[1] = f; else shots.push([f, f]); }
     const list = shots.slice(0, 8).map(([a, b]) => `${a}–${b} (${(a / FPS).toFixed(2)}–${((b + 1) / FPS).toFixed(2)} s)`).join(", ");
     console.log(`frames ${from}–${to} done in ${((Date.now() - t0) / 1000).toFixed(0)}s: ${todo.length} rendered in ` +
       `${shots.length} shot${shots.length === 1 ? "" : "s"}${shots.length ? ": " + list + (shots.length > 8 ? ", …" : "") : ""}` +
-      `, ${all.length - todo.length} from cache${process.env.REELWRIGHT_NO_CACHE ? " (--no-cache)" : ""}`);
+      `, ${all.length - todo.length} from cache${process.env.REELWRIGHT_NO_CACHE ? " (--no-cache)" : MB ? " (motion blur: no cache)" : ""}`);
   } else if (mode === "encode") {
-    encode(DIR, P, FPS, "frames/f%05d.jpg", 0);
+    encode(DIR, P, FPS, `frames/f%05d.${EXT}`, 0);
   } else {
     console.log("unknown mode", mode); process.exit(1);
   }
 }
 
-// frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC). Shared with the other renderers.
+// Output formats other than mp4 (project.json "output".format, or --as): written ALONGSIDE the mp4, never instead of it,
+// because qa (loudness), the manifest and `all`'s final path all read the mp4 at "out". Extra file = "out" with the
+// extension swapped (png: a folder <out-base>-png/).
+const PRORES = { proxy: 0, lt: 1, "422": 2, hq: 3, "4444": 4, "4444xq": 5 };
+const FORMATS = ["mp4", "webm", "mov", "gif", "apng", "png", "hls"];
+
+// the audio inputs of one encode: the one place that decides what is mixed in (mix.wav today)
+function audioInputs(DIR) {
+  const audio = mediaMix(DIR) || path.join(DIR, "mix.wav");   // mix.wav + KIT.audio clips, when the film has any
+  if (!fs.existsSync(audio)) return { args: [], has: false };
+  return { args: ["-i", audio], has: true };
+}
+
+// frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC), plus the extra format asked for in "output". Shared with the other renderers.
 export function encode(DIR, P, FPS, pattern, start) {
+  const o = { ...P.output }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
+  if (!FORMATS.includes(fmt)) { console.error(`output format "${fmt}" is not one of ${FORMATS.join(", ")}`); process.exit(1); }
   const outFile = path.join(DIR, P.out || "out/film.mp4");
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  const audio = path.join(DIR, "mix.wav");
-  const args = ["-y", "-v", "error", "-framerate", String(FPS), "-start_number", String(start), "-i", path.join(DIR, pattern)];
-  if (fs.existsSync(audio)) args.push("-i", audio); else console.log("no mix.wav — encoding silent video");
-  args.push("-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-profile:v", "high", "-movflags", "+faststart");
-  if (fs.existsSync(audio)) args.push("-c:a", "aac", "-b:a", "256k", "-shortest");
-  args.push(outFile);
-  const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
-  if (r.status !== 0) process.exit(r.status || 1);
+  const base = outFile.replace(/\.mp4$/, "");
+  const frames = ["-framerate", String(FPS), "-start_number", String(start), "-i", path.join(DIR, pattern)];
+  const aud = audioInputs(DIR);
+  if (!aud.has) console.log("no mix.wav — encoding silent video");
+  const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
+    if (r.status !== 0) process.exit(r.status || 1); };
+  const crf = String(o.crf ?? 16);
+  ff(...frames, ...aud.args, "-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", "yuv420p", "-profile:v", "high",
+    "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
+  if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);
   subtitles(DIR, outFile);
+}
+
+function extra(fmt, o, base, frames, aud, ff) {
+  const alpha = !!o.alpha, sc = o.scale && o.scale !== 1 ? [`scale=trunc(iw*${o.scale}/2)*2:-2`] : [];
+  const vf = (...f) => { const l = [...sc, ...f]; return l.length ? ["-vf", l.join(",")] : []; };
+  const sound = (...c) => (aud.has ? [...c, "-shortest"] : []);
+  const file = base + "." + fmt;
+  if (fmt === "webm") {
+    ff(...frames, ...aud.args, ...vf(), "-c:v", "libvpx-vp9", "-crf", String(o.crf ?? 24), "-b:v", "0", "-row-mt", "1",
+      "-pix_fmt", alpha ? "yuva420p" : "yuv420p", ...(alpha ? ["-auto-alt-ref", "0"] : []), ...sound("-c:a", "libopus", "-b:a", "160k"), file);
+  } else if (fmt === "mov") {
+    const prof = String(o.prores ?? (alpha ? "4444" : "hq"));
+    if (!(prof in PRORES)) { console.error(`output.prores "${prof}" is not one of ${Object.keys(PRORES).join(", ")}`); process.exit(1); }
+    const p4 = PRORES[prof] >= 4;
+    ff(...frames, ...aud.args, ...vf(), "-c:v", "prores_ks", "-profile:v", String(PRORES[prof]),
+      "-pix_fmt", p4 ? (alpha ? "yuva444p10le" : "yuv444p10le") : "yuv422p10le", "-vendor", "apl0", ...sound("-c:a", "pcm_s16le"), file);
+  } else if (fmt === "gif") {
+    const g = [`fps=${o.gifFps ?? 15}`, ...sc].join(",");
+    ff(...frames, "-an", "-filter_complex",
+      `[0:v]${g},split[a][b];[a]palettegen=reserve_transparent=${alpha ? 1 : 0}[p];[b][p]paletteuse${alpha ? "=alpha_threshold=128" : ""}`,
+      "-loop", "0", file);
+  } else if (fmt === "apng") {
+    ff(...frames, "-an", ...vf(), "-plays", "0", "-pix_fmt", alpha ? "rgba" : "rgb24", "-f", "apng", file);
+  } else if (fmt === "hls") {   // VOD playlist + segments cut from the mp4 (no re-encode; segments start on its keyframes)
+    const dir = base + "-hls";
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    ff("-i", base + ".mp4", "-c", "copy", "-f", "hls", "-hls_time", String(o.hlsSegment ?? 6), "-hls_playlist_type", "vod",
+      "-hls_segment_filename", path.join(dir, "seg_%03d.ts"), path.join(dir, "index.m3u8"));
+    return console.log("→", path.join(dir, "index.m3u8"));
+  } else {   // png: a folder of numbered stills
+    const dir = base + "-png";
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    ff(...frames, "-an", ...vf(), path.join(dir, "frame_%05d.png"));
+    return console.log("→", dir + path.sep);
+  }
+  console.log("→", file);
 }
 
 // timeline.json captions (KIT.captionCues) → <out>.srt and <out>.vtt beside the mp4

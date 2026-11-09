@@ -2511,15 +2511,45 @@ function assignHfIds(body) {
 
 // src/hfIds.ts
 function ensureHfIds(html) {
+  if (alreadyStamped(html)) return html;
   const { document, wrapped } = parseFragmentOrDocument(html);
   if (!document.body) return html;
   assignHfIds(document.body);
   return wrapped ? document.body.innerHTML || "" : document.toString();
 }
-function parseFragmentOrDocument(html) {
-  const wrapped = !/^(?:<!doctype|<html[\s>/])/i.test(
-    html.replace(/^(?:\s|<!--(?:>|->|[\s\S]*?-->))*/, "")
+var isFragment = (html) => !/^(?:<!doctype|<html[\s>/])/i.test(html.replace(/^(?:\s|<!--(?:>|->|[\s\S]*?-->))*/, ""));
+function alreadyStamped(html) {
+  const tags = startTags(html);
+  if (!tags) return false;
+  const body = isFragment(html) ? -1 : tags.findIndex((tag) => tag.name === "body");
+  if (!isFragment(html) && !opensHeadThenBody(html, tags, body)) return false;
+  return tags.slice(body + 1).every(
+    (tag) => !IMPLIED.has(tag.name) && tag.name !== "table" && (EXCLUDED_TAGS.has(tag.name) || hasHfId(html, tag))
   );
+}
+var HEAD_CONTENT = /* @__PURE__ */ new Set(["meta", "link", "base", "title", "style", "script"]);
+function opensHeadThenBody(html, tags, body) {
+  const [first, head] = tags;
+  if (body < 0 || first?.name !== "html" || head?.name !== "head") return false;
+  const inHead = tags.slice(2, body);
+  return inHead.every((tag) => HEAD_CONTENT.has(tag.name)) && closesHead(html, inHead.at(-1) ?? head, tags[body]);
+}
+function closesHead(html, last, body) {
+  const from = RAW_TEXT.has(last.name) ? rawTextEnd(html, last.name, last.bracket) : last.bracket;
+  const between = html.slice(from, html.lastIndexOf("<", body.nameEnd));
+  const marks = between.matchAll(/<!--[\s\S]*?-->|<\/head\s*>/gi);
+  return from >= 0 && [...marks].some((mark) => !mark[0].startsWith("<!--"));
+}
+function hasHfId(html, tag) {
+  const open = html.slice(tag.nameEnd, tag.bracket);
+  const name = /\sdata-hf-id\s*=\s*/i.exec(outsideQuotes(open));
+  if (!name) return false;
+  const value = open.slice(name.index + name[0].length);
+  const quote = value[0] === '"' || value[0] === "'" ? value[0] : "";
+  return quote ? value.length > 1 && value[1] !== quote : /^[^\s>]/.test(value);
+}
+function parseFragmentOrDocument(html) {
+  const wrapped = isFragment(html);
   const { document } = wrapped ? parseHTML(`<!DOCTYPE html><html><head></head><body>${html}</body></html>`) : parseHTML(html);
   return { document, wrapped };
 }
@@ -2687,6 +2717,7 @@ function removeAnimationFromScript(script, animationId) {
 
 // src/compositionContract.ts
 var COMPOSITION_CONTRACT_VERSION = 1;
+var SPLIT_BOUNDARY_EPSILON_S = 0.03;
 var COMPOSITION_ATTRIBUTES = Object.freeze({
   start: "data-start",
   duration: "data-duration",
@@ -4744,6 +4775,7 @@ export {
   MIN_PLAYBACK_RATE,
   PENDING_MEDIA_DURATION_READERS,
   PROPERTY_GROUPS,
+  SPLIT_BOUNDARY_EPSILON_S,
   SPRING_PRESETS,
   SUPPORTED_EASES,
   SUPPORTED_PROPS,

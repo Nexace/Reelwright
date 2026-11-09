@@ -1,6 +1,6 @@
 import {
   probeMediaMetadata
-} from "./chunk-X73QTST2.js";
+} from "./chunk-Y6EZUBYR.js";
 import {
   realpath
 } from "./chunk-QF7MFJJU.js";
@@ -98,6 +98,7 @@ var PROXY_VARIANT_CONFIG = {
   h264: { extension: ".mp4", contentType: "video/mp4" },
   vp8: { extension: ".webm", contentType: "video/webm" }
 };
+var PROXY_STILL_EXTENSION = ".jpg";
 function isProxyVariant(value) {
   return Object.hasOwn(PROXY_VARIANT_CONFIG, value);
 }
@@ -252,6 +253,7 @@ export {
   recordProxyPrewarm,
   recordProxyRequest,
   PROXY_VARIANT_CONFIG,
+  PROXY_STILL_EXTENSION,
   isProxyVariant,
   isProxyVariantRequest,
   proxyVariantFor,

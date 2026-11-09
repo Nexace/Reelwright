@@ -1,5 +1,6 @@
 // src/compositionContract.ts
 var COMPOSITION_CONTRACT_VERSION = 1;
+var SPLIT_BOUNDARY_EPSILON_S = 0.03;
 var COMPOSITION_ATTRIBUTES = Object.freeze({
   start: "data-start",
   duration: "data-duration",
@@ -286,6 +287,7 @@ export {
   ClipTimingWriteError,
   DERIVED_TIMING_ATTRIBUTES,
   LEGACY_TIMING_ATTRIBUTES,
+  SPLIT_BOUNDARY_EPSILON_S,
   parseNumeric,
   parseStartExpression,
   readClipTiming,

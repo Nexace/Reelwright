@@ -7,7 +7,7 @@ import {
 
 // src/history/projectHistory.ts
 import { randomUUID as randomUUID7 } from "crypto";
-import { mkdir as mkdir2, readdir as readdir3, rm as rm3, rmdir, stat as stat2, writeFile } from "fs/promises";
+import { mkdir as mkdir2, readdir as readdir4, rm as rm3, rmdir, stat as stat2, writeFile } from "fs/promises";
 import {
   existsSync as existsSync3,
   lstatSync as lstatSync4,
@@ -18,7 +18,6 @@ import {
   realpathSync,
   rmSync as rmSync3
 } from "fs";
-import { homedir } from "os";
 import { dirname as dirname5, isAbsolute as isAbsolute5, join as join8, relative as relative5, resolve as resolve8, sep as sep5 } from "path";
 import { replaceFileAtomically as replaceFileAtomically6 } from "@hyperframes/core/atomic-file";
 
@@ -358,6 +357,7 @@ async function registerRenderOutput(projectDir, output) {
 // src/helpers/projectSignature.ts
 import { createHash as createHash2 } from "crypto";
 import { lstatSync, readFileSync as readFileSync3, readdirSync } from "fs";
+import { lstat, readFile, readdir } from "fs/promises";
 import { extname, isAbsolute as isAbsolute2, relative as relative2, resolve as resolve2, sep as sep2 } from "path";
 import { isAtomicTempPath } from "@hyperframes/core/atomic-file";
 import { isProjectIgnoredDir } from "@hyperframes/core/project-folders";
@@ -408,6 +408,15 @@ function signatureEntryStat(projectDir, entry, file, outputs) {
     return null;
   }
 }
+function signatureFileOf(file, stat4) {
+  return {
+    file,
+    mtimeMs: stat4.mtimeMs,
+    ctimeMs: stat4.ctimeMs,
+    size: stat4.size,
+    textContentEligible: isTextContentEligible(file, stat4.size)
+  };
+}
 function collectProjectSignatureFiles(projectDir, dir, files, outputs = readRenderOutputsOrNone(projectDir)) {
   let entries;
   try {
@@ -422,13 +431,7 @@ function collectProjectSignatureFiles(projectDir, dir, files, outputs = readRend
     if (stat4.isDirectory()) {
       collectProjectSignatureFiles(projectDir, file, files, outputs);
     } else if (stat4.isFile()) {
-      files.push({
-        file,
-        mtimeMs: stat4.mtimeMs,
-        ctimeMs: stat4.ctimeMs,
-        size: stat4.size,
-        textContentEligible: isTextContentEligible(file, stat4.size)
-      });
+      files.push(signatureFileOf(file, stat4));
     }
   }
 }
@@ -444,14 +447,38 @@ function collectProjectSignatureManifestFiles(projectDir, files) {
       continue;
     }
     if (stat4.isSymbolicLink() || !stat4.isFile()) continue;
-    files.push({
-      file,
-      mtimeMs: stat4.mtimeMs,
-      ctimeMs: stat4.ctimeMs,
-      size: stat4.size,
-      textContentEligible: isTextContentEligible(file, stat4.size)
-    });
+    files.push(signatureFileOf(file, stat4));
     seen.add(file);
+  }
+}
+async function signatureEntryStatAsync(projectDir, entry, file, outputs) {
+  if (isSkippedEntry(entry) || !isPathWithin(projectDir, file)) return null;
+  if (isRenderOutput(projectDir, file, outputs)) return null;
+  try {
+    const stat4 = await lstat(file);
+    return stat4.isSymbolicLink() ? null : stat4;
+  } catch {
+    return null;
+  }
+}
+async function collectProjectSignatureFilesAsync(projectDir, dir, files, outputs) {
+  let entries;
+  try {
+    entries = (await readdir(dir)).sort();
+  } catch {
+    return;
+  }
+  const paths = entries.map((entry) => resolve2(dir, entry));
+  const stats = await Promise.all(
+    entries.map((entry, i) => signatureEntryStatAsync(projectDir, entry, paths[i], outputs))
+  );
+  for (const [i, stat4] of stats.entries()) {
+    if (!stat4) continue;
+    if (stat4.isDirectory()) {
+      await collectProjectSignatureFilesAsync(projectDir, paths[i], files, outputs);
+    } else if (stat4.isFile()) {
+      files.push(signatureFileOf(paths[i], stat4));
+    }
   }
 }
 function createProjectFingerprint(projectDir, files) {
@@ -476,6 +503,17 @@ function collectProjectFiles(normalizedProjectDir) {
   collectProjectSignatureManifestFiles(normalizedProjectDir, collected);
   return collected;
 }
+async function collectProjectFilesAsync(normalizedProjectDir) {
+  const collected = [];
+  await collectProjectSignatureFilesAsync(
+    normalizedProjectDir,
+    normalizedProjectDir,
+    collected,
+    readRenderOutputsOrNone(normalizedProjectDir)
+  );
+  collectProjectSignatureManifestFiles(normalizedProjectDir, collected);
+  return collected;
+}
 function listProjectFiles(projectDir) {
   const normalizedProjectDir = resolve2(projectDir);
   return collectProjectFiles(normalizedProjectDir).map((entry) => ({
@@ -485,56 +523,87 @@ function listProjectFiles(projectDir) {
     ctimeMs: entry.ctimeMs
   }));
 }
-function resolveProjectSignature(adapter, projectDir) {
-  return adapter.getProjectSignature?.(projectDir) ?? createProjectSignature(projectDir);
+async function resolveProjectSignature(adapter, projectDir) {
+  return await adapter.getProjectSignature?.(projectDir) ?? createProjectSignatureAsync(projectDir);
 }
 async function resolveProjectAndSignature(adapter, projectId) {
   const project = await adapter.resolveProject(projectId);
   if (!project) return null;
-  return { project, signature: resolveProjectSignature(adapter, project.dir) };
+  return { project, signature: await resolveProjectSignature(adapter, project.dir) };
 }
-function createProjectSignature(projectDir, excluding = /* @__PURE__ */ new Set()) {
-  const normalizedProjectDir = resolve2(projectDir);
-  const signedAt = Date.now();
-  const collected = collectProjectFiles(normalizedProjectDir);
+function planSignature(dir, collected, excluding, signedAt) {
   const files = collected.filter(
-    (entry) => !excluding.has(relative2(normalizedProjectDir, entry.file).split(sep2).join("/"))
+    (entry) => !excluding.has(relative2(dir, entry.file).split(sep2).join("/"))
   );
   files.sort((a, b) => a.file.localeCompare(b.file));
-  const fingerprint = createProjectFingerprint(normalizedProjectDir, files);
-  const cacheKey = excluding.size ? `${normalizedProjectDir}\0${createHash2("sha256").update([...excluding].sort().join("\0")).digest("hex")}` : normalizedProjectDir;
-  const cached = projectSignatureCache.get(cacheKey);
-  if (cached?.fingerprint === fingerprint) return cached.signature;
+  const cacheKey = excluding.size ? `${dir}\0${createHash2("sha256").update([...excluding].sort().join("\0")).digest("hex")}` : dir;
+  return { dir, files, cacheKey, fingerprint: createProjectFingerprint(dir, files), signedAt };
+}
+function hashSignatureEntry(hash, dir, entry, content) {
+  hash.update(relative2(dir, entry.file));
+  hash.update("\0");
+  hash.update(String(entry.size));
+  hash.update("\0");
+  hash.update(content ?? String(entry.mtimeMs));
+  hash.update("\0");
+}
+function finishSignature(plan, hash) {
+  const signature = hash.digest("hex").slice(0, 24);
+  const settledATickBeforeSigning = plan.files.every(
+    (entry) => Math.max(entry.mtimeMs, entry.ctimeMs) < plan.signedAt - COARSEST_FILE_TIME_TICK_MS
+  );
+  if (settledATickBeforeSigning) {
+    projectSignatureCache.set(plan.cacheKey, { fingerprint: plan.fingerprint, signature });
+  }
+  return signature;
+}
+var cachedSignature = (plan) => {
+  const cached = projectSignatureCache.get(plan.cacheKey);
+  return cached?.fingerprint === plan.fingerprint ? cached.signature : void 0;
+};
+function createProjectSignature(projectDir, excluding = /* @__PURE__ */ new Set()) {
+  const dir = resolve2(projectDir);
+  const plan = planSignature(dir, collectProjectFiles(dir), excluding, Date.now());
+  const cached = cachedSignature(plan);
+  if (cached !== void 0) return cached;
   const hash = createHash2("sha256");
-  for (const entry of files) {
-    const relativePath = relative2(normalizedProjectDir, entry.file);
-    hash.update(relativePath);
-    hash.update("\0");
-    hash.update(String(entry.size));
-    hash.update("\0");
+  for (const entry of plan.files) {
+    let content = null;
     if (entry.textContentEligible) {
       try {
-        hash.update(readFileSync3(entry.file));
+        content = readFileSync3(entry.file);
       } catch {
-        hash.update(String(entry.mtimeMs));
+        content = null;
       }
-    } else {
-      hash.update(String(entry.mtimeMs));
     }
-    hash.update("\0");
+    hashSignatureEntry(hash, dir, entry, content);
   }
-  const signature = hash.digest("hex").slice(0, 24);
-  const settledATickBeforeSigning = files.every(
-    (entry) => Math.max(entry.mtimeMs, entry.ctimeMs) < signedAt - COARSEST_FILE_TIME_TICK_MS
-  );
-  if (settledATickBeforeSigning) projectSignatureCache.set(cacheKey, { fingerprint, signature });
-  return signature;
+  return finishSignature(plan, hash);
+}
+var SIGNATURE_READ_BATCH = 32;
+async function createProjectSignatureAsync(projectDir, excluding = /* @__PURE__ */ new Set()) {
+  const dir = resolve2(projectDir);
+  const signedAt = Date.now();
+  const plan = planSignature(dir, await collectProjectFilesAsync(dir), excluding, signedAt);
+  const cached = cachedSignature(plan);
+  if (cached !== void 0) return cached;
+  const hash = createHash2("sha256");
+  for (let at = 0; at < plan.files.length; at += SIGNATURE_READ_BATCH) {
+    const batch = plan.files.slice(at, at + SIGNATURE_READ_BATCH);
+    const contents = await Promise.all(
+      batch.map(
+        (entry) => entry.textContentEligible ? readFile(entry.file).catch(() => null) : null
+      )
+    );
+    for (const [i, entry] of batch.entries()) hashSignatureEntry(hash, dir, entry, contents[i]);
+  }
+  return finishSignature(plan, hash);
 }
 
 // src/history/blobStore.ts
 import { createHash as createHash3, randomUUID as randomUUID3 } from "crypto";
 import { constants, createReadStream, createWriteStream } from "fs";
-import { copyFile, mkdir, open, readdir, readFile, rm, stat } from "fs/promises";
+import { copyFile, mkdir, open, readdir as readdir2, readFile as readFile2, rm, stat } from "fs/promises";
 import { dirname, join as join2 } from "path";
 import { pipeline } from "stream/promises";
 import { atomicTempPath } from "@hyperframes/core/atomic-file";
@@ -577,7 +646,7 @@ function blobPath(dir, hash) {
   if (!BLOB_HASH.test(hash)) throw new Error("That is not a history blob.");
   return join2(dir, hash.slice(0, 2), hash);
 }
-var readBlob = (dir, hash) => readFile(blobPath(dir, hash));
+var readBlob = (dir, hash) => readFile2(blobPath(dir, hash));
 async function hashFile(path) {
   const hash = createHash3("sha256");
   for await (const chunk of createReadStream(path)) hash.update(chunk);
@@ -630,7 +699,7 @@ async function writeInPlace(temp, to, hash) {
   if (outcome === "mismatch")
     throw new Error("The file was written in place, but it does not match the copy history kept.");
 }
-var listDir = (path) => readdir(path, { withFileTypes: true }).catch((error) => {
+var listDir = (path) => readdir2(path, { withFileTypes: true }).catch((error) => {
   if (error.code === "ENOENT") return [];
   throw error;
 });
@@ -687,7 +756,7 @@ async function openBlobStore(dir) {
     },
     reference: (absPath) => hashFile(absPath),
     has: (hash) => sizes.has(hash) || asideSizes.has(hash),
-    read: (hash) => readFile(pathOf(hash)),
+    read: (hash) => readFile2(pathOf(hash)),
     writeTo: async (hash, absPath, beforeReplace) => cloneOrCopy(pathOf(hash), absPath, hash, beforeReplace),
     async release(held) {
       for (const [hash, path] of held) {
@@ -751,7 +820,8 @@ var MEDIA_EXTENSIONS = /* @__PURE__ */ new Set([
   ".opus"
 ]);
 var COPY_NOTHING_ABOVE_BYTES = 64 * 1024 ** 2;
-var isUncopied = (path, size) => size > COPY_NOTHING_ABOVE_BYTES || MEDIA_EXTENSIONS.has(extname2(path).toLowerCase());
+var isUncopiedMedia = (path) => MEDIA_EXTENSIONS.has(extname2(path).toLowerCase());
+var isUncopied = (path, size) => size > COPY_NOTHING_ABOVE_BYTES || isUncopiedMedia(path);
 function uncopiedOnlyHashes(log, sizeOf) {
   const copied = /* @__PURE__ */ new Set();
   const uncopied = /* @__PURE__ */ new Set();
@@ -770,13 +840,13 @@ function uncopiedOnlyHashes(log, sizeOf) {
 // src/history/pruneHistories.ts
 import { randomUUID as randomUUID5 } from "crypto";
 import { readdirSync as readdirSync2, readFileSync as readFileSync5, renameSync, statSync as statSync3, writeFileSync as writeFileSync3 } from "fs";
-import { lstat, readdir as readdir2, rm as rm2 } from "fs/promises";
+import { lstat as lstat2, readdir as readdir3, rm as rm2 } from "fs/promises";
 import { tmpdir } from "os";
 import { dirname as dirname2, join as join4 } from "path";
 
 // src/history/historyId.ts
 import { randomUUID as randomUUID4 } from "crypto";
-import { existsSync, mkdirSync as mkdirSync2, readFileSync as readFileSync4, statSync as statSync2, writeFileSync as writeFileSync2 } from "fs";
+import { existsSync, mkdirSync as mkdirSync2, readFileSync as readFileSync4, statSync as statSync2, utimesSync, writeFileSync as writeFileSync2 } from "fs";
 import { basename, join as join3, resolve as resolve4 } from "path";
 import { replaceFileAtomically as replaceFileAtomically3 } from "@hyperframes/core/atomic-file";
 var ID_PATH = join3(".hyperframes", "history-id");
@@ -838,8 +908,21 @@ var HistoryIdError = class extends Error {
     this.name = "HistoryIdError";
   }
 };
+function markUsed(historyDir) {
+  const now = /* @__PURE__ */ new Date();
+  try {
+    utimesSync(join3(historyDir, "project.json"), now, now);
+  } catch {
+    return;
+  }
+}
 function recordProject(historyDir, dir, folder) {
   const record = { dir, ino: folder.ino, born: folder.birthtimeMs, dev: folder.dev };
+  const was = readRecord(historyDir);
+  if (was?.dir === record.dir && was.ino === record.ino && was.born === record.born && was.dev === record.dev) {
+    markUsed(historyDir);
+    return;
+  }
   mkdirSync2(historyDir, { recursive: true });
   replaceFileAtomically3(join3(historyDir, "project.json"), JSON.stringify(record), 420);
 }
@@ -966,9 +1049,9 @@ function lastUsed(home) {
 }
 async function bytesIn(dir) {
   let total = 0;
-  for (const entry of await readdir2(dir, { withFileTypes: true })) {
+  for (const entry of await readdir3(dir, { withFileTypes: true })) {
     const path = join4(dir, entry.name);
-    total += entry.isDirectory() ? await bytesIn(path) : (await lstat(path)).size;
+    total += entry.isDirectory() ? await bytesIn(path) : (await lstat2(path)).size;
   }
   return total;
 }
@@ -1734,7 +1817,8 @@ function referencedHashes(log, current) {
 }
 
 // src/history/projectHistory.ts
-var DEFAULT_HISTORY_ROOT = join8(homedir(), ".cache", "hyperframes", "history");
+import { hyperframesCacheDir } from "@hyperframes/core/cache-dir";
+var DEFAULT_HISTORY_ROOT = hyperframesCacheDir("history");
 var MAX_WINDOW_IDLE_MS = 10 * 6e4;
 var UNDO_MODES = ["just-this", "back-to-before", "keep-later-edits"];
 var OUTSIDE = { kind: "outside", name: "Outside" };
@@ -1781,7 +1865,7 @@ var isMissingFolder = (error) => ["ENOENT", "ENOTDIR"].includes(error.code ?? ""
 async function removeEmptyFolders(dir) {
   let entries;
   try {
-    entries = await readdir3(dir, { withFileTypes: true });
+    entries = await readdir4(dir, { withFileTypes: true });
   } catch (error) {
     if (isMissingFolder(error)) return;
     throw error;
@@ -2653,7 +2737,7 @@ var Engine = class {
         const dest = resolve8(emptyDir);
         if (isWithin(this.dir, dest))
           throw new Error(`Checkout writes outside the project only: ${dest}`);
-        if ((await readdir3(dest).catch(missingIsEmpty)).length > 0)
+        if ((await readdir4(dest).catch(missingIsEmpty)).length > 0)
           throw new Error(`Checkout writes into an empty folder only: ${dest}`);
         const files = manifestAround(this.log, entryId, side);
         for (const [path, hash] of files)
@@ -2662,7 +2746,7 @@ var Engine = class {
         try {
           for (const [path, hash] of files) await this.blobs.writeTo(hash, join8(dest, path));
         } catch (error) {
-          for (const name of await readdir3(dest).catch(() => []))
+          for (const name of await readdir4(dest).catch(() => []))
             await rm3(join8(dest, name), { recursive: true, force: true });
           throw error;
         }
@@ -2862,6 +2946,7 @@ export {
   resolveProjectSignature,
   resolveProjectAndSignature,
   createProjectSignature,
+  createProjectSignatureAsync,
   fileContentVersion,
   DELETED_VERSION,
   settledFileTag,
@@ -2872,6 +2957,7 @@ export {
   consumeFileWriteReceipt,
   serveWhileOpen,
   onRestoredInPlace,
+  isUncopiedMedia,
   HistoryIdError,
   listProjectHistories,
   pruneGoneProjectHistories,

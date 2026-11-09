@@ -786,7 +786,17 @@ function buildLintContext(html, options = {}) {
       rootRelativePath: style.rootRelativePath
     }))
   ];
-  const scripts = structure.scripts;
+  const scripts = [
+    ...structure.scripts,
+    ...(options.externalScripts ?? []).map((script) => ({
+      attrs: script.attrs,
+      content: script.content,
+      raw: script.content,
+      index: -1,
+      file: script.file,
+      rootRelativePath: script.rootRelativePath
+    }))
+  ];
   const compositionIds = collectCompositionIds(tags);
   const rootTag = findRootTag(source, tags);
   const rootCompositionId = readDecodedAttr(rootTag?.raw || "", "data-composition-id");
@@ -1389,7 +1399,10 @@ var coreRules = [
     }
     if (/(?:^|\s)data-no-timeline(?=[\s=/]|$)/i.test(rootTag?.attrs || "")) return [];
     const findings = [];
-    if (!TIMELINE_REGISTRY_INIT_PATTERN.test(source) && !TIMELINE_REGISTRY_ASSIGN_PATTERN.test(source) && !TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(source)) {
+    const registered = [source, ...(options.externalScripts ?? []).map((script) => script.content)];
+    if (!registered.some(
+      (text) => TIMELINE_REGISTRY_INIT_PATTERN.test(text) || TIMELINE_REGISTRY_ASSIGN_PATTERN.test(text) || TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(text)
+    )) {
       findings.push({
         code: "missing_timeline_registry",
         severity: "error",
@@ -1560,9 +1573,9 @@ var coreRules = [
   ({ scripts, locate }) => {
     const findings = [];
     for (const script of scripts) {
-      const type = readDecodedAttr(script.raw, "type")?.trim().toLowerCase() ?? "";
-      if (readDecodedAttr(script.raw, "src") !== null || SCRIPT_SYNTAX_EXEMPT_TYPES.has(type))
-        continue;
+      const tag = `<script ${script.attrs}>`;
+      const type = readDecodedAttr(tag, "type")?.trim().toLowerCase() ?? "";
+      if (readDecodedAttr(tag, "src") !== null || SCRIPT_SYNTAX_EXEMPT_TYPES.has(type)) continue;
       const syntaxError = getInlineScriptSyntaxError(script.content);
       if (!syntaxError) continue;
       findings.push({
@@ -1807,6 +1820,71 @@ function findLinkedClipFindings(ctx) {
       fixHint: "Linked clips are edited as one: give every member the same data-start, data-duration, data-media-start and data-playback-rate, or remove data-link from all of them to unlink.",
       snippet: truncateSnippet(first.raw)
     });
+  }
+  return findings;
+}
+
+// src/rules/audioAttributes.ts
+var AUDIO_ATTRIBUTES = {
+  "data-automation": { list: "lanes", noun: "automation", item: "Lane" },
+  "data-fx-chain": { list: "nodes", noun: "chain", item: "Node" }
+};
+var AUDIO_ATTRIBUTE_VERSION = 1;
+function audioAttributeShapeError(attr, json) {
+  const { list, noun, item } = AUDIO_ATTRIBUTES[attr];
+  const parsed = parseEnvelope(json);
+  if (typeof parsed === "string") return parsed;
+  if (parsed.version !== AUDIO_ATTRIBUTE_VERSION) {
+    return `unsupported ${noun} version: ${String(parsed.version)}`;
+  }
+  const entries = parsed[list];
+  if (!Array.isArray(entries)) return `it is missing a \`${list}\` array`;
+  for (const [i, entry] of entries.entries()) {
+    const reason = entryShapeError(attr, item, i, entry);
+    if (reason) return reason;
+  }
+  return null;
+}
+function parseEnvelope(json) {
+  let raw;
+  try {
+    raw = JSON.parse(json);
+  } catch (err) {
+    return `it is not valid JSON (${err.message})`;
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw))
+    return "it is not a JSON object";
+  return raw;
+}
+function entryShapeError(attr, item, i, entry) {
+  if (typeof entry !== "object" || entry === null) return `${item} ${i} is not an object`;
+  const fields = entry;
+  if (attr === "data-fx-chain") {
+    return typeof fields.type === "string" ? null : `Node ${i} has no effect \`type\``;
+  }
+  if (typeof fields.target !== "string") return `Lane ${i} has no \`target\``;
+  if (!Array.isArray(fields.points)) return `Lane ${i} is missing a \`points\` array`;
+  return null;
+}
+function findUnreadableAudioAttributeFindings(ctx) {
+  const findings = [];
+  for (const tag of ctx.tags) {
+    for (const attr of Object.keys(AUDIO_ATTRIBUTES)) {
+      const value = readDecodedAttr(tag.raw, attr);
+      if (value === null || value === "") continue;
+      const reason = audioAttributeShapeError(attr, value);
+      if (!reason) continue;
+      const id = readAttr(tag.raw, "id");
+      const { list } = AUDIO_ATTRIBUTES[attr];
+      findings.push({
+        code: "audio_attribute_unreadable",
+        severity: "error",
+        message: `${id ? `#${id}` : `<${tag.name}>`} has a \`${attr}\` the render cannot read: ${reason}. The render fails on it, locally and in the cloud.`,
+        elementId: id || void 0,
+        fixHint: `Write it as {"version": ${AUDIO_ATTRIBUTE_VERSION}, "${list}": [...]}, or remove the attribute.`,
+        snippet: truncateSnippet(tag.raw)
+      });
+    }
   }
   return findings;
 }
@@ -2335,7 +2413,7 @@ var mediaRules = [
         severity: "error",
         message: `<video> with data-start is nested inside <${parent.name}${parent.id ? ` id="${parent.id}"` : ""}> which also has data-start. The frame extractor resolves the video's start from its own data-start without the wrapper's offset, while visibility uses the wrapper's window, so the two disagree: the clip shows the wrong source frames and then disappears partway through its slot.`,
         elementId: readAttr(tag.raw, "id") || void 0,
-        fixHint: "Time the wrapper OR the video, never both: remove data-start from the wrapper (use it as a non-timed visual container), or move the <video> up to be a direct child of the stage.",
+        fixHint: "A <video> takes no timing from its wrapper: time the <video> and leave the wrapper untimed (remove its data-start; it only places or animates), or move the <video> up to be a direct child of the stage.",
         snippet: truncateSnippet(tag.raw)
       });
     }
@@ -2419,7 +2497,7 @@ var mediaRules = [
           severity: "error",
           message: `<${tag.name}${hasId ? ` id="${hasId}"` : ""}> has src but no data-start. HyperFrames cannot own playback for untimed media, so preview and render behavior can diverge.`,
           elementId: hasId || void 0,
-          fixHint: wrapper ? `This <${tag.name}> sits inside the timed <${wrapper.name}${wrapper.id ? ` id="${wrapper.id}"` : ""}> (data-start="${wrapper.start}"), and the wrapper's data-start would then clash. Move the <${tag.name}> out as a direct child of the stage and give it that wrapper's data-start="${wrapper.start}"${wrapper.duration ? ` and data-duration="${wrapper.duration}"` : ""}.` : `Add data-start="0" (or the intended start time) and data-duration if the clip should stop before the source ends.`,
+          fixHint: wrapper ? `This <${tag.name}> sits inside the timed <${wrapper.name}${wrapper.id ? ` id="${wrapper.id}"` : ""}> (data-start="${wrapper.start}") and takes no timing from it, so without its own data-start it plays from composition time 0, and a data-start on it would clash with the wrapper's. Move the <${tag.name}> out as a direct child of the stage and give it that wrapper's data-start="${wrapper.start}"${wrapper.duration ? ` and data-duration="${wrapper.duration}"` : ""}.` : `Add data-start="0" (or the intended start time) and data-duration if the clip should stop before the source ends.`,
           snippet: truncateSnippet(tag.raw)
         });
       }
@@ -2543,7 +2621,8 @@ var mediaRules = [
   findAudioGroupCarveAttrFindings,
   // audio_group_holds_elements
   findAudioGroupHoldsElementsFindings,
-  findLinkedClipFindings
+  findLinkedClipFindings,
+  findUnreadableAudioAttributeFindings
 ];
 function findVolumeTweenOverridesGainFindings(ctx) {
   const boosted = ctx.tags.filter((tag) => isMediaTag(tag.name)).map((tag) => ({ tag, volume: Number(readAttr(tag.raw, "data-volume") ?? "1") })).filter((entry) => Number.isFinite(entry.volume) && entry.volume !== 1).filter((entry) => !readDecodedAttr(entry.tag.raw, "data-automation")).map((entry) => ({ ...entry, id: readAttr(entry.tag.raw, "id") })).filter((entry) => Boolean(entry.id));
@@ -2717,6 +2796,9 @@ function findAudioGroupCarveAttrFindings(ctx) {
   }
   return findings;
 }
+
+// src/rules/gsap.ts
+import postcss2 from "postcss";
 
 // src/scriptPositions.ts
 import { parse as parse3 } from "acorn";
@@ -4178,6 +4260,19 @@ async function loadGsapScriptMotionPathFirstUseIndex() {
 }
 var SCENE_BOUNDARY_EPSILON_SECONDS = 0.05;
 var TWEEN_ENDPOINT_EPSILON_SECONDS = 1e-3;
+function windowOverlap(a, b) {
+  const aIsPoint = a.end <= a.position;
+  const bIsPoint = b.end <= b.position;
+  if (aIsPoint && bIsPoint) return null;
+  if (aIsPoint || bIsPoint) {
+    const [point, running] = aIsPoint ? [a, b] : [b, a];
+    const inside = point.position > running.position + TWEEN_ENDPOINT_EPSILON_SECONDS && point.position < running.end - TWEEN_ENDPOINT_EPSILON_SECONDS;
+    return inside ? { start: point.position, end: point.position, running } : null;
+  }
+  const start = Math.max(a.position, b.position);
+  const end = Math.min(a.end, b.end);
+  return end - start > TWEEN_ENDPOINT_EPSILON_SECONDS ? { start, end } : null;
+}
 var UNRESOLVED_TARGET = "__unresolved__";
 function targetHasNoStableIdentity(selector, identity) {
   if (identity) return false;
@@ -4309,7 +4404,7 @@ function hiddenSetTargetSelectors(target, aliases) {
   const parts = target.startsWith("[") && target.endsWith("]") ? target.slice(1, -1).split(",") : [target];
   return parts.flatMap((part) => {
     const trimmed = part.trim();
-    const resolved = /^(["'`])([^"'`]+)\1$/.exec(trimmed)?.[2] ?? aliases.get(trimmed);
+    const resolved = /^(["'`])([^"'`]+)\1$/.exec(trimmed)?.[2] ?? /^[\w$.]+\.querySelector(?:All)?\(\s*(["'`])([^"'`]+)\1\s*\)$/.exec(trimmed)?.[2] ?? aliases.get(trimmed);
     return resolved === void 0 ? [] : resolved.split(",");
   }).map((selector) => selector.trim()).filter((selector) => selector.length > 0);
 }
@@ -4323,7 +4418,12 @@ function extractStandaloneHiddenSelectors(script) {
   )) {
     aliases.set(match2[1] ?? "", match2[3] ?? "");
   }
-  const pattern = /gsap\.set\s*\(\s*(\[[^[\]]*\]|"[^"]*"|'[^']*'|`[^`]*`|[^,()[\]]+?)\s*,\s*\{([\s\S]*?)\}\s*\)/g;
+  for (const match2 of source.matchAll(
+    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[\w$.]+\.querySelector(?:All)?\(\s*(["'`])([^"'`]+)\2\s*\)/g
+  )) {
+    aliases.set(match2[1] ?? "", match2[3] ?? "");
+  }
+  const pattern = /gsap\.set\s*\(\s*(\[[^[\]]*\]|"[^"]*"|'[^']*'|`[^`]*`|[\w$.]+\.querySelector(?:All)?\(\s*(?:"[^"]*"|'[^']*'|`[^`]*`)\s*\)|[^,()[\]]+?)\s*,\s*\{([\s\S]*?)\}\s*\)/g;
   let match;
   while ((match = pattern.exec(source)) !== null) {
     if (indexInsideNonIifeRange(match.index, source, functionRanges)) continue;
@@ -4823,17 +4923,30 @@ function indexInsideNonIifeRange(index, source, ranges) {
     (range) => index > range.start && index < range.end && !isIifeBody(source, range)
   );
 }
+function cssRuleSubjects(styles) {
+  const rules = [];
+  for (const style of styles) {
+    let root;
+    try {
+      root = postcss2.parse(style.content);
+    } catch {
+      continue;
+    }
+    root.walkRules((rule) => {
+      const subjects = rule.selectors.flatMap(
+        (selector) => /[#.][a-zA-Z0-9_-]+$/.exec(selector.trim())?.[0] ?? []
+      );
+      if (subjects.length) rules.push({ declarations: rule.nodes.map(String), subjects });
+    });
+  }
+  return rules;
+}
 function collectCssOpacityZeroSelectors(styles, tags) {
   const selectors = /* @__PURE__ */ new Set();
   const opacityExactlyZero = /opacity\s*:\s*0(?:\.0+)?\s*(?:;|$)/;
-  for (const style of styles) {
-    for (const [, selector, body] of style.content.matchAll(
-      /([#.][a-zA-Z0-9_-]+)\s*\{([^}]+)\}/g
-    )) {
-      if (body && opacityExactlyZero.test(body)) {
-        selectors.add((selector ?? "").trim());
-      }
-    }
+  for (const { declarations, subjects } of cssRuleSubjects(styles)) {
+    if (!declarations.some((declaration) => opacityExactlyZero.test(declaration))) continue;
+    for (const subject of subjects) selectors.add(subject);
   }
   for (const tag of tags) {
     const inlineStyle = readAttr(tag.raw, "style");
@@ -4907,29 +5020,28 @@ var gsapRules = [
       for (let i = 0; i < gsapWindows.length; i++) {
         const left = gsapWindows[i];
         if (!left) continue;
-        if (left.end <= left.position) continue;
         if (targetHasNoStableIdentity(left.targetSelector, left.targetIdentity)) continue;
         for (let j = i + 1; j < gsapWindows.length; j++) {
           const right = gsapWindows[j];
           if (!right) continue;
-          if (right.end <= right.position) continue;
           const leftIdentity = left.targetIdentity ?? left.targetSelector;
           const rightIdentity = right.targetIdentity ?? right.targetSelector;
           if (leftIdentity !== rightIdentity) continue;
-          const overlapStart = Math.max(left.position, right.position);
-          const overlapEnd = Math.min(left.end, right.end);
-          if (overlapEnd - overlapStart <= TWEEN_ENDPOINT_EPSILON_SECONDS) continue;
+          const overlap = windowOverlap(left, right);
+          if (!overlap) continue;
           if (left.overwriteAuto || right.overwriteAuto) continue;
           const sharedProperties = left.properties.filter(
             (prop) => right.properties.includes(prop)
           );
           if (sharedProperties.length === 0) continue;
+          const properties = sharedProperties.join(", ");
+          const { running } = overlap;
           findings.push({
             code: "overlapping_gsap_tweens",
             severity: "warning",
-            message: `GSAP tweens overlap on "${left.targetSelector}" for ${sharedProperties.join(", ")} between ${overlapStart.toFixed(2)}s and ${overlapEnd.toFixed(2)}s.`,
+            message: running ? `A GSAP set on "${left.targetSelector}" for ${properties} fires at ${overlap.start.toFixed(2)}s while a tween on it is still running (${running.position.toFixed(2)}s to ${running.end.toFixed(2)}s).` : `GSAP tweens overlap on "${left.targetSelector}" for ${properties} between ${overlap.start.toFixed(2)}s and ${overlap.end.toFixed(2)}s.`,
             selector: left.targetSelector,
-            fixHint: 'Shorten the earlier tween, move the later tween, or add `overwrite: "auto"`.',
+            fixHint: running ? `Let the tween finish before the set fires: move the set to ${running.end.toFixed(2)}s or later, or shorten the tween. Played in order the set wins; seeked (scrub, export) the tween can win, so an old state stays visible.` : 'Shorten the earlier tween, move the later tween, or add `overwrite: "auto"`.',
             snippet: truncateSnippet(`${left.raw}
 ${right.raw}`)
           });
@@ -4984,7 +5096,12 @@ ${right.raw}`)
           (win) => win.position <= SCENE_BOUNDARY_EPSILON_SECONDS && (isHiddenGsapState(win.propertyValues) || win.fromPropertyValues !== void 0 && isHiddenGsapState(win.fromPropertyValues))
         );
         if (startsHiddenAtZero) continue;
-        if (selectors.some((selector2) => authoredHiddenSelectors.has(selector2))) continue;
+        if (selectors.some(
+          (selector2) => [...authoredHiddenSelectors].some(
+            (hidden) => hidden === selector2 || targetedSelectorTokens(hidden).has(selector2)
+          )
+        ))
+          continue;
         const firstVisible = visibilityWindows.find((win) => makesOverlayVisible(win));
         if (!firstVisible) continue;
         const selector = selectors.find(
@@ -5037,17 +5154,13 @@ ${right.raw}`)
     const findings = [];
     const cssTranslateSelectors = /* @__PURE__ */ new Map();
     const cssScaleSelectors = /* @__PURE__ */ new Map();
-    for (const style of styles) {
-      for (const [, selector, body] of style.content.matchAll(
-        /([#.][a-zA-Z0-9_-]+)\s*\{([^}]+)\}/g
-      )) {
-        const tMatch = body?.match(/transform\s*:\s*([^;]+)/);
-        if (!tMatch || !tMatch[1]) continue;
-        const transformVal = tMatch[1].trim();
-        if (/translate/i.test(transformVal))
-          cssTranslateSelectors.set((selector ?? "").trim(), transformVal);
-        if (/scale/i.test(transformVal))
-          cssScaleSelectors.set((selector ?? "").trim(), transformVal);
+    for (const { declarations, subjects } of cssRuleSubjects(styles)) {
+      const tMatch = declarations.join(";").match(/transform\s*:\s*([^;]+)/);
+      if (!tMatch || !tMatch[1]) continue;
+      const transformVal = tMatch[1].trim();
+      for (const subject of subjects) {
+        if (/translate/i.test(transformVal)) cssTranslateSelectors.set(subject, transformVal);
+        if (/scale/i.test(transformVal)) cssScaleSelectors.set(subject, transformVal);
       }
     }
     for (const tag of tags) {
@@ -5295,6 +5408,7 @@ ${right.raw}`)
     const findings = [];
     const canInheritFromHost = options.isSubComposition || rawSource.trimStart().toLowerCase().startsWith("<template");
     for (const script of scripts) {
+      if (script.index === -1) continue;
       const content = script.content;
       if (!/gsap\.timeline/.test(content)) continue;
       const hasRegistration = WINDOW_TIMELINE_ASSIGN_PATTERN.test(content) || TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(content);
@@ -6156,9 +6270,14 @@ var captionRules = [
 ];
 
 // src/rules/adapters.ts
+function inheritsLibrariesFromHost({ options, rawSource }) {
+  return options.isSubComposition === true || rawSource.trimStart().toLowerCase().startsWith("<template");
+}
 var adapterRules = [
   // missing_lottie_script
-  ({ tags, scripts }) => {
+  (ctx) => {
+    const { tags, scripts } = ctx;
+    if (inheritsLibrariesFromHost(ctx)) return [];
     const { texts, srcs } = extractScriptTextsAndSrcs(scripts);
     const hasLottieAttr = tags.some((t) => readAttr(t.raw, "data-lottie-src") !== null);
     const usesLottieApi = texts.some(
@@ -6176,7 +6295,9 @@ var adapterRules = [
     ];
   },
   // missing_three_script
-  ({ scripts }) => {
+  (ctx) => {
+    const { scripts } = ctx;
+    if (inheritsLibrariesFromHost(ctx)) return [];
     const { texts, srcs } = extractScriptTextsAndSrcs(scripts);
     const usesThree = texts.some((t) => /\bTHREE\./.test(t));
     const hasThreeScript = srcs.some((src) => /three/i.test(src));
@@ -6199,7 +6320,7 @@ var adapterRules = [
 ];
 
 // src/rules/textures.ts
-import postcss2 from "postcss";
+import postcss3 from "postcss";
 var TEXTURE_BASE_CLASS = "hf-texture-text";
 var TEXTURE_CLASS_PREFIX = "hf-texture-";
 function classNames(tag) {
@@ -6246,7 +6367,7 @@ function collectTextureCss(styles) {
   for (const style of styles) {
     let root;
     try {
-      root = postcss2.parse(style.content);
+      root = postcss3.parse(style.content);
     } catch {
       continue;
     }
@@ -6376,8 +6497,12 @@ var textureRules = [
 ];
 
 // src/rules/fonts.ts
-import postcss3 from "postcss";
-import { FONT_ALIAS_KEYS, resolveAliasDisplayName } from "@hyperframes/parsers/composition";
+import postcss4 from "postcss";
+import {
+  FONT_ALIAS_KEYS,
+  parseFontShorthand,
+  resolveAliasDisplayName
+} from "@hyperframes/parsers/composition";
 var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
   "serif",
   "sans-serif",
@@ -6405,7 +6530,7 @@ var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
 ]);
 function parseFontCss(css) {
   try {
-    return postcss3.parse(css);
+    return postcss4.parse(css);
   } catch {
     return null;
   }
@@ -6429,6 +6554,9 @@ function extractFontFaceFamilies(styles) {
   }
   return families;
 }
+function declaredFontFamilies(styles, options) {
+  return /* @__PURE__ */ new Set([...extractFontFaceFamilies(styles), ...options.projectFontFamilies ?? []]);
+}
 function normalizeUsedFontName(part) {
   const name = part.trim().replace(/\s*!important\s*$/i, "").replace(/^['"]|['"]$/g, "").trim().toLowerCase();
   if (!name || name.includes("(") || name.includes(")")) return null;
@@ -6444,7 +6572,7 @@ function collectFontCustomProperties(styles) {
   return properties;
 }
 function resolveUsedFontNames(value, properties, resolving = /* @__PURE__ */ new Set()) {
-  return postcss3.list.comma(value).flatMap((part) => {
+  return postcss4.list.comma(value).flatMap((part) => {
     const variable = /^var\(\s*(--[^\s,()]+)\s*(?:,[\s\S]*)?\)$/i.exec(part.trim());
     if (!variable) {
       const name = normalizeUsedFontName(part);
@@ -6457,14 +6585,20 @@ function resolveUsedFontNames(value, properties, resolving = /* @__PURE__ */ new
     return resolveUsedFontNames(referenced, properties, new Set(resolving).add(property));
   });
 }
+function usedFamilyList(decl) {
+  if (isFontFaceDeclaration(decl)) return "";
+  if (decl.prop.toLowerCase() !== "font") return decl.value;
+  const shorthand = parseFontShorthand(decl.value);
+  return shorthand.certain ? shorthand.families : "";
+}
+var FONT_FAMILY_PROPS = /^font(?:-family)?$/i;
 function extractUsedFontFamilies(styles) {
   const used = [];
   const seen = /* @__PURE__ */ new Set();
   const properties = collectFontCustomProperties(styles);
   for (const style of styles) {
-    parseFontCss(style.content)?.walkDecls(/^font-family$/i, (decl) => {
-      if (isFontFaceDeclaration(decl)) return;
-      for (const name of resolveUsedFontNames(decl.value, properties)) {
+    parseFontCss(style.content)?.walkDecls(FONT_FAMILY_PROPS, (decl) => {
+      for (const name of resolveUsedFontNames(usedFamilyList(decl), properties)) {
         if (!GENERIC_FAMILIES.has(name) && !seen.has(name)) {
           seen.add(name);
           used.push(name);
@@ -6538,7 +6672,7 @@ var fontRules = [
   // so there is nothing for the author to act on.
   ({ styles, options }) => {
     if (!options.distributed) return [];
-    const declared = extractFontFaceFamilies(styles);
+    const declared = declaredFontFamilies(styles, options);
     const used = extractUsedFontFamilies(styles);
     const aliased = collectAliasedFonts(used, declared);
     if (aliased.length === 0) return [];
@@ -6554,7 +6688,7 @@ var fontRules = [
   ({ styles, source, rawSource, options, locate }) => {
     if (isRegistrySourceFile(options.filePath) || isRegistryInstalledFile(rawSource)) return [];
     const findings = [];
-    const declared = extractFontFaceFamilies(styles);
+    const declared = declaredFontFamilies(styles, options);
     const used = extractUsedFontFamilies(styles);
     const googleFonts = collectGoogleFontFamilies(source, styles);
     const undeclared = used.filter(
@@ -6566,8 +6700,32 @@ var fontRules = [
       code: "font_family_without_font_face",
       severity: "error",
       message: `Font ${undeclared.length === 1 ? "family" : "families"} used without @font-face declaration: ${undeclared.join(", ")}. These are not in the auto-resolved font list, so the renderer cannot supply them automatically. Text will fall back to a generic font, producing incorrect typography in the video.`,
-      fixHint: "Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files. For an OS-bundled system font (e.g. Hiragino Sans, Microsoft YaHei) that has no downloadable file, use src: local('Exact Font Name') instead. The declaration alone satisfies this check without needing a font file."
+      fixHint: "Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files, or switch to a Google Fonts family. An OS font such as PingFang SC or Hiragino Sans renders locally from the installed copy, but a cloud render has no copy and refuses it."
     });
+    return findings;
+  },
+  ({ styles, rawSource, options, locate }) => {
+    if (isRegistrySourceFile(options.filePath) || isRegistryInstalledFile(rawSource)) return [];
+    const findings = [];
+    for (const style of styles) {
+      parseFontCss(style.content)?.walkAtRules(/^font-face$/i, (rule) => {
+        let family = null;
+        let sources = "";
+        rule.walkDecls((decl) => {
+          const prop = decl.prop.toLowerCase();
+          if (prop === "font-family") family = normalizeUsedFontName(decl.value);
+          else if (prop === "src") sources += ` ${decl.value}`;
+        });
+        if (!family || !/\blocal\s*\(/i.test(sources) || /\burl\s*\(/i.test(sources)) return;
+        findings.push({
+          ...locate(style, rule.source?.start?.offset),
+          code: "font_face_local_only",
+          severity: "warning",
+          message: `@font-face '${family}' only names a font installed on this machine (src: local()). A local render uses the installed copy; a cloud render or another machine has none and falls back to a different font.`,
+          fixHint: "Add a url() source to the font file (.woff2) inside the project, or use a Google Fonts family, so every render draws the same glyphs."
+        });
+      });
+    }
     return findings;
   }
 ];
@@ -6576,10 +6734,9 @@ function uniqueFontLocation(styles, families, locate) {
   const properties = collectFontCustomProperties(styles);
   for (const style of styles) {
     try {
-      postcss3.parse(style.content).walkDecls(/^font-family$/i, (decl) => {
-        if (isFontFaceDeclaration(decl)) return;
-        if (!resolveUsedFontNames(decl.value, properties).some((name) => families.includes(name)))
-          return;
+      postcss4.parse(style.content).walkDecls(FONT_FAMILY_PROPS, (decl) => {
+        const named = resolveUsedFontNames(usedFamilyList(decl), properties);
+        if (!named.some((name) => families.includes(name))) return;
         locations.push(locate(style, decl.source?.start?.offset));
       });
     } catch {

@@ -792,7 +792,17 @@ function buildLintContext(html, options = {}) {
       rootRelativePath: style.rootRelativePath
     }))
   ];
-  const scripts = structure.scripts;
+  const scripts = [
+    ...structure.scripts,
+    ...(options.externalScripts ?? []).map((script) => ({
+      attrs: script.attrs,
+      content: script.content,
+      raw: script.content,
+      index: -1,
+      file: script.file,
+      rootRelativePath: script.rootRelativePath
+    }))
+  ];
   const compositionIds = collectCompositionIds(tags);
   const rootTag = findRootTag(source, tags);
   const rootCompositionId = readDecodedAttr(rootTag?.raw || "", "data-composition-id");
@@ -1395,7 +1405,10 @@ var coreRules = [
     }
     if (/(?:^|\s)data-no-timeline(?=[\s=/]|$)/i.test(rootTag?.attrs || "")) return [];
     const findings = [];
-    if (!TIMELINE_REGISTRY_INIT_PATTERN.test(source) && !TIMELINE_REGISTRY_ASSIGN_PATTERN.test(source) && !TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(source)) {
+    const registered = [source, ...(options.externalScripts ?? []).map((script) => script.content)];
+    if (!registered.some(
+      (text) => TIMELINE_REGISTRY_INIT_PATTERN.test(text) || TIMELINE_REGISTRY_ASSIGN_PATTERN.test(text) || TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(text)
+    )) {
       findings.push({
         code: "missing_timeline_registry",
         severity: "error",
@@ -1566,9 +1579,9 @@ var coreRules = [
   ({ scripts, locate }) => {
     const findings = [];
     for (const script of scripts) {
-      const type = readDecodedAttr(script.raw, "type")?.trim().toLowerCase() ?? "";
-      if (readDecodedAttr(script.raw, "src") !== null || SCRIPT_SYNTAX_EXEMPT_TYPES.has(type))
-        continue;
+      const tag = `<script ${script.attrs}>`;
+      const type = readDecodedAttr(tag, "type")?.trim().toLowerCase() ?? "";
+      if (readDecodedAttr(tag, "src") !== null || SCRIPT_SYNTAX_EXEMPT_TYPES.has(type)) continue;
       const syntaxError = getInlineScriptSyntaxError(script.content);
       if (!syntaxError) continue;
       findings.push({
@@ -1813,6 +1826,71 @@ function findLinkedClipFindings(ctx) {
       fixHint: "Linked clips are edited as one: give every member the same data-start, data-duration, data-media-start and data-playback-rate, or remove data-link from all of them to unlink.",
       snippet: truncateSnippet(first.raw)
     });
+  }
+  return findings;
+}
+
+// src/rules/audioAttributes.ts
+var AUDIO_ATTRIBUTES = {
+  "data-automation": { list: "lanes", noun: "automation", item: "Lane" },
+  "data-fx-chain": { list: "nodes", noun: "chain", item: "Node" }
+};
+var AUDIO_ATTRIBUTE_VERSION = 1;
+function audioAttributeShapeError(attr, json) {
+  const { list, noun, item } = AUDIO_ATTRIBUTES[attr];
+  const parsed = parseEnvelope(json);
+  if (typeof parsed === "string") return parsed;
+  if (parsed.version !== AUDIO_ATTRIBUTE_VERSION) {
+    return `unsupported ${noun} version: ${String(parsed.version)}`;
+  }
+  const entries = parsed[list];
+  if (!Array.isArray(entries)) return `it is missing a \`${list}\` array`;
+  for (const [i, entry] of entries.entries()) {
+    const reason = entryShapeError(attr, item, i, entry);
+    if (reason) return reason;
+  }
+  return null;
+}
+function parseEnvelope(json) {
+  let raw;
+  try {
+    raw = JSON.parse(json);
+  } catch (err) {
+    return `it is not valid JSON (${err.message})`;
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw))
+    return "it is not a JSON object";
+  return raw;
+}
+function entryShapeError(attr, item, i, entry) {
+  if (typeof entry !== "object" || entry === null) return `${item} ${i} is not an object`;
+  const fields = entry;
+  if (attr === "data-fx-chain") {
+    return typeof fields.type === "string" ? null : `Node ${i} has no effect \`type\``;
+  }
+  if (typeof fields.target !== "string") return `Lane ${i} has no \`target\``;
+  if (!Array.isArray(fields.points)) return `Lane ${i} is missing a \`points\` array`;
+  return null;
+}
+function findUnreadableAudioAttributeFindings(ctx) {
+  const findings = [];
+  for (const tag of ctx.tags) {
+    for (const attr of Object.keys(AUDIO_ATTRIBUTES)) {
+      const value = readDecodedAttr(tag.raw, attr);
+      if (value === null || value === "") continue;
+      const reason = audioAttributeShapeError(attr, value);
+      if (!reason) continue;
+      const id = readAttr(tag.raw, "id");
+      const { list } = AUDIO_ATTRIBUTES[attr];
+      findings.push({
+        code: "audio_attribute_unreadable",
+        severity: "error",
+        message: `${id ? `#${id}` : `<${tag.name}>`} has a \`${attr}\` the render cannot read: ${reason}. The render fails on it, locally and in the cloud.`,
+        elementId: id || void 0,
+        fixHint: `Write it as {"version": ${AUDIO_ATTRIBUTE_VERSION}, "${list}": [...]}, or remove the attribute.`,
+        snippet: truncateSnippet(tag.raw)
+      });
+    }
   }
   return findings;
 }
@@ -2341,7 +2419,7 @@ var mediaRules = [
         severity: "error",
         message: `<video> with data-start is nested inside <${parent.name}${parent.id ? ` id="${parent.id}"` : ""}> which also has data-start. The frame extractor resolves the video's start from its own data-start without the wrapper's offset, while visibility uses the wrapper's window, so the two disagree: the clip shows the wrong source frames and then disappears partway through its slot.`,
         elementId: readAttr(tag.raw, "id") || void 0,
-        fixHint: "Time the wrapper OR the video, never both: remove data-start from the wrapper (use it as a non-timed visual container), or move the <video> up to be a direct child of the stage.",
+        fixHint: "A <video> takes no timing from its wrapper: time the <video> and leave the wrapper untimed (remove its data-start; it only places or animates), or move the <video> up to be a direct child of the stage.",
         snippet: truncateSnippet(tag.raw)
       });
     }
@@ -2425,7 +2503,7 @@ var mediaRules = [
           severity: "error",
           message: `<${tag.name}${hasId ? ` id="${hasId}"` : ""}> has src but no data-start. HyperFrames cannot own playback for untimed media, so preview and render behavior can diverge.`,
           elementId: hasId || void 0,
-          fixHint: wrapper ? `This <${tag.name}> sits inside the timed <${wrapper.name}${wrapper.id ? ` id="${wrapper.id}"` : ""}> (data-start="${wrapper.start}"), and the wrapper's data-start would then clash. Move the <${tag.name}> out as a direct child of the stage and give it that wrapper's data-start="${wrapper.start}"${wrapper.duration ? ` and data-duration="${wrapper.duration}"` : ""}.` : `Add data-start="0" (or the intended start time) and data-duration if the clip should stop before the source ends.`,
+          fixHint: wrapper ? `This <${tag.name}> sits inside the timed <${wrapper.name}${wrapper.id ? ` id="${wrapper.id}"` : ""}> (data-start="${wrapper.start}") and takes no timing from it, so without its own data-start it plays from composition time 0, and a data-start on it would clash with the wrapper's. Move the <${tag.name}> out as a direct child of the stage and give it that wrapper's data-start="${wrapper.start}"${wrapper.duration ? ` and data-duration="${wrapper.duration}"` : ""}.` : `Add data-start="0" (or the intended start time) and data-duration if the clip should stop before the source ends.`,
           snippet: truncateSnippet(tag.raw)
         });
       }
@@ -2549,7 +2627,8 @@ var mediaRules = [
   findAudioGroupCarveAttrFindings,
   // audio_group_holds_elements
   findAudioGroupHoldsElementsFindings,
-  findLinkedClipFindings
+  findLinkedClipFindings,
+  findUnreadableAudioAttributeFindings
 ];
 function findVolumeTweenOverridesGainFindings(ctx) {
   const boosted = ctx.tags.filter((tag) => isMediaTag(tag.name)).map((tag) => ({ tag, volume: Number(readAttr(tag.raw, "data-volume") ?? "1") })).filter((entry) => Number.isFinite(entry.volume) && entry.volume !== 1).filter((entry) => !readDecodedAttr(entry.tag.raw, "data-automation")).map((entry) => ({ ...entry, id: readAttr(entry.tag.raw, "id") })).filter((entry) => Boolean(entry.id));
@@ -2723,6 +2802,9 @@ function findAudioGroupCarveAttrFindings(ctx) {
   }
   return findings;
 }
+
+// src/rules/gsap.ts
+import postcss2 from "postcss";
 
 // src/scriptPositions.ts
 import { parse as parse3 } from "acorn";
@@ -4184,6 +4266,19 @@ async function loadGsapScriptMotionPathFirstUseIndex() {
 }
 var SCENE_BOUNDARY_EPSILON_SECONDS = 0.05;
 var TWEEN_ENDPOINT_EPSILON_SECONDS = 1e-3;
+function windowOverlap(a, b) {
+  const aIsPoint = a.end <= a.position;
+  const bIsPoint = b.end <= b.position;
+  if (aIsPoint && bIsPoint) return null;
+  if (aIsPoint || bIsPoint) {
+    const [point, running] = aIsPoint ? [a, b] : [b, a];
+    const inside = point.position > running.position + TWEEN_ENDPOINT_EPSILON_SECONDS && point.position < running.end - TWEEN_ENDPOINT_EPSILON_SECONDS;
+    return inside ? { start: point.position, end: point.position, running } : null;
+  }
+  const start = Math.max(a.position, b.position);
+  const end = Math.min(a.end, b.end);
+  return end - start > TWEEN_ENDPOINT_EPSILON_SECONDS ? { start, end } : null;
+}
 var UNRESOLVED_TARGET = "__unresolved__";
 function targetHasNoStableIdentity(selector, identity) {
   if (identity) return false;
@@ -4315,7 +4410,7 @@ function hiddenSetTargetSelectors(target, aliases) {
   const parts = target.startsWith("[") && target.endsWith("]") ? target.slice(1, -1).split(",") : [target];
   return parts.flatMap((part) => {
     const trimmed = part.trim();
-    const resolved = /^(["'`])([^"'`]+)\1$/.exec(trimmed)?.[2] ?? aliases.get(trimmed);
+    const resolved = /^(["'`])([^"'`]+)\1$/.exec(trimmed)?.[2] ?? /^[\w$.]+\.querySelector(?:All)?\(\s*(["'`])([^"'`]+)\1\s*\)$/.exec(trimmed)?.[2] ?? aliases.get(trimmed);
     return resolved === void 0 ? [] : resolved.split(",");
   }).map((selector) => selector.trim()).filter((selector) => selector.length > 0);
 }
@@ -4329,7 +4424,12 @@ function extractStandaloneHiddenSelectors(script) {
   )) {
     aliases.set(match2[1] ?? "", match2[3] ?? "");
   }
-  const pattern = /gsap\.set\s*\(\s*(\[[^[\]]*\]|"[^"]*"|'[^']*'|`[^`]*`|[^,()[\]]+?)\s*,\s*\{([\s\S]*?)\}\s*\)/g;
+  for (const match2 of source.matchAll(
+    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*[\w$.]+\.querySelector(?:All)?\(\s*(["'`])([^"'`]+)\2\s*\)/g
+  )) {
+    aliases.set(match2[1] ?? "", match2[3] ?? "");
+  }
+  const pattern = /gsap\.set\s*\(\s*(\[[^[\]]*\]|"[^"]*"|'[^']*'|`[^`]*`|[\w$.]+\.querySelector(?:All)?\(\s*(?:"[^"]*"|'[^']*'|`[^`]*`)\s*\)|[^,()[\]]+?)\s*,\s*\{([\s\S]*?)\}\s*\)/g;
   let match;
   while ((match = pattern.exec(source)) !== null) {
     if (indexInsideNonIifeRange(match.index, source, functionRanges)) continue;
@@ -4829,17 +4929,30 @@ function indexInsideNonIifeRange(index, source, ranges) {
     (range) => index > range.start && index < range.end && !isIifeBody(source, range)
   );
 }
+function cssRuleSubjects(styles) {
+  const rules = [];
+  for (const style of styles) {
+    let root;
+    try {
+      root = postcss2.parse(style.content);
+    } catch {
+      continue;
+    }
+    root.walkRules((rule) => {
+      const subjects = rule.selectors.flatMap(
+        (selector) => /[#.][a-zA-Z0-9_-]+$/.exec(selector.trim())?.[0] ?? []
+      );
+      if (subjects.length) rules.push({ declarations: rule.nodes.map(String), subjects });
+    });
+  }
+  return rules;
+}
 function collectCssOpacityZeroSelectors(styles, tags) {
   const selectors = /* @__PURE__ */ new Set();
   const opacityExactlyZero = /opacity\s*:\s*0(?:\.0+)?\s*(?:;|$)/;
-  for (const style of styles) {
-    for (const [, selector, body] of style.content.matchAll(
-      /([#.][a-zA-Z0-9_-]+)\s*\{([^}]+)\}/g
-    )) {
-      if (body && opacityExactlyZero.test(body)) {
-        selectors.add((selector ?? "").trim());
-      }
-    }
+  for (const { declarations, subjects } of cssRuleSubjects(styles)) {
+    if (!declarations.some((declaration) => opacityExactlyZero.test(declaration))) continue;
+    for (const subject of subjects) selectors.add(subject);
   }
   for (const tag of tags) {
     const inlineStyle = readAttr(tag.raw, "style");
@@ -4913,29 +5026,28 @@ var gsapRules = [
       for (let i = 0; i < gsapWindows.length; i++) {
         const left = gsapWindows[i];
         if (!left) continue;
-        if (left.end <= left.position) continue;
         if (targetHasNoStableIdentity(left.targetSelector, left.targetIdentity)) continue;
         for (let j = i + 1; j < gsapWindows.length; j++) {
           const right = gsapWindows[j];
           if (!right) continue;
-          if (right.end <= right.position) continue;
           const leftIdentity = left.targetIdentity ?? left.targetSelector;
           const rightIdentity = right.targetIdentity ?? right.targetSelector;
           if (leftIdentity !== rightIdentity) continue;
-          const overlapStart = Math.max(left.position, right.position);
-          const overlapEnd = Math.min(left.end, right.end);
-          if (overlapEnd - overlapStart <= TWEEN_ENDPOINT_EPSILON_SECONDS) continue;
+          const overlap = windowOverlap(left, right);
+          if (!overlap) continue;
           if (left.overwriteAuto || right.overwriteAuto) continue;
           const sharedProperties = left.properties.filter(
             (prop) => right.properties.includes(prop)
           );
           if (sharedProperties.length === 0) continue;
+          const properties = sharedProperties.join(", ");
+          const { running } = overlap;
           findings.push({
             code: "overlapping_gsap_tweens",
             severity: "warning",
-            message: `GSAP tweens overlap on "${left.targetSelector}" for ${sharedProperties.join(", ")} between ${overlapStart.toFixed(2)}s and ${overlapEnd.toFixed(2)}s.`,
+            message: running ? `A GSAP set on "${left.targetSelector}" for ${properties} fires at ${overlap.start.toFixed(2)}s while a tween on it is still running (${running.position.toFixed(2)}s to ${running.end.toFixed(2)}s).` : `GSAP tweens overlap on "${left.targetSelector}" for ${properties} between ${overlap.start.toFixed(2)}s and ${overlap.end.toFixed(2)}s.`,
             selector: left.targetSelector,
-            fixHint: 'Shorten the earlier tween, move the later tween, or add `overwrite: "auto"`.',
+            fixHint: running ? `Let the tween finish before the set fires: move the set to ${running.end.toFixed(2)}s or later, or shorten the tween. Played in order the set wins; seeked (scrub, export) the tween can win, so an old state stays visible.` : 'Shorten the earlier tween, move the later tween, or add `overwrite: "auto"`.',
             snippet: truncateSnippet(`${left.raw}
 ${right.raw}`)
           });
@@ -4990,7 +5102,12 @@ ${right.raw}`)
           (win) => win.position <= SCENE_BOUNDARY_EPSILON_SECONDS && (isHiddenGsapState(win.propertyValues) || win.fromPropertyValues !== void 0 && isHiddenGsapState(win.fromPropertyValues))
         );
         if (startsHiddenAtZero) continue;
-        if (selectors.some((selector2) => authoredHiddenSelectors.has(selector2))) continue;
+        if (selectors.some(
+          (selector2) => [...authoredHiddenSelectors].some(
+            (hidden) => hidden === selector2 || targetedSelectorTokens(hidden).has(selector2)
+          )
+        ))
+          continue;
         const firstVisible = visibilityWindows.find((win) => makesOverlayVisible(win));
         if (!firstVisible) continue;
         const selector = selectors.find(
@@ -5043,17 +5160,13 @@ ${right.raw}`)
     const findings = [];
     const cssTranslateSelectors = /* @__PURE__ */ new Map();
     const cssScaleSelectors = /* @__PURE__ */ new Map();
-    for (const style of styles) {
-      for (const [, selector, body] of style.content.matchAll(
-        /([#.][a-zA-Z0-9_-]+)\s*\{([^}]+)\}/g
-      )) {
-        const tMatch = body?.match(/transform\s*:\s*([^;]+)/);
-        if (!tMatch || !tMatch[1]) continue;
-        const transformVal = tMatch[1].trim();
-        if (/translate/i.test(transformVal))
-          cssTranslateSelectors.set((selector ?? "").trim(), transformVal);
-        if (/scale/i.test(transformVal))
-          cssScaleSelectors.set((selector ?? "").trim(), transformVal);
+    for (const { declarations, subjects } of cssRuleSubjects(styles)) {
+      const tMatch = declarations.join(";").match(/transform\s*:\s*([^;]+)/);
+      if (!tMatch || !tMatch[1]) continue;
+      const transformVal = tMatch[1].trim();
+      for (const subject of subjects) {
+        if (/translate/i.test(transformVal)) cssTranslateSelectors.set(subject, transformVal);
+        if (/scale/i.test(transformVal)) cssScaleSelectors.set(subject, transformVal);
       }
     }
     for (const tag of tags) {
@@ -5301,6 +5414,7 @@ ${right.raw}`)
     const findings = [];
     const canInheritFromHost = options.isSubComposition || rawSource.trimStart().toLowerCase().startsWith("<template");
     for (const script of scripts) {
+      if (script.index === -1) continue;
       const content = script.content;
       if (!/gsap\.timeline/.test(content)) continue;
       const hasRegistration = WINDOW_TIMELINE_ASSIGN_PATTERN.test(content) || TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN.test(content);
@@ -6162,9 +6276,14 @@ var captionRules = [
 ];
 
 // src/rules/adapters.ts
+function inheritsLibrariesFromHost({ options, rawSource }) {
+  return options.isSubComposition === true || rawSource.trimStart().toLowerCase().startsWith("<template");
+}
 var adapterRules = [
   // missing_lottie_script
-  ({ tags, scripts }) => {
+  (ctx) => {
+    const { tags, scripts } = ctx;
+    if (inheritsLibrariesFromHost(ctx)) return [];
     const { texts, srcs } = extractScriptTextsAndSrcs(scripts);
     const hasLottieAttr = tags.some((t) => readAttr(t.raw, "data-lottie-src") !== null);
     const usesLottieApi = texts.some(
@@ -6182,7 +6301,9 @@ var adapterRules = [
     ];
   },
   // missing_three_script
-  ({ scripts }) => {
+  (ctx) => {
+    const { scripts } = ctx;
+    if (inheritsLibrariesFromHost(ctx)) return [];
     const { texts, srcs } = extractScriptTextsAndSrcs(scripts);
     const usesThree = texts.some((t) => /\bTHREE\./.test(t));
     const hasThreeScript = srcs.some((src) => /three/i.test(src));
@@ -6205,7 +6326,7 @@ var adapterRules = [
 ];
 
 // src/rules/textures.ts
-import postcss2 from "postcss";
+import postcss3 from "postcss";
 var TEXTURE_BASE_CLASS = "hf-texture-text";
 var TEXTURE_CLASS_PREFIX = "hf-texture-";
 function classNames(tag) {
@@ -6252,7 +6373,7 @@ function collectTextureCss(styles) {
   for (const style of styles) {
     let root;
     try {
-      root = postcss2.parse(style.content);
+      root = postcss3.parse(style.content);
     } catch {
       continue;
     }
@@ -6382,8 +6503,12 @@ var textureRules = [
 ];
 
 // src/rules/fonts.ts
-import postcss3 from "postcss";
-import { FONT_ALIAS_KEYS, resolveAliasDisplayName } from "@hyperframes/parsers/composition";
+import postcss4 from "postcss";
+import {
+  FONT_ALIAS_KEYS,
+  parseFontShorthand,
+  resolveAliasDisplayName
+} from "@hyperframes/parsers/composition";
 var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
   "serif",
   "sans-serif",
@@ -6411,7 +6536,7 @@ var GENERIC_FAMILIES = /* @__PURE__ */ new Set([
 ]);
 function parseFontCss(css) {
   try {
-    return postcss3.parse(css);
+    return postcss4.parse(css);
   } catch {
     return null;
   }
@@ -6435,6 +6560,9 @@ function extractFontFaceFamilies(styles) {
   }
   return families;
 }
+function declaredFontFamilies(styles, options) {
+  return /* @__PURE__ */ new Set([...extractFontFaceFamilies(styles), ...options.projectFontFamilies ?? []]);
+}
 function normalizeUsedFontName(part) {
   const name = part.trim().replace(/\s*!important\s*$/i, "").replace(/^['"]|['"]$/g, "").trim().toLowerCase();
   if (!name || name.includes("(") || name.includes(")")) return null;
@@ -6450,7 +6578,7 @@ function collectFontCustomProperties(styles) {
   return properties;
 }
 function resolveUsedFontNames(value, properties, resolving = /* @__PURE__ */ new Set()) {
-  return postcss3.list.comma(value).flatMap((part) => {
+  return postcss4.list.comma(value).flatMap((part) => {
     const variable = /^var\(\s*(--[^\s,()]+)\s*(?:,[\s\S]*)?\)$/i.exec(part.trim());
     if (!variable) {
       const name = normalizeUsedFontName(part);
@@ -6463,14 +6591,20 @@ function resolveUsedFontNames(value, properties, resolving = /* @__PURE__ */ new
     return resolveUsedFontNames(referenced, properties, new Set(resolving).add(property));
   });
 }
+function usedFamilyList(decl) {
+  if (isFontFaceDeclaration(decl)) return "";
+  if (decl.prop.toLowerCase() !== "font") return decl.value;
+  const shorthand = parseFontShorthand(decl.value);
+  return shorthand.certain ? shorthand.families : "";
+}
+var FONT_FAMILY_PROPS = /^font(?:-family)?$/i;
 function extractUsedFontFamilies(styles) {
   const used = [];
   const seen = /* @__PURE__ */ new Set();
   const properties = collectFontCustomProperties(styles);
   for (const style of styles) {
-    parseFontCss(style.content)?.walkDecls(/^font-family$/i, (decl) => {
-      if (isFontFaceDeclaration(decl)) return;
-      for (const name of resolveUsedFontNames(decl.value, properties)) {
+    parseFontCss(style.content)?.walkDecls(FONT_FAMILY_PROPS, (decl) => {
+      for (const name of resolveUsedFontNames(usedFamilyList(decl), properties)) {
         if (!GENERIC_FAMILIES.has(name) && !seen.has(name)) {
           seen.add(name);
           used.push(name);
@@ -6544,7 +6678,7 @@ var fontRules = [
   // so there is nothing for the author to act on.
   ({ styles, options }) => {
     if (!options.distributed) return [];
-    const declared = extractFontFaceFamilies(styles);
+    const declared = declaredFontFamilies(styles, options);
     const used = extractUsedFontFamilies(styles);
     const aliased = collectAliasedFonts(used, declared);
     if (aliased.length === 0) return [];
@@ -6560,7 +6694,7 @@ var fontRules = [
   ({ styles, source, rawSource, options, locate }) => {
     if (isRegistrySourceFile(options.filePath) || isRegistryInstalledFile(rawSource)) return [];
     const findings = [];
-    const declared = extractFontFaceFamilies(styles);
+    const declared = declaredFontFamilies(styles, options);
     const used = extractUsedFontFamilies(styles);
     const googleFonts = collectGoogleFontFamilies(source, styles);
     const undeclared = used.filter(
@@ -6572,8 +6706,32 @@ var fontRules = [
       code: "font_family_without_font_face",
       severity: "error",
       message: `Font ${undeclared.length === 1 ? "family" : "families"} used without @font-face declaration: ${undeclared.join(", ")}. These are not in the auto-resolved font list, so the renderer cannot supply them automatically. Text will fall back to a generic font, producing incorrect typography in the video.`,
-      fixHint: "Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files. For an OS-bundled system font (e.g. Hiragino Sans, Microsoft YaHei) that has no downloadable file, use src: local('Exact Font Name') instead. The declaration alone satisfies this check without needing a font file."
+      fixHint: "Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files, or switch to a Google Fonts family. An OS font such as PingFang SC or Hiragino Sans renders locally from the installed copy, but a cloud render has no copy and refuses it."
     });
+    return findings;
+  },
+  ({ styles, rawSource, options, locate }) => {
+    if (isRegistrySourceFile(options.filePath) || isRegistryInstalledFile(rawSource)) return [];
+    const findings = [];
+    for (const style of styles) {
+      parseFontCss(style.content)?.walkAtRules(/^font-face$/i, (rule) => {
+        let family = null;
+        let sources = "";
+        rule.walkDecls((decl) => {
+          const prop = decl.prop.toLowerCase();
+          if (prop === "font-family") family = normalizeUsedFontName(decl.value);
+          else if (prop === "src") sources += ` ${decl.value}`;
+        });
+        if (!family || !/\blocal\s*\(/i.test(sources) || /\burl\s*\(/i.test(sources)) return;
+        findings.push({
+          ...locate(style, rule.source?.start?.offset),
+          code: "font_face_local_only",
+          severity: "warning",
+          message: `@font-face '${family}' only names a font installed on this machine (src: local()). A local render uses the installed copy; a cloud render or another machine has none and falls back to a different font.`,
+          fixHint: "Add a url() source to the font file (.woff2) inside the project, or use a Google Fonts family, so every render draws the same glyphs."
+        });
+      });
+    }
     return findings;
   }
 ];
@@ -6582,10 +6740,9 @@ function uniqueFontLocation(styles, families, locate) {
   const properties = collectFontCustomProperties(styles);
   for (const style of styles) {
     try {
-      postcss3.parse(style.content).walkDecls(/^font-family$/i, (decl) => {
-        if (isFontFaceDeclaration(decl)) return;
-        if (!resolveUsedFontNames(decl.value, properties).some((name) => families.includes(name)))
-          return;
+      postcss4.parse(style.content).walkDecls(FONT_FAMILY_PROPS, (decl) => {
+        const named = resolveUsedFontNames(usedFamilyList(decl), properties);
+        if (!named.some((name) => families.includes(name))) return;
         locations.push(locate(style, decl.source?.start?.offset));
       });
     } catch {
@@ -7104,8 +7261,22 @@ function shouldBlockRender(strictErrors, strictAll, totalErrors, totalWarnings) 
 
 // src/project.ts
 import { createHash } from "crypto";
-import { existsSync as existsSync2, readFileSync, readdirSync } from "fs";
-import { dirname as dirname2, extname, join as join3, relative as relative2, resolve } from "path";
+import { existsSync as existsSync3, readdirSync } from "fs";
+
+// src/projectIgnore.ts
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
+import ignore from "ignore";
+var DEFAULT_PROJECT_IGNORE = ["/renders/", "/snapshots/", ".*"];
+function projectIgnore(projectDir) {
+  const matcher = ignore().add(DEFAULT_PROJECT_IGNORE);
+  const ignorePath = join(projectDir, ".hyperframesignore");
+  if (existsSync(ignorePath)) matcher.add(readFileSync(ignorePath, "utf-8"));
+  return matcher;
+}
+
+// src/project.ts
+import { dirname as dirname2, extname, join as join4, relative as relative2, resolve } from "path";
 import { rewriteAssetPath as rewriteAssetPath2 } from "@hyperframes/parsers/asset-paths";
 import { spansOverlap } from "@hyperframes/parsers/time-spans";
 import {
@@ -7121,7 +7292,7 @@ import {
 } from "@hyperframes/parsers/reference-resolver";
 import { checkSubCompositionUsability } from "@hyperframes/parsers/sub-composition-validity";
 import { parseHTML as parseHTML3 } from "linkedom";
-import postcss4 from "postcss";
+import postcss5 from "postcss";
 import {
   cleanAssetUrl as cleanAssetUrl2,
   collectSubCompositionSrcs,
@@ -7132,14 +7303,15 @@ import {
   readProjectFile as readProjectFile2,
   resolveExistingLocalAsset as resolveExistingLocalAsset3,
   resolveLocalAssetCandidates,
-  resolveProjectRelativeSrc
+  resolveProjectRelativeSrc,
+  readTextFile
 } from "@hyperframes/parsers/asset-resolution";
 import { encodeUrlPath } from "@hyperframes/parsers";
 
 // src/hevcPreviewLint.ts
 import { execFile } from "child_process";
-import { existsSync } from "fs";
-import { join } from "path";
+import { existsSync as existsSync2 } from "fs";
+import { join as join2 } from "path";
 import { rewriteAssetPath } from "@hyperframes/parsers/asset-paths";
 import { parseNumeric } from "@hyperframes/parsers/composition-contract";
 import { findFfBinary } from "@hyperframes/parsers/ff-binaries";
@@ -7180,7 +7352,7 @@ function resolveLocalVideoReference(projectDir, rawSrc, compSrcPath) {
   if (isUnresolvedAssetPlaceholder(rawSrc)) return null;
   const src = cleanAssetUrl(rawSrc);
   if (!src || isRemoteOrInlineUrl(src)) return null;
-  const rootRelative = compSrcPath ? rewriteAssetPath(compSrcPath, src, (path) => existsSync(join(projectDir, path))) : src;
+  const rootRelative = compSrcPath ? rewriteAssetPath(compSrcPath, src, (path) => existsSync2(join2(projectDir, path))) : src;
   const asset = resolveExistingLocalAsset(projectDir, rootRelative);
   return asset ? { resolved: asset.resolved, src } : null;
 }
@@ -7374,7 +7546,7 @@ async function lintHevcPreviewCodec(candidates) {
 
 // src/projectShaders.ts
 import { realpathSync } from "fs";
-import { dirname, join as join2, relative } from "path";
+import { dirname, join as join3, relative } from "path";
 import {
   isWithinProjectRoot,
   readProjectFile,
@@ -7385,7 +7557,7 @@ function isAuthoredScript(path) {
 }
 function localScript(projectDir, src, compSrcPath) {
   if (/^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(src)) return;
-  const besideFile = src.startsWith("/") ? src : join2(dirname(compSrcPath ?? "index.html"), src);
+  const besideFile = src.startsWith("/") ? src : join3(dirname(compSrcPath ?? "index.html"), src);
   const asset = resolveExistingLocalAsset2(projectDir, besideFile);
   if (!asset) return;
   try {
@@ -7458,7 +7630,7 @@ function collectLocalStylesheets(projectDir, document, compSrcPath) {
     if (!rel.split(/\s+/).some((part) => part.toLowerCase() === "stylesheet")) continue;
     const href = link.getAttribute("href") ?? "";
     if (!isLocalStylesheetHref(href)) continue;
-    const besideFile = compSrcPath ? join3(dirname2(compSrcPath), href) : href;
+    const besideFile = compSrcPath ? join4(dirname2(compSrcPath), href) : href;
     const stylesheet = resolveExistingLocalAsset3(projectDir, besideFile) ?? (compSrcPath && staysInsideProjectRoot(href) ? resolveExistingLocalAsset3(projectDir, href) : null);
     if (!stylesheet) continue;
     const read = readProjectFile2(stylesheet.resolved);
@@ -7475,9 +7647,39 @@ function collectExternalStyles(projectDir, html, compSrcPath) {
     document,
     compSrcPath
   )) {
-    styles.push({ href, content, file: join3(projectDir, rootRelativePath), rootRelativePath });
+    styles.push({ href, content, file: join4(projectDir, rootRelativePath), rootRelativePath });
   }
   return styles;
+}
+var MAX_EXTERNAL_SCRIPT_BYTES = 1e6;
+function linkedSources(projectDir, html, compSrcPath) {
+  return {
+    externalStyles: collectExternalStyles(projectDir, html, compSrcPath),
+    externalScripts: collectExternalScripts(projectDir, html, compSrcPath)
+  };
+}
+function collectExternalScripts(projectDir, html, compSrcPath) {
+  const scripts = [];
+  const { document } = parseHTML3(html);
+  for (const element of querySelectorAllIncludingTemplates(document, "script[src]")) {
+    const src = element.getAttribute("src") ?? "";
+    if (!isLocalStylesheetHref(src) || /\.min\.m?js(?:[?#]|$)/i.test(src)) continue;
+    const path = src.split(/[?#]/)[0] ?? src;
+    const besideFile = compSrcPath ? join4(dirname2(compSrcPath), path) : path;
+    const script = resolveExistingLocalAsset3(projectDir, besideFile) ?? (compSrcPath && staysInsideProjectRoot(path) ? resolveExistingLocalAsset3(projectDir, path) : null);
+    if (!script) continue;
+    const read = readProjectFile2(script.resolved);
+    if (read.kind !== "file" || read.text.length > MAX_EXTERNAL_SCRIPT_BYTES) continue;
+    const attrs = Array.from(element.attributes).map(({ name, value }) => `${name}="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"`).join(" ");
+    scripts.push({
+      src,
+      attrs,
+      content: read.text,
+      file: join4(projectDir, script.rootRelativePath),
+      rootRelativePath: script.rootRelativePath
+    });
+  }
+  return scripts;
 }
 function collectCssSources(projectDir, html, compSrcPath) {
   const sources = [];
@@ -7502,15 +7704,51 @@ function collectCssSources(projectDir, html, compSrcPath) {
 function resolveCssAssetCandidates(projectDir, url, htmlCompSrcPath, cssRootRelativePath) {
   if (url.startsWith("/")) return resolveLocalAssetCandidates(projectDir, url);
   if (cssRootRelativePath) {
-    return resolveLocalAssetCandidates(projectDir, join3(dirname2(cssRootRelativePath), url));
+    return resolveLocalAssetCandidates(projectDir, join4(dirname2(cssRootRelativePath), url));
   }
   if (htmlCompSrcPath) {
     return resolveLocalAssetCandidates(
       projectDir,
-      rewriteAssetPath2(htmlCompSrcPath, url, (path) => existsSync2(join3(projectDir, path)))
+      rewriteAssetPath2(htmlCompSrcPath, url, (path) => existsSync3(join4(projectDir, path)))
     );
   }
   return resolveLocalAssetCandidates(projectDir, url);
+}
+function mountedSources(projectDir, rootHtml, rootCompSrcPath) {
+  const sources = [{ html: rootHtml, compSrcPath: rootCompSrcPath }];
+  const seen = /* @__PURE__ */ new Set();
+  for (const source of sources) {
+    const { document } = parseHTML3(source.html);
+    for (const host of querySelectorAllIncludingTemplates(document, "[data-composition-src]")) {
+      const src = host.getAttribute("data-composition-src")?.trim();
+      if (!src || isUnresolvedAssetPlaceholder2(src) || isRemoteOrInlineUrl2(src)) continue;
+      const path = resolve(projectDir, src);
+      if (seen.has(path) || !isWithinProjectRoot2(projectDir, path)) continue;
+      seen.add(path);
+      const read = readProjectFile2(path);
+      if (read.kind !== "file") continue;
+      sources.push({
+        html: read.text,
+        compSrcPath: relative2(resolve(projectDir), path).replace(/\\/g, "/")
+      });
+    }
+  }
+  return sources;
+}
+function declaredProjectFontFamilies(projectDir, sources) {
+  const families = /* @__PURE__ */ new Set();
+  for (const { html, compSrcPath } of sources) {
+    const { document } = parseHTML3(html);
+    const styles = [
+      ...querySelectorAllIncludingTemplates(document, "style").map((style) => ({
+        content: style.textContent ?? ""
+      })),
+      ...collectLocalStylesheets(projectDir, document, compSrcPath)
+    ];
+    for (const family of extractFontFaceFamilies(styles)) families.add(family);
+    for (const family of collectGoogleFontFamilies(html, styles)) families.add(family);
+  }
+  return [...families];
 }
 async function lintProject(projectDir, entryFile, hostOptions = {}) {
   const indexPath = entryFile ? resolve(entryFile) : resolve(projectDir, "index.html");
@@ -7523,12 +7761,17 @@ async function lintProject(projectDir, entryFile, hostOptions = {}) {
   let totalErrors = 0;
   let totalWarnings = 0;
   let totalInfos = 0;
-  const rootHtml = readFileSync(indexPath, "utf-8");
+  const rootHtml = readTextFile(indexPath);
+  const projectFontFamilies = declaredProjectFontFamilies(
+    projectDir,
+    mountedSources(projectDir, rootHtml, rootCompSrcPath)
+  );
   const rootResult = await lintHyperframeHtml(rootHtml, {
     ...hostOptions,
     filePath: indexPath,
     compSrcPath: rootFile,
-    externalStyles: collectExternalStyles(projectDir, rootHtml, rootCompSrcPath)
+    ...linkedSources(projectDir, rootHtml, rootCompSrcPath),
+    projectFontFamilies
   });
   results.push({ file: rootFile, result: rootResult, contentHash: contentDigest(rootHtml) });
   totalErrors += rootResult.errorCount;
@@ -7536,14 +7779,16 @@ async function lintProject(projectDir, entryFile, hostOptions = {}) {
   totalInfos += rootResult.infoCount;
   const allHtmlSources = [{ html: rootHtml, compSrcPath: rootCompSrcPath }];
   const compositionsDir = resolve(projectDir, "compositions");
-  if (!entryFile && existsSync2(compositionsDir)) {
+  if (!entryFile && existsSync3(compositionsDir)) {
+    const ignored = projectIgnore(projectDir);
     const collectHtmlFiles = (dir, rel) => {
       const out = [];
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const relPath = rel ? `${rel}/${entry.name}` : entry.name;
+        if (ignored.ignores(`compositions/${relPath}${entry.isDirectory() ? "/" : ""}`)) continue;
         if (entry.isDirectory()) {
           if (!rel && entry.name === "components") continue;
-          out.push(...collectHtmlFiles(join3(dir, entry.name), relPath));
+          out.push(...collectHtmlFiles(join4(dir, entry.name), relPath));
         } else if (entry.isFile() && entry.name.endsWith(".html") && !entry.name.startsWith("._")) {
           out.push(relPath);
         }
@@ -7552,8 +7797,8 @@ async function lintProject(projectDir, entryFile, hostOptions = {}) {
     };
     const files = collectHtmlFiles(compositionsDir, "").sort();
     for (const file of files) {
-      const filePath = join3(compositionsDir, file);
-      const html = readFileSync(filePath, "utf-8");
+      const filePath = join4(compositionsDir, file);
+      const html = readTextFile(filePath);
       const compSrcPath = `compositions/${file}`;
       allHtmlSources.push({ html, compSrcPath });
       if (isSnippetFragment(html)) continue;
@@ -7562,7 +7807,8 @@ async function lintProject(projectDir, entryFile, hostOptions = {}) {
         filePath,
         isSubComposition: true,
         compSrcPath,
-        externalStyles: collectExternalStyles(projectDir, html, compSrcPath)
+        ...linkedSources(projectDir, html, compSrcPath),
+        projectFontFamilies
       });
       results.push({
         file: `compositions/${file}`,
@@ -7580,6 +7826,7 @@ async function lintProject(projectDir, entryFile, hostOptions = {}) {
     ...lintAudioSrcNotFound(projectDir, allHtmlSources),
     ...lintMissingLocalAsset(projectDir, allHtmlSources),
     ...lintTextureMaskAssetNotFound(projectDir, allHtmlSources),
+    ...lintLinkedStylesheetAssets(projectDir, allHtmlSources),
     ...!entryFile ? lintMultipleRootCompositions(projectDir) : [],
     ...!entryFile ? lintBlankRootWithStandaloneComposition(rootHtml, allHtmlSources) : [],
     ...lintDuplicateAudioTracks(projectDir, rootHtml),
@@ -7663,7 +7910,7 @@ function lintProjectAudioFiles(projectDir, htmlSources) {
 function urlSafeSrcOf(projectDir, rootRelative) {
   if (!/[?#]/.test(rootRelative)) return null;
   const literal = resolve(projectDir, rootRelative.replace(/^\//, ""));
-  if (!existsSync2(literal)) return null;
+  if (!existsSync3(literal)) return null;
   return encodeUrlPath(rootRelative);
 }
 var urlSafeHint = (safe) => `The file exists, but a "#" or "?" in a src ends the file name there. Write the src as "${safe}".`;
@@ -7679,8 +7926,8 @@ function lintAudioSrcNotFound(projectDir, htmlSources) {
       const src = mediaSrcOf(match);
       if (/^(https?:|data:|blob:)/i.test(src)) continue;
       if (isUnresolvedAssetPlaceholder2(src)) continue;
-      const rootRelative = compSrcPath ? rewriteAssetPath2(compSrcPath, src, (path) => existsSync2(join3(projectDir, path))) : src;
-      if (!existsSync2(resolveProjectRelativeSrc(rootRelative, projectDir))) {
+      const rootRelative = compSrcPath ? rewriteAssetPath2(compSrcPath, src, (path) => existsSync3(join4(projectDir, path))) : src;
+      if (!existsSync3(resolveProjectRelativeSrc(rootRelative, projectDir))) {
         const safe = urlSafeSrcOf(projectDir, rootRelative);
         if (safe) urlSafe.set(src, safe);
         const file = sourceFile(projectDir, compSrcPath);
@@ -7716,13 +7963,13 @@ function lintMissingLocalAsset(projectDir, htmlSources) {
       const src = cleanAssetUrl2(rawSrc);
       if (!src) continue;
       if (isRemoteOrInlineUrl2(src)) continue;
-      const rootRelative = compSrcPath ? rewriteAssetPath2(compSrcPath, src, (path) => existsSync2(join3(projectDir, path))) : src;
+      const rootRelative = compSrcPath ? rewriteAssetPath2(compSrcPath, src, (path) => existsSync3(join4(projectDir, path))) : src;
       const resolvedAsset = resolveExistingLocalAsset3(projectDir, rootRelative);
       if (resolvedAsset) continue;
       const rawRoot = rawSrc.trim();
       const safe = urlSafeSrcOf(
         projectDir,
-        compSrcPath ? rewriteAssetPath2(compSrcPath, rawRoot, (path) => existsSync2(join3(projectDir, path))) : rawRoot
+        compSrcPath ? rewriteAssetPath2(compSrcPath, rawRoot, (path) => existsSync3(join4(projectDir, path))) : rawRoot
       );
       if (safe) urlSafe.set(src, safe);
       const resolvedKey = resolve(projectDir, rootRelative);
@@ -7755,11 +8002,11 @@ function lintTextureMaskAssetNotFound(projectDir, htmlSources) {
     for (const cssSource of collectCssSources(projectDir, html, compSrcPath)) {
       let matches = [];
       try {
-        postcss4.parse(cssSource.content).walkDecls(/^(?:-webkit-)?mask-image$/i, (declaration) => {
+        postcss5.parse(cssSource.content).walkDecls(/^(?:-webkit-)?mask-image$/i, (declaration) => {
           matches.push(...declaration.value.matchAll(CSS_URL_RE));
         });
       } catch (error) {
-        if (!(error instanceof postcss4.CssSyntaxError)) throw error;
+        if (!(error instanceof postcss5.CssSyntaxError)) throw error;
         matches = [...cssSource.content.matchAll(MASK_IMAGE_URL_RE)];
       }
       for (const match of matches) {
@@ -7773,7 +8020,7 @@ function lintTextureMaskAssetNotFound(projectDir, htmlSources) {
           compSrcPath,
           cssSource.rootRelativePath
         );
-        if (candidates.some(existsSync2)) continue;
+        if (candidates.some(existsSync3)) continue;
         missingByFile.set(file, (missingByFile.get(file) ?? /* @__PURE__ */ new Set()).add(url));
       }
     }
@@ -7789,6 +8036,62 @@ function lintTextureMaskAssetNotFound(projectDir, htmlSources) {
     };
   });
 }
+function nearestAncestorMatch(projectDir, cssRootRelativePath, url) {
+  const root = resolve(projectDir);
+  for (let dir = resolve(root, dirname2(cssRootRelativePath), ".."); ; dir = dirname2(dir)) {
+    if (!isWithinProjectRoot2(projectDir, dir)) return null;
+    if (resolveLocalAssetCandidates(projectDir, relative2(root, join4(dir, url))).some(existsSync3)) {
+      return relative2(dirname2(resolve(root, cssRootRelativePath)), join4(dir, url)).replace(
+        /\\/g,
+        "/"
+      );
+    }
+    if (dir === root) return null;
+  }
+}
+function lintLinkedStylesheetAssets(projectDir, htmlSources) {
+  const seen = /* @__PURE__ */ new Set();
+  const findings = [];
+  for (const { html, compSrcPath } of htmlSources) {
+    for (const { content, rootRelativePath } of collectLocalStylesheets(
+      projectDir,
+      parseHTML3(html).document,
+      compSrcPath
+    )) {
+      let root;
+      try {
+        root = postcss5.parse(content);
+      } catch (error) {
+        if (!(error instanceof postcss5.CssSyntaxError)) throw error;
+        continue;
+      }
+      root.walkDecls((declaration) => {
+        if (/^(?:-webkit-)?mask-image$/i.test(declaration.prop)) return;
+        for (const match of declaration.value.matchAll(CSS_URL_RE)) {
+          const rawUrl = match[1] ?? match[2] ?? match[3] ?? "";
+          if (isUnresolvedAssetPlaceholder2(rawUrl)) continue;
+          const url = cleanAssetUrl2(rawUrl);
+          if (!url || isRemoteOrInlineUrl2(url) || url.startsWith("/")) continue;
+          if (resolveCssAssetCandidates(projectDir, url, void 0, rootRelativePath).some(existsSync3))
+            continue;
+          const key = `${rootRelativePath}\0${url}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const found = nearestAncestorMatch(projectDir, rootRelativePath, url);
+          findings.push({
+            code: "missing_stylesheet_asset",
+            severity: "warning",
+            file: join4(projectDir, rootRelativePath),
+            message: `${rootRelativePath} references url(${url}), which is not found beside the stylesheet (looked in ${dirname2(rootRelativePath)}/). The browser resolves url() from the stylesheet, so the file will 404.`,
+            fixHint: found ? `A file exists at "${found}" relative to the stylesheet. Change the url() to that path.` : `Add "${url}" beside the stylesheet, or point the url() at an existing file.`
+          });
+        }
+      });
+    }
+  }
+  return findings;
+}
+var PAGES_OPENED_BESIDE_INDEX = /* @__PURE__ */ new Set(["caption-skin.html", "podcast-lanes.html"]);
 function lintMultipleRootCompositions(projectDir) {
   const findings = [];
   try {
@@ -7797,8 +8100,8 @@ function lintMultipleRootCompositions(projectDir) {
     );
     const rootCompositions = [];
     for (const file of rootHtmlFiles) {
-      if (file === "caption-skin.html") continue;
-      const content = readFileSync(join3(projectDir, file), "utf-8");
+      if (PAGES_OPENED_BESIDE_INDEX.has(file)) continue;
+      const content = readTextFile(join4(projectDir, file));
       if (/data-composition-id/i.test(content)) {
         rootCompositions.push(file);
       }
@@ -7962,9 +8265,11 @@ function isSnippetFragment(html) {
 export {
   LINT_RULE_COUNT,
   LINT_RULE_GROUP_COUNTS,
-  collectExternalStyles,
+  audioAttributeShapeError,
+  linkedSources,
   lintHyperframeHtml,
   lintMediaUrls,
   lintProject,
+  projectIgnore,
   shouldBlockRender
 };

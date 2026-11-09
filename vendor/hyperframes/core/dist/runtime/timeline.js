@@ -7,8 +7,7 @@ import { readElementPlaybackRate, readMediaStart } from "./playbackRate.js";
 import { parseStrictFiniteTimingNumber, resolveMediaElementDurationSeconds, resolveNaturalMediaTimelineDuration, resolveTimedImageDurationSeconds, } from "./playbackRate.js";
 import { resolveCssStackingContextId } from "./stackingContext.js";
 import { createRuntimeStartTimeResolver } from "./startResolver.js";
-import { isClipVisibleAt } from "./clipWindow.js";
-import { exportClipWindow } from "../inline-scripts/parityContract.js";
+import { isClipOnScreenAt } from "./clipWindow.js";
 import { isSceneLikeCompositionId } from "../slideshow/index.js";
 import { COMPOSITION_CONTRACT_VERSION } from "../compositionContract.js";
 import { runtimeProtocolMetadata } from "./protocol.js";
@@ -50,11 +49,7 @@ export function isRuntimeElementVisibleAt(rawNode, options) {
     const span = runtimeElementWindow(rawNode, options);
     if (!span)
         return false;
-    // Export seeks snap to frame boundaries; interactive visibility uses authored seconds.
-    const clipWindow = options.exportRenderSeek
-        ? exportClipWindow(span.start, span.end, options.canonicalFps)
-        : span;
-    return isClipVisibleAt(options.currentTime, clipWindow.start, clipWindow.end, options.compositionDuration);
+    return isClipOnScreenAt(options.currentTime, span.start, span.end, options.canonicalFps, options.compositionDuration);
 }
 function parseNum(value) {
     return parseStrictFiniteTimingNumber(value);

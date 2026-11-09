@@ -1,11 +1,12 @@
 import {
+  PROXY_STILL_EXTENSION,
   PROXY_VARIANT_CONFIG,
   ffmpegHasHdrFilters
-} from "./chunk-FUTDRYQK.js";
+} from "./chunk-66YZA32N.js";
 import {
   probeFirstFrameColour,
   probeMediaMetadata
-} from "./chunk-X73QTST2.js";
+} from "./chunk-Y6EZUBYR.js";
 import {
   mkdirWithinProject,
   realProjectRoot,
@@ -24,8 +25,8 @@ import {
   utimesSync,
   writeFileSync as writeFileSync2
 } from "fs";
-import { availableParallelism, tmpdir, totalmem } from "os";
-import { basename as basename3, dirname as dirname3, extname as extname3, isAbsolute, join as join4, relative, resolve, sep } from "path";
+import os, { availableParallelism, tmpdir, totalmem } from "os";
+import { basename as basename3, dirname as dirname3, extname as extname4, isAbsolute, join as join4, relative, resolve, sep } from "path";
 import { hdrToSdrToneMapFilter } from "@hyperframes/core";
 import { findFfBinary } from "@hyperframes/parsers/ff-binaries";
 import { alphaDecoderFor } from "@hyperframes/parsers/media-alpha";
@@ -36,9 +37,10 @@ import { extname, join } from "path";
 var DEFAULT_MAX_BYTES = 10 * 1024 * 1024 * 1024;
 var DEFAULT_STALE_TEMP_MS = 60 * 60 * 1e3;
 var DEFAULT_MIN_SWEEP_INTERVAL_MS = 5 * 60 * 1e3;
-var PROXY_EXTENSIONS = new Set(
-  Object.values(PROXY_VARIANT_CONFIG).map(({ extension }) => extension)
-);
+var PROXY_EXTENSIONS = /* @__PURE__ */ new Set([
+  ...Object.values(PROXY_VARIANT_CONFIG).map(({ extension }) => extension),
+  PROXY_STILL_EXTENSION
+]);
 var TRANSCODER_PROXY_NAME = /^[0-9a-f]{64}\.\w+$/;
 var TRANSCODER_TEMP_NAME = /^\.tmp-[0-9a-f-]{36}-(?:\.part-[0-9a-f]{64}-\d+|[0-9a-f]{64})\.\w+$/;
 var TRANSCODER_PIECE_NAME = /^\.part-([0-9a-f]{64})-\d+(\.\w+)$/;
@@ -224,16 +226,37 @@ import {
   closeSync as closeSync2,
   existsSync as existsSync3,
   openSync as openSync2,
+  readdirSync as readdirSync2,
   readFileSync as readFileSync2,
   rmSync,
   statSync as statSync3,
   writeSync
 } from "fs";
-import { basename as basename2, dirname as dirname2, join as join3 } from "path";
+import { basename as basename2, dirname as dirname2, extname as extname3, join as join3 } from "path";
 var POLL_MS = 500;
 var UNREADABLE_LOCK_MS = 1e4;
 function lockPathFor(cachePath) {
   return join3(dirname2(cachePath), `.lock-${basename2(cachePath)}`);
+}
+var CopyLockStalledError = class extends Error {
+  constructor(copy, stallMs) {
+    super(
+      `another process holds the copy of ${copy} and has made no progress for ${Math.round(stallMs / 1e3)}s`
+    );
+    this.name = "CopyLockStalledError";
+  }
+};
+function lastActivityMs(cachePath, lockPath) {
+  const name = basename2(cachePath);
+  const stem = basename2(cachePath, extname3(cachePath));
+  const mine = (file) => file === basename2(lockPath) || file.startsWith(".tmp-") && (file.endsWith(`-${name}`) || file.includes(`-.part-${stem}-`)) || file.startsWith(`.part-${stem}-`);
+  let newest = 0;
+  for (const file of readdirSync2(dirname2(cachePath))) {
+    if (!mine(file)) continue;
+    const changed = statSync3(join3(dirname2(cachePath), file), { throwIfNoEntry: false })?.mtimeMs;
+    newest = Math.max(newest, changed ?? 0);
+  }
+  return newest;
 }
 function ownerIsAlive(lockPath) {
   try {
@@ -264,7 +287,7 @@ function pause(ms, signal) {
     signal.addEventListener("abort", onAbort, { once: true });
   });
 }
-async function acquireCopyLock(cachePath, signal) {
+async function acquireCopyLock(cachePath, signal, stallMs) {
   const lockPath = lockPathFor(cachePath);
   for (; ; ) {
     signal.throwIfAborted();
@@ -279,8 +302,10 @@ async function acquireCopyLock(cachePath, signal) {
     } catch (err) {
       if (err.code !== "EEXIST") throw err;
     }
-    if (ownerIsAlive(lockPath)) await pause(POLL_MS, signal);
-    else rmSync(lockPath, { force: true });
+    if (!ownerIsAlive(lockPath)) rmSync(lockPath, { force: true });
+    else if (Date.now() - lastActivityMs(cachePath, lockPath) > stallMs)
+      throw new CopyLockStalledError(basename2(cachePath), stallMs);
+    else await pause(POLL_MS, signal);
   }
 }
 
@@ -294,6 +319,7 @@ function boundedEnvInteger(name, fallback, min, max) {
   return Number.isSafeInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
 }
 var MAX_CONCURRENT_TRANSCODES = boundedEnvInteger("HYPERFRAMES_PROXY_MAX_CONCURRENCY", 2, 1, 16);
+var BACKGROUND_NICENESS = 19;
 var MAX_QUEUED_TRANSCODES = boundedEnvInteger("HYPERFRAMES_PROXY_MAX_QUEUE", 8, 0, 256);
 var STDERR_TAIL_MAX_CHARS = 4e3;
 var TRANSCODE_STALL_MS = boundedEnvInteger(
@@ -378,8 +404,13 @@ function canonicalizeProxySource(projectDir, absoluteSourcePath) {
   }
   return { projectDir: realProjectRoot(projectDir), sourcePath: realpath(absoluteSourcePath) };
 }
-function getCanonicalProxyCachePath(source, variant, box) {
-  const key = fastCopyKey(source.sourcePath, PROXY_PARAMS_VERSION, variant, box);
+function getCanonicalProxyCachePath(source, variant, box, limitSeconds) {
+  const key = fastCopyKey(
+    source.sourcePath,
+    PROXY_PARAMS_VERSION,
+    keyVariant(variant, limitSeconds),
+    box
+  );
   const made = join4(
     source.projectDir,
     CACHE_DIR_NAME,
@@ -387,12 +418,27 @@ function getCanonicalProxyCachePath(source, variant, box) {
   );
   return existsSync4(made) ? made : readCopyIndex(fastIndexPath(made)) ?? made;
 }
-function getProxyCachePath(projectDir, absoluteSourcePath, variant = "h264", box) {
+function getProxyCachePath(projectDir, absoluteSourcePath, variant = "h264", box, limitSeconds) {
   return getCanonicalProxyCachePath(
     canonicalizeProxySource(projectDir, absoluteSourcePath),
     variant,
-    box
+    box,
+    limitSeconds
   );
+}
+function copiedSeconds(duration, limitSeconds) {
+  return limitSeconds === void 0 ? duration : Math.min(limitSeconds, duration ?? limitSeconds);
+}
+function lengthArgs(seconds) {
+  return seconds === void 0 ? [] : ["-t", String(seconds)];
+}
+function keyVariant(variant, limitSeconds) {
+  return limitSeconds === void 0 ? variant : `${variant}@${limitSeconds}s`;
+}
+async function proxyWindowSeconds(absoluteSourcePath, neededSeconds) {
+  const { durationSeconds } = await probeMediaMetadata(absoluteSourcePath);
+  const window = Math.ceil((neededSeconds + 1) / PROXY_CHUNK_SECONDS) * PROXY_CHUNK_SECONDS;
+  return durationSeconds && window + PROXY_CHUNK_SECONDS <= durationSeconds ? window : void 0;
 }
 function reportProgress(job, progress) {
   job.lastProgress = progress;
@@ -599,7 +645,7 @@ function createPieceGate(size) {
 }
 async function encodeInChunks(ranges, chunkPrefix, tempPath, encode, concat, signal, gate, onDone = () => {
 }) {
-  const extension = extname3(tempPath);
+  const extension = extname4(tempPath);
   const pieces = ranges.map((_, index) => `${chunkPrefix}${index}${extension}`);
   const pending = ranges.flatMap((_, index) => existsSync4(pieces[index]) ? [] : [index]);
   let doneSeconds = 0;
@@ -722,7 +768,7 @@ async function buildVideoFilter(ffmpegPath, sourcePath, metadata, keepsAlpha, bo
   const { hdrTransfer } = metadata.color;
   const toneMap = (hdrTransfer === "pq" || hdrTransfer === "hlg") && !keepsAlpha;
   if (toneMap) await ensureHdrFilters(ffmpegPath);
-  const firstFrame = toneMap ? await probeFirstFrameColour(sourcePath) : {};
+  const firstFrame = toneMap ? await probeFirstFrameColour(sourcePath, metadata.color.codecName) : {};
   const evenScale = proxyScaleFilter(box);
   const pixelFormat = keepsAlpha ? "yuva420p" : "yuv420p";
   return toneMap ? [
@@ -731,7 +777,7 @@ async function buildVideoFilter(ffmpegPath, sourcePath, metadata, keepsAlpha, bo
     `format=${pixelFormat}`
   ].join(",") : [evenScale, `format=${pixelFormat}`].join(",");
 }
-async function runFfmpeg(sourcePath, outputPath, chunkPrefix, variant, box, signal, onProgress) {
+async function runFfmpeg(sourcePath, outputPath, chunkPrefix, variant, box, limitSeconds, signal, onProgress, isBackground = () => false) {
   const metadata = await probeMediaMetadata(sourcePath);
   const ffmpegPath = findFfBinary("ffmpeg", { configuredMustExist: true });
   if (!ffmpegPath) {
@@ -745,7 +791,7 @@ async function runFfmpeg(sourcePath, outputPath, chunkPrefix, variant, box, sign
     ...["-map", "0:V:0"],
     ...metadata.audioStream === void 0 ? [] : ["-map", `0:a:${metadata.audioStream}`]
   ];
-  const totalSeconds = metadata.durationSeconds;
+  const totalSeconds = copiedSeconds(metadata.durationSeconds, limitSeconds);
   const gate = keepsAlpha ? ALPHA_PIECE_GATE : UNGATED;
   const vp8Threads = (pieces) => [
     "-threads",
@@ -763,7 +809,7 @@ async function runFfmpeg(sourcePath, outputPath, chunkPrefix, variant, box, sign
       "-i",
       sourcePath,
       ...streamArgs,
-      ...range ? ["-t", String(range.lengthSeconds)] : [],
+      ...lengthArgs(range?.lengthSeconds ?? limitSeconds),
       "-vf",
       videoFilter,
       ...KEYFRAME_EVERY_SECOND_ARGS,
@@ -772,7 +818,8 @@ async function runFfmpeg(sourcePath, outputPath, chunkPrefix, variant, box, sign
     ],
     TRANSCODE_STALL_MS,
     pieceSignal,
-    onEncoded
+    onEncoded,
+    isBackground()
   );
   const ranges = chunkRanges(totalSeconds);
   try {
@@ -814,7 +861,14 @@ function concatArgs(listPath, target, variant) {
   ];
 }
 var OUT_TIME = /^out_time_(?:us|ms)=(\d+)$/;
-function spawnFfmpeg(ffmpegPath, args, stallMs, signal, onProgress) {
+function lowerPriorityUnlessExited(pid) {
+  try {
+    os.setPriority(pid, BACKGROUND_NICENESS);
+  } catch {
+    return;
+  }
+}
+function spawnFfmpeg(ffmpegPath, args, stallMs, signal, onProgress, background = false) {
   return new Promise((resolvePromise, reject) => {
     signal.throwIfAborted();
     const proc = spawn(ffmpegPath, args, {
@@ -823,6 +877,7 @@ function spawnFfmpeg(ffmpegPath, args, stallMs, signal, onProgress) {
       signal,
       windowsHide: true
     });
+    if (background && proc.pid !== void 0) lowerPriorityUnlessExited(proc.pid);
     let stalled = false;
     let timer;
     const armStall = () => {
@@ -886,7 +941,7 @@ function spawnFfmpeg(ffmpegPath, args, stallMs, signal, onProgress) {
     });
   });
 }
-async function transcodeToCache(job, projectDir, absoluteSourcePath, cachePath, variant, box) {
+async function transcodeToCache(job, projectDir, absoluteSourcePath, cachePath, variant, box, limitSeconds) {
   await acquireSlot(job);
   try {
     if (existsSync4(cachePath)) return cachePath;
@@ -897,7 +952,7 @@ async function transcodeToCache(job, projectDir, absoluteSourcePath, cachePath, 
       await contentCopyKey(
         absoluteSourcePath,
         PROXY_PARAMS_VERSION,
-        variant,
+        keyVariant(variant, limitSeconds),
         box,
         job.abandoned.signal
       )
@@ -907,13 +962,19 @@ async function transcodeToCache(job, projectDir, absoluteSourcePath, cachePath, 
       writeCopyIndex(fastIndexPath(cachePath), sameContent);
       return sameContent;
     }
-    const release = await acquireCopyLock(cachePath, job.abandoned.signal);
+    const release = await acquireCopyLock(
+      cachePath,
+      job.abandoned.signal,
+      TRANSCODE_STALL_MS
+    ).catch((error) => {
+      throw error instanceof CopyLockStalledError ? new ProxyTranscodeError(error.message, null, "") : error;
+    });
     if (!release) return cachePath;
     const tempPath = join4(cacheDir, `.tmp-${randomUUID()}-${basename3(cachePath)}`);
     try {
       const chunkPrefix = join4(
         cacheDir,
-        `${CHUNK_PREFIX}${basename3(cachePath, extname3(cachePath))}-`
+        `${CHUNK_PREFIX}${basename3(cachePath, extname4(cachePath))}-`
       );
       await runFfmpeg(
         absoluteSourcePath,
@@ -921,8 +982,10 @@ async function transcodeToCache(job, projectDir, absoluteSourcePath, cachePath, 
         chunkPrefix,
         variant,
         box,
+        limitSeconds,
         job.abandoned.signal,
-        (progress) => reportProgress(job, progress)
+        (progress) => reportProgress(job, progress),
+        () => job.background && !job.priority
       );
       renameSync(tempPath, cachePath);
       writeCopyIndex(contentIndex, cachePath);
@@ -955,7 +1018,7 @@ function proxyActivityMark(projectDir) {
 async function resolveProxy(projectDir, absoluteSourcePath, variant = "h264", box, options = {}) {
   options.signal?.throwIfAborted();
   const source = canonicalizeProxySource(projectDir, absoluteSourcePath);
-  const cachePath = getCanonicalProxyCachePath(source, variant, box);
+  const cachePath = getCanonicalProxyCachePath(source, variant, box, options.limitSeconds);
   if (existsSync4(cachePath)) {
     markCacheEntryUsed(cachePath);
     maintainProxyCache(dirname3(cachePath));
@@ -975,6 +1038,7 @@ async function resolveProxy(projectDir, absoluteSourcePath, variant = "h264", bo
     const job = {
       cachePath,
       priority: options.priority === true,
+      background: options.background === true,
       callers: 0,
       abandoned: new AbortController(),
       progress: /* @__PURE__ */ new Set()
@@ -985,7 +1049,8 @@ async function resolveProxy(projectDir, absoluteSourcePath, variant = "h264", bo
       source.sourcePath,
       cachePath,
       variant,
-      box
+      box,
+      options.limitSeconds
     ).catch((err) => {
       if (!(err instanceof ProxyDroppedError) && !job.abandoned.signal.aborted) {
         rememberFailure(cachePath, err);
@@ -1026,8 +1091,9 @@ async function resolveProxies(projectDir, sources, onSettled = () => {
   let next = 0;
   const worker = async () => {
     for (let index = next++; index < sources.length; index = next++) {
-      const { sourcePath, variant, box } = sources[index];
+      const { sourcePath, variant, box, limitSeconds } = sources[index];
       results[index] = await resolveProxy(projectDir, sourcePath, variant, box, {
+        limitSeconds,
         onProgress: (progress) => onProgress(index, progress),
         signal
       }).then(
@@ -1040,6 +1106,43 @@ async function resolveProxies(projectDir, sources, onSettled = () => {
   const workers = Math.min(MAX_CONCURRENT_TRANSCODES, sources.length);
   await Promise.all(Array.from({ length: workers }, worker));
   return results;
+}
+var stillsInFlight = /* @__PURE__ */ new Map();
+function resolveStill(projectDir, absoluteSourcePath, atSeconds, box) {
+  const source = canonicalizeProxySource(projectDir, absoluteSourcePath);
+  const at = Math.max(0, Math.round(atSeconds * 10) / 10);
+  const key = fastCopyKey(source.sourcePath, PROXY_PARAMS_VERSION, `still@${at}`, box);
+  const cachePath = join4(source.projectDir, CACHE_DIR_NAME, `${key}${PROXY_STILL_EXTENSION}`);
+  if (existsSync4(cachePath)) return Promise.resolve(cachePath);
+  const shared = stillsInFlight.get(cachePath);
+  if (shared) return shared;
+  const made = makeStill(source, at, box, cachePath).finally(
+    () => stillsInFlight.delete(cachePath)
+  );
+  stillsInFlight.set(cachePath, made);
+  return made;
+}
+async function makeStill(source, at, box, cachePath) {
+  const ffmpegPath = findFfBinary("ffmpeg", { configuredMustExist: true });
+  if (!ffmpegPath) throw new FfmpegUnavailableError();
+  const filter = await buildVideoFilter(
+    ffmpegPath,
+    source.sourcePath,
+    await probeMediaMetadata(source.sourcePath),
+    false,
+    box
+  );
+  mkdirWithinProject(source.projectDir, dirname3(cachePath));
+  const tempPath = join4(dirname3(cachePath), `.tmp-${randomUUID()}-${basename3(cachePath)}`);
+  try {
+    const args = ["-y", "-ss", String(at), "-i", source.sourcePath, "-map", "0:V:0"];
+    args.push("-frames:v", "1", "-vf", filter, "-pix_fmt", "yuvj420p", "-q:v", "3", tempPath);
+    await spawnFfmpeg(ffmpegPath, args, TRANSCODE_STALL_MS, new AbortController().signal);
+    renameSync(tempPath, cachePath);
+  } finally {
+    rmSync2(tempPath, { force: true });
+  }
+  return cachePath;
 }
 function joinJob(promise, job, signal) {
   job.callers++;
@@ -1070,11 +1173,13 @@ export {
   ProxyWaitTimeoutError,
   waitForProxy,
   getProxyCachePath,
+  proxyWindowSeconds,
   clearFailedTranscodesForTest,
   sourceFolderKind,
   proxyCopyProgress,
   retryProxyCopy,
   proxyActivityMark,
   resolveProxy,
-  resolveProxies
+  resolveProxies,
+  resolveStill
 };

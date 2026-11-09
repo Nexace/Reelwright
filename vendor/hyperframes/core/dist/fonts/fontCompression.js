@@ -2,8 +2,9 @@
 import wawoff2 from "wawoff2";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync, } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { hyperframesCacheDir } from "../cacheDir.js";
 const { compress } = wawoff2;
 export async function compressToWoff2(input) {
     return Buffer.from(await compress(input));
@@ -19,7 +20,7 @@ function defaultCacheDir() {
     const root = process.env.HYPERFRAMES_FONT_CACHE_DIR ??
         (process.env.AWS_LAMBDA_FUNCTION_NAME
             ? join(tmpdir(), "hyperframes", "fonts")
-            : join(homedir(), ".cache", "hyperframes", "fonts"));
+            : hyperframesCacheDir("fonts"));
     return join(root, "local-compression-v1");
 }
 function cachedCompressionPath(input, originalFormat, cacheDir) {

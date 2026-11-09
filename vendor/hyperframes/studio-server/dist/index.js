@@ -17,14 +17,19 @@ import {
   splitElementInHtml,
   unwrapElementsFromHtml,
   wrapElementsInHtml
-} from "./chunk-OF4B2ILS.js";
+} from "./chunk-REQUL5L4.js";
 import {
   isCompositionSource,
-  stampProjectHfIds
-} from "./chunk-FJBJJURY.js";
+  stampProjectHfIds,
+  stampProjectHfIdsAsync
+} from "./chunk-7ROCGO5U.js";
 import {
   parseEncoderOptions
 } from "./chunk-H5AB5322.js";
+import {
+  MAX_OPEN_MEDIA_RANGE_BYTES,
+  openRangeEnd
+} from "./chunk-6HAB346W.js";
 import {
   DEFAULT_HISTORY_ROOT,
   DELETED_VERSION,
@@ -42,12 +47,14 @@ import {
   clearFileWriteReceipt,
   consumeFileWriteReceipt,
   createProjectSignature,
+  createProjectSignatureAsync,
   createWriteToken,
   fileContentVersion,
   finishSnapshotRun,
   forgetRecordedArtifacts,
   historyCache,
   identifyFileWrite,
+  isUncopiedMedia,
   listProjectHistories,
   onRestoredInPlace,
   openProjectHistory,
@@ -64,7 +71,7 @@ import {
   retainSnapshotOutput,
   serveWhileOpen,
   settledFileTag
-} from "./chunk-UMPRW7BV.js";
+} from "./chunk-Z6G2NBCQ.js";
 import {
   clearElementScreenshotIsolation,
   getElementScreenshotClip
@@ -78,13 +85,13 @@ import {
   requestedProjectPath,
   requiredFfmpeg,
   resolveLocalAudioPath
-} from "./chunk-EGNSA3MU.js";
+} from "./chunk-NEGQQZNI.js";
 import {
   injectMediaCodecMap,
   isAutoProxyEnabled,
   proxyEtagSalt,
   resolvePreviewMediaCodecProbeCache
-} from "./chunk-YOCRTHW3.js";
+} from "./chunk-IJMPYPJG.js";
 import {
   CACHE_DIR_NAME,
   PROXY_PENDING_RETRY_AFTER_SECONDS,
@@ -95,9 +102,10 @@ import {
   proxyActivityMark,
   proxyCopyProgress,
   resolveProxy,
+  resolveStill,
   retryProxyCopy,
   waitForProxy
-} from "./chunk-KPCW4DQM.js";
+} from "./chunk-F4AQECCT.js";
 import {
   PROXY_VARIANT_CONFIG,
   decideMediaProxyEligibility,
@@ -105,11 +113,11 @@ import {
   probeAssetCodec,
   recordProxyRequest,
   resolveProxyVariantRequest
-} from "./chunk-FUTDRYQK.js";
+} from "./chunk-66YZA32N.js";
 import {
   probeAudioTrack,
   probeMediaMetadata
-} from "./chunk-X73QTST2.js";
+} from "./chunk-Y6EZUBYR.js";
 import {
   folderGone,
   isInHiddenOrVendorDir,
@@ -171,7 +179,7 @@ function registerProjectRoutes(api, adapter) {
   api.get("/projects/:id/signature", async (c) => {
     const project = await adapter.resolveProject(c.req.param("id"));
     if (!project) return c.json({ error: "not found" }, 404);
-    return c.json({ signature: resolveProjectSignature(adapter, project.dir) });
+    return c.json({ signature: await resolveProjectSignature(adapter, project.dir) });
   });
   api.get("/projects/:id", async (c) => {
     const project = await adapter.resolveProject(c.req.param("id"));
@@ -272,7 +280,7 @@ import {
   RUNTIME_BOOTSTRAP_ATTR,
   stripEmbeddedRuntimeScripts
 } from "@hyperframes/core/compiler";
-import { isFullHtmlDocument } from "@hyperframes/core/compiler/html-document";
+import { findStartTags as findStartTags2, isFullHtmlDocument } from "@hyperframes/core/compiler/html-document";
 import { gsapCdnDist } from "@hyperframes/core/gsap-cdn";
 
 // src/helpers/gsapCoreScript.ts
@@ -351,7 +359,7 @@ function withRootPathsRelative(html, base) {
 function rewriteRelativePaths(root, compPath, projectDir) {
   const assetExists = (path) => existsSync(join2(projectDir, path));
   rewriteAssetPaths(
-    root.querySelectorAll("[src], [href]"),
+    root.querySelectorAll("[src], [href], [srcset]"),
     compPath,
     (el, attr) => el.getAttribute(attr),
     (el, attr, value) => el.setAttribute(attr, value),
@@ -521,7 +529,7 @@ ${rewrittenContent}
 </html>`;
 }
 function hasBaseElement(html) {
-  return parseHTML(html).document.querySelector("base") !== null;
+  return findStartTags2(html, "base").length > 0;
 }
 
 // src/helpers/compositionInsertion.ts
@@ -793,7 +801,7 @@ function rootHashes(read) {
   const source = read(ROOT_COMPOSITION) ?? "";
   return { root: sha1(source), head: sha1(rootHeadContent(source)) };
 }
-function compositionInputSignature(projectDir, compPath, projectSignature) {
+async function compositionInputSignature(projectDir, compPath, projectSignature) {
   const key = `${projectDir}\0${compPath}`;
   const known = inputSignatures.get(key);
   if (known?.projectSignature === projectSignature) return known.inputSignature;
@@ -805,11 +813,12 @@ function compositionInputSignature(projectDir, compPath, projectSignature) {
   );
   let inputSignature;
   if (comp === ROOT_COMPOSITION) {
-    inputSignature = createProjectSignature(projectDir, excluded);
+    inputSignature = await createProjectSignatureAsync(projectDir, excluded);
   } else {
     const hashes = rootHashes(read);
     if (!rootMemos.has(projectDir)) rootMemos.set(projectDir, { ...hashes, affected: null });
-    inputSignature = `${createProjectSignature(projectDir, excluded.add(ROOT_COMPOSITION))}:${hashes.head}`;
+    const rest = await createProjectSignatureAsync(projectDir, excluded.add(ROOT_COMPOSITION));
+    inputSignature = `${rest}:${hashes.head}`;
   }
   inputSignatures.set(key, { projectSignature, inputSignature });
   return inputSignature;
@@ -1020,11 +1029,9 @@ function validateUploadedMediaBuffer(fileName, buffer, runner = defaultRunner) {
 // src/helpers/backupJournal.ts
 import { readdirSync, readFileSync as readFileSync3, unlinkSync, writeFileSync as writeFileSync3 } from "fs";
 import { Buffer as Buffer2 } from "buffer";
+import { createHash as createHash2 } from "crypto";
 import { join as join5, relative as relative2 } from "path";
 var DEFAULT_KEEP_PER_FILE = 10;
-function backupKeyForPath(path) {
-  return Buffer2.from(path, "utf-8").toString("base64url");
-}
 function timestampPrefix() {
   return (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
 }
@@ -1041,10 +1048,11 @@ function snapshotBeforeWrite(projectDir, absPath, options = {}) {
     const relativePath = relative2(projectDir, absPath);
     const backupDir = join5(projectDir, ".hyperframes", "backup");
     mkdirWithinProject(projectDir, backupDir);
-    const backupKey = backupKeyForPath(relativePath);
+    const pathKey2 = Buffer2.from(relativePath, "utf-8").toString("base64url");
+    const backupKey = pathKey2.length <= 200 ? pathKey2 : `sha256~${createHash2("sha256").update(relativePath).digest("hex")}`;
     const backupPath = nextBackupPath(backupDir, backupKey);
     writeFileSync3(backupPath, content);
-    pruneBackups(backupDir, backupKey, options.keepPerFile ?? DEFAULT_KEEP_PER_FILE);
+    pruneBackups(backupDir, [pathKey2, backupKey], options.keepPerFile ?? DEFAULT_KEEP_PER_FILE);
     return { backupPath };
   } catch (error) {
     if (isProjectRootMissing(error)) throw error;
@@ -1071,11 +1079,10 @@ function nextBackupPath(backupDir, backupKey) {
     counter += 1;
   }
 }
-function pruneBackups(backupDir, backupKey, keepPerFile) {
+function pruneBackups(backupDir, backupKeys, keepPerFile) {
   const keep = Math.max(1, Math.floor(keepPerFile));
-  const suffix = `-${backupKey}`;
-  const numberedSuffix = new RegExp(`-${backupKey}-\\d+$`);
-  const matches = readdirSync(backupDir).filter((name) => name.endsWith(suffix) || numberedSuffix.test(name)).map((name) => join5(backupDir, name)).sort((a, b) => {
+  const suffix = new RegExp(`-(?:${backupKeys.join("|")})(?:-\\d+)?$`);
+  const matches = readdirSync(backupDir).filter((name) => suffix.test(name)).map((name) => join5(backupDir, name)).sort((a, b) => {
     return b.localeCompare(a);
   });
   for (const file of matches.slice(keep)) {
@@ -2923,6 +2930,12 @@ async function executeGsapMutationRecast(body, block, respond) {
       return respond({ error: `unknown mutation type: ${body.type}` }, 400);
   }
 }
+var CUT_REFUSALS = {
+  "target-not-found": "Cut target was not found",
+  "reference-without-range": "Cut target starts after another clip and the cut sent no range for it",
+  "no-duration": "Cut target has no duration",
+  "outside-clip": "Cut point was outside the clip's start and end"
+};
 async function foldAtomicCutFile(c, file, absPath, before, writer) {
   let after = before;
   let splitCount = 0;
@@ -2951,7 +2964,7 @@ async function foldAtomicCutFile(c, file, absPath, before, writer) {
     });
     if (!split.matched || !split.newId) {
       return c.json(
-        { error: `Cut target was not found or was outside its authored bounds in ${file.path}` },
+        { error: `${CUT_REFUSALS[split.refusal ?? "target-not-found"]} in ${file.path}` },
         400
       );
     }
@@ -3915,7 +3928,7 @@ import { createReadStream, existsSync as existsSync5, readFileSync as readFileSy
 import { stripSdrPngColourTags } from "@hyperframes/core/compiler/png-colour-tags";
 import { Readable } from "stream";
 import { join as join8, resolve as resolve4 } from "path";
-import { createHash as createHash2 } from "crypto";
+import { createHash as createHash3 } from "crypto";
 import {
   AFTER_FONTS_SCRIPT_TYPE,
   addScenePartsManifest,
@@ -3927,6 +3940,7 @@ import {
 import {
   STUDIO_PREVIEW_CAPTURE_MODE,
   STUDIO_PREVIEW_MARK_META,
+  STUDIO_PREVIEW_ERROR_KINDS,
   STUDIO_PREVIEW_ERRORS
 } from "@hyperframes/core/studio-preview-mark";
 import {
@@ -3935,6 +3949,7 @@ import {
   PREVIEW_PROXY_PRIORITY_HEADER,
   PREVIEW_PROXY_PROGRESS_HEADER,
   PREVIEW_PROXY_RETRY_PARAM,
+  PREVIEW_PROXY_STILL_PARAM,
   parsePreviewProxyBox
 } from "@hyperframes/core";
 import {
@@ -3944,14 +3959,14 @@ import {
   normalizeGsapBaseUrl,
   normalizeGsapLocalRoot
 } from "@hyperframes/core/gsap-cdn";
-import { findStartTags as findStartTags4, injectTagsAtHeadStart as injectTagsAtHeadStart2 } from "@hyperframes/core/compiler/html-document";
+import { findStartTags as findStartTags5, injectTagsAtHeadStart as injectTagsAtHeadStart2 } from "@hyperframes/core/compiler/html-document";
 import { isWithinProjectRoot } from "@hyperframes/parsers/asset-resolution";
 
 // src/helpers/rootImportMap.ts
-import { findStartTags as findStartTags2, injectTagsAtHeadStart } from "@hyperframes/core/compiler/html-document";
+import { findStartTags as findStartTags3, injectTagsAtHeadStart } from "@hyperframes/core/compiler/html-document";
 var IMPORT_MAP_TYPE = /\btype\s*=\s*["']?importmap["']?(?=[\s/>])/i;
 function findImportMap(html) {
-  for (const at of findStartTags2(html, "script")) {
+  for (const at of findStartTags3(html, "script")) {
     const open2 = /^<script\b[^>]*>/i.exec(html.slice(at));
     if (!open2 || !IMPORT_MAP_TYPE.test(open2[0])) continue;
     const start = at + open2[0].length;
@@ -4121,7 +4136,7 @@ function injectPreviewVariables(html, values) {
 }
 
 // src/helpers/lazyPreviewImages.ts
-import { findStartTags as findStartTags3 } from "@hyperframes/core/compiler/html-document";
+import { findStartTags as findStartTags4 } from "@hyperframes/core/compiler/html-document";
 import { parseHTML as parseHTML6 } from "linkedom";
 import { STUDIO_PREVIEW_LAZY_ATTR } from "@hyperframes/core/studio-preview-mark";
 function startsAfterZero(el) {
@@ -4133,8 +4148,9 @@ function startsAfterZero(el) {
 var hasLoading = (img) => Array.from(img.attributes).some((attr) => attr.name.toLowerCase() === "loading");
 function lazyPreviewImages(html) {
   if (!/<!doctype|<html[\s>]/i.test(html)) return html;
+  const tags = findStartTags4(html, "img");
+  if (tags.length === 0) return html;
   const images = [...parseHTML6(html).document.querySelectorAll("img")];
-  const tags = findStartTags3(html, "img");
   if (tags.length !== images.length) return html;
   const parts = [];
   let from = 0;
@@ -4220,7 +4236,7 @@ function injectMotionPathPluginIfNeeded(html, baseUrl) {
 }
 function findGsapCoreScript(html) {
   const scripts = [...parseHTML7(html).document.querySelectorAll("script")];
-  const starts = findStartTags4(html, "script");
+  const starts = findStartTags5(html, "script");
   if (starts.length !== scripts.length) return null;
   const at = scripts.findIndex(
     (script) => isGsapCoreUrl(lowerCaseAttributes(script).get("src") ?? "")
@@ -4273,7 +4289,7 @@ var GSAP_FALLBACK_ATTR = "data-hf-gsap-fallback";
 function gsapCdnFallbackScript(baseUrl) {
   return `<script ${GSAP_FALLBACK_ATTR}>
 (function(){
-  var cdnBase=${JSON.stringify(gsapCdnDist2(void 0, baseUrl)).replace(/</g, "\\u003c")};
+  var cdnBase=${scriptJson(gsapCdnDist2(void 0, baseUrl))};
   var loaded={};
   function loadFallback(file){
     if(loaded[file])return loaded[file];
@@ -4315,7 +4331,7 @@ function parsePreviewVariablesParam(raw) {
 }
 function variablesEtagSalt(raw) {
   if (!raw) return "";
-  return `:vars:${createHash2("sha1").update(raw).digest("hex").slice(0, 12)}`;
+  return `:vars:${createHash3("sha1").update(raw).digest("hex").slice(0, 12)}`;
 }
 function previewVariablesFromRequest(rawVariables) {
   const parse2 = parsePreviewVariablesParam(rawVariables);
@@ -4323,15 +4339,21 @@ function previewVariablesFromRequest(rawVariables) {
   return { raw: rawVariables, values: parse2.values };
 }
 var PREVIEW_CAPTURE_PARAM = "hf-capture";
-var EARLY_ERRORS_SCRIPT = `<script>(function(){var seen=window.${STUDIO_PREVIEW_ERRORS}=[];
-addEventListener("error",function(e){seen.push(e.message||String(e))});})();</script>`;
-function injectStudioPreviewAugmentations(html, adapter, projectDir, activeCompositionPath, options) {
+function scriptJson(value) {
+  return JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+}
+var earlyErrorsScript = (runtimeUrl) => `<script>(function(){var seen=window.${STUDIO_PREVIEW_ERRORS}=[],kinds=window.${STUDIO_PREVIEW_ERROR_KINDS}=[],known={SyntaxError:1,TypeError:1,ReferenceError:1,RangeError:1},runtime=${scriptJson(new URL(runtimeUrl, "http://x").pathname)};
+addEventListener("error",function(e){seen.push(e.message||String(e));
+var name=e.error&&e.error.constructor&&e.error.constructor.name,path="";
+try{var url=e.filename&&new URL(e.filename,window.location.href);if(url&&url.origin===window.location.origin)path=url.pathname}catch(_){}
+kinds.push({name:known[name]===1?name:"other",origin:!path?"unknown":path===runtime?"runtime":path.indexOf("/api/projects/")===0?"project":"studio"})});})();</script>`;
+function injectStudioPreviewAugmentations(html, adapter, signature, projectDir, activeCompositionPath, options) {
   const marked = options.capture ? injectTagsAtHeadStart2(
     html,
     `<meta name="${STUDIO_PREVIEW_MARK_META}" content="${STUDIO_PREVIEW_CAPTURE_MODE}">`
   ) : injectTagsAtHeadStart2(
     lazyPreviewImages(html),
-    `<meta name="${STUDIO_PREVIEW_MARK_META}">${EARLY_ERRORS_SCRIPT}`
+    `<meta name="${STUDIO_PREVIEW_MARK_META}">${earlyErrorsScript(adapter.runtimeUrl)}`
   );
   const withFallback = injectGsapCdnFallback(
     injectProjectSignature(
@@ -4339,7 +4361,7 @@ function injectStudioPreviewAugmentations(html, adapter, projectDir, activeCompo
         marked,
         `<meta name="${GSAP_BASE_URL_META}" content="${escapeGsapUrl(options.gsapBaseUrl)}">`
       ),
-      resolveProjectSignature(adapter, projectDir)
+      signature
     ),
     options.gsapBaseUrl
   );
@@ -4412,7 +4434,7 @@ function resolvePreviewGsapBaseUrl(adapter) {
 }
 function registerPreviewRoutes(api, adapter) {
   const gsapBaseUrl = resolvePreviewGsapBaseUrl(adapter);
-  const gsapEtagSalt = `:gsap:${createHash2("sha1").update(gsapBaseUrl).digest("hex").slice(0, 12)}`;
+  const gsapEtagSalt = `:gsap:${createHash3("sha1").update(gsapBaseUrl).digest("hex").slice(0, 12)}`;
   const previewCacheHeaders = (etag) => ({
     "Cache-Control": "private, no-cache",
     ETag: etag
@@ -4444,6 +4466,7 @@ function registerPreviewRoutes(api, adapter) {
       bundled = injectStudioPreviewAugmentations(
         ensureHfIds2(await transformPreviewHtml(bundled, adapter, project, mainCompositionPath)),
         adapter,
+        signature,
         project.dir,
         mainCompositionPath,
         { capture, gsapBaseUrl }
@@ -4457,7 +4480,7 @@ function registerPreviewRoutes(api, adapter) {
         mediaCodecProbeCache
       );
       bundled = addScenePartsManifest(bundled, [`meta[name="${PROJECT_SIGNATURE_META}"]`]);
-      if (createProjectSignature(project.dir) === signature) {
+      if (await createProjectSignatureAsync(project.dir) === signature) {
         rememberPreview(builtKey, bundled);
         if (!capture) adapter.previewDocuments?.write(builtKey, bundled);
       }
@@ -4472,6 +4495,7 @@ function registerPreviewRoutes(api, adapter) {
         let fallbackAugmented = injectStudioPreviewAugmentations(
           await transformPreviewHtml(fallbackHtml, adapter, project, fallback.compositionPath),
           adapter,
+          signature,
           project.dir,
           fallback.compositionPath,
           { capture, gsapBaseUrl }
@@ -4547,7 +4571,7 @@ ${etag}`;
     if (!compFile || !existsSync5(compFile) || !statSync4(compFile).isFile()) {
       return c.text("not found", 404);
     }
-    const compPathHash = createHash2("sha1").update(compPath).digest("hex");
+    const compPathHash = createHash3("sha1").update(compPath).digest("hex");
     const capture = c.req.query(PREVIEW_CAPTURE_PARAM) !== void 0;
     const etag = `"comp:v2:${compPathHash}:${signature}${gsapEtagSalt}${variablesEtagSalt(vars.raw)}${capture ? ":capture" : ""}"`;
     const ifNoneMatch = c.req.header("If-None-Match");
@@ -4572,7 +4596,7 @@ ${etag}`;
     html = withRootImportMap(html, baseHref);
     recordPreviewReferences(project.dir, html);
     html = ensureHfIds2(await transformPreviewHtml(html, adapter, project, compPath));
-    html = injectStudioPreviewAugmentations(html, adapter, project.dir, compPath, {
+    html = injectStudioPreviewAugmentations(html, adapter, signature, project.dir, compPath, {
       capture,
       gsapBaseUrl
     });
@@ -4619,6 +4643,22 @@ ${etag}`;
         return c.text("media proxy variant does not match asset", 422);
       }
     }
+    const stillParam = c.req.query(PREVIEW_PROXY_STILL_PARAM);
+    if (stillParam !== void 0) {
+      const at = Number(stillParam);
+      if (stillParam === "" || !Number.isFinite(at) || at < 0 || !proxyVariant) {
+        return c.text("not found", 404);
+      }
+      try {
+        const still = await resolveStill(project.dir, file, at, proxyBox);
+        return new Response(readFileSync6(still), {
+          headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, max-age=3600" }
+        });
+      } catch (err) {
+        if (isProjectRootMissing(err)) throw err;
+        return c.text("media still failed", 502);
+      }
+    }
     const tag = settledFileTag(stat2);
     const etag = tag && `"${tag}${proxyEtagSalt(proxyVariant, proxyBox)}"`;
     const cacheHeaders = isText ? { "Cache-Control": "no-store" } : { "Cache-Control": "private, no-cache", ...etag && { ETag: etag } };
@@ -4635,9 +4675,10 @@ ${etag}`;
         if (c.req.query(PREVIEW_PROXY_RETRY_PARAM) !== void 0) {
           retryProxyCopy(project.dir, file, proxyVariant, proxyBox);
         }
-        const priority = c.req.header(PREVIEW_PROXY_PRIORITY_HEADER) === "1";
+        const asked = c.req.header(PREVIEW_PROXY_PRIORITY_HEADER);
+        const urgency = asked === "0" ? { background: true } : { priority: asked === "1" };
         servedPath = await waitForProxy(
-          resolveProxy(project.dir, file, proxyVariant, proxyBox, { priority }),
+          resolveProxy(project.dir, file, proxyVariant, proxyBox, urgency),
           0
         );
       } catch (err) {
@@ -4673,7 +4714,7 @@ ${etag}`;
     const match = rangeHeader ? /bytes=(\d+)-(\d*)/.exec(rangeHeader) : null;
     if (match) {
       const start = parseInt(match[1], 10);
-      const end = match[2] ? parseInt(match[2], 10) : totalSize - 1;
+      const end = match[2] ? parseInt(match[2], 10) : openRangeEnd(start, totalSize - 1, servedContentType);
       const safeEnd = Math.min(end, totalSize - 1);
       if (start > safeEnd) {
         return new Response(null, {
@@ -4760,10 +4801,32 @@ function registerLintRoutes(api, adapter) {
 
 // src/routes/render.ts
 import { streamSSE } from "hono/streaming";
-import { existsSync as existsSync6, lstatSync as lstatSync3, readFileSync as readFileSync8, unlinkSync as unlinkSync3, readdirSync as readdirSync3, statSync as statSync5 } from "fs";
+import {
+  createReadStream as createReadStream2,
+  existsSync as existsSync6,
+  lstatSync as lstatSync3,
+  readFileSync as readFileSync8,
+  unlinkSync as unlinkSync3,
+  readdirSync as readdirSync3,
+  statSync as statSync5
+} from "fs";
 import { dirname as dirname5, join as join10 } from "path";
+import { Readable as Readable2 } from "stream";
 import { VALID_CANVAS_RESOLUTIONS } from "@hyperframes/parsers";
 import { formatRenderOutputTimestamp, parseFps, fpsToNumber } from "@hyperframes/core";
+
+// src/helpers/finishedJobs.ts
+var firstSeenFinishedAt = /* @__PURE__ */ new WeakMap();
+function forgetJobsFinishedLongerThan(ttlMs, jobs, isFinished, now = Date.now()) {
+  for (const [id, job] of jobs) {
+    if (!isFinished(job)) continue;
+    const finishedAt = firstSeenFinishedAt.get(job) ?? now;
+    firstSeenFinishedAt.set(job, finishedAt);
+    if (now - finishedAt > ttlMs) jobs.delete(id);
+  }
+}
+
+// src/routes/render.ts
 var VALID_RESOLUTIONS = new Set(VALID_CANVAS_RESOLUTIONS);
 var RENDER_MIME = {
   ".mp4": "video/mp4",
@@ -4791,17 +4854,20 @@ function contentDispositionHeader(disposition, filename) {
 }
 function registerRenderRoutes(api, adapter) {
   const renderJobs = /* @__PURE__ */ new Map();
+  const CANCEL_SETTLE_MS = 45e3;
+  const nextFreeRenderJobId = (baseId, ext, rendersDir) => {
+    let jobId = baseId;
+    for (let n = 2; renderJobs.has(jobId) || existsSync6(join10(rendersDir, `${jobId}${ext}`)); n++) {
+      jobId = `${baseId}-${n}`;
+    }
+    return jobId;
+  };
   const TTL_MS = 3e5;
   const CLEANUP_INTERVAL_MS = 6e4;
   let cleanupTimer = null;
   const cleanupEnabled = () => typeof process !== "undefined" && process.env.NODE_ENV !== "production" && !process.argv.includes("build");
   const cleanupFinishedJobs = () => {
-    const now = Date.now();
-    for (const [key, job] of renderJobs) {
-      if (job.status !== "rendering" && now - job.createdAt > TTL_MS) {
-        renderJobs.delete(key);
-      }
-    }
+    forgetJobsFinishedLongerThan(TTL_MS, renderJobs, (job) => job.status !== "rendering");
     if (renderJobs.size === 0 && cleanupTimer) {
       clearInterval(cleanupTimer);
       cleanupTimer = null;
@@ -4854,11 +4920,14 @@ function registerRenderRoutes(api, adapter) {
       return c.json({ error: "pageMotionBlur must be off when supplied" }, 400);
     }
     const pageMotionBlur = requestedPageMotionBlur === void 0 && body.previewMotionBlur === false ? "off" : requestedPageMotionBlur;
-    const now = /* @__PURE__ */ new Date();
-    const jobId = `${project.id}_${formatRenderOutputTimestamp(now)}`;
     const rendersDir = adapter.rendersDir(project);
     mkdirWithinProject(project.dir, rendersDir);
     const ext = FORMAT_EXT[format] ?? ".mp4";
+    const jobId = nextFreeRenderJobId(
+      `${project.id}_${formatRenderOutputTimestamp(/* @__PURE__ */ new Date())}`,
+      ext,
+      rendersDir
+    );
     const outputPath = join10(rendersDir, `${jobId}${ext}`);
     const jobState = adapter.startRender({
       project,
@@ -4876,7 +4945,6 @@ function registerRenderRoutes(api, adapter) {
       telemetryOptOut: body.telemetryOptOut === true,
       ...pageMotionBlur === void 0 ? {} : { pageMotionBlur }
     });
-    jobState.createdAt = Date.now();
     renderJobs.set(jobId, jobState);
     ensureCleanupTimer();
     return c.json({ jobId, status: "rendering" });
@@ -4904,13 +4972,19 @@ function registerRenderRoutes(api, adapter) {
       }
     });
   });
-  api.post("/render/:jobId/cancel", (c) => {
+  api.post("/render/:jobId/cancel", async (c) => {
     const { jobId } = c.req.param();
     const job = renderJobs.get(jobId);
     if (!job) return c.json({ error: "not found" }, 404);
     if (job.status === "rendering") {
       job.status = "cancelled";
-      job.cancel?.();
+      let giveUp;
+      const late = new Promise((done) => giveUp = setTimeout(done, CANCEL_SETTLE_MS));
+      try {
+        await Promise.race([job.cancel?.(), late]);
+      } finally {
+        clearTimeout(giveUp);
+      }
     }
     return c.json({ status: job.status });
   });
@@ -4925,23 +4999,25 @@ function registerRenderRoutes(api, adapter) {
     const ext = RENDER_EXTENSIONS.find((e) => filePath.endsWith(e));
     return (ext && RENDER_MIME[ext]) ?? "video/mp4";
   }
+  function renderFileResponse(filePath, disposition, filename, method) {
+    const headers = {
+      "Content-Type": renderContentType(filePath),
+      "Content-Disposition": contentDispositionHeader(disposition, filename),
+      ...disposition === "inline" ? { "Accept-Ranges": "bytes" } : {},
+      "Content-Length": String(statSync5(filePath).size)
+    };
+    if (method === "HEAD") return new Response(null, { headers });
+    const body = Readable2.toWeb(createReadStream2(filePath));
+    return new Response(body, { headers });
+  }
   api.get("/render/:jobId/view", (c) => {
     const { jobId } = c.req.param();
     const job = renderJobs.get(jobId);
     if (!job?.outputPath || !isPlainFile(job.outputPath)) {
       return c.json({ error: "not found" }, 404);
     }
-    const contentType = renderContentType(job.outputPath);
     const filename = job.outputPath.split("/").pop() ?? `render.mp4`;
-    const content = readFileSync8(job.outputPath);
-    return new Response(content, {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": contentDispositionHeader("inline", filename),
-        "Accept-Ranges": "bytes",
-        "Content-Length": String(content.length)
-      }
-    });
+    return renderFileResponse(job.outputPath, "inline", filename, c.req.method);
   });
   api.get("/render/:jobId/download", (c) => {
     const { jobId } = c.req.param();
@@ -4949,15 +5025,8 @@ function registerRenderRoutes(api, adapter) {
     if (!job?.outputPath || !isPlainFile(job.outputPath)) {
       return c.json({ error: "not found" }, 404);
     }
-    const contentType = renderContentType(job.outputPath);
     const filename = job.outputPath.split("/").pop() ?? `render.mp4`;
-    const content = readFileSync8(job.outputPath);
-    return new Response(content, {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": contentDispositionHeader("attachment", filename)
-      }
-    });
+    return renderFileResponse(job.outputPath, "attachment", filename, c.req.method);
   });
   async function renderDirectories(jobId) {
     const outputPath = renderJobs.get(jobId)?.outputPath;
@@ -4988,16 +5057,7 @@ function registerRenderRoutes(api, adapter) {
     const fp = resolveWithinProject(rendersDir, filename);
     if (!fp || isPrivateProjectFile(project.dir, fp)) return c.json({ error: "forbidden" }, 403);
     if (!existsSync6(fp)) return c.json({ error: "not found" }, 404);
-    const contentType = renderContentType(fp);
-    const content = readFileSync8(fp);
-    return new Response(content, {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": contentDispositionHeader("inline", filename),
-        "Accept-Ranges": "bytes",
-        "Content-Length": String(content.length)
-      }
-    });
+    return renderFileResponse(fp, "inline", filename, c.req.method);
   });
   api.get("/projects/:id/renders", async (c) => {
     const project = await adapter.resolveProject(c.req.param("id"));
@@ -5040,8 +5100,7 @@ function registerRenderRoutes(api, adapter) {
           id: file.id,
           status: file.status,
           progress: 100,
-          outputPath: file.path,
-          createdAt: file.createdAt
+          outputPath: file.path
         });
       }
     }
@@ -5052,7 +5111,7 @@ function registerRenderRoutes(api, adapter) {
 // src/routes/imageThumbnail.ts
 import { HTTPException } from "hono/http-exception";
 import { open, stat } from "fs/promises";
-import { createHash as createHash3 } from "crypto";
+import { createHash as createHash4 } from "crypto";
 
 // src/routes/thumbnailGenerationCoordinator.ts
 var ThumbnailGenerationCoordinator = class {
@@ -5230,7 +5289,7 @@ function registerImageThumbnailRoutes(api, adapter) {
   api.get("/projects/:id/image-thumbnail/*", async (c) => {
     try {
       const { path, info } = await resolveSource(adapter, c.req.param("id"), c.req.url);
-      const key = createHash3("sha256").update(JSON.stringify([path, info.dev, info.ino, info.size, info.mtimeMs, info.ctimeMs])).digest("hex");
+      const key = createHash4("sha256").update(JSON.stringify([path, info.dev, info.ino, info.size, info.mtimeMs, info.ctimeMs])).digest("hex");
       const etag = `"${key}"`;
       c.header("ETag", etag);
       c.header("Cache-Control", "private, no-cache");
@@ -5270,7 +5329,7 @@ import {
   writeFileSync as writeFileSync4
 } from "fs";
 import { join as join11 } from "path";
-import { createHash as createHash4, randomUUID as randomUUID2 } from "crypto";
+import { createHash as createHash5, randomUUID as randomUUID2 } from "crypto";
 var THUMBNAIL_CACHE_VERSION = "v5";
 var THUMBNAIL_MAX_OUTPUT_WIDTH = 240;
 var THUMBNAIL_MAX_OUTPUT_HEIGHT = 135;
@@ -5344,7 +5403,7 @@ function readFileOnce(file) {
 function manifestKey(file) {
   const manifest = readFileOnce(file);
   if (typeof manifest === "string") return { key: "", mtimeMs: -Infinity };
-  const hash = createHash4("sha1").update(manifest.data).digest("hex").slice(0, 16);
+  const hash = createHash5("sha1").update(manifest.data).digest("hex").slice(0, 16);
   return { key: `_${hash}`, mtimeMs: Math.round(manifest.mtimeMs) };
 }
 function registerThumbnailRoutes(api, adapter) {
@@ -5360,7 +5419,7 @@ function registerThumbnailRoutes(api, adapter) {
     const htmlFile = resolveWithinProject(project.dir, compPath);
     const source = htmlFile ? readFileOnce(htmlFile) : "not-a-file";
     if (source === "not-a-file") return c.json({ error: "not found" }, 404);
-    const inputSignature = compositionInputSignature(project.dir, compPath, projectSignature);
+    const inputSignature = await compositionInputSignature(project.dir, compPath, projectSignature);
     const url = new URL(c.req.url, `http://${c.req.header("host") || "localhost"}`);
     const rawSeekTime = url.searchParams.get("t");
     const parsedSeekTime = rawSeekTime == null ? Number.NaN : parseFloat(rawSeekTime);
@@ -5381,7 +5440,7 @@ function registerThumbnailRoutes(api, adapter) {
     let sourceKey = "";
     if (source !== "missing") {
       const html = source.data.toString("utf-8");
-      sourceKey = `_${createHash4("sha1").update(html).digest("hex").slice(0, 16)}`;
+      sourceKey = `_${createHash5("sha1").update(html).digest("hex").slice(0, 16)}`;
       sourceMtime = Math.round(source.mtimeMs);
       if (!vpWidth) {
         const wMatch = html.match(/data-width=["'](\d+)["']/);
@@ -5397,9 +5456,9 @@ function registerThumbnailRoutes(api, adapter) {
     const previewPath = compPath === "index.html" ? `${projectUrl}/preview` : `${projectUrl}/preview/comp/${compPath.split("/").map(encodeURIComponent).join("/")}`;
     const previewUrl = `${previewPath}?${PREVIEW_CAPTURE_PARAM}=1`;
     const cacheDir = join11(project.dir, ".thumbnails");
-    const selectorKey = selector ? `_${createHash4("sha1").update(selector).digest("hex").slice(0, 16)}_${selectorIndex ?? 0}` : "";
+    const selectorKey = selector ? `_${createHash5("sha1").update(selector).digest("hex").slice(0, 16)}_${selectorIndex ?? 0}` : "";
     const urlVersionKey = urlVersion ? `_${urlVersion.replace(/[^a-zA-Z0-9_-]+/g, "_").slice(0, 32)}` : "";
-    const inputSignatureKey = `_${createHash4("sha1").update(inputSignature).digest("hex").slice(0, 16)}`;
+    const inputSignatureKey = `_${createHash5("sha1").update(inputSignature).digest("hex").slice(0, 16)}`;
     const outputScale = outputMode === "source" ? 1 : Math.min(1, THUMBNAIL_MAX_OUTPUT_WIDTH / compW, THUMBNAIL_MAX_OUTPUT_HEIGHT / compH);
     const outputWidth = Math.max(1, Math.round(compW * outputScale));
     const outputHeight = Math.max(1, Math.round(compH * outputScale));
@@ -5443,8 +5502,8 @@ function registerThumbnailRoutes(api, adapter) {
           if (!generated) return null;
           const previewCopiesAtEnd = proxyActivityMark(project.dir);
           const afterGeneration = await resolveProjectAndSignature(adapter, project.id);
-          const inputsUnchanged = (signature) => compositionInputSignature(project.dir, compPath, signature) === inputSignature;
-          if (previewCopiesAtStart === null || previewCopiesAtEnd !== previewCopiesAtStart || afterGeneration?.project.dir !== project.dir || !inputsUnchanged(afterGeneration.signature) || !inputsUnchanged(createProjectSignature(project.dir))) {
+          const inputsUnchanged = async (signature) => await compositionInputSignature(project.dir, compPath, signature) === inputSignature;
+          if (previewCopiesAtStart === null || previewCopiesAtEnd !== previewCopiesAtStart || afterGeneration?.project.dir !== project.dir || !await inputsUnchanged(afterGeneration.signature) || !await inputsUnchanged(await createProjectSignatureAsync(project.dir))) {
             return generated;
           }
           mkdirWithinProject(project.dir, cacheDir);
@@ -5523,7 +5582,7 @@ import {
 } from "@hyperframes/core/atomic-file";
 
 // src/helpers/freezeFrame.ts
-import { createHash as createHash5, randomBytes } from "crypto";
+import { createHash as createHash6, randomBytes } from "crypto";
 import { ensureHfIds as ensureHfIds3 } from "@hyperframes/parsers/hf-ids";
 import { readMediaOffsetSeconds } from "@hyperframes/parsers/media-duration";
 import { resolveRateSpec, sourceTimeAt } from "@hyperframes/core/speed-ramp";
@@ -5565,7 +5624,7 @@ function freezeExtractArgs(src, mediaTime, output) {
 var randomStillToken = () => randomBytes(4).toString("hex");
 function freezeStillFileName(clipId, playhead, token = randomStillToken()) {
   const stem = clipId.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 48) || "clip";
-  const idHash = createHash5("sha256").update(clipId).digest("hex").slice(0, 10);
+  const idHash = createHash6("sha256").update(clipId).digest("hex").slice(0, 10);
   return `${stem}-${idHash}-${Math.round(playhead * 1e3)}-${token}.png`;
 }
 function readFreezeSource(html, target, playhead) {
@@ -6383,12 +6442,11 @@ function registerMediaRoutes(api, adapter, options = {}) {
   const TTL_MS = 3e5;
   const readMediaMetadata = options.probeMediaMetadata ?? probeMediaMetadata;
   function cleanupFinishedJobs() {
-    const now = Date.now();
-    for (const [id, job] of mediaJobs) {
-      if ((job.status === "complete" || job.status === "failed") && now - job.createdAt > TTL_MS) {
-        mediaJobs.delete(id);
-      }
-    }
+    forgetJobsFinishedLongerThan(
+      TTL_MS,
+      mediaJobs,
+      (job) => job.status === "complete" || job.status === "failed"
+    );
   }
   api.get("/projects/:id/media/metadata", async (c) => {
     const project = await adapter.resolveProject(c.req.param("id"));
@@ -6474,7 +6532,6 @@ function registerMediaRoutes(api, adapter, options = {}) {
         device: normalizeDevice(body.device),
         jobId
       });
-      state.createdAt = Date.now();
       mediaJobs.set(jobId, state);
       return c.json({
         jobId,
@@ -6870,13 +6927,13 @@ function numericAttribute(element, name) {
 }
 
 // src/helpers/previewDocumentStore.ts
-import { createHash as createHash6 } from "crypto";
+import { createHash as createHash7 } from "crypto";
 import { readFileSync as readFileSync14, readdirSync as readdirSync5, rmSync as rmSync6 } from "fs";
 import { join as join17 } from "path";
 import { replaceFileAtomically as replaceFileAtomically4 } from "@hyperframes/core/atomic-file";
 function createPreviewDocumentStore(projectDir, salt) {
   const dir = join17(projectDir, ".hyperframes", "preview");
-  const fileFor = (key) => join17(dir, `${createHash6("sha256").update(`${salt}
+  const fileFor = (key) => join17(dir, `${createHash7("sha256").update(`${salt}
 ${key}`).digest("hex").slice(0, 32)}.html`);
   return {
     read(key) {
@@ -6975,6 +7032,7 @@ export {
   HistoryClosedError,
   HistoryIdError,
   HistoryRefusedError,
+  MAX_OPEN_MEDIA_RANGE_BYTES,
   MAX_UPLOAD_BYTES,
   MAX_WINDOW_IDLE_MS,
   MIME_TYPES,
@@ -6997,6 +7055,7 @@ export {
   createBackgroundRemovalJob,
   createPreviewDocumentStore,
   createProjectSignature,
+  createProjectSignatureAsync,
   createStudioApi,
   createStudioManualEditsRenderBodyScript,
   createStudioMotionRenderBodyScript,
@@ -7013,9 +7072,11 @@ export {
   historyCache,
   identifyFileWrite,
   isSafePath,
+  isUncopiedMedia,
   listProjectHistories,
   onRestoredInPlace,
   openProjectHistory,
+  openRangeEnd,
   parseSourceDocument,
   patchElementInHtml,
   pruneGoneProjectHistories,
@@ -7031,6 +7092,7 @@ export {
   settledFileTag,
   splitElementInHtml,
   stampProjectHfIds,
+  stampProjectHfIdsAsync,
   thumbnailDeviceScaleFactor,
   walkDir
 };

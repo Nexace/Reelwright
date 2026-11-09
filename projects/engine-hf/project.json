@@ -1,0 +1,45 @@
+{
+  "title": "Reelwright - engine demo (CI)",
+  "renderer": "hyperframes",
+  "style": "dark-tech",
+  "out": "out/engine-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.5,
+  "tail": 1.0,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": {
+    "bpm": 100,
+    "duck_db": -10,
+    "style": "drive",
+    "drop_bar": 2
+  },
+  "lines": [
+    {
+      "id": "hook",
+      "gap": 0.0,
+      "text": "Cut with a shader."
+    },
+    {
+      "id": "ramp",
+      "gap": 0.3,
+      "text": "Ramp the speed, grade the look."
+    },
+    {
+      "id": "end",
+      "gap": 0.3,
+      "text": "Reelwright."
+    }
+  ],
+  "ci": true,
+  "motionBlur": {
+    "shutter": 180,
+    "samples": 4
+  },
+  "output": {
+    "format": "webm"
+  }
+}

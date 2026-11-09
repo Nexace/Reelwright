@@ -115,7 +115,7 @@ Build-time MathJax or Typst glyph paths → real `write()` and TransformMatching
 arrows/braces; polar/complex/parametric/implicit plots, calculus helpers, grid warp, vector fields; Three.js 3D scenes.
 Owns: tools/math2.js, vendor/{mathjax,flubber}/, tools/commands/tex.mjs.
 
-**10l — Higgsfield connector depth (M)** · needs 10.0
+**10l — Higgsfield connector depth (M)** · ~~needs 10.0~~ **Dropped by the owner 2026-11-09** (the 0.2 connector stays as it is; its parity rows are exceptions)
 `gen --ref/--opt` (upload via presigned URL, image-to-video, motion transfer, duration/aspect), locked style block,
 version-on-overwrite, `--resume`/`--redo` with retry cap, spend cap for batches, `review` command. Mocked tests only;
 no paid call without asking. Owns: tools/gen*, tools/gen/, docs/CONNECTORS.md.
@@ -175,3 +175,10 @@ docs/parity/ (every row EQUAL/BETTER or an explicit, owner-approved exception), 
 > own worktree, touching only the files it owns. Use subagent-driven development with explicit model and effort per
 > subagent. Ask before vendoring anything not listed, adding a dependency, deleting files or any paid call. Exit test
 > passes → merge `main` in, push, report CI; the owner decides the merge.
+
+## After Phase 10 (owner, 2026-11-09)
+
+- **Figma as the design step.** Claude designs the film's UI screens and scene frames in Figma (Figma MCP: create the file,
+  build frames with the film's theme tokens as Figma variables), then the film uses them: export through the MCP (no
+  token) or `tools/figma_export.py`. The skill gains a "design in Figma" step between script and scenes. Creating Figma
+  files is an outward action: ask before each new file.

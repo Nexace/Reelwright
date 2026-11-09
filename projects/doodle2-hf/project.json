@@ -1,0 +1,21 @@
+{
+  "title": "Reelwright — doodle2 pen, depth and seams",
+  "renderer": "hyperframes",
+  "style": "doodle",
+  "out": "out/doodle2-hf.mp4",
+  "fps": 30,
+  "ci": true,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.6,
+  "tail": 2.2,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 120, "duck_db": -10, "style": "house", "drop_bar": 1 },
+  "lines": [
+    { "id": "draw",  "gap": 0.0, "text": "Draw it by hand." },
+    { "id": "depth", "gap": 5.2, "text": "Add some depth." },
+    { "id": "end",   "gap": 2.6, "text": "Then ship it." }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Reelwright - blocks demo (CI)",
+  "renderer": "hyperframes",
+  "style": "luxury",
+  "out": "out/blocks-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "pitch": "+0Hz",
+  "lead": 0.6,
+  "tail": 1.0,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": {
+    "bpm": 100,
+    "duck_db": -10,
+    "style": "drive",
+    "drop_bar": 2
+  },
+  "lines": [
+    {
+      "id": "hook",
+      "gap": 0.0,
+      "text": "Blocks, straight from the registry."
+    },
+    {
+      "id": "scope",
+      "gap": 0.9,
+      "text": "A scope, live."
+    },
+    {
+      "id": "end",
+      "gap": 0.9,
+      "text": "Reelwright."
+    }
+  ],
+  "ci": true
+}

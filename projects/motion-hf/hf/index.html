@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- Motion demo: KIT.path, KIT.transition, KIT.shot (shots2) and tools/motion.js, all pure functions of t.
+     Kept short: CI builds it on three OSes ("ci": true). Preview: open hf/index.html#3 (a moment) or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" -->
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .scene { position: absolute; inset: 0; background: var(--kit-bg); }
+  .scene > * { position: absolute; }
+  .h { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking);
+    font-size: calc(84 * var(--kit-u)); white-space: nowrap; color: var(--kit-ink); }
+  .tag { font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase;
+    color: var(--kit-ink); white-space: nowrap; }
+  .card { border-radius: var(--kit-radius); background: var(--kit-surface); border: var(--kit-border); box-shadow: var(--kit-shadow); }
+  .dot { border-radius: 50%; background: var(--kit-accent); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>          <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>        <!-- copied from tools/ by the renderer -->
+<script src="kit/shots.js"></script>
+<script src="kit/shots2.js"></script>        <!-- KIT.shot.tour / planes / … -->
+<script src="kit/paths/paths.js"></script>   <!-- vendor/paths (@remotion/paths, MIT) -->
+<script src="kit/path.js"></script>          <!-- KIT.path -->
+<script src="kit/transitions.js"></script>   <!-- KIT.transition -->
+<script src="kit/motion.js"></script>        <!-- KIT.rate, KIT.indicate, KIT.typewriter, KIT.sim -->
+<script src="film.js"></script>
+</body>
+</html>

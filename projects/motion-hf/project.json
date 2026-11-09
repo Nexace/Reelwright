@@ -1,0 +1,22 @@
+{
+  "title": "Reelwright — motion, transitions, camera",
+  "renderer": "hyperframes",
+  "style": "pastel",
+  "out": "out/motion-hf.mp4",
+  "fps": 30,
+  "ci": true,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+6%",
+  "pitch": "+0Hz",
+  "lead": 0.6,
+  "tail": 1.6,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 110, "duck_db": -10, "style": "drive", "drop_bar": 1 },
+  "lines": [
+    { "id": "path", "gap": 0.0, "text": "Draw a path, then ride it." },
+    { "id": "type", "gap": 0.4, "text": "Type it, and circle it." },
+    { "id": "cam",  "gap": 0.4, "text": "Fly the camera through depth." },
+    { "id": "end",  "gap": 0.4, "text": "Every frame seeks." }
+  ]
+}

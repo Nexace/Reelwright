@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- doodle2 demo: pen lettering, a drawing score, depth planes + line weight, a matched-move seam into a card that draws itself
+     (tools/doodle2.js on tools/doodle.js). Kept short: CI builds it on three OSes ("ci": true). Preview: open hf/index.html#6 or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" -->
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .scene, .layer { position: absolute; inset: 0; }
+  .tag { position: absolute; transform: translateX(-50%); font-family: var(--kit-label-font); font-size: calc(28 * var(--kit-u));
+    letter-spacing: .14em; text-transform: uppercase; color: var(--kit-muted); white-space: nowrap; }
+  .big { position: absolute; font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); font-size: calc(96 * var(--kit-u));
+    color: var(--kit-ink); white-space: nowrap; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>     <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>   <!-- copied from tools/ by the renderer -->
+<script src="kit/doodle.js"></script>   <!-- KIT.doodle (hash, rng, schedule, drawOn) -->
+<script src="kit/doodle2.js"></script>  <!-- ribbon, stroke, score, drawSVG, letters, planes, matchedMove -->
+<script src="film.js"></script>
+</body>
+</html>

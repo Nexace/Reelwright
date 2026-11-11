@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Math depth demo: KIT.tex (MathJax glyph paths), KIT.math.plane + warp (plot2.js), KIT.math3d (Three.js), all pure in t.
+     Kept short: CI builds it on three OSes ("ci": true). Preview: open hf/index.html#3 (a moment) or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" -->
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .scene { position: absolute; inset: 0; }
+  .tag { position: absolute; font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em;
+    text-transform: uppercase; color: var(--kit-ink); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>                <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>              <!-- copied from tools/ by the renderer -->
+<script src="kit/doodle.js"></script>
+<script src="kit/math.js"></script>
+<script src="kit/plot2.js"></script>               <!-- KIT.math.plane / warp -->
+<script src="kit/mathjax/config.js"></script>      <!-- vendor/mathjax (Apache-2.0): config first -->
+<script src="kit/mathjax/tex-svg-full.js"></script>
+<script src="kit/flubber/flubber.min.js"></script> <!-- vendor/flubber (MIT) -->
+<script src="kit/tex.js"></script>                 <!-- KIT.tex -->
+<script src="kit/runtimes.js"></script>            <!-- KIT.three -->
+<script src="kit/math3d.js"></script>              <!-- KIT.math3d -->
+<script src="film.js"></script>
+</body>
+</html>

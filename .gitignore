@@ -45,3 +45,5 @@ drive/
 
 # optional Manim install (reelwright manim <p> install ce --yes): one shared venv, never committed
 .venv-manim*/
+__pycache__/
+*.pyc

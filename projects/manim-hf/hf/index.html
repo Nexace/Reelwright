@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- Manim demo: a Manim CE scene (manim/proof.py) rendered to a cached alpha clip by `reelwright manim manim-hf render`
+     and played as a layer by KIT.manim. Not "ci": CI has no Manim. Run: sched → manim render → frames. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  body { background: var(--kit-bg); background-image: var(--kit-bg-image); }
+  .tag { position: absolute; font-family: var(--kit-label-font); font-size: calc(24 * var(--kit-u)); letter-spacing: .14em;
+    text-transform: uppercase; color: var(--kit-ink); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>
+<script src="kit/engine.js"></script>
+<script src="kit/manim/data.js"></script>   <!-- window.MANIM, written by `reelwright manim <p> render` -->
+<script src="kit/manim.js"></script>        <!-- KIT.manim -->
+<script src="film.js"></script>
+</body>
+</html>

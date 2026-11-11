@@ -9,9 +9,16 @@ JS will not reach: full LaTeX, Pango text, Manim plugins, scenes you already hav
 to a cached alpha clip and played by `KIT.manim(id)`.
 
 > **Status.** The Node side (driver, cache, `verify`, `KIT.manim` playback in pvk and HyperFrames) is tested in CI with a fake
-> Manim. The real Manim CE render path — `ce.py`, `doctor`, `hello.py` — is **not verified on this machine** until
-> `reelwright manim <p> doctor` passes for you. **ManimGL** has an adapter and tests that skip when it is absent; it is **not
+> Manim (CI has no Manim; the real-render step skips there). **Manim CE 0.22.1 is verified on macOS arm64** (2026-11-12): `doctor`
+> renders a Typst-equation probe with alpha and the right frame count, `examples/hello.py` renders its 30 frames, and
+> `projects/manim-hf` (not `"ci"`: it needs the install) plays a real Manim scene through `all` with every QA gate passing.
+> Windows and Linux CE installs are untested. **ManimGL** has an adapter and tests that skip when it is absent; it is **not
 > verified on this machine** and never installed by us (it needs an OpenGL 3.3 context, so it is local-only, never CI).
+
+`projects/manim-hf` is the worked example: `manim/proof.py` (axes and a curve that grows on the spoken word "curve", a Typst
+equation that writes on "equation") played by `KIT.manim` over the theme. Build it with `reelwright sched manim-hf`, then
+`reelwright manim manim-hf render`, then `reelwright all manim-hf`. The taste check's "near-empty / nothing moves" WARNs are
+wrong for it: it reads the DOM and cannot see frames drawn into a canvas.
 
 ## Install (once)
 

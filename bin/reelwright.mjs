@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // reelwright <command> [project]   (project defaults to projects/example)
 //
-//   new <name> [--renderer hyperframes]   copy the example (or example-hf) into projects/<name>
+//   new <name> [--renderer hyperframes|remotion]   copy the example (or example-hf, or templates/remotion) into projects/<name>
 //   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)
 //   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
 //   vo               voiceover from project.json lines (edge-tts) → vo/
@@ -96,12 +96,22 @@ function hasTrack() { const f = project().music?.file; return !!f && fs.existsSy
 
 const C = {
   new() {
-    const r = args.indexOf("--renderer");
-    const hf = r >= 0 && args.splice(r, 2)[1] === "hyperframes";
+    const r = args.indexOf("--renderer"), rend = r >= 0 ? args.splice(r, 2)[1] : "pvk";
+    const hf = rend === "hyperframes";
     const name = args[0];
-    if (!name) { console.log("usage: reelwright new <name> [--renderer hyperframes]"); process.exit(1); }
+    if (!name) { console.log("usage: reelwright new <name> [--renderer hyperframes|remotion]"); process.exit(1); }
     const dest = path.join("projects", name);
     if (fs.existsSync(dest)) { console.log(`${dest} already exists`); process.exit(1); }
+    if (rend === "remotion") {   // optional, not open source: rm/ gets its own node_modules on the first build, after a yes
+      const p = JSON.parse(fs.readFileSync(path.join("projects", "example-hf", "project.json"), "utf8"));
+      fs.mkdirSync(dest, { recursive: true });
+      fs.writeFileSync(path.join(dest, "project.json"), JSON.stringify({ ...p, title: name, renderer: "remotion", out: `out/${name}.mp4`, ci: undefined }, null, 2) + "\n");
+      fs.cpSync(path.join("templates", "remotion"), path.join(dest, "rm"), { recursive: true, filter: (s) => !/node_modules/.test(s) });
+      console.log(`created ${dest} — edit project.json (script) and rm/src/Film.jsx (the edit; React, rendered by Remotion)`);
+      console.log(`Remotion is not installed yet: the first \`reelwright all ${name}\` shows its licence (free only for individuals,`);
+      console.log(`companies of up to 3 people and non-profits) and asks before installing ~250 MB into ${dest}/rm/node_modules.`);
+      return;
+    }
     const src = path.join("projects", hf ? "example-hf" : "example");
     const skip = new Set(["clips", "frames", "stills", "vo", "out", "mix.wav", "timeline.json",
       "music/bed.wav", "music/grid.json", "film/data.js", "film/clip.js", "hf/kit", "hf/kit-data.js"]);

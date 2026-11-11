@@ -43,6 +43,7 @@ export function install(DIR, engine = "ce", { yes = false, log = console.log } =
   log(`Manim ${engine.toUpperCase()} into ${posix(path.relative(process.cwd(), venv))} (~${pin.mb} MB of downloads: Python 3.12 via uv, then ${pin.pkg}):`);
   const show = (s) => s.map((a) => /[\s[\]"]/.test(a) ? JSON.stringify(a) : a).join(" ");   // copy-pasteable
   for (const s of steps) log("  " + show(s));
+  if (!process.env.REELWRIGHT_MANIM_PYTHON && fs.existsSync(python(DIR, engine)) && healthy(DIR, engine)) { log(`already installed and healthy (${posix(path.relative(process.cwd(), venv))}); nothing downloaded`); return { ok: true, existing: true }; }
   if (!has("uv")) {
     log("uv is not installed; install it first:\n  " + (process.platform === "win32"
       ? 'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"' : "curl -LsSf https://astral.sh/uv/install.sh | sh"));
@@ -56,7 +57,6 @@ export function install(DIR, engine = "ce", { yes = false, log = console.log } =
     "  Debian/Ubuntu: sudo apt install build-essential python3-dev libcairo2-dev libpango1.0-dev\n" +
     "  Fedora:        sudo dnf install python3-devel pkg-config cairo-devel pango-devel\n" +
     "  Arch:          sudo pacman -Syu base-devel cairo pango" + (engine === "gl" ? "\n  GL also needs: sudo apt install ffmpeg" : ""));
-  if (!process.env.REELWRIGHT_MANIM_PYTHON && fs.existsSync(python(DIR, engine)) && healthy(DIR, engine)) { log(`already installed and healthy (${posix(path.relative(process.cwd(), venv))}); nothing downloaded`); return { ok: true, existing: true }; }
   if (!yes) { log("nothing downloaded: re-run with --yes to install"); return { ok: true, planned: true }; }
   for (const s of steps) {
     log("▶ " + show(s));

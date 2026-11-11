@@ -49,7 +49,7 @@ What the conversion does, and what makes a block UNSUPPORTED (the reason lands i
   plugin files), lottie-web → `kit/lottie/`, three 0.170–0.185 ES modules (CDN or the block's own copy) and their
   `examples/jsm` addons → `kit/three/` (0.187, `addons/`) through an import map, the three r147 global build and its
   `examples/js` → `kit/three-r147/`, d3 7 and topojson-client 3 → `kit/d3/`, `kit/topojson-client/`, atlas JSON from
-  jsDelivr → `kit/us-atlas/`, `kit/world-atlas/`, `kit/es-atlas/` (each its own vendor folder with LICENSE and
+  jsDelivr → `kit/us-atlas/`, `kit/world-atlas/` (each its own vendor folder with LICENSE and
   VENDORED.md). The block's own `fetch()` / `d3.json()` of those files is synchronous (built before the first seek).
   Not vendored: WebGPU, three r128 and the Draco decoder (only blocks with unlicensed assets need them), clipper-lib
   and d3-delaunay; blocks needing them are unsupported.

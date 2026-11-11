@@ -92,7 +92,7 @@ function kitLib(u) {
 }
 // a three addon: vendor/three/addons/<path> (from three@0.187.0's examples/jsm) as "three/addons/<path>", or not vendored
 const addon = (p) => fs.existsSync(path.join(ROOT, "vendor", "three", "addons", p)) ? { spec: "three/addons/" + p } : { addon: p };
-const DATA = /https:\/\/cdn\.jsdelivr\.net\/npm\/(us-atlas|world-atlas|es-atlas)@[\w.]+\/([\w/.-]+\.json)/g;   // atlas JSON → kit/<lib>/
+const DATA = /https:\/\/cdn\.jsdelivr\.net\/npm\/(us-atlas|world-atlas)@[\w.]+\/([\w/.-]+\.json)/g;   // atlas JSON → kit/<lib>/
 const libName = (u) => (u.match(/npm\/(@?[\w.-]+?)(?:@|\/)/) || u.match(/libs\/([\w.-]+)/) || [, new URL(u).host])[1];
 
 const SKIP = /^(registry-item\.json|TEMPLATE\.md|SKILL\.md|README\.md|demo[^/]*|build-bundle\.mjs|source\/.*)$/i;   // upstream docs/demos

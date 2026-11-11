@@ -43,6 +43,10 @@ drive/
 # paid-generation credentials (tools/gen.mjs)
 .reelwright/
 
+# Remotion renderer (generated, opt-in; tools/renderers/remotion.mjs)
+projects/*/rm/public/
+projects/*/rm/kit-data.json
+
 # optional Manim install (reelwright manim <p> install ce --yes): one shared venv, never committed
 .venv-manim*/
 __pycache__/

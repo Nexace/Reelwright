@@ -144,7 +144,14 @@ scrub, re-render stills; no GSAP authoring exposed (GSAP licence). Owns: tools/s
 ### 10z — Release 0.3 (M) · needs everything merged
 Stitch docs (README, PLAYBOOK from docs/playbook/, THIRD_PARTY/NOTICE from vendor rows), compile docs/PARITY.md from
 docs/parity/ (every row EQUAL/BETTER or an explicit, owner-approved exception), update the three user skills, version
-0.3.0, tag, release; cleanup list waits for the owner's OK.
+0.3.0, tag, release; **Final step, owner 2026-11-12: push and clean up every useless file.**
+Order: merge everything → compile PARITY and docs → bump 0.3.0 → fresh-clone build of example, example-hf and the Phase 10
+demo films, all gates green → tag, push, release → cleanup. Cleanup removes only what can be rebuilt or is no longer
+used: generated film output (frames, stills, .cache, vo, clips, hf/kit; the mp4/srt/vtt/manifest stay), `scratch/` once
+no checkpoint needs its research copies, agent worktrees whose branch is merged, stale root copies, and vendored files
+nothing imports and nothing reads (proved, not guessed). Never touched: `.venv-manim` (the owner's Manim install),
+anything tracked and used, git history. Remote and local branches are listed and deleted only on the owner's yes.
+Before deleting, the exact list with sizes is shown (as in Phases 8 and 9e).
 
 ## Known exceptions (cannot be "equal" — owner to confirm)
 

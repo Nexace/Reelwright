@@ -129,6 +129,13 @@ BAD = [(r"\bDate\.now\s*\(|\bnew Date\s*\(", "reads the clock"), (r"\bperformanc
        (r"\bMath\.random\s*\(", "random each run (use a seeded function of t)"), (r"\brequestAnimationFrame\s*\(", "animates in real time"),
        (r"\bset(Timeout|Interval)\s*\(", "timer"), (r"(?<![\w-])transition\s*:", "CSS transition (not seekable)"),
        (r"<video\b[^>]*\bautoplay", "autoplaying video")]
+if P.get("renderer") == "remotion":   # the film is React under rm/src/ (tools/renderers/remotion.mjs)
+    rs = os.path.join(proj, "rm", "src")
+    src = sorted(os.path.relpath(os.path.join(d, f), proj).replace(os.sep, "/") for d, _, fs in os.walk(rs) for f in fs
+                 if f.endswith((".js", ".jsx", ".mjs", ".ts", ".tsx", ".css")))
+    BAD += [(r"\buseFrame\s*\(", "R3F useFrame animates in real time (drive it from useCurrentFrame)"),
+            (r"\b(animate|transition)-[a-z]", "Tailwind animate-/transition- class (not seekable)"),
+            (r"(?<![\w.])random\(\s*(null|undefined)?\s*\)", "random() without a seed (use random('id'))")]
 hits = []
 for f in src:
     fp = os.path.join(proj, f)

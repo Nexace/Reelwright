@@ -1,6 +1,6 @@
 // node tools/selfcheck/blocks.mjs [names…] — the vendored HyperFrames blocks (tools/blocks.mjs): index.json matches the
-// folders, every block html carries the changed-from-upstream header and no remote URL, and a sample of blocks (a GSAP
-// one, a three ESM one, an hf-seek one, an html-in-canvas one; or the names given) passes verify: two pages under the
+// folders, every block html carries the changed-from-upstream header and no remote URL, and a sample of blocks (GSAP, three
+// ESM, hf-seek, lottie, a three addon, three r147, d3 + topojson + atlas; or the names given) passes verify: two pages under the
 // producer's file server, two shuffled seek orders, same pixels, no page error, no network request.
 import fs from "node:fs";
 import path from "node:path";
@@ -20,7 +20,7 @@ for (const n of sup) {
   assert.ok(/<template>/.test(html) && html.includes(`data-composition-id="${blocks[n].id}"`), `${n}: not a KIT.mount template`);
 }
 const want = process.argv.slice(2);
-const sample = want.length ? want : ["ai-answer-rank", "glass-hero", "orbit-card", "lottie-character-walk"].filter((n) => sup.includes(n));
+const sample = want.length ? want : ["ai-answer-rank", "glass-hero", "orbit-card", "lottie-character-walk", "exploded-stack", "spiral-galaxy", "world-map"].filter((n) => sup.includes(n));
 const res = await verify(sample);
 const bad = Object.entries(res).filter(([, r]) => r);
 assert.deepEqual(bad, [], "verify failed");

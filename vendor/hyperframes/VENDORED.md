@@ -46,10 +46,13 @@ Third-party code inside: none in what we took. Third-party npm packages the vend
 What the conversion does, and what makes a block UNSUPPORTED (the reason lands in UNSUPPORTED.md):
 
 - Libraries resolve to the kit only: GSAP 3.14.2 from jsDelivr (or a block's own copy) → `kit/gsap/dist/` (3.15.1, same
-  plugin files), lottie-web → `kit/lottie/`, three 0.170–0.185 ES modules (CDN or the block's own copy) → `kit/three/`
-  (0.187) through an import map. Nothing else is vendored for blocks: WebGPU, the three r147 global build, d3/topojson/
-  atlas data, Draco, CDN-only libraries (clipper-lib, d3-delaunay, …) and three `examples/jsm` addons not shipped
-  inside the block make it unsupported.
+  plugin files), lottie-web → `kit/lottie/`, three 0.170–0.185 ES modules (CDN or the block's own copy) and their
+  `examples/jsm` addons → `kit/three/` (0.187, `addons/`) through an import map, the three r147 global build and its
+  `examples/js` → `kit/three-r147/`, d3 7 and topojson-client 3 → `kit/d3/`, `kit/topojson-client/`, atlas JSON from
+  jsDelivr → `kit/us-atlas/`, `kit/world-atlas/`, `kit/es-atlas/` (each its own vendor folder with LICENSE and
+  VENDORED.md). The block's own `fetch()` / `d3.json()` of those files is synchronous (built before the first seek).
+  Not vendored: WebGPU, three r128 and the Draco decoder (only blocks with unlicensed assets need them), clipper-lib
+  and d3-delaunay; blocks needing them are unsupported.
 - Fonts: Google Fonts / fontsource links and `@import`s are dropped; each family the block names maps to a bundled
   family in `fonts/` (exact, else nearest; recorded in CATALOG.md notes), copied beside the block by `add`. A block's own
   font files stay when a licence text sits beside them. Host-font keywords (`system-ui`, `-apple-system`, …) → Inter.

@@ -11,8 +11,9 @@
 // window.__timelines[<id>] = { seek(t) } that seeks the block's own timeline (GSAP totalTime, like HyperFrames), its
 // hf-seek listeners, __hfThreeTime / __hfLottie users and data-start clips with the block's LOCAL time; module scripts run
 // as async functions behind window.__hf.buildReady (which the HyperFrames runtime waits on, and so does verify).
-// Libraries resolve to the kit only (gsap → kit/gsap/dist, lottie → kit/lottie, three ESM → kit/three via an import map);
-// anything else a block loads makes it UNSUPPORTED with the reason. See vendor/hyperframes/VENDORED.md "Blocks".
+// Libraries resolve to the kit only (gsap → kit/gsap/dist, lottie → kit/lottie, three ESM + addons → kit/three via an import
+// map, three r147 global → kit/three-r147, d3 / topojson-client → kit/<lib>, atlas JSON → kit/{us,world,es}-atlas);
+// anything else a block loads, or any file of its own without a known licence, makes it UNSUPPORTED with the reason. See vendor/hyperframes/VENDORED.md "Blocks".
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -70,9 +71,6 @@ function licensed(dir, name, item, rel) {
 const MEDIA = /<(audio|video)\b/i;
 function classify(html) {
   if (/data-requires-webgpu|navigator\.gpu|typegpu/.test(html)) return "needs WebGPU hardware";
-  if (/three@0\.147|three\.min\.js/.test(html)) return `needs the three ${/r128/.test(html) ? "r128" : "r147"} global build (three.min.js${/examples\/js\//.test(html) ? " + examples/js" : ""}); vendored three is r187 ES modules`;
-  if (/d3@|topojson|-atlas@/.test(html)) return "needs d3 + topojson + atlas data (not vendored)";
-  if (/draco/i.test(html)) return "needs the Draco decoder (not vendored)";
   if (MEDIA.test(html)) return "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block";
   return null;
 }
@@ -83,10 +81,23 @@ function kitLib(u) {
     return fs.existsSync(path.join(ROOT, "vendor", "gsap", "dist", m[1] + ".min.js")) ? { src: `kit/gsap/dist/${m[1]}.min.js` } : null;
   if (/lottie(-web)?@[\d.]+/.test(u)) return { src: "kit/lottie/lottie.min.js" };
   if (/three@0\.1(7|8)\d\.\d+(\/build\/three\.module(\.min)?\.js|\/\+esm)?$/.test(u)) return { spec: "three" };
-  if ((m = u.match(/three@0\.1[78]\d\.\d+\/examples\/jsm\/(.+?)(\/\+esm)?$/))) return { addon: m[1] };
+  if ((m = u.match(/three@0\.1[78]\d\.\d+\/examples\/jsm\/(.+?)(\/\+esm)?$/))) return addon(m[1]);
+  // classic builds and data: a file of a vendor/<lib>/ folder, or null
+  const has = (lib, f) => fs.existsSync(path.join(ROOT, "vendor", lib, f)) ? { src: `kit/${lib}/${f}` } : null;
+  if ((m = u.match(/three@0\.147\.0\/build\/(three\.min\.js)$/))) return has("three-r147", m[1]);
+  if ((m = u.match(/three@0\.147\.0\/(examples\/js\/.+\.js)$/))) return has("three-r147", m[1]);
+  if (/\/npm\/d3@7(\/dist\/d3(\.min)?\.js)?$/.test(u)) return has("d3", "d3.min.js");
+  if (/topojson-client@3[\d.]*\/dist\/topojson-client(\.min)?\.js$/.test(u)) return has("topojson-client", "topojson-client.min.js");
   return null;
 }
+// a three addon: vendor/three/addons/<path> (from three@0.187.0's examples/jsm) as "three/addons/<path>", or not vendored
+const addon = (p) => fs.existsSync(path.join(ROOT, "vendor", "three", "addons", p)) ? { spec: "three/addons/" + p } : { addon: p };
+const DATA = /https:\/\/cdn\.jsdelivr\.net\/npm\/(us-atlas|world-atlas|es-atlas)@[\w.]+\/([\w/.-]+\.json)/g;   // atlas JSON → kit/<lib>/
 const libName = (u) => (u.match(/npm\/(@?[\w.-]+?)(?:@|\/)/) || u.match(/libs\/([\w.-]+)/) || [, new URL(u).host])[1];
+
+const SKIP = /^(registry-item\.json|TEMPLATE\.md|SKILL\.md|README\.md|demo[^/]*|build-bundle\.mjs|source\/.*)$/i;   // upstream docs/demos
+const LIBCOPY = /(^|\/)(gsap[-\d.]*\.min\.js|three\.(module|core)(\.min)?\.js|GSAP-NOTICE\.txt)$/;   // a block's own copy of a kit library
+const IMAGE = /\.(svg|png|jpe?g|webp|gif)$/i;
 
 // ── convert one upstream block ─────────────────────────────────────────────
 export function convert(dir, name) {
@@ -95,6 +106,12 @@ export function convert(dir, name) {
   if (!fs.existsSync(file)) return { reason: "no " + name + ".html" };
   const raw = fs.readFileSync(file, "utf8");
   const why = classify(raw);
+  // licence first: a file the block uses with no known licence is the reason, whatever else it needs (fonts get a
+  // bundled stand-in, image-variable samples a blank, so neither blocks it)
+  const samples = JSON.stringify(item.variables || raw.match(/data-composition-variables\s*=\s*'[^']*'/)?.[0] || "");
+  const gaps = walk(dir).filter((f) => f !== name + ".html" && !SKIP.test(f) && !LIBCOPY.test(f) && !/\.(woff2?|ttf|otf)$/i.test(f) &&
+    raw.includes(f) && !licensed(dir, name, item, f) && !(IMAGE.test(f) && samples.includes(f)));
+  if (gaps.length) return { reason: `asset licence unknown: ${gaps.join(", ")}${why ? ` (also: ${why})` : ""}` };
   if (why) return { reason: why };
   const notes = [];
   let src = raw.replace(/<!--[\s\S]*?-->/g, "");
@@ -151,10 +168,13 @@ export function convert(dir, name) {
   }
   for (const m of modules) for (const x of m.matchAll(/\bfrom\s*["']([^"']+)["']|\bimport\s*\(?\s*["']([^"']+)["']/g)) {
     const u = x[1] || x[2];
-    if (/^three\/(addons|examples)\//.test(u) && !Object.keys(imap).some((k) => k.endsWith("/") && u.startsWith(k) && !/^three\//.test(imap[k]))) missing ||= `needs three addon ${u} (not vendored)`;
+    if (/^three\/(addons|examples)\//.test(u) && !Object.keys(imap).some((k) => k.endsWith("/") && u.startsWith(k) && !/^three\//.test(imap[k])) &&
+      addon(u.replace(/^three\/(addons|examples\/jsm)\//, "")).addon) missing ||= `needs three addon ${u} (not vendored)`;
     spec(u);
   }
   if (missing) return { reason: missing };
+  const data = (t) => t.replace(DATA, (u, lib, f) => fs.existsSync(path.join(ROOT, "vendor", lib, f)) ? `kit/${lib}/${f}` : u);
+  parts = parts.map(data); modules = modules.map(data); content = data(content);
   modules = modules.map((m) => m.replace(/(\bfrom\s*|\bimport\s*\(?\s*)(["'])(https?:[^"']+)\2/g, (_, a, q, u) => a + q + spec(u) + q));
 
   // fonts: keep a block's own licensed @font-face; remote or unlicensed faces and plain family names → bundled fonts/
@@ -204,11 +224,9 @@ export function convert(dir, name) {
   }
 
   // assets: the block's own files the code points at, minus copies of kit libraries; each needs a known licence
-  let declared0 = item.variables;   // registry-item.json, else the root's own data-composition-variables
-  if (!declared0) try { declared0 = JSON.parse(((rootTag.match(/data-composition-variables\s*=\s*'([^']*)'/) || [])[1] || "[]").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&")); } catch { declared0 = []; }
+  let declared0 = item.variables;   // registry-item.json, else data-composition-variables on <html> or the root
+  if (!declared0) try { declared0 = JSON.parse(((raw.match(/data-composition-variables\s*=\s*'([^']*)'/) || [])[1] || "[]").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&")); } catch { declared0 = []; }
   const vars = declared0.map((v) => ({ id: v.id, type: v.type, default: v.default }));
-  const SKIP = /^(registry-item\.json|TEMPLATE\.md|SKILL\.md|README\.md|demo[^/]*|build-bundle\.mjs|source\/.*)$/i;
-  const LIBCOPY = /(^|\/)(gsap[-\d.]*\.min\.js|three\.(module|core)(\.min)?\.js|GSAP-NOTICE\.txt)$/;
   const files = walk(dir).filter((f) => f !== name + ".html" && !SKIP.test(f) && !LIBCOPY.test(f) && !drop.has(f));
   const t = all() + JSON.stringify(imap);
   const dirs = (f) => f.split("/").slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join("/"));   // assets, assets/addons, …
@@ -229,7 +247,7 @@ export function convert(dir, name) {
   for (const f of used) {
     if (licensed(dir, name, item, f)) continue;
     const v = vars.find((x) => x.default === f || x.default === "./" + f);
-    if (/\.(svg|png|jpe?g|webp|gif)$/i.test(f) && v) {   // an image variable's sample: ship a blank, the film passes its own
+    if (IMAGE.test(f) && v) {   // an image variable's sample: ship a blank, the film passes its own
       for (const x of vars) if (x.default === f || x.default === "./" + f) x.default = PIXEL;
       const re = new RegExp(`(?<![\\w./-])(?:\\./)?${esc(f)}`, "g");
       css = css.replace(re, PIXEL); content = content.replace(re, PIXEL); parts = parts.map((p) => p.replace(re, PIXEL)); modules = modules.map((p) => p.replace(re, PIXEL));
@@ -249,7 +267,7 @@ export function convert(dir, name) {
   for (const k of Object.keys(imap)) imap[k] = rel(imap[k]);
   for (const v of vars) if (typeof v.default === "string" && v.default !== PIXEL) v.default = rel(v.default);
   // kit copies of a block's own three build: the import map points them (and "three") at kit/three
-  const map = { three: "./kit/three/three.module.js" };
+  const map = { three: "./kit/three/three.module.js", "three/addons/": "./kit/three/addons/" };
   for (const f of walk(dir).filter((f) => /three\.(module|core)(\.min)?\.js$/.test(f)))
     map["./" + base + f] = /core/.test(f) ? "./kit/three/three.core.js" : "./kit/three/three.module.js";
   for (const [k, v] of Object.entries(imap)) map[k] = /^(\.|\/|three)/.test(v) ? v : "./" + v;
@@ -261,9 +279,9 @@ export function convert(dir, name) {
     .replace(/dataset\.start\b/g, "dataset.blockStart").replace(/dataset\.duration\b/g, "dataset.blockDuration");
   css = clipRen(css); content = clipRen(content); parts = parts.map(clipRen); modules = modules.map(clipRen);
   // the root carries the variable declarations (defaults with their shipped paths); blocks read them from it or from <html>
-  const decl = JSON.stringify((item.variables || []).map((v) => ({ ...v, default: vars.find((x) => x.id === v.id).default })))
+  const decl = JSON.stringify(declared0.map((v) => ({ ...v, default: vars.find((x) => x.id === v.id).default })))
     .replace(/&/g, "&amp;").replace(/'/g, "&#39;");
-  if (item.variables) content = content.replace(/\sdata-composition-variables\s*=\s*('[^']*'|"[^"]*")/, "")
+  if (declared0.length) content = content.replace(/\sdata-composition-variables\s*=\s*('[^']*'|"[^"]*")/, "")
     .replace(/(<[a-z][^>]*?)(\sdata-composition-id\s*=)/i, `$1 data-composition-variables='${decl}'$2`);
 
   // CSS scoped to the root, like HyperFrames scopes an inlined sub-composition
@@ -279,6 +297,7 @@ const js = (s) => s
   .replace(/(?:window\.)?addEventListener\(\s*(["'])hf-seek\1\s*,/g, "__rwOnSeek(")
   .replace(/document\.documentElement\b/g, "__rwRoot").replace(/document\.body\b/g, "__rwRoot")
   .replace(/import\.meta\.url/g, "document.baseURI")
+  .replace(/(?<![\w$.])(?:window\.)?fetch\(/g, "__rwFetch(").replace(/(?<![\w$.])d3\.json\(/g, "__rwJson(");
 // static imports in a module → awaited dynamic imports (resolved through the import map)
 let dynN = 0;
 const dyn = (code) => code
@@ -308,6 +327,14 @@ __hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; retu
 const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
   const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
 const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error(${JSON.stringify(name)} + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\\.\\/)?(kit|compositions)\\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
 const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})[${JSON.stringify(c.id)} + ':' + k] = p; return p; };
 const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
   const L = (window.__rwLibs = window.__rwLibs || {});

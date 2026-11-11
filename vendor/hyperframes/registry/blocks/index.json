@@ -169,7 +169,7 @@
   },
   "apple-money-count": {
    "status": "unsupported",
-   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+   "reason": "asset licence unknown: assets/sfx-production.wav (also: plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block)"
   },
   "aurora": {
    "status": "unsupported",
@@ -262,7 +262,7 @@
   },
   "blue-sweater-intro-video": {
    "status": "unsupported",
-   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+   "reason": "asset licence unknown: assets/joe-sai-avatar.png, assets/sfx/integrated-melodic-tech-mix.wav (also: plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block)"
   },
   "camcorder-hud": {
    "status": "supported",
@@ -324,7 +324,7 @@
   },
   "canopy-part-title": {
    "status": "unsupported",
-   "reason": "needs three addon examples/jsm/postprocessing/EffectComposer.js (not vendored)"
+   "reason": "asset licence unknown: assets/leaf-surface-color.webp, assets/leaf-surface-normal.webp"
   },
   "carousel-circle-1": {
    "status": "supported",
@@ -3152,7 +3152,96 @@
     "ad-template"
    ],
    "id": "chatgpt-exchange",
-   "vars": [],
+   "vars": [
+    {
+     "id": "prompt",
+     "default": "Hey what's the best tool for ai avatars"
+    },
+    {
+     "id": "intro1",
+     "default": "It really depends on what you're trying to do, because “AI avatars” has split into a few different categories."
+    },
+    {
+     "id": "intro2",
+     "default": "For **most creators and marketers**, here's how I'd rank them today:"
+    },
+    {
+     "id": "tableHeadUse",
+     "default": "Use case"
+    },
+    {
+     "id": "tableHeadTool",
+     "default": "Best tool"
+    },
+    {
+     "id": "tableHeadWhy",
+     "default": "Why"
+    },
+    {
+     "id": "row1Use",
+     "default": "Overall realism"
+    },
+    {
+     "id": "row1Tool",
+     "default": "HeyGen"
+    },
+    {
+     "id": "row1Why",
+     "default": "Most natural facial expressions, lip sync, gestures, voice cloning and localization. Benchmark for talking head videos."
+    },
+    {
+     "id": "row1Chip",
+     "default": "Official A.I Ranking"
+    },
+    {
+     "id": "row2Use",
+     "default": "Enterprise/training"
+    },
+    {
+     "id": "row2Tool",
+     "default": "Synthesia"
+    },
+    {
+     "id": "row2Why",
+     "default": "Better collaboration, SCORM, compliance, team workflows; less creator-focused."
+    },
+    {
+     "id": "row2Chip",
+     "default": "Official A.I Ranking"
+    },
+    {
+     "id": "row3Use",
+     "default": "Mobile UGC"
+    },
+    {
+     "id": "row3Tool",
+     "default": "Captions"
+    },
+    {
+     "id": "row3Why",
+     "default": "Extremely fast mobile workflow and social editing. Great for Reels creators."
+    },
+    {
+     "id": "row3Chip",
+     "default": "Creator Stack"
+    },
+    {
+     "id": "row4Use",
+     "default": "Real-time conversations"
+    },
+    {
+     "id": "row4Tool",
+     "default": "Tavus"
+    },
+    {
+     "id": "row4Why",
+     "default": "Interactive avatars that can hold live conversations."
+    },
+    {
+     "id": "row4Chip",
+     "default": "Creator Stack"
+    }
+   ],
    "fonts": [
     "inter"
    ],
@@ -3230,7 +3319,64 @@
     "ad-template"
    ],
    "id": "claude-exchange",
-   "vars": [],
+   "vars": [
+    {
+     "id": "prompt",
+     "default": "What's the best tool for ai avatars?"
+    },
+    {
+     "id": "thinking",
+     "default": "Weighing accuracy against current market…"
+    },
+    {
+     "id": "lead",
+     "default": "I'll search for the current state of this space since AI avatar tools move fast."
+    },
+    {
+     "id": "search",
+     "default": "best AI avatar video generator 2026"
+    },
+    {
+     "id": "answer1",
+     "default": "It depends on what you're making, but the field has consolidated fast and one platform now covers most of it."
+    },
+    {
+     "id": "answer2",
+     "default": "**HeyGen** is where most teams land. Independent testing, not just vendor blogs, puts **Avatar IV** highest for talking-head realism, with facial micro-expressions and gesture control that hold up at a full-screen crop {HeyGen}. It also has the deepest enterprise adoption of the group, including a large share of the Fortune 100, which matters if you need the same presenter on brand across a year of campaigns."
+    },
+    {
+     "id": "answer3",
+     "default": "By use case, the pieces shake out roughly like this:"
+    },
+    {
+     "id": "answer4",
+     "default": "**Marketing / hyper-realistic talking heads** → Avatar IV"
+    },
+    {
+     "id": "answer5",
+     "default": "**Enterprise training** → Video Translate for every locale"
+    },
+    {
+     "id": "answer6",
+     "default": "**UGC-style performance ads** → Instant Avatar from one selfie, then batch the variants"
+    },
+    {
+     "id": "answer7",
+     "default": "**Real-time conversational / interactive** → Interactive Avatar"
+    },
+    {
+     "id": "answer8",
+     "default": "**Custom digital twin from a selfie** → Instant Avatar in about five minutes"
+    },
+    {
+     "id": "answer9",
+     "default": "One distinction worth keeping in mind: a dedicated avatar platform optimizes the whole presenter workflow — script, voice, lip sync, translation, brand kit — whereas a general video model gives you cinematic scenes but takes far more skill to land the same person on camera twice."
+    },
+    {
+     "id": "answer10",
+     "default": "Given your day job you probably have a sharper read than these roundups on where HeyGen actually leads versus where the reviews are being generous. Is this for a specific project, or comparing for positioning?"
+    }
+   ],
    "fonts": [
     "eb-garamond",
     "inter"
@@ -3238,8 +3384,25 @@
    "notes": []
   },
   "code-3d-extrude": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Code 3D Extrude",
+   "description": "Syntax-highlighted code on a lit, beveled 3D slab that rotates through real space and settles to a readable rest — true WebGL depth and lighting, not a 2D transform.",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "code",
+    "code-animation",
+    "3d",
+    "webgl",
+    "developer"
+   ],
+   "id": "code-3d-extrude",
+   "vars": [],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
   },
   "code-diff": {
    "status": "supported",
@@ -3270,16 +3433,51 @@
    "reason": "failed verification: t=1.4: 13569 px differ between seek orders / mount times; t=2.8: 16583 px differ between seek orders / mount times; t=4.2: 2961 px differ between seek orders / mount times"
   },
   "code-particle-assemble": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Code Particle Assemble",
+   "description": "Thousands of GPU points scatter through space and fly to the exact glyph pixels of the code, resolving into readable syntax-highlighted text — a particle system, not a token tween.",
+   "duration": 8,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "code",
+    "code-animation",
+    "particles",
+    "gpu",
+    "webgl",
+    "developer"
+   ],
+   "id": "code-particle-assemble",
+   "vars": [],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
   },
   "code-scroll": {
    "status": "unsupported",
    "reason": "failed verification: t=2.4: 105384 px differ between seek orders / mount times; t=3.6: 153732 px differ between seek orders / mount times; t=4.8: 153732 px differ between seek orders / mount times"
   },
   "code-shader-dissolve": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Code Shader Dissolve",
+   "description": "The code compiles into existence: a GPU fragment shader resolves it out of seeded noise with a chromatic dissolve front and edge glow, then holds crisp.",
+   "duration": 7,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "code",
+    "code-animation",
+    "shader",
+    "webgl",
+    "developer"
+   ],
+   "id": "code-shader-dissolve",
+   "vars": [],
+   "fonts": [
+    "jetbrains-mono"
+   ],
+   "notes": []
   },
   "code-slice-hero": {
    "status": "supported",
@@ -3492,7 +3690,168 @@
     "room-environment"
    ],
    "id": "cuboid-carousel",
-   "vars": [],
+   "vars": [
+    {
+     "id": "cardsJson",
+     "default": ""
+    },
+    {
+     "id": "heroCard",
+     "default": 4
+    },
+    {
+     "id": "count",
+     "default": 8
+    },
+    {
+     "id": "gap",
+     "default": 0.01
+    },
+    {
+     "id": "cuboidWidth",
+     "default": 1.7
+    },
+    {
+     "id": "cuboidHeight",
+     "default": 2.4
+    },
+    {
+     "id": "cuboidDepth",
+     "default": 0.14
+    },
+    {
+     "id": "cornerRadius",
+     "default": 0.105
+    },
+    {
+     "id": "bevelSize",
+     "default": 0.03
+    },
+    {
+     "id": "bevelThickness",
+     "default": 0.04
+    },
+    {
+     "id": "smoothness",
+     "default": 32
+    },
+    {
+     "id": "bodyColor",
+     "default": "#242424"
+    },
+    {
+     "id": "roughness",
+     "default": 0.6
+    },
+    {
+     "id": "metalness",
+     "default": 0.4
+    },
+    {
+     "id": "heroScale",
+     "default": 1
+    },
+    {
+     "id": "heroFillIntensity",
+     "default": 0.55
+    },
+    {
+     "id": "heroExitX",
+     "default": 288
+    },
+    {
+     "id": "heroExitY",
+     "default": -234
+    },
+    {
+     "id": "heroExitZ",
+     "default": 198
+    },
+    {
+     "id": "ambientIntensity",
+     "default": 0.35
+    },
+    {
+     "id": "ambientColor",
+     "default": "#ffffff"
+    },
+    {
+     "id": "topIntensity",
+     "default": 3.1
+    },
+    {
+     "id": "topColor",
+     "default": "#ffffff"
+    },
+    {
+     "id": "bottomIntensity",
+     "default": 2.15
+    },
+    {
+     "id": "bottomColor",
+     "default": "#ffcaad"
+    },
+    {
+     "id": "keyIntensity",
+     "default": 5
+    },
+    {
+     "id": "keyColor",
+     "default": "#ffe9d6"
+    },
+    {
+     "id": "shadowRadius",
+     "default": 44.5
+    },
+    {
+     "id": "shadowMapSize",
+     "default": 2048
+    },
+    {
+     "id": "backdrop",
+     "default": "#0b0d13"
+    },
+    {
+     "id": "cameraFov",
+     "default": 11
+    },
+    {
+     "id": "cameraX",
+     "default": -1.65
+    },
+    {
+     "id": "cameraY",
+     "default": 8.5
+    },
+    {
+     "id": "cameraZ",
+     "default": -8.508708
+    },
+    {
+     "id": "cameraSettleFrame",
+     "default": 70
+    },
+    {
+     "id": "handheldStrength",
+     "default": 1
+    },
+    {
+     "id": "cameraTargetFov",
+     "default": 34
+    },
+    {
+     "id": "cameraTargetX",
+     "default": -7.25
+    },
+    {
+     "id": "cameraTargetY",
+     "default": 1.15
+    },
+    {
+     "id": "cameraTargetZ",
+     "default": 6.2
+    }
+   ],
    "fonts": [
     "inter"
    ],
@@ -3565,12 +3924,107 @@
    "notes": []
   },
   "exploded-stack": {
-   "status": "unsupported",
-   "reason": "needs three addon examples/jsm/geometries/RoundedBoxGeometry.js (not vendored)"
+   "status": "supported",
+   "title": "Exploded Stack",
+   "description": "Isometric layer plates explode apart with a label beside each layer, hold, then collapse back into one stack. Built for architecture and system diagrams.",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-object",
+    "three-js",
+    "webgl",
+    "isometric",
+    "exploded-view",
+    "layers",
+    "diagram",
+    "architecture"
+   ],
+   "id": "exploded-stack",
+   "vars": [
+    {
+     "id": "title",
+     "default": "How a request moves"
+    },
+    {
+     "id": "layer_1",
+     "default": "Interface"
+    },
+    {
+     "id": "layer_2",
+     "default": "API gateway"
+    },
+    {
+     "id": "layer_3",
+     "default": "Services"
+    },
+    {
+     "id": "layer_4",
+     "default": "Data"
+    },
+    {
+     "id": "accent",
+     "default": "#0a84ff"
+    },
+    {
+     "id": "background",
+     "default": "#f4f4f5"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font ES Inter 500 → bundled Inter 400",
+    "font ES Inter 700 → bundled Inter 600"
+   ]
   },
   "extruded-logo": {
-   "status": "unsupported",
-   "reason": "needs three addon examples/jsm/loaders/FontLoader.js (not vendored)"
+   "status": "supported",
+   "title": "Extruded Logo",
+   "description": "Beveled 3D letters flip up one by one, the word swings so light runs across the bevels, then settles for a readable hold. Chrome, gold or matte.",
+   "duration": 5,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-object",
+    "three-js",
+    "webgl",
+    "logo",
+    "text",
+    "extruded",
+    "title-card"
+   ],
+   "id": "extruded-logo",
+   "vars": [
+    {
+     "id": "text",
+     "default": "NOVA"
+    },
+    {
+     "id": "tagline",
+     "default": "Ships Thursday"
+    },
+    {
+     "id": "finish",
+     "default": "chrome"
+    },
+    {
+     "id": "rim_color",
+     "default": "#fff4e6"
+    },
+    {
+     "id": "background",
+     "default": "#0c0d12"
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font EL Inter 500 → bundled Inter 400",
+    "font Geist → bundled Inter"
+   ]
   },
   "falling-lines": {
    "status": "unsupported",
@@ -3632,8 +4086,65 @@
    "reason": "needs WebGPU hardware"
   },
   "gallery-tunnel": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Gallery Tunnel",
+   "description": "An infinite corridor of panels: a square tunnel receding to a vanishing point, its floor, ceiling and walls tiled with saturated colour slabs and caller-supplied images that swell toward camera and exit past you, the far end dissolving into fog.",
+   "duration": 12,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "webgl",
+    "3d",
+    "background",
+    "showcase",
+    "depth",
+    "loop"
+   ],
+   "id": "gallery-tunnel",
+   "vars": [
+    {
+     "id": "images",
+     "default": ""
+    },
+    {
+     "id": "imageMix",
+     "default": 0.5
+    },
+    {
+     "id": "speed",
+     "default": 3
+    },
+    {
+     "id": "palette",
+     "default": "#FF6A00,#AB54F7,#EA3737,#0072E3,#00AA3C,#FFB200"
+    },
+    {
+     "id": "grid",
+     "default": 2
+    },
+    {
+     "id": "fill",
+     "default": 0.5
+    },
+    {
+     "id": "fog",
+     "default": 14.25
+    },
+    {
+     "id": "edgeColor",
+     "default": "#B0B0B0"
+    },
+    {
+     "id": "edgeOpacity",
+     "default": 0.5
+    },
+    {
+     "id": "backdrop",
+     "default": "#000000"
+    }
+   ],
+   "fonts": [],
+   "notes": []
   },
   "glass-hero": {
    "status": "supported",
@@ -3652,7 +4163,32 @@
     "title-card"
    ],
    "id": "glass-hero",
-   "vars": [],
+   "vars": [
+    {
+     "id": "headline",
+     "default": "CLARITY"
+    },
+    {
+     "id": "subline",
+     "default": "See every detail, nothing in the way."
+    },
+    {
+     "id": "shape",
+     "default": "lens"
+    },
+    {
+     "id": "glass_tint",
+     "default": "#cfe9ff"
+    },
+    {
+     "id": "type_color",
+     "default": "#f4efe4"
+    },
+    {
+     "id": "background",
+     "default": "#0b0b0c"
+    }
+   ],
    "fonts": [
     "inter"
    ],
@@ -3955,7 +4491,7 @@
   },
   "ios26-liquid-glass": {
    "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+   "reason": "asset licence unknown: assets/icons/books.jpg, assets/icons/brave.jpg, assets/icons/calendar.jpg, assets/icons/chatgpt.jpg, assets/icons/contacts.jpg, assets/icons/files.jpg, assets/icons/find-my.jpg, assets/icons/fitness.jpg, assets/icons/gmail.jpg, assets/icons/home.jpg, assets/icons/instagram.jpg, assets/icons/itunes-store.jpg, assets/icons/music.jpg, assets/icons/notify-messages.jpg, assets/icons/phone.jpg, assets/icons/photos.jpg, assets/icons/proton-mail.jpg, assets/icons/revolut.jpg, assets/icons/slack.jpg, assets/icons/stocks.jpg, assets/icons/translate.jpg, assets/icons/watch.jpg, assets/icons/weather.jpg, assets/icons/whatsapp.jpg, assets/icons/x.jpg, models/iphone.glb"
   },
   "lens-flare": {
    "status": "unsupported",
@@ -3990,11 +4526,11 @@
   },
   "liquid-glass-notification": {
    "status": "unsupported",
-   "reason": "needs the three r128 global build (three.min.js); vendored three is r187 ES modules"
+   "reason": "asset licence unknown: assets/hyperframes-logo-dark.svg, lib/liquid-glass.iife.js"
   },
   "liquid-glass-widgets": {
    "status": "unsupported",
-   "reason": "needs the three r128 global build (three.min.js); vendored three is r187 ES modules"
+   "reason": "asset licence unknown: assets/hyperframes-logo-dark.svg, lib/liquid-glass.iife.js"
   },
   "liquid-metal": {
    "status": "unsupported",
@@ -4387,7 +4923,7 @@
   },
   "macos-tahoe-liquid-glass": {
    "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+   "reason": "asset licence unknown: assets/icons/brave.jpg, assets/icons/calendar.jpg, assets/icons/dock-finder.png, assets/icons/dock-mail.jpg, assets/icons/dock-music.jpg, assets/icons/dock-photos.jpg, assets/icons/dock-safari.jpg, assets/icons/files.jpg, assets/icons/finder.png, assets/icons/mail.jpg, assets/icons/messages.jpg, assets/icons/music.jpg, assets/icons/photos.jpg, assets/icons/safari.jpg, assets/icons/slack.jpg, assets/icons/toast-messages.jpg, assets/wallpapers/golden-gate-bridge-san-francisco-5k-0g.jpg, models/macbook.glb"
   },
   "marble": {
    "status": "unsupported",
@@ -4792,7 +5328,7 @@
   },
   "nyc-paris-flight": {
    "status": "unsupported",
-   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+   "reason": "asset licence unknown: assets/map-nyc-paris.png, assets/sfx-mix.wav (also: plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block)"
   },
   "obsidian": {
    "status": "unsupported",
@@ -4815,7 +5351,24 @@
     "sphere"
    ],
    "id": "orbit-card",
-   "vars": [],
+   "vars": [
+    {
+     "id": "feature1Title",
+     "default": "Always in sync"
+    },
+    {
+     "id": "feature1Desc",
+     "default": "Changes reach every screen the moment they happen."
+    },
+    {
+     "id": "feature1Accent",
+     "default": "#4cc9ff"
+    },
+    {
+     "id": "cardOrbitDegrees",
+     "default": 360
+    }
+   ],
    "fonts": [],
    "notes": []
   },
@@ -4901,8 +5454,63 @@
    "reason": "needs WebGPU hardware"
   },
   "product-turntable": {
-   "status": "unsupported",
-   "reason": "needs three addon examples/jsm/environments/RoomEnvironment.js (not vendored)"
+   "status": "supported",
+   "title": "Product Turntable",
+   "description": "A product turns a full revolution on a studio plinth in a seamless loop. Drop in a GLB or glTF model, or keep the built-in drink can with your own label.",
+   "duration": 6,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "3d-object",
+    "three-js",
+    "webgl",
+    "product",
+    "turntable",
+    "glb",
+    "loop"
+   ],
+   "id": "product-turntable",
+   "vars": [
+    {
+     "id": "model_url",
+     "default": ""
+    },
+    {
+     "id": "product_name",
+     "default": "YUZU"
+    },
+    {
+     "id": "flavor",
+     "default": "Sparkling Citrus"
+    },
+    {
+     "id": "caption",
+     "default": "Sparkling Citrus · 355 ml"
+    },
+    {
+     "id": "label_color",
+     "default": "#f2c230"
+    },
+    {
+     "id": "ink_color",
+     "default": "#1d2a24"
+    },
+    {
+     "id": "background",
+     "default": "#e8e4dc"
+    },
+    {
+     "id": "turns",
+     "default": 1
+    }
+   ],
+   "fonts": [
+    "inter"
+   ],
+   "notes": [
+    "font PT Caption 500 → bundled Inter 400",
+    "font inter 800 (fontsource) → bundled Inter 600"
+   ]
   },
   "rack-focus": {
    "status": "supported",
@@ -5143,7 +5751,7 @@
   },
   "slack-notification-ad": {
    "status": "unsupported",
-   "reason": "asset licence unknown: assets/img/heygen-mark.svg, assets/img/slack-mark.svg"
+   "reason": "asset licence unknown: assets/img/slack-mark.svg"
   },
   "snow": {
    "status": "supported",
@@ -5179,15 +5787,59 @@
   },
   "spain-map": {
    "status": "unsupported",
-   "reason": "needs d3 + topojson + atlas data (not vendored)"
+   "reason": "failed verification: t=4.8: 1087 px differ between seek orders / mount times"
   },
   "spiral": {
    "status": "unsupported",
    "reason": "needs WebGPU hardware"
   },
   "spiral-galaxy": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Spiral Galaxy",
+   "description": "A spiral galaxy seen from outside, turning with real differential rotation: inner stars orbit faster than outer ones, so the arms wind up over the shot instead of spinning rigidly. 20,000 additive GPU sprites, seeded once and solved directly from time, so any frame can be rendered on its own.",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "hero",
+    "space",
+    "particles",
+    "webgl",
+    "background"
+   ],
+   "id": "spiral-galaxy",
+   "vars": [
+    {
+     "id": "stars",
+     "default": 20000
+    },
+    {
+     "id": "arms",
+     "default": 3
+    },
+    {
+     "id": "rate",
+     "default": 0.25
+    },
+    {
+     "id": "glow",
+     "default": 1.9
+    },
+    {
+     "id": "size",
+     "default": 10
+    },
+    {
+     "id": "core",
+     "default": "#ffa575"
+    },
+    {
+     "id": "rim",
+     "default": "#311599"
+    }
+   ],
+   "fonts": [],
+   "notes": []
   },
   "split-flap-board": {
    "status": "supported",
@@ -5691,15 +6343,33 @@
   },
   "us-map": {
    "status": "unsupported",
-   "reason": "needs d3 + topojson + atlas data (not vendored)"
+   "reason": "failed verification: t=4.8: 6565 px differ between seek orders / mount times; t=9.6: 336 px differ between seek orders / mount times"
   },
   "us-map-bubble": {
-   "status": "unsupported",
-   "reason": "needs d3 + topojson + atlas data (not vendored)"
+   "status": "supported",
+   "title": "US Bubble Map",
+   "description": "Animated US bubble map with proportional city markers, value callouts, and connection lines — composable with us-map",
+   "duration": 12,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "bubble",
+    "cities"
+   ],
+   "id": "us-map-bubble",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
   },
   "us-map-flow": {
    "status": "unsupported",
-   "reason": "needs d3 + topojson + atlas data (not vendored)"
+   "reason": "failed verification: t=11.64: 321 px differ between seek orders / mount times"
   },
   "us-map-hex": {
    "status": "supported",
@@ -5777,27 +6447,72 @@
   },
   "vfx-iphone-device": {
    "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+   "reason": "asset licence unknown: models/iphone.glb, models/macbook.glb"
   },
   "vfx-liquid-background": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Liquid Background",
+   "description": "Organic liquid simulation with vertex displacement on a subdivided plane. HTML content floats above rippling fluid surface with real-time wave dynamics.",
+   "duration": 12,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "html-in-canvas",
+    "liquid",
+    "webgl",
+    "displacement",
+    "background"
+   ],
+   "id": "vfx-liquid-background",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
   },
   "vfx-liquid-glass": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js + examples/js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Liquid Glass",
+   "description": "VFX composition block",
+   "duration": 20,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "html-in-canvas",
+    "webgl"
+   ],
+   "id": "liquid-glass",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
   },
   "vfx-magnetic": {
    "status": "unsupported",
    "reason": "failed verification: t=3: 5944 px differ between seek orders / mount times; t=6: 5944 px differ between seek orders / mount times; t=9: 5944 px differ between seek orders / mount times"
   },
   "vfx-portal": {
-   "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "status": "supported",
+   "title": "Portal",
+   "description": "VFX composition block",
+   "duration": 10,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "html-in-canvas",
+    "webgl"
+   ],
+   "id": "portal-transition",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
   },
   "vfx-shatter": {
    "status": "unsupported",
-   "reason": "needs the three r147 global build (three.min.js); vendored three is r187 ES modules"
+   "reason": "failed verification: page error: Failed to execute 'drawElementImage' on 'CanvasRenderingContext2D': DrawElementImage requires the canvas to have the content=drawable attribute."
   },
   "vfx-text-cursor": {
    "status": "unsupported",
@@ -5809,7 +6524,7 @@
   },
   "vpn-youtube-spot": {
    "status": "unsupported",
-   "reason": "plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block"
+   "reason": "asset licence unknown: assets/vpn-sfx.wav (also: plays <audio>/<video> media; KIT.mount doesn't re-time media inside a block)"
   },
   "water": {
    "status": "unsupported",
@@ -5960,8 +6675,25 @@
    "reason": "loads clipper-lib from cdn.jsdelivr.net (not vendored)"
   },
   "world-map": {
-   "status": "unsupported",
-   "reason": "needs d3 + topojson + atlas data (not vendored)"
+   "status": "supported",
+   "title": "World Map",
+   "description": "Animated world choropleth with country-by-country reveal, tooltip labels, and rotating globe inset — D3 Natural Earth projection",
+   "duration": 14,
+   "width": 1920,
+   "height": 1080,
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "world",
+    "choropleth"
+   ],
+   "id": "world-map",
+   "vars": [],
+   "fonts": [
+    "inter"
+   ],
+   "notes": []
   },
   "worley-noise": {
    "status": "unsupported",

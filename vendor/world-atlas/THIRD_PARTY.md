@@ -1,0 +1,1 @@
+| world-atlas 2.0.2 (`countries-110m.json`) | `vendor/world-atlas/` | ISC, [LICENSE](vendor/world-atlas/LICENSE) | Copyright 2013-2019 Michael Bostock. https://github.com/topojson/world-atlas. Loaded by converted HyperFrames blocks (tools/blocks.mjs). Unchanged; what we took: [VENDORED.md](vendor/world-atlas/VENDORED.md). |

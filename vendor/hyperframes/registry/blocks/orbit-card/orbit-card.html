@@ -53,7 +53,7 @@
 </style>
 <div
       id="oc-root"
-      data-composition-id="orbit-card"
+      data-composition-variables='[{"id":"feature1Title","type":"string","label":"Card title","default":"Always in sync","maxLength":28},{"id":"feature1Desc","type":"string","label":"Card description","default":"Changes reach every screen the moment they happen.","maxLength":110},{"id":"feature1Accent","type":"color","label":"Card accent","default":"#4cc9ff"},{"id":"cardOrbitDegrees","type":"number","label":"Card orbit degrees","description":"Total card-only vertical orbit during Blender frames 150–180 (4.9667–5.9667 seconds). Enter 180, 360, 720, or any angle. The sphere keeps its independent spin. The final angle holds after frame 180.","default":360,"min":-36000,"max":36000,"step":1}]' data-composition-id="orbit-card"
       data-block-start="0"
       data-block-duration="10"
       data-width="1920"
@@ -74,7 +74,7 @@
 (function () { // orbit-card: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
 const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
 const __rwOuter = window.__hyperframes, __rwBase = "compositions/orbit-card/";
-const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __rwVars = Object.assign({"feature1Title":"Always in sync","feature1Desc":"Changes reach every screen the moment they happen.","feature1Accent":"#4cc9ff","cardOrbitDegrees":360}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
 const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
   assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
 let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
@@ -83,6 +83,14 @@ __hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; retu
 const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
   const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
 const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("orbit-card" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
 const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["orbit-card" + ':' + k] = p; return p; };
 const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
   const L = (window.__rwLibs = window.__rwLibs || {});
@@ -92,12 +100,12 @@ const __rwLib = (src) => {   // a classic library, once per page, synchronously 
   // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
   const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
 };
-{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"./compositions/orbit-card/assets/three.core.min.js\":\"./kit/three/three.core.js\",\"./compositions/orbit-card/assets/three.module.min.js\":\"./kit/three/three.module.js\",\"orbit-card/scene\":\"./compositions/orbit-card/assets/orbit-scene.js\"}}"; document.head.appendChild(m); }
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\",\"./compositions/orbit-card/assets/three.core.min.js\":\"./kit/three/three.core.js\",\"./compositions/orbit-card/assets/three.module.min.js\":\"./kit/three/three.module.js\",\"orbit-card/scene\":\"./compositions/orbit-card/assets/orbit-scene.js\"}}"; document.head.appendChild(m); }
 __rwReady('fonts', Promise.all(["400 1em \"Archivo\"","600 1em \"Archivo\""].map((f) => document.fonts.load(f))));
 __rwLib("kit/gsap/dist/gsap.min.js");
 ;
 __rwReady('module0', (async () => {
-const __rwM6 = await import("orbit-card/scene"); const { createOrbitScene } = __rwM6;
+const __rwM11 = await import("orbit-card/scene"); const { createOrbitScene } = __rwM11;
       // Bare __hyperframes is this composition's own in a module.
       const renderAt = createOrbitScene(
         (typeof __hyperframes !== "undefined" && __hyperframes.getVariables?.()) || {},

@@ -1,0 +1,1 @@
+| topojson-client 3.1.0 (`topojson-client.min.js`) | `vendor/topojson-client/` | ISC, [LICENSE](vendor/topojson-client/LICENSE) | Copyright 2012-2019 Michael Bostock. https://github.com/topojson/topojson-client. Loaded by converted HyperFrames blocks (tools/blocks.mjs). Unchanged; what we took: [VENDORED.md](vendor/topojson-client/VENDORED.md). |

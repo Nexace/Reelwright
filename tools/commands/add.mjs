@@ -41,7 +41,8 @@ export default async function add({ proj, args, ROOT }) {
     const vars = b.vars.map((v) => `${v.id}: ${JSON.stringify(v.default)}`);
     console.log(`${path.join(proj, "hf", "compositions", name + ".html")} — ${b.title}, ${b.duration} s, ${b.width}x${b.height}`);
     if (b.description) console.log(b.description);
-    console.log(vars.length ? `variables (defaults):\n  ${vars.join("\n  ")}` : "variables: none");
+    console.log(vars.length ? `variables (defaults):\n  ${vars.join("\n  ")}`
+      : `variables: none declared (registry-item.json or data-composition-variables) — its text is in compositions/${name}.html`);
     for (const n of b.notes) console.log(`note: ${n}`);
     console.log(`usage (hf/index.html needs <script src="kit/compose.js"></script> after kit/engine.js):\n` +
       `  KIT.mount('${name}', { start: W(...), dur: ${b.duration}${b.vars.length ? `, vars: { ${b.vars.slice(0, 2).map((v) => v.id + ": …").join(", ")} }` : ""} })`);

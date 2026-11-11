@@ -25,8 +25,11 @@ KIT.css(lt, { transform: `scale(${KIT.u})`, transformOrigin: '0 0' });   // the 
 // same thing: KIT.block('lt-neon-border', { start: W('name', 'Ada'), dur: 4.8, vars: { … } })
 ```
 
-- 123 of 210 upstream blocks are here (verified under the HyperFrames runtime); none of the html-in-canvas
+- 136 of 210 upstream blocks are here (verified under the HyperFrames runtime); none of the html-in-canvas
   (`drawElementImage`) blocks passed.
+- Blocks written for three r147 (`spiral-galaxy`, `code-3d-extrude`, `vfx-portal`, …) load the classic global build
+  (`window.THREE`, vendor/three-r147/); the ES-module three (r187) blocks don't touch it. The maps (`world-map`,
+  `us-map-bubble`) load d3 + topojson-client and their atlas JSON from the kit.
 - `dur` can be shorter than the block (it cuts) or longer (it holds the last frame). `playbackStart` skips into it.
 - The host is the block's size (`width`×`height` in CATALOG.md); a 1080×1920 block in a 16x9 film needs scaling.
 - `vars` override the defaults `add` printed. Image variables whose upstream sample had no known licence default to a

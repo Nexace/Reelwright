@@ -16,4 +16,7 @@ vendor/katex/VENDORED.md lists the version and files taken (unchanged).
 This product bundles fonts licensed under the SIL Open Font License 1.1, in fonts/
 (each family with its OFL.txt; fonts/LICENSES.md lists copyright holders and sources).
 
+Map data in vendor/es-atlas/ (Spain's autonomous regions, es-atlas 0.6.0) is © Instituto Geográfico Nacional de
+España, licensed CC-BY 4.0; vendor/es-atlas/VENDORED.md has the source.
+
 See THIRD_PARTY.md for everything else Reelwright uses and under which license.

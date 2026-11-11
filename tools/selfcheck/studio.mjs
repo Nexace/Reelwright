@@ -3,14 +3,15 @@
 // loads, the vendored player becomes ready, the timeline shows the 4 VO lines; a gap edited in the UI is saved to
 // project.json and the timeline moves; a style change rewrites theme.css; "Still at playhead" returns an image; and the
 // trust boundary holds: POST without the studio's Origin (403), a foreign Host (403), path traversal (403), raw JSON that
-// is not an object (refused, project.json unchanged). Needs python3, ffmpeg and a browser, no VO and no internet.
+// is not an object (refused, project.json unchanged), Origin null, a body over 2 MB, brand.json paths outside the
+// project (fonts array/object, logo, symlink: refused, theme.css never holds the file). Needs python3, ffmpeg and a browser, no VO and no internet.
 import fs from "node:fs";
 import http from "node:http";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { launch } from "../browser.mjs";
 
@@ -55,6 +56,8 @@ try {
   const json = { "content-type": "application/json" }, ok = JSON.stringify({ file: "project", text: same });
   assert.equal((await request(port, { method: "POST", p: "/__save", headers: json, body: ok })).status, 403, "POST without Origin");
   assert.equal((await request(port, { method: "POST", p: "/__save", headers: { ...json, origin: "http://evil.com" }, body: ok })).status, 403, "POST from another Origin");
+  assert.equal((await request(port, { method: "POST", p: "/__save", headers: { ...json, origin: "null" }, body: ok })).status, 403, "POST with Origin null (sandboxed iframe, file:)");
+  assert.equal((await request(port, { method: "POST", p: "/__save", headers: { ...json, origin }, body: "x".repeat(2.5 * 1048576) })).status, 413, "body over 2 MB");
   assert.equal((await request(port, { method: "POST", p: "/__run", headers: { ...json, origin: "http://evil.com" }, body: JSON.stringify({ cmd: "audio" }) })).status, 403, "job from another Origin");
   assert.equal((await request(port, { method: "POST", p: "/__save", headers: { origin, "content-type": "text/plain" }, body: ok })).status, 415, "POST as text/plain");
   assert.equal((await request(port, { method: "GET", p: "/__save" })).status, 405, "GET on a write route");
@@ -72,6 +75,28 @@ try {
   assert.equal((await request(port, { method: "POST", p: "/__save", headers: { ...json, origin }, body: JSON.stringify({ file: "../x", text: "{}" }) })).status, 400, "file outside the allow-list");
   assert.equal((await request(port, { method: "POST", p: "/__run", headers: { ...json, origin }, body: JSON.stringify({ cmd: "sh" }) })).status, 400, "command outside the allow-list");
   assert.equal((await request(port, { method: "POST", p: "/__run", headers: { ...json, origin }, body: JSON.stringify({ cmd: "stills", t: "1; rm -rf /" }) })).status, 400, "non-numeric t");
+  // brand.json paths theme.mjs would read and inline into the served theme.css: all must be files inside the project
+  const secret = path.join(tmp, "secret.bin"), mark = "SECRET-" + "0123456789abcdef".repeat(4);
+  fs.writeFileSync(secret, mark);
+  const links = []; try { fs.symlinkSync(secret, path.join(dir, "link.bin")); links.push("link.bin"); } catch { /* no symlinks here (Windows without privilege) */ }
+  fs.writeFileSync(path.join(dir, "inside.ttf"), "x");
+  const brands = { "fonts array, src outside": { fonts: [{ family: "X", src: secret }] },
+    "fonts object, ../ src": { fonts: { display: { family: "X", src: "../secret.bin" } } },
+    "fonts object, absolute src": { fonts: { text: { family: "X", src: secret } } },
+    "fonts is a string": { fonts: "x" }, "font value null": { fonts: { text: null } }, "font value array": { fonts: { text: [] } },
+    "font object without src": { fonts: { text: { family: "X" } } }, "font src missing file": { fonts: { text: { family: "X", src: "nope.ttf" } } },
+    "logo outside": { logo: "../secret.bin" }, "logo absolute": { logo: secret }, "logo not a string": { logo: 3 },
+    ...Object.fromEntries(links.map((l) => [`symlink ${l} out of the project (logo)`, { logo: l }])),
+    ...Object.fromEntries(links.map((l) => [`symlink ${l} out of the project (font)`, { fonts: [{ family: "X", src: l }] }])) };
+  for (const [name, b] of Object.entries(brands)) {
+    const r = await request(port, { method: "POST", p: "/__save", headers: { ...json, origin }, body: JSON.stringify({ file: "brand", text: JSON.stringify(b) }) });
+    assert.equal(r.status, 400, `brand.json (${name}) → ${r.status} ${r.body}`);
+  }
+  assert.equal((await request(port, { method: "POST", p: "/__save", headers: { ...json, origin }, body: JSON.stringify({ file: "constructor", text: "{}" }) })).status, 400, "prototype key as file");
+  assert.equal((await request(port, { method: "POST", p: "/__run", headers: { ...json, origin }, body: JSON.stringify({ cmd: ["audio"] }) })).status, 400, "cmd not a string");
+  assert.equal((await request(port, { method: "POST", p: "/__run", headers: { ...json, origin }, body: JSON.stringify({ cmd: "toString" }) })).status, 400, "cmd a prototype key");
+  assert.ok(!fs.existsSync(path.join(dir, "brand.json")), "brand.json written by a refused request");
+  assert.ok(!fs.readFileSync(css, "utf8").includes(Buffer.from(mark).toString("base64").slice(0, 40)), "theme.css holds the secret's bytes");
   assert.equal(fs.readFileSync(pj, "utf8"), same, "project.json changed by a refused request");
   assert.ok(!fs.existsSync(path.join(dir, "brand.json")), "brand.json written by a refused request");
   log("security: ok");
@@ -143,13 +168,20 @@ try {
   // still at the playhead: an image comes back, and the render's own file writes don't reload the page
   const n = navs;
   await page.click("#btn-still");
-  await page.waitForFunction(() => document.getElementById("stillbox").classList.contains("show") && document.getElementById("still").naturalWidth > 0, null, { timeout: 150000 });
+  await page.waitForFunction(() => document.getElementById("stillbox").classList.contains("show") && document.getElementById("still").naturalWidth > 0, null, { timeout: 90000 });
   const img = await page.locator("#still").getAttribute("src");
   const r = await request(port, { p: img });
   assert.equal(r.status, 200); assert.ok(/^\/__p\/stills\/t[\d.]+\.jpg/.test(img), img);
   await page.waitForTimeout(1200);
   assert.equal(navs, n, "the page reloaded during a still");
   log(`still: ${img}`);
+
+  // the brand validator still accepts a legal brand.json (a font inside the project, a bundled family), and the secret never lands in theme.css
+  const okBrand = { fonts: { text: "Inter", display: { family: "Inside", src: "inside.ttf" } } };
+  const rb = await request(port, { method: "POST", p: "/__save", headers: { ...json, origin }, body: JSON.stringify({ file: "brand", text: JSON.stringify(okBrand) }) });
+  assert.equal(rb.status, 200, `legal brand.json refused: ${rb.body}`);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "brand.json"), "utf8")), okBrand);
+  assert.ok(!fs.readFileSync(css, "utf8").includes(Buffer.from(mark).toString("base64").slice(0, 40)), "theme.css holds the secret's bytes");
 
   assert.deepEqual(errors, [], "page errors");
   assert.deepEqual([...foreign], [], "requests outside the studio (the player must not fetch its runtime)");
@@ -159,7 +191,12 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  if (server && server.exitCode === null) { server.kill(); await new Promise((r) => setTimeout(r, 300)); }
+  if (server && server.exitCode === null) {
+    // the server ends its running job on SIGTERM; Windows has no signals, so take the whole tree (render children too)
+    if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], { windowsHide: true });
+    else server.kill("SIGTERM");
+    await new Promise((r) => (server.exitCode !== null ? r() : server.once("exit", r)));
+  }
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   log("done");
 }

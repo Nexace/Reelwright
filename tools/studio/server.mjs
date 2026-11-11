@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { themes, writeTheme } from "../theme.mjs";
 import { copyKit, kitFiles } from "../kit_files.mjs";
 import { HIDE, CLOCK, TEXT_RULE } from "./shims.mjs";
@@ -41,7 +41,11 @@ export function startStudio({ ROOT, DIR, port }) {
   const mount = inRoot ? "/" + posix(path.relative(ROOT, DIR)) : "/__p";
   const readProject = () => JSON.parse(fs.readFileSync(path.join(DIR, "project.json"), "utf8"));
   const isHf = (P) => P.renderer === "hyperframes";
-  const inside = (p) => { const f = path.resolve(DIR, p); return f === DIR || f.startsWith(DIR + path.sep); };
+  // symlink-aware: a link inside the project that points out of it does not count as inside. A file that doesn't exist
+  // yet (project.json "out") is judged by its parent folder.
+  const real = (f) => { try { return fs.realpathSync(f); } catch { return path.join(real(path.dirname(f)), path.basename(f)); } };
+  const inside = (p) => { const f = real(path.resolve(DIR, p)); return f === DIR || f.startsWith(DIR + path.sep); };
+  const fileInside = (p) => { try { return inside(p) && fs.statSync(path.resolve(DIR, p)).isFile(); } catch { return false; } };
   const reply = (res, code, obj) => {
     res.writeHead(code, { "content-type": "application/json", "cache-control": "no-store" });
     res.end(JSON.stringify(obj));
@@ -80,11 +84,22 @@ export function startStudio({ ROOT, DIR, port }) {
     if ("out" in P && !(typeof P.out === "string" && inside(P.out))) return "project.json: out must be a path inside the project";
     return null;
   }
-  // theme.mjs reads brand.json's logo and font files and copies them under the page: keep them inside the project
+  // theme.mjs reads brand.json's logo and font files and copies/inlines them into theme.css, which is served: every
+  // path it will read (the logo, and the src of EVERY font entry that is an object, in an array or an object) must be
+  // a real file inside the project. theme.mjs treats any non-string font value as { family, src }, so only a string
+  // (a bundled family name) or a plain object is allowed.
   function checkBrand(B) {
-    if ("logo" in B && !(typeof B.logo === "string" && inside(B.logo))) return "brand.json: logo must be a file inside the project";
-    for (const [role, f] of Object.entries(isObj(B.fonts) ? B.fonts : {}))
-      if (isObj(f) && !(typeof f.src === "string" && inside(f.src))) return `brand.json: fonts.${role}.src must be a file inside the project`;
+    if ("logo" in B && !(typeof B.logo === "string" && fileInside(B.logo))) return "brand.json: logo must be an existing file inside the project";
+    if ("colors" in B && !isObj(B.colors)) return "brand.json: colors must be an object";
+    if ("fonts" in B) {
+      if (!isObj(B.fonts)) return "brand.json: fonts must be an object of role: family | { family, src }";
+      for (const [role, f] of Object.entries(B.fonts)) {
+        if (typeof f === "string") continue;
+        if (!isObj(f)) return `brand.json: fonts.${role} must be a family name or { family, src }`;
+        if (typeof f.family !== "string") return `brand.json: fonts.${role}.family must be a string`;
+        if (!(typeof f.src === "string" && fileInside(f.src))) return `brand.json: fonts.${role}.src must be an existing file inside the project`;
+      }
+    }
     return null;
   }
   const FILES = { project: ["project.json", checkProject], brand: ["brand.json", checkBrand] };
@@ -120,7 +135,8 @@ export function startStudio({ ROOT, DIR, port }) {
     if (job && job.state === "running") return false;
     job = { cmd: kind === "stills" && t == null ? "contact sheet" : kind, state: "running", code: null, out: "" };
     const note = (s) => { job.out = (job.out + s.replace(ANSI, "")).slice(-8000); send({ job }); };
-    child = spawn(process.execPath, JOBS[kind](t), { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+    // own process group (POSIX), so closing the studio can end the render's python/chromium children with it
+    child = spawn(process.execPath, JOBS[kind](t), { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true, detached: process.platform !== "win32" });
     child.stdout.on("data", (d) => note(String(d)));
     child.stderr.on("data", (d) => note(String(d)));
     const end = (code, why) => {
@@ -192,7 +208,7 @@ export function startStudio({ ROOT, DIR, port }) {
 
   // ── POST /__save, POST /__run ──
   function save(res, b) {
-    const spec = FILES[b.file];
+    const spec = Object.hasOwn(FILES, b.file) ? FILES[b.file] : null;
     if (!spec || typeof b.text !== "string") return reply(res, 400, { error: "file must be \"project\" or \"brand\", text a string" });
     let obj;
     try { obj = JSON.parse(b.text); } catch (e) { return reply(res, 400, { error: `not valid JSON: ${e.message}` }); }
@@ -209,7 +225,7 @@ export function startStudio({ ROOT, DIR, port }) {
     reply(res, 200, { ok: true, warn });
   }
   function run(res, b) {
-    if (!Object.hasOwn(JOBS, b.cmd)) return reply(res, 400, { error: "unknown command" });
+    if (typeof b.cmd !== "string" || !Object.hasOwn(JOBS, b.cmd)) return reply(res, 400, { error: "unknown command" });
     let t = null;
     if (b.cmd === "stills" && b.t != null) {
       if (!num(b.t, 0, 36000)) return reply(res, 400, { error: "t must be a number of seconds" });
@@ -223,7 +239,8 @@ export function startStudio({ ROOT, DIR, port }) {
     if (req.headers.origin !== `http://${req.headers.host}`) return reply(res, 403, { error: "bad Origin" });
     if (!/^application\/json\s*(;|$)/i.test(req.headers["content-type"] || "")) return reply(res, 415, { error: "content-type must be application/json" });
     let n = 0; const chunks = [];
-    req.on("data", (c) => { n += c.length; if (n > MAX_BODY) { reply(res, 413, { error: "too large" }); req.destroy(); } else chunks.push(c); });
+    // over the cap: answer once, then let the rest of the upload drain unread (destroying the socket would eat the 413)
+    req.on("data", (c) => { n += c.length; if (n > MAX_BODY) { if (!res.writableEnded) reply(res, 413, { error: "too large" }); chunks.length = 0; } else chunks.push(c); });
     req.on("end", () => {
       if (res.writableEnded) return;
       let b;
@@ -255,6 +272,16 @@ export function startStudio({ ROOT, DIR, port }) {
     fs.watch(path.join(ROOT, "tools"), (_, f) => kitFiles().includes(f) && changed("tools/" + f)),
     fs.watch(path.join(ROOT, "themes"), (_, f) => f && f.endsWith(".css") && changed("themes/" + f)),
   ];
+  // a watcher can fail (folder removed, too many watches): say so, keep serving
+  for (const w of watchers) w.on("error", (e) => console.error(`studio: file watcher stopped: ${e.message}`));
+  // the running job and everything it started: a process group on POSIX, `taskkill /T` on Windows
+  const killJob = () => {
+    if (!child || !child.pid) return;
+    try {
+      if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true });
+      else process.kill(-child.pid, "SIGTERM");
+    } catch { child.kill(); }
+  };
 
   return new Promise((resolve, reject) => {
     const HOSTS = new Set();
@@ -272,7 +299,7 @@ export function startStudio({ ROOT, DIR, port }) {
       HOSTS.add(`localhost:${p}`); HOSTS.add(`127.0.0.1:${p}`);
       resolve({ port: p, url: `http://localhost:${p}/`,
         close() {
-          clearTimeout(timer); watchers.forEach((w) => w.close()); child?.kill();
+          clearTimeout(timer); watchers.forEach((w) => w.close()); killJob();
           for (const c of clients) c.end();
           server.closeAllConnections?.(); server.close();
         } });

@@ -19,6 +19,8 @@ export default async ({ proj, args, ROOT, py, step }) => {
     process.exit(1);
   }
   console.log(`studio of ${path.basename(proj)}: ${s.url}  (ctrl-c to stop)`);
-  process.on("SIGINT", () => { s.close(); process.exit(0); });
-  process.on("SIGTERM", () => { s.close(); process.exit(0); });
+  // however it ends, a running job (and its render children) ends with it
+  process.on("exit", () => s.close());
+  process.on("SIGINT", () => process.exit(0));
+  process.on("SIGTERM", () => process.exit(0));
 };

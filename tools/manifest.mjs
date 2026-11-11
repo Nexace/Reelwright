@@ -53,7 +53,7 @@ async function tools() {
 }
 
 // only the renderer's own frame names (tools/render.mjs contract)
-const FRAME = { pvk: /^f\d{5}\.jpg$/, hyperframes: /^frame_\d{6}\.png$/ };
+const FRAME = { pvk: /^f\d{5}\.jpg$/, hyperframes: /^frame_\d{6}\.png$/, remotion: /^frame_\d{6}\.png$/ };
 const frameFiles = (d, P) => fs.readdirSync(d).filter((f) => FRAME[P.renderer || "pvk"].test(f)).sort().map((f) => path.join(d, f));
 const manifestPath = (DIR, P) => path.join(DIR, (P.out || "out/film.mp4").replace(/(\.mp4)?$/, ".manifest.json"));
 

@@ -1,0 +1,14 @@
+{
+  "name": "reelwright-remotion-film",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "SEE README.md (built with Remotion, which is not open source: see remotion.pro/license)",
+  "description": "A Reelwright film rendered by Remotion. Installed per project after the licence prompt; never in the Reelwright repo.",
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.540"
+  }
+}

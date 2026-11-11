@@ -42,3 +42,7 @@ drive/
 
 # paid-generation credentials (tools/gen.mjs)
 .reelwright/
+
+# Remotion renderer (generated, opt-in; tools/renderers/remotion.mjs)
+projects/*/rm/public/
+projects/*/rm/kit-data.json

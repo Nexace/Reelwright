@@ -107,6 +107,9 @@ const C = {
       fs.mkdirSync(dest, { recursive: true });
       fs.writeFileSync(path.join(dest, "project.json"), JSON.stringify({ ...p, title: name, renderer: "remotion", out: `out/${name}.mp4`, ci: undefined }, null, 2) + "\n");
       fs.cpSync(path.join("templates", "remotion"), path.join(dest, "rm"), { recursive: true, filter: (s) => !/node_modules/.test(s) });
+      // stub page so sched.py and theme.mjs run before the first render; the renderer replaces it with the QA host page
+      fs.mkdirSync(path.join(dest, "film"), { recursive: true });
+      fs.writeFileSync(path.join(dest, "film", "index.html"), '<!doctype html>\n<link rel="stylesheet" href="theme.css">\n');
       console.log(`created ${dest} — edit project.json (script) and rm/src/Film.jsx (the edit; React, rendered by Remotion)`);
       console.log(`Remotion is not installed yet: the first \`reelwright all ${name}\` shows its licence (free only for individuals,`);
       console.log(`companies of up to 3 people and non-profits) and asks before installing ~250 MB into ${dest}/rm/node_modules.`);

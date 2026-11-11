@@ -42,3 +42,6 @@ drive/
 
 # paid-generation credentials (tools/gen.mjs)
 .reelwright/
+
+# optional Manim install (reelwright manim <p> install ce --yes): one shared venv, never committed
+.venv-manim*/

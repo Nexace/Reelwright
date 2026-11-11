@@ -1,0 +1,21 @@
+{
+  "title": "Reelwright — Manim scene as a layer",
+  "renderer": "hyperframes",
+  "style": "dark-tech",
+  "out": "out/manim-hf.mp4",
+  "fps": 30,
+  "voice": "en-US-AndrewNeural",
+  "rate": "+6%",
+  "pitch": "+0Hz",
+  "lead": 0.6,
+  "tail": 1.4,
+  "snapToBeat": true,
+  "loudness": -14,
+  "music": { "bpm": 100, "duck_db": -10, "style": "drive", "drop_bar": 1 },
+  "manim": { "engine": "ce", "scenes": [
+    { "id": "proof", "file": "manim/proof.py", "class": "Proof", "anchor": "write", "pre": 0.2, "dur": 6.2, "alpha": true } ] },
+  "lines": [
+    { "id": "write", "gap": 0.0, "text": "Manim draws the curve, and the equation writes itself." },
+    { "id": "end",   "gap": 0.5, "text": "Reelwright plays it in the film." }
+  ]
+}

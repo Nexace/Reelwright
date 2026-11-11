@@ -27,7 +27,7 @@ export const present = (DIR, engine) => !!process.env.REELWRIGHT_MANIM_PYTHON ||
 function py(DIR, engine, args, opts = {}) {
   const fake = process.env.REELWRIGHT_MANIM_PYTHON;
   const [cmd, pre] = fake ? (/\.[cm]?js$/.test(fake) ? [process.execPath, [fake]] : [fake, []]) : [python(DIR, engine), []];
-  const env = { ...process.env, PYTHONPATH: path.join(ROOT, "python"), PYTHONHASHSEED: "0", SOURCE_DATE_EPOCH: "0", PYTHONUTF8: "1" };
+  const env = { ...process.env, PYTHONPATH: path.join(ROOT, "python"), PYTHONHASHSEED: "0", SOURCE_DATE_EPOCH: "0", PYTHONUTF8: "1", PYTHONWARNINGS: "ignore::SyntaxWarning" };   // pydub (a Manim dependency) warns on every import under 3.12
   return spawnSync(cmd, [...pre, ...args], { encoding: "utf8", env, maxBuffer: 64 << 20, ...opts });
 }
 const venvInfo = (DIR, engine) => {

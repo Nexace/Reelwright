@@ -89,8 +89,11 @@ try {
 
   // ── install plan (never downloads without --yes) ──
   {
-    const lines = []; const r = M.install(DIR, "ce", { yes: false, log: (l) => lines.push(l) });
-    assert.ok(lines.join("\n").includes('uv pip install --python') && !fs.existsSync(M.venvDir(DIR, "ce")), lines.join("\n"));
+    const lines = [], keep = process.env.REELWRIGHT_MANIM_VENV;
+    process.env.REELWRIGHT_MANIM_VENV = path.join(tmp, "no-venv-here");   // never the real <repo>/.venv-manim, which may exist
+    const r = M.install(DIR, "ce", { yes: false, log: (l) => lines.push(l) });
+    keep === undefined ? delete process.env.REELWRIGHT_MANIM_VENV : (process.env.REELWRIGHT_MANIM_VENV = keep);
+    assert.ok(lines.join("\n").includes('uv pip install --python') && !fs.existsSync(path.join(tmp, "no-venv-here")), lines.join("\n"));
     pass(`install without --yes: prints the plan${r.ok ? "" : " (and a missing prerequisite)"}, creates nothing`);
     // an existing healthy venv: install downloads nothing even with --yes (a stub venv whose python imports the pinned dist)
     const fake = path.join(tmp, "venv-stub"), bin = path.join(fake, ...(process.platform === "win32" ? ["Scripts"] : ["bin"]));

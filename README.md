@@ -80,7 +80,7 @@ Phase 10 brought the parts of the neighbouring video tools that fit this kit (Hy
 libraries, Remotion, Manim) and rebuilt them as seekable, offline, pure-in-`t` code. Everything is opt-in: a film written
 for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to hyperframes films; every committed one
 passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
-source are in [docs/parity/](docs/parity/README.md).
+source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
 - **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
   blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs

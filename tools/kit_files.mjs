@@ -18,5 +18,7 @@ export function copyKit(hf) {
   const kit = path.join(hf, "kit");
   fs.mkdirSync(kit, { recursive: true });
   for (const f of kitFiles()) fs.copyFileSync(path.join(ROOT, "tools", f), path.join(kit, f));
+  const sc = path.join(ROOT, "tools", "shotcards");
+  if (fs.existsSync(sc)) fs.cpSync(sc, path.join(kit, "shotcards"), { recursive: true });
   for (const d of kitLibs()) fs.cpSync(path.join(ROOT, "vendor", d), path.join(kit, d), { recursive: true });
 }

@@ -211,7 +211,7 @@ If the owner wants to stay offline-safe, drop the `vo/` rows from the commands: 
 
 ## 2. scratch/
 
-Evidence that no open work needs the research copies: `git grep -n "scratch/" -- . ':!docs/archive' ':!vendor'` finds only (a) `.gitignore`, (b) `tools/theme-gallery.mjs` (a default *output* folder, created when run), (c) this plan's Final step, (d) provenance text in docs/plans/phase-10-research/*.md and docs/parity/doodle-shots-motion.md. No tool reads `scratch/`. All Phase 10 checkpoints (10.0, 10a–10k, 10m) are merged into origin/main (section 4); the only unmerged branches are `phase-10z-release` (this release) and `claude/keen-ritchie-d252b5` (one commit adding projects/claude-ad), and neither references scratch/. STATUS.md rows 8 and 9 removed `scratch/` the same way.
+Evidence that no open work needs the research copies: `git grep -n "scratch/" -- . ':!docs/archive' ':!vendor'` finds only (a) `.gitignore`, (b) `tools/theme-gallery.mjs` (a default *output* folder, created when run), (c) this plan's Final step, (d) provenance text in docs/plans/phase-10-research/*.md and docs/parity/doodle-shots-motion.md. No tool reads `scratch/`. All Phase 10 checkpoints (10.0, 10a–10k, 10m) are merged into origin/main (section 4); the only unmerged branches are `phase-10z-release` (this release) and `claude/keen-ritchie-d252b5` (one commit adding projects/claude-ad), and neither references scratch/. STATUS.md row 8 removed `scratch/` the same way (approved 2026-11-01).
 
 #### Primary checkout: `scratch/phase10/` (the only content of `scratch/`)
 

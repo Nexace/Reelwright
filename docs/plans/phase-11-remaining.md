@@ -103,6 +103,10 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
 3. Fresh-clone build of the example films and every new demo; all gates pass; CI green on three OSes.
 4. Stitch docs, final version number (owner names it), then tag and release **only with the owner's yes**, then the cleanup list (also with a yes).
 
+## Owner instruction (2026-11-13)
+
+After all waves are done: run the final cleanup (the cleanup list), then release Reelwright **1.0.0**. This is the owner's advance yes for the cleanup, the version bump, the tag and the release; deleting anything beyond the cleanup list, installs and paid calls still need a fresh ask.
+
 ## Orchestrator rules
 
 - Keep prompts short and file-specific; give each subagent only its rows, not the whole table.

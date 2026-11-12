@@ -1,0 +1,332 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): hw-text-cloud v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/hw-text-cloud/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="hw-text-cloud"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      @font-face {
+        font-family: "Caveat";
+        src: url("compositions/hw-text-cloud/fonts/caveat/700.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      [data-composition-id="hw-text-cloud"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-text-cloud"] > [data-hf-inner-root], [data-composition-id="hw-text-cloud"] *, [data-composition-id="hw-text-cloud"] *::before, [data-composition-id="hw-text-cloud"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="hw-text-cloud"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-text-cloud"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="hw-text-cloud"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-text-cloud"] > [data-hf-inner-root] {
+        /* ---- hw tokens ---- */
+        --hw-font-print: "Caveat", cursive;
+        --hw-font-script: "Caveat", cursive;
+        --hw-ink: #f4f2ec;
+        --hw-ink-dark: #26241f;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage */
+        font-family: var(--hw-font-print, "Caveat", cursive);
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-wrap {
+        position: absolute;
+        pointer-events: none;
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-wrap svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-fill {
+        fill: var(--hw-ink);
+        opacity: 0;
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-stroke {
+        fill: none;
+        stroke: var(--hw-ink-dark);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-text {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: 700;
+        color: var(--hw-ink-dark);
+        line-height: 1.05;
+      }
+      [data-composition-id="hw-text-cloud"] #hw-tc-text .ch {
+        opacity: 0;
+      }
+    
+</style>
+<div
+      id="hw-tc-root"
+      data-composition-id="hw-text-cloud"
+      data-block-start="0"
+      data-block-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="hw-tc-wrap">
+        <svg id="hw-tc-svg">
+          <path id="hw-tc-fill"></path>
+          <path id="hw-tc-stroke"></path>
+        </svg>
+        <div id="hw-tc-text"></div>
+      </div>
+      <div
+        id="hw-tc-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="6"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // hw-text-cloud: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/hw-text-cloud/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("hw-text-cloud" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["hw-text-cloud" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("hw-text-cloud" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["700 1em \"Caveat\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters ----
+           Speech bubble with a movable tip (pointable at any subject): wobbled
+           cloud, draw-on outline, paper fill, per-char handwritten text. */
+        var CONFIG = {
+          text: "what are you looking at?",
+          x: 620, // wrapper left
+          y: 180, // wrapper top
+          w: 560,
+          h: 300,
+          fontSize: 58,
+          tip: { side: "bottom-left", len: 90 }, // "bottom-left"|"bottom-right"
+          seed: 6,
+          boil: { enabled: true, amp: 1.6, rot: 0.4, frameDrop: 3 },
+          typeCharDelay: 0.03,
+          animationIn: true,
+          animationOut: true,
+        };
+
+        var DUR = 6;
+        function clamp(v, lo, hi) {
+          return Math.min(hi, Math.max(lo, v));
+        }
+        var OUT = clamp(DUR * 0.06, 0.25, 0.6);
+
+        /* hw family runtime */
+        window.hwOnUpdate = function (tl, fn) {
+          if (!tl.__hwRenders) {
+            tl.__hwRenders = [];
+            tl.eventCallback("onUpdate", function () {
+              for (var i = 0; i < tl.__hwRenders.length; i++) tl.__hwRenders[i]();
+            });
+          }
+          tl.__hwRenders.push(fn);
+          fn();
+        };
+        window.hwHash = function (n, seed) {
+          var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+          return (x - Math.floor(x)) * 2 - 1;
+        };
+        window.hwBoil = function (tl, target, opts) {
+          opts = opts || {};
+          var amp = opts.amp !== undefined ? opts.amp : 1.6;
+          var rot = opts.rot !== undefined ? opts.rot : 0.5;
+          var fps = opts.fps || 30;
+          var drop = opts.frameDrop || 3;
+          var seed = opts.seed || 1;
+          var els = gsap.utils.toArray(target);
+          window.hwOnUpdate(tl, function () {
+            var step = Math.floor((tl.time() * fps) / drop);
+            for (var i = 0; i < els.length; i++) {
+              gsap.set(els[i], {
+                x: window.hwHash(step * 3 + i * 97, seed) * amp,
+                y: window.hwHash(step * 3 + 1 + i * 97, seed) * amp,
+                rotation: (opts.baseRot || 0) + window.hwHash(step * 3 + 2 + i * 97, seed) * rot,
+              });
+            }
+          });
+        };
+
+        /* wobbled cloud with a tail tip */
+        function cloudPath(W, H, tip, seed) {
+          var cx = W / 2,
+            cy = H / 2 - 14,
+            rx = W / 2 - 12,
+            ry = H / 2 - 34;
+          var N = 16,
+            pts = [];
+          for (var i = 0; i < N; i++) {
+            var a = (i / N) * Math.PI * 2;
+            var wr = 1 + window.hwHash(i * 11 + 3, seed) * 0.06;
+            pts.push([cx + Math.cos(a) * rx * wr, cy + Math.sin(a) * ry * wr]);
+          }
+          var mx = (pts[0][0] + pts[N - 1][0]) / 2,
+            my = (pts[0][1] + pts[N - 1][1]) / 2;
+          var d = "M" + mx.toFixed(1) + " " + my.toFixed(1);
+          for (var j = 0; j < N; j++) {
+            var p = pts[j],
+              q = pts[(j + 1) % N];
+            d +=
+              " Q" +
+              p[0].toFixed(1) +
+              " " +
+              p[1].toFixed(1) +
+              " " +
+              ((p[0] + q[0]) / 2).toFixed(1) +
+              " " +
+              ((p[1] + q[1]) / 2).toFixed(1);
+          }
+          d += "Z";
+          /* tail */
+          var left = tip.side !== "bottom-right";
+          var bx = cx + (left ? -rx * 0.45 : rx * 0.45),
+            by = cy + ry * 0.92;
+          var tx = bx + (left ? -tip.len * 0.5 : tip.len * 0.5),
+            ty = by + tip.len;
+          d +=
+            " M " +
+            (bx - 26).toFixed(1) +
+            " " +
+            (by - 6).toFixed(1) +
+            " Q " +
+            (bx - 8 + window.hwHash(31, seed) * 6).toFixed(1) +
+            " " +
+            ((by + ty) / 2).toFixed(1) +
+            " " +
+            tx.toFixed(1) +
+            " " +
+            ty.toFixed(1) +
+            " Q " +
+            (bx + 18).toFixed(1) +
+            " " +
+            ((by + ty) / 2).toFixed(1) +
+            " " +
+            (bx + 30).toFixed(1) +
+            " " +
+            (by - 2).toFixed(1);
+          return d;
+        }
+
+        var wrap = document.getElementById("hw-tc-wrap");
+        wrap.style.left = CONFIG.x + "px";
+        wrap.style.top = CONFIG.y + "px";
+        wrap.style.width = CONFIG.w + "px";
+        wrap.style.height = CONFIG.h + "px";
+        var svg = document.getElementById("hw-tc-svg");
+        svg.setAttribute("viewBox", "0 0 " + CONFIG.w + " " + CONFIG.h);
+        var d = cloudPath(CONFIG.w, CONFIG.h, CONFIG.tip, CONFIG.seed);
+        var fillEl = document.getElementById("hw-tc-fill");
+        var stroke = document.getElementById("hw-tc-stroke");
+        fillEl.setAttribute("d", d);
+        stroke.setAttribute("d", d);
+
+        var text = document.getElementById("hw-tc-text");
+        text.style.left = CONFIG.w * 0.12 + "px";
+        text.style.top = CONFIG.h * 0.1 + "px";
+        text.style.width = CONFIG.w * 0.76 + "px";
+        text.style.height = CONFIG.h * 0.62 + "px";
+        text.style.fontSize = CONFIG.fontSize + "px";
+        var inner = document.createElement("div");
+        Array.from(CONFIG.text).forEach(function (ch) {
+          var s = document.createElement("span");
+          s.className = "ch";
+          s.textContent = ch;
+          inner.appendChild(s);
+        });
+        text.appendChild(inner);
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* draw outline, fade fill, type text */
+        var len = stroke.getTotalLength();
+        gsap.set(stroke, { strokeDasharray: len, strokeDashoffset: len });
+        var t0 = CONFIG.animationIn ? 0.3 : 0;
+        if (CONFIG.animationIn) {
+          tl.to(stroke, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, t0);
+          tl.to("#hw-tc-fill", { opacity: 0.94, duration: 0.4, ease: "power2.out" }, t0 + 0.55);
+        } else {
+          gsap.set(stroke, { strokeDashoffset: 0 });
+          gsap.set("#hw-tc-fill", { opacity: 0.94 });
+        }
+        var chars = text.querySelectorAll(".ch");
+        var delay = Math.min(CONFIG.typeCharDelay, 1.8 / Math.max(1, chars.length));
+        tl.to(chars, { opacity: 1, duration: 0.02, stagger: delay, ease: "none" }, t0 + 0.9);
+
+        if (CONFIG.boil.enabled) {
+          window.hwBoil(tl, "#hw-tc-wrap", {
+            amp: CONFIG.boil.amp,
+            rot: CONFIG.boil.rot,
+            frameDrop: CONFIG.boil.frameDrop,
+            seed: CONFIG.seed,
+          });
+        }
+
+        if (CONFIG.animationOut) {
+          tl.to(wrap, { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+        }
+        tl.set("#hw-tc-root", { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["hw-text-cloud"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["hw-text-cloud"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["hw-text-cloud"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

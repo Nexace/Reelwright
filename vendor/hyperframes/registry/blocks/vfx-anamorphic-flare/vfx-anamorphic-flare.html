@@ -1,0 +1,406 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): vfx-anamorphic-flare v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/vfx-anamorphic-flare/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="vfx-anamorphic-flare"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="vfx-anamorphic-flare"]:not(:has([data-hf-inner-root])), [data-composition-id="vfx-anamorphic-flare"] > [data-hf-inner-root], [data-composition-id="vfx-anamorphic-flare"] *, [data-composition-id="vfx-anamorphic-flare"] *::before, [data-composition-id="vfx-anamorphic-flare"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="vfx-anamorphic-flare"]:not(:has([data-hf-inner-root])), [data-composition-id="vfx-anamorphic-flare"] > [data-hf-inner-root] {
+        background: #000;
+        overflow: hidden;
+      }
+      [data-composition-id="vfx-anamorphic-flare"]:not(:has([data-hf-inner-root])), [data-composition-id="vfx-anamorphic-flare"] > [data-hf-inner-root] {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      [data-composition-id="vfx-anamorphic-flare"] #af-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+    
+</style>
+<div
+      id="af-root"
+      data-composition-variables='[{"id":"intensity","type":"number","label":"Streak intensity","default":5,"min":0,"max":20,"step":0.1},{"id":"threshold","type":"number","label":"High-pass threshold","default":0.3,"min":0,"max":1,"step":0.01},{"id":"streakLength","type":"number","label":"Streak length gain","default":1,"min":0.1,"max":6,"step":0.05},{"id":"tint","type":"color","label":"Streak tint","default":"#7a8aff"},{"id":"bloomRadius","type":"number","label":"Bloom radius","default":0,"min":0,"max":80,"step":1,"unit":"px"},{"id":"timeScale","type":"number","label":"Drift rate","default":0.5,"min":0,"max":3,"step":0.05},{"id":"emitters","type":"number","label":"Emitter count","default":140,"min":1,"max":400,"step":1},{"id":"backdrop","type":"color","label":"Backdrop","default":"#04040a"}]' data-composition-id="vfx-anamorphic-flare"
+      data-root="true"
+      data-width="1920"
+      data-height="1080"
+      data-block-start="0"
+      data-block-duration="10"
+     
+    >
+      <canvas id="af-canvas" width="1920" height="1080"></canvas>
+
+      
+      <div
+        id="af-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="10"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // vfx-anamorphic-flare: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/vfx-anamorphic-flare/";
+const __rwVars = Object.assign({"intensity":5,"threshold":0.3,"streakLength":1,"tint":"#7a8aff","bloomRadius":0,"timeScale":0.5,"emitters":140,"backdrop":"#04040a"}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("vfx-anamorphic-flare" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["vfx-anamorphic-flare" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("vfx-anamorphic-flare" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all([].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        var DUR = 10;
+        var W = 1920;
+        var H = 1080;
+
+        var root = document.getElementById("af-root");
+        var V = (__hyperframes && __hyperframes.getVariables()) || {};
+        var CS = getComputedStyle(root);
+
+        // A declared variable reaches CSS as a custom property on the root.
+        // Read that first so a host stylesheet can retheme the block, then
+        // fall back to the declared value. Both the namespaced and the bare
+        // property name are probed: which one the runtime emits has changed
+        // across versions, and the block should not care.
+        function raw(id) {
+          var slug = id.toLowerCase();
+          var css =
+            CS.getPropertyValue("--hf-var-" + slug).trim() ||
+            CS.getPropertyValue("--" + slug).trim();
+          return css !== "" ? css : V[id];
+        }
+        function num(id, fallback) {
+          var n = parseFloat(raw(id));
+          return isFinite(n) ? n : fallback;
+        }
+        function str(id, fallback) {
+          var s = raw(id);
+          return typeof s === "string" && s !== "" ? s : fallback;
+        }
+
+        // ---------------------------------------------------------------
+        // Measured constants.
+        //
+        // Read from the three.js anamorphic post-processing example (MIT),
+        // cross-checked against a live capture of that demo's own GUI:
+        //
+        //   tint 0x7a8aff, threshold 0.3, intensity 5, bloom radius 0,
+        //   samples 80, time scale 0.5, resolution scale 0.25.
+        //
+        // The filter walks samples/2 taps in each direction HORIZONTALLY
+        // only, weights each tap by 1 - |i| / halfSamples (a tent), and
+        // normalises the sum by samples / 3.0. Dividing by samples/3 rather
+        // than by the weight sum is deliberate: it is a gain above 1, not
+        // an average, which is why a dim highlight still throws a readable
+        // streak.
+        //
+        // This implementation evaluates that convolution in closed form
+        // instead of running the 80-tap loop. For a small bright source the
+        // tent-weighted horizontal blur has an exact analytic result: the
+        // tent itself, centred on the source. So one horizontal gradient
+        // per highlight is the same arithmetic the loop would perform, at
+        // a fraction of the cost, and with no dependence on WebGL surviving
+        // seek capture.
+        // ---------------------------------------------------------------
+        var SAMPLES = 80;
+        var HALF_SAMPLES = SAMPLES / 2; // 40 taps each side
+        var RES_SCALE = 0.25; // the streak buffer runs at quarter resolution
+        var NORM = SAMPLES / 3; // total / (samples / 3.0)
+        var REF_W = 1280; // width the constants were measured at
+
+        // 40 taps of a 1/(0.25 * 1280) texel step = 12.5% of frame width per
+        // side. Held as a fraction rather than as absolute pixels so the look
+        // matches the reference at any output size.
+        var HALF_FRAC = HALF_SAMPLES / (RES_SCALE * REF_W);
+
+        var INTENSITY = num("intensity", 5);
+        var THRESHOLD = num("threshold", 0.3);
+        var STREAK_LEN = num("streakLength", 1);
+        var BLOOM_R = num("bloomRadius", 0);
+        var TIME_SCALE = num("timeScale", 0.5);
+        var COUNT = Math.max(1, Math.round(num("emitters", 140)));
+        var BACKDROP = str("backdrop", "#04040a");
+        var TINT = hexRgb(str("tint", "#7a8aff"), [0.478, 0.541, 1.0]);
+
+        function hexRgb(hex, fallback) {
+          var m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+          if (!m) return fallback;
+          var n = parseInt(m[1], 16);
+          return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+        }
+
+        function mulberry32(seed) {
+          return function () {
+            seed |= 0;
+            seed = (seed + 0x6d2b79f5) | 0;
+            var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+
+        function hsv(h, s, v) {
+          var hh = ((((h % 360) + 360) % 360) / 60) % 6;
+          var c = v * s;
+          var x = c * (1 - Math.abs((hh % 2) - 1));
+          var m = v - c;
+          var r = 0;
+          var g = 0;
+          var b = 0;
+          if (hh < 1) {
+            r = c;
+            g = x;
+          } else if (hh < 2) {
+            r = x;
+            g = c;
+          } else if (hh < 3) {
+            g = c;
+            b = x;
+          } else if (hh < 4) {
+            g = x;
+            b = c;
+          } else if (hh < 5) {
+            r = x;
+            b = c;
+          } else {
+            r = c;
+            b = x;
+          }
+          return [r + m, g + m, b + m];
+        }
+
+        // ---------------------------------------------------------------
+        // The emitter field. Every emitter is a closed-form function of t:
+        // two incommensurate sinusoids for position and one for brightness.
+        // The seeded PRNG runs once, at setup, so the field is identical on
+        // every load and every seek.
+        // ---------------------------------------------------------------
+        var rng = mulberry32(1337);
+        var EM = [];
+        for (var i = 0; i < COUNT; i++) {
+          EM.push({
+            x0: rng() * W,
+            y0: rng() * H,
+            ax: 24 + rng() * 90,
+            ay: 12 + rng() * 48,
+            fx: 0.018 + rng() * 0.05,
+            fy: 0.015 + rng() * 0.045,
+            px: rng(),
+            py: rng(),
+            r: 3 + Math.pow(rng(), 1.6) * 10,
+            h: rng() * 360,
+            s: 0.62 + rng() * 0.38,
+            v: 0.7 + rng() * 0.3,
+            fb: 0.03 + rng() * 0.09,
+            pb: rng(),
+          });
+        }
+
+        var TAU = Math.PI * 2;
+        var canvas = document.getElementById("af-canvas");
+        var ctx = canvas.getContext("2d");
+
+        // Streaks are accumulated in a quarter-resolution buffer, matching
+        // the reference's setResolutionScale(0.25). Upscaling it bilinearly
+        // is what gives the streak its soft vertical falloff, and it is the
+        // reason the streak reads as smooth rather than as a hard bar.
+        var SW = Math.round(W * RES_SCALE);
+        var SH = Math.round(H * RES_SCALE);
+        var sbuf = document.createElement("canvas");
+        sbuf.width = SW;
+        sbuf.height = SH;
+        var sctx = sbuf.getContext("2d");
+
+        function rgba(c, a) {
+          return (
+            "rgba(" +
+            Math.round(Math.min(1, Math.max(0, c[0])) * 255) +
+            "," +
+            Math.round(Math.min(1, Math.max(0, c[1])) * 255) +
+            "," +
+            Math.round(Math.min(1, Math.max(0, c[2])) * 255) +
+            "," +
+            Math.min(1, Math.max(0, a)) +
+            ")"
+          );
+        }
+
+        // A slow swell across the clip so the field reads as a shot rather
+        // than as a loop. Closed form in t, like everything else here.
+        function gainAt(t) {
+          var u = Math.min(1, Math.max(0, t / DUR));
+          return 0.75 + 0.35 * Math.sin(Math.PI * u);
+        }
+
+        function draw(t) {
+          var tau = t * TIME_SCALE;
+          var gain = gainAt(t);
+          var halfLen = HALF_FRAC * W * STREAK_LEN;
+
+          sctx.setTransform(1, 0, 0, 1, 0, 0);
+          sctx.clearRect(0, 0, SW, SH);
+          sctx.globalCompositeOperation = "lighter";
+
+          var e;
+          var k;
+          var col;
+          var bright;
+          var x;
+          var y;
+          for (k = 0; k < EM.length; k++) {
+            e = EM[k];
+            x = e.x0 + e.ax * Math.sin(TAU * (e.fx * tau + e.px));
+            y = e.y0 + e.ay * Math.sin(TAU * (e.fy * tau + e.py));
+            bright = e.v * (0.62 + 0.38 * Math.sin(TAU * (e.fb * tau + e.pb)));
+            col = hsv(e.h, e.s, Math.max(0, bright));
+
+            // High pass, then tint, exactly as the reference filter does:
+            // max(colour - threshold, 0) * tint. Below threshold there is no
+            // streak at all, which is what keeps the field from smearing.
+            var hp = [
+              Math.max(0, col[0] - THRESHOLD) * TINT[0],
+              Math.max(0, col[1] - THRESHOLD) * TINT[1],
+              Math.max(0, col[2] - THRESHOLD) * TINT[2],
+            ];
+            var peak = Math.max(hp[0], Math.max(hp[1], hp[2]));
+            if (peak <= 0.0001) continue;
+
+            // Peak of the tent equals the source value times intensity over
+            // the samples/3 normaliser. Magnitude is carried in alpha so the
+            // hue keeps full 8-bit precision at low brightness.
+            var alpha = (peak * INTENSITY * gain) / NORM;
+            if (alpha < 0.003) continue;
+            var hue = [hp[0] / peak, hp[1] / peak, hp[2] / peak];
+
+            var bx = x * RES_SCALE;
+            var by = y * RES_SCALE;
+            var bh = Math.max(1, e.r * 2 * RES_SCALE);
+            var bl = halfLen * RES_SCALE;
+
+            var g = sctx.createLinearGradient(bx - bl, 0, bx + bl, 0);
+            g.addColorStop(0, rgba(hue, 0));
+            g.addColorStop(0.5, rgba(hue, alpha));
+            g.addColorStop(1, rgba(hue, 0));
+            sctx.fillStyle = g;
+            sctx.fillRect(bx - bl, by - bh / 2, bl * 2, bh);
+          }
+
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.fillStyle = BACKDROP;
+          ctx.fillRect(0, 0, W, H);
+
+          ctx.globalCompositeOperation = "lighter";
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(sbuf, 0, 0, SW, SH, 0, 0, W, H);
+
+          // The highlights themselves, drawn at full resolution on top.
+          for (k = 0; k < EM.length; k++) {
+            e = EM[k];
+            x = e.x0 + e.ax * Math.sin(TAU * (e.fx * tau + e.px));
+            y = e.y0 + e.ay * Math.sin(TAU * (e.fy * tau + e.py));
+            bright = e.v * (0.62 + 0.38 * Math.sin(TAU * (e.fb * tau + e.pb)));
+            col = hsv(e.h, e.s, Math.max(0, bright));
+
+            if (BLOOM_R > 0) {
+              var br = e.r + BLOOM_R;
+              var gb = ctx.createRadialGradient(x, y, 0, x, y, br);
+              gb.addColorStop(0, rgba(col, 0.5 * gain));
+              gb.addColorStop(0.35, rgba(col, 0.16 * gain));
+              gb.addColorStop(1, rgba(col, 0));
+              ctx.fillStyle = gb;
+              ctx.fillRect(x - br, y - br, br * 2, br * 2);
+            }
+
+            var core = ctx.createRadialGradient(x, y, 0, x, y, e.r);
+            core.addColorStop(
+              0,
+              rgba([col[0] * 0.88 + 0.12, col[1] * 0.88 + 0.12, col[2] * 0.88 + 0.12], 1),
+            );
+            core.addColorStop(0.72, rgba(col, 0.96));
+            core.addColorStop(1, rgba(col, 0));
+            ctx.fillStyle = core;
+            ctx.fillRect(x - e.r, y - e.r, e.r * 2, e.r * 2);
+          }
+        }
+
+        __rwTL = __rwTL || {};
+        var tl = gsap.timeline({ paused: true });
+
+        // The canvas is repainted from a property SETTER, not from a
+        // timeline onUpdate callback: gsap suppresses events on seek(), so a
+        // callback-driven canvas silently freezes on frame 0 under any
+        // consumer that scrubs. Tweened values are written on every render,
+        // suppressed or not, so the setter fires on seek and hands us the
+        // frame time directly.
+        var driver = { _t: 0 };
+        Object.defineProperty(driver, "t", {
+          get: function () {
+            return this._t;
+          },
+          set: function (v) {
+            this._t = v;
+            draw(v);
+          },
+        });
+        tl.to(driver, { t: DUR, duration: DUR, ease: "none" }, 0);
+        __rwTL["vfx-anamorphic-flare"] = tl;
+
+        draw(0);
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["vfx-anamorphic-flare"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["vfx-anamorphic-flare"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

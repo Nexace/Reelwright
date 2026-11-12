@@ -1,0 +1,149 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): orbit-card v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/orbit-card/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="orbit-card"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      @font-face {
+        font-family: Archivo;
+        font-weight: 400;
+        src: url("compositions/orbit-card/assets/archivo-regular.ttf");
+      }
+      @font-face {
+        font-family: Archivo;
+        font-weight: 600;
+        src: url("compositions/orbit-card/assets/archivo-semibold.ttf");
+      }
+      [data-composition-id="orbit-card"]:not(:has([data-hf-inner-root])), [data-composition-id="orbit-card"] > [data-hf-inner-root], [data-composition-id="orbit-card"] * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      [data-composition-id="orbit-card"]:not(:has([data-hf-inner-root])), [data-composition-id="orbit-card"] > [data-hf-inner-root],
+      [data-composition-id="orbit-card"]:not(:has([data-hf-inner-root])), [data-composition-id="orbit-card"] > [data-hf-inner-root] {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #161718;
+      }
+      [data-composition-id="orbit-card"]:not(:has([data-hf-inner-root])), [data-composition-id="orbit-card"] > [data-hf-inner-root] {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: Archivo, sans-serif;
+      }
+      [data-composition-id="orbit-card"] #oc-stage {
+        position: absolute;
+        inset: 0;
+      }
+      [data-composition-id="orbit-card"] #oc-stage canvas {
+        width: 1920px;
+        height: 1080px;
+        display: block;
+      }
+      [data-composition-id="orbit-card"] #oc-fontload {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+    
+</style>
+<div
+      id="oc-root"
+      data-composition-variables='[{"id":"feature1Title","type":"string","label":"Card title","default":"Always in sync","maxLength":28},{"id":"feature1Desc","type":"string","label":"Card description","default":"Changes reach every screen the moment they happen.","maxLength":110},{"id":"feature1Accent","type":"color","label":"Card accent","default":"#4cc9ff"},{"id":"cardOrbitDegrees","type":"number","label":"Card orbit degrees","description":"Total card-only vertical orbit during Blender frames 150–180 (4.9667–5.9667 seconds). Enter 180, 360, 720, or any angle. The sphere keeps its independent spin. The final angle holds after frame 180.","default":360,"min":-36000,"max":36000,"step":1}]' data-composition-id="orbit-card"
+      data-block-start="0"
+      data-block-duration="10"
+      data-width="1920"
+      data-height="1080"
+    >
+      <section
+        id="oc-stage"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="10"
+        data-track-index="1"
+      ></section>
+      <div id="oc-fontload" aria-hidden="true">
+        <span style="font-weight: 400">Aa</span><span style="font-weight: 600">Aa</span>
+      </div>
+    </div>
+<script>
+(function () { // orbit-card: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/orbit-card/";
+const __rwVars = Object.assign({"feature1Title":"Always in sync","feature1Desc":"Changes reach every screen the moment they happen.","feature1Accent":"#4cc9ff","cardOrbitDegrees":360}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("orbit-card" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["orbit-card" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("orbit-card" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\",\"./compositions/orbit-card/assets/three.core.min.js\":\"./kit/three/three.core.js\",\"./compositions/orbit-card/assets/three.module.min.js\":\"./kit/three/three.module.js\",\"orbit-card/scene\":\"./compositions/orbit-card/assets/orbit-scene.js\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Archivo\"","600 1em \"Archivo\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+__rwReady('module0', (async () => {
+const __rwM11 = await import("orbit-card/scene"); const { createOrbitScene } = __rwM11;
+      // Bare __hyperframes is this composition's own in a module.
+      const renderAt = createOrbitScene(
+        (typeof __hyperframes !== "undefined" && __hyperframes.getVariables?.()) || {},
+      );
+      const state = { time: 0 };
+      const timeline = gsap.timeline({ paused: true });
+      timeline.to(state, {
+        time: 10,
+        duration: 10,
+        ease: "none",
+        onUpdate: () => renderAt(state.time),
+      });
+      __rwOnSeek( (event) => {
+        if (typeof event.detail?.time === "number") {
+          timeline.totalTime(Math.max(0, Math.min(10, event.detail.time)), true);
+          renderAt(event.detail.time);
+        }
+      });
+      __rwTL = __rwTL || {};
+      __rwTL["orbit-card"] = timeline;
+      const query = new URLSearchParams(location.search);
+      if (query.has("play")) {
+        timeline.repeat(query.has("loop") ? 999 : 0);
+        timeline.play(0);
+      }
+    
+})().catch((e) => { console.error("orbit-card" + ' module:', e); throw e; }));
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["orbit-card"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["orbit-card"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

@@ -1,0 +1,1 @@
+| D3 7.9.2 (`d3.min.js`) | `vendor/d3/` | ISC, [LICENSE](vendor/d3/LICENSE) | Copyright 2010-2026 Mike Bostock. https://github.com/d3/d3. Loaded by converted HyperFrames blocks (tools/blocks.mjs). Unchanged; what we took: [VENDORED.md](vendor/d3/VENDORED.md). |

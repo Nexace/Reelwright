@@ -1,0 +1,270 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): mk-specs-list v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/mk-specs-list/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/mk-specs-list/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/mk-specs-list/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="mk-specs-list"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="mk-specs-list"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-specs-list"] > [data-hf-inner-root], [data-composition-id="mk-specs-list"] *, [data-composition-id="mk-specs-list"] *::before, [data-composition-id="mk-specs-list"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="mk-specs-list"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-specs-list"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="mk-specs-list"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-specs-list"] > [data-hf-inner-root] {
+        /* ---- mk tokens: override in the host to re-skin the family ---- */
+        --mk-font: "Inter", "Inter", sans-serif;
+        --mk-ink: #1d1d1f;
+        --mk-ink-dim: #6e6e73;
+        --mk-ink-dark: #f5f5f7;
+        --mk-ink-dim-dark: #a1a1a6;
+        --mk-accent: #0071e3;
+        --mk-accent-dark: #7d5cff;
+        --mk-hairline: 2px;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage or mk-background */
+      }
+      [data-composition-id="mk-specs-list"] #mk-sl-scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 62%);
+        opacity: 0;
+      }
+      [data-composition-id="mk-specs-list"] #mk-sl-col {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-row {
+        font-family: var(--mk-font);
+        line-height: 1;
+        opacity: 0;
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-text {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        white-space: nowrap;
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-label {
+        font-weight: 600;
+        font-size: 46px;
+        letter-spacing: -0.015em;
+        color: var(--mk-ink);
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-value {
+        font-weight: 400;
+        font-size: 40px;
+        letter-spacing: -0.01em;
+        color: var(--mk-ink-dim);
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-line {
+        position: relative;
+        margin-top: 22px;
+        height: var(--mk-hairline);
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      [data-composition-id="mk-specs-list"] .mk-sl-line-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--mk-accent);
+        transform-origin: left center;
+      }
+      /* dark scheme: white rows for use over footage (overlay look) */
+      [data-composition-id="mk-specs-list"] .mk-dark .mk-sl-label {
+        color: var(--mk-ink-dark);
+      }
+      [data-composition-id="mk-specs-list"] .mk-dark .mk-sl-value {
+        color: var(--mk-ink-dim-dark);
+      }
+      [data-composition-id="mk-specs-list"] .mk-dark .mk-sl-line {
+        background: rgba(255, 255, 255, 0.18);
+      }
+      [data-composition-id="mk-specs-list"] .mk-dark .mk-sl-line-fill {
+        background: var(--mk-accent-dark);
+      }
+    
+</style>
+<div
+      id="mk-sl-root"
+      data-composition-id="mk-specs-list"
+      data-block-start="0"
+      data-block-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="mk-sl-scrim"></div>
+      <div id="mk-sl-col"></div>
+      <div
+        id="mk-sl-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="8"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // mk-specs-list: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/mk-specs-list/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("mk-specs-list" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["mk-specs-list" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("mk-specs-list" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters (inspector-style CONFIG) ---- */
+        var CONFIG = {
+          scheme: "light", // "light" (ink rows) | "dark" (white rows, for footage)
+          rows: [
+            { label: "Design", value: "Minimal, clean lines" },
+            { label: "Typography", value: "Inter SemiBold" },
+            { label: "Motion", value: "Restrained, no bounce" },
+            { label: "Color", value: "Stage + one accent" },
+            { label: "Shapes", value: "Capsules & rounded cards" },
+          ],
+          underline: true, // accent sweep under each row
+          lineWidth: 660, // px
+          scrim: 0, // 0–1 left-edge dark scrim for readability over footage
+          x: 160, // column left edge
+          rowGap: 44, // px between rows
+          stagger: 0.18, // s between row entrances
+          animationIn: true,
+          animationOut: true,
+        };
+
+        var DUR = 8;
+        var root = document.getElementById("mk-sl-root");
+        var col = document.getElementById("mk-sl-col");
+        var scrim = document.getElementById("mk-sl-scrim");
+
+        if (CONFIG.scheme === "dark") root.classList.add("mk-dark");
+        scrim.style.opacity = String(CONFIG.scrim);
+
+        /* build rows */
+        CONFIG.rows.forEach(function (r, i) {
+          var row = document.createElement("div");
+          row.id = "mk-sl-row-" + i;
+          row.className = "mk-sl-row";
+          if (i > 0) row.style.marginTop = CONFIG.rowGap + "px";
+
+          var text = document.createElement("div");
+          text.className = "mk-sl-text";
+          var label = document.createElement("span");
+          label.className = "mk-sl-label";
+          label.textContent = r.label;
+          text.appendChild(label);
+          if (r.value) {
+            var value = document.createElement("span");
+            value.className = "mk-sl-value";
+            value.textContent = r.value;
+            text.appendChild(value);
+          }
+          row.appendChild(text);
+
+          if (CONFIG.underline) {
+            var line = document.createElement("div");
+            line.className = "mk-sl-line";
+            line.style.width = CONFIG.lineWidth + "px";
+            var fill = document.createElement("div");
+            fill.id = "mk-sl-fill-" + i;
+            fill.className = "mk-sl-line-fill";
+            line.appendChild(fill);
+            row.appendChild(line);
+          }
+          col.appendChild(row);
+        });
+
+        /* center the column vertically */
+        var colH =
+          CONFIG.rows.length * (46 + 22 + (CONFIG.underline ? 2 : 0)) +
+          (CONFIG.rows.length - 1) * CONFIG.rowGap;
+        col.style.left = CONFIG.x + "px";
+        col.style.top = Math.round((1080 - colH) / 2) + "px";
+
+        var tl = gsap.timeline({ paused: true });
+
+        CONFIG.rows.forEach(function (r, i) {
+          var row = document.getElementById("mk-sl-row-" + i);
+          var t0 = (CONFIG.animationIn ? 0.3 : 0) + i * CONFIG.stagger;
+
+          if (CONFIG.animationIn) {
+            gsap.set(row, { opacity: 0, x: -36 });
+            tl.to(row, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, t0);
+          } else {
+            gsap.set(row, { opacity: 1 });
+          }
+
+          if (CONFIG.underline) {
+            var fill = document.getElementById("mk-sl-fill-" + i);
+            gsap.set(fill, { scaleX: 0 });
+            tl.to(fill, { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, t0 + 0.15);
+          }
+        });
+
+        /* exit + hard kill */
+        if (CONFIG.animationOut) {
+          tl.to(col, { opacity: 0, y: -20, duration: 0.4, ease: "power2.in" }, DUR - 0.5);
+          tl.to(scrim, { opacity: 0, duration: 0.4, ease: "power2.in" }, DUR - 0.5);
+        }
+        tl.set(root, { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["mk-specs-list"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["mk-specs-list"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["mk-specs-list"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

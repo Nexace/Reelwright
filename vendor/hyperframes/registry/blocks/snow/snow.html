@@ -1,0 +1,217 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): snow v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/snow/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="snow"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="snow"]:not(:has([data-hf-inner-root])), [data-composition-id="snow"] > [data-hf-inner-root], [data-composition-id="snow"] *, [data-composition-id="snow"] *::before, [data-composition-id="snow"] *::after {
+        box-sizing: border-box;
+      }
+
+      [data-composition-id="snow"]:not(:has([data-hf-inner-root])), [data-composition-id="snow"] > [data-hf-inner-root],
+      [data-composition-id="snow"]:not(:has([data-hf-inner-root])), [data-composition-id="snow"] > [data-hf-inner-root] {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      [data-composition-id="snow"] #hf-snow {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        /* Center clearance: a subject placed mid-frame stays readable by default. */
+        -webkit-mask-image: radial-gradient(
+          circle 230px at 50% 50%,
+          transparent 0 230px,
+          #000 653px
+        );
+        mask-image: radial-gradient(circle 230px at 50% 50%, transparent 0 230px, #000 653px);
+      }
+
+      [data-composition-id="snow"] #hf-snow .hf-flake {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        background: #fff;
+        will-change: transform;
+      }
+    
+</style>
+<div
+      id="snow"
+      data-composition-variables='[{"id":"density","type":"enum","role":"style","label":"Density","description":"Flake count across the frame.","default":"sparse","options":[{"value":"sparse","label":"Sparse"},{"value":"dense","label":"Dense"}]},{"id":"speed","type":"enum","role":"style","label":"Fall speed","description":"How fast flakes fall and sway.","default":"calm","options":[{"value":"calm","label":"Calm"},{"value":"gust","label":"Gust"}]}]' data-composition-id="snow"
+      data-block-start="0"
+      data-block-duration="6"
+      data-width="1920"
+      data-height="1080"
+     
+    >
+      <div id="hf-snow" aria-hidden="true" data-layout-allow-overflow=""></div>
+    </div>
+<script>
+(function () { // snow: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/snow/";
+const __rwVars = Object.assign({"density":"sparse","speed":"calm"}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("snow" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["snow" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("snow" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all([].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      __rwTL = __rwTL || {};
+
+      (function () {
+        var field = document.getElementById("hf-snow");
+        // Mounted, the runtime strips data-block-duration off this file's root; the host clip carries it.
+        var host = field.closest("[data-composition-id]");
+        var vars =
+          __hyperframes && __hyperframes.getVariables
+            ? __hyperframes.getVariables()
+            : {};
+
+        // The host's data-width/data-height are authoritative over this file's own root
+        // (compositionLoader.ts) — read them instead of a third hardcoded 1920x1080.
+        var W = Number(host.getAttribute("data-width")) || 1920;
+        var H = Number(host.getAttribute("data-height")) || 1080;
+        var duration = Number(host.getAttribute("data-block-duration")) || 6;
+
+        var COUNT = vars.density === "dense" ? 280 : 120;
+        var fallSeconds = vars.speed === "gust" ? 2.2 : 4.5;
+        var swaySeconds = vars.speed === "gust" ? 2.2 : 4;
+
+        // Even 2D coverage with no clumping and no seed to store (Weyl low-discrepancy
+        // sequence): successive multiples of an irrational constant, taken mod 1.
+        var PHI = 0.6180339887498949; // (sqrt(5) - 1) / 2
+        var RT2 = 0.4142135623730951; // sqrt(2) - 1
+
+        function frac(x) {
+          return x - Math.floor(x);
+        }
+
+        // Deterministic per-index hash (sin fold; no Math.random) for scalars that only
+        // need decorrelation, not even coverage. registry/components/stop-motion-cadence's
+        // rnd(n).
+        function rnd(n) {
+          var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+          return x - Math.floor(x);
+        }
+
+        var TAU = 2 * Math.PI;
+
+        // A whole number of cycles over the mount for a given per-cycle duration; the
+        // loop invariant forces this to round to an integer, so callers that need distinct
+        // speeds must space their inputs, not just their multipliers (rounding a sub-1
+        // product always collapses to 1 on a short mount).
+        function wholeCycles(cycleSeconds) {
+          return Math.max(1, Math.round(duration / cycleSeconds));
+        }
+
+        // Flakes enter above the top edge and exit below the bottom before wrapping, so the
+        // loop seam never pops one into view mid-frame. It must clear the largest flake's
+        // radius plus its blur (9px + 4px at 1080 tall); a correctness bound, not taste.
+        var WRAP_MARGIN = 0.02;
+
+        var fallBase = wholeCycles(fallSeconds);
+        var swayBase = wholeCycles(swaySeconds);
+
+        var flakes = [];
+        var fragment = document.createDocumentFragment();
+        for (var i = 0; i < COUNT; i++) {
+          var laneX = frac(i * PHI + 0.07);
+          // One depth draw drives size and opacity, and buckets the flake into
+          // one of three fall-speed layers (far/mid/near). Layer cycle counts are offsets
+          // from the shared base, not products of it, so they stay distinct on any mount.
+          var depth = rnd(i);
+          var sizePx = 2 + depth * depth * 16;
+          // The nearest flakes sit in front of the focal plane: large, soft and half see-through.
+          var bokeh = depth > 0.85;
+          var opacity = bokeh ? 0.5 : 0.35 + depth * 0.55;
+          var layer = depth < 1 / 3 ? 0 : depth < 2 / 3 ? 1 : 2;
+
+          var el = document.createElement("div");
+          el.className = "hf-flake";
+          el.style.width = sizePx + "px";
+          el.style.height = sizePx + "px";
+          el.style.opacity = opacity;
+          if (bokeh) el.style.filter = "blur(2px)";
+          fragment.appendChild(el);
+
+          flakes.push({
+            el: el,
+            laneX: laneX,
+            fallCycles: fallBase + layer,
+            fallPhi: frac(i * RT2 + 0.37),
+            swayPx: 6 + depth * 24,
+            swayCycles: swayBase + Math.round(rnd(i + 5000) * 2),
+            swayPhi: TAU * rnd(i + 3000),
+          });
+        }
+        field.appendChild(fragment);
+
+        var state = { phase: 0 };
+
+        function render() {
+          var p = state.phase;
+          for (var s = 0; s < flakes.length; s++) {
+            var f = flakes[s];
+            var yFrac = frac(f.fallCycles * p + f.fallPhi);
+            var y = (-WRAP_MARGIN + yFrac * (1 + 2 * WRAP_MARGIN)) * H;
+            var x = f.laneX * W + f.swayPx * Math.sin(TAU * f.swayCycles * p + f.swayPhi);
+            f.el.style.transform =
+              "translate(" + Math.round(x) + "px, " + Math.round(y) + "px) translate(-50%, -50%)";
+          }
+        }
+
+        var tl = gsap.timeline({ paused: true });
+        tl.to(state, { phase: 1, duration: duration, ease: "none", onUpdate: render }, 0);
+        render();
+
+        __rwTL["snow"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["snow"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["snow"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

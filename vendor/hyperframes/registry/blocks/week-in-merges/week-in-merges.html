@@ -1,0 +1,507 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): week-in-merges v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/week-in-merges/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/week-in-merges/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/week-in-merges/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="week-in-merges"] { position: relative; width: 1080px; height: 1350px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="week-in-merges"]:not(:has([data-hf-inner-root])), [data-composition-id="week-in-merges"] > [data-hf-inner-root], [data-composition-id="week-in-merges"] *, [data-composition-id="week-in-merges"] *::before, [data-composition-id="week-in-merges"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="week-in-merges"]:not(:has([data-hf-inner-root])), [data-composition-id="week-in-merges"] > [data-hf-inner-root],
+      [data-composition-id="week-in-merges"]:not(:has([data-hf-inner-root])), [data-composition-id="week-in-merges"] > [data-hf-inner-root] {
+        width: 1080px;
+        height: 1350px;
+        overflow: hidden;
+        background-color: #ffffff;
+      }
+    
+
+        [data-composition-id="week-in-merges"]:not(:has([data-hf-inner-root])), [data-composition-id="week-in-merges"] > [data-hf-inner-root] {
+          position: relative;
+          width: 1080px;
+          height: 1350px;
+          overflow: hidden;
+          background: #ffffff;
+          color: #141414;
+          font-family: Inter, sans-serif;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-stage {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          padding: 64px 72px 52px;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-eyebrow {
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(20, 20, 20, 0.55);
+        }
+
+        [data-composition-id="week-in-merges"] #wim-title {
+          margin-top: 16px;
+          font-size: 52px;
+          font-weight: 600;
+          letter-spacing: -0.035em;
+          line-height: 1.05;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-sub {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 24px;
+          margin-top: 16px;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-period {
+          font-size: 20px;
+          line-height: 1.3;
+          color: rgba(20, 20, 20, 0.55);
+        }
+
+        [data-composition-id="week-in-merges"] #wim-total {
+          flex: none;
+          font-size: 22px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-rows {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          margin-top: 28px;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-row {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 28px;
+          min-height: 0;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-meta {
+          width: 280px;
+          flex: none;
+          min-width: 0;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-name,
+        [data-composition-id="week-in-merges"] .wim-count {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-name {
+          font-size: 36px;
+          font-weight: 600;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-count {
+          margin-top: 4px;
+          font-size: 16px;
+          line-height: 1.2;
+          color: rgba(20, 20, 20, 0.55);
+        }
+
+        [data-composition-id="week-in-merges"] .wim-lane {
+          position: relative;
+          flex: 1;
+          align-self: stretch;
+          min-width: 0;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-avatar {
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: var(--wim-avatar, 88px);
+          height: var(--wim-avatar, 88px);
+          margin-top: calc(var(--wim-avatar, 88px) / -2);
+          border-radius: 50%;
+          overflow: hidden;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-avatar-lead {
+          background: rgba(20, 20, 20, 0.72);
+        }
+
+        [data-composition-id="week-in-merges"] .wim-avatar-rest {
+          background: rgba(20, 20, 20, 0.45);
+        }
+
+        [data-composition-id="week-in-merges"] .wim-avatar img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        [data-composition-id="week-in-merges"] .wim-initials {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          color: #ffffff;
+          font-weight: 600;
+          letter-spacing: -0.03em;
+        }
+
+        [data-composition-id="week-in-merges"] #wim-rule {
+          height: 1px;
+          margin: 12px 0 18px;
+          background: rgba(20, 20, 20, 0.14);
+        }
+
+        [data-composition-id="week-in-merges"] #wim-overflow {
+          display: none;
+          margin-top: 8px;
+          font-size: 18px;
+          line-height: 1.3;
+          color: rgba(20, 20, 20, 0.55);
+        }
+
+        [data-composition-id="week-in-merges"] #wim-footer,
+        [data-composition-id="week-in-merges"] #wim-source {
+          font-size: 16px;
+          line-height: 1.4;
+          color: rgba(20, 20, 20, 0.55);
+        }
+
+        [data-composition-id="week-in-merges"] #wim-source {
+          margin-top: 4px;
+        }
+      
+</style>
+<div
+      id="wim-root"
+      data-composition-variables='[{"id":"eyebrow","type":"string","label":"Eyebrow","default":"ACME / WEEK IN MERGES"},{"id":"title","type":"string","label":"Title","default":"Pull requests merged this week"},{"id":"period","type":"string","label":"Period","default":"1 September - 7 September 2026 · America/Los_Angeles"},{"id":"total","type":"string","label":"Total","default":"12 PRs"},{"id":"footer","type":"string","label":"Footer","default":"Speed proportional to merges · By PR author"},{"id":"source","type":"string","label":"Source line","default":"Example org · 1 repo · Bots · 0"},{"id":"rows","type":"string","label":"Rows (JSON array of name, merges, avatar)","default":"[{\"name\":\"Ada\",\"merges\":12,\"avatar\":\"\"},{\"name\":\"Bao\",\"merges\":7,\"avatar\":\"\"},{\"name\":\"Cam\",\"merges\":4,\"avatar\":\"\"},{\"name\":\"Dee\",\"merges\":2,\"avatar\":\"\"},{\"name\":\"Eli\",\"merges\":1,\"avatar\":\"\"}]"},{"id":"rows_max","type":"number","label":"Maximum rows","default":12,"min":1,"max":12,"step":1,"description":"Authors drawn, highest merge count first."},{"id":"overflow","type":"string","label":"Overflow line","default":"","description":"Line for everyone past the cap. Empty writes it from the rows left out."}]' data-composition-id="week-in-merges"
+      data-width="1080"
+      data-height="1350"
+      data-block-start="0"
+      data-block-duration="16"
+     
+    >
+      <div id="wim-stage" class="clip" data-block-start="0" data-block-duration="16" data-track-index="0">
+        <p id="wim-eyebrow"></p>
+        <h1 id="wim-title"></h1>
+        <div id="wim-sub">
+          <p id="wim-period"></p>
+          <p id="wim-total"></p>
+        </div>
+        <div id="wim-rows"></div>
+        <p id="wim-overflow"></p>
+        <div id="wim-rule"></div>
+        <p id="wim-footer"></p>
+        <p id="wim-source"></p>
+      </div>
+
+      
+
+      
+    </div>
+<script>
+(function () { // week-in-merges: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/week-in-merges/";
+const __rwVars = Object.assign({"eyebrow":"ACME / WEEK IN MERGES","title":"Pull requests merged this week","period":"1 September - 7 September 2026 · America/Los_Angeles","total":"12 PRs","footer":"Speed proportional to merges · By PR author","source":"Example org · 1 repo · Bots · 0","rows":"[{\"name\":\"Ada\",\"merges\":12,\"avatar\":\"\"},{\"name\":\"Bao\",\"merges\":7,\"avatar\":\"\"},{\"name\":\"Cam\",\"merges\":4,\"avatar\":\"\"},{\"name\":\"Dee\",\"merges\":2,\"avatar\":\"\"},{\"name\":\"Eli\",\"merges\":1,\"avatar\":\"\"}]","rows_max":12,"overflow":""}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("week-in-merges" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["week-in-merges" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("week-in-merges" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+        (function () {
+          "use strict";
+
+          var FLOOR_SPEED = 10;
+          var LEADER_SPEED = 300;
+
+          function readVars() {
+            var out = {};
+            var root = document.getElementById("wim-root");
+            try {
+              JSON.parse(root.getAttribute("data-composition-variables")).forEach(function (d) {
+                out[d.id] = d.default;
+              });
+            } catch (err) {
+              // Declaration unreadable; the literal fallbacks below still render.
+            }
+            var hf = __hyperframes;
+            var overrides =
+              hf && typeof hf.getVariables === "function"
+                ? hf.getVariables()
+                : window.__hfVariables;
+            if (overrides && typeof overrides === "object") {
+              for (var key in overrides) {
+                if (overrides[key] !== undefined) out[key] = overrides[key];
+              }
+            }
+            return out;
+          }
+
+          function num(value, fallback, lo, hi) {
+            var n = typeof value === "number" ? value : Number.parseFloat(value);
+            if (!Number.isFinite(n)) n = fallback;
+            return Math.min(hi, Math.max(lo, n));
+          }
+
+          function str(value, fallback) {
+            return typeof value === "string" && value.length > 0 ? value : fallback;
+          }
+
+          var FALLBACK_ROWS = [
+            { name: "Ada", merges: 12, avatar: "" },
+            { name: "Bao", merges: 7, avatar: "" },
+            { name: "Cam", merges: 4, avatar: "" },
+            { name: "Dee", merges: 2, avatar: "" },
+            { name: "Eli", merges: 1, avatar: "" },
+          ];
+
+          function parseRows(text) {
+            var raw;
+            try {
+              raw = JSON.parse(String(text));
+            } catch (err) {
+              return null;
+            }
+            if (!Array.isArray(raw)) return null;
+            var out = [];
+            for (var i = 0; i < raw.length; i++) {
+              var row = raw[i];
+              if (!row || typeof row.name !== "string" || row.name.trim().length === 0) continue;
+              var merges = Math.round(num(row.merges, 0, 0, 100000));
+              var avatar = typeof row.avatar === "string" ? row.avatar : "";
+              out.push({ name: row.name.trim(), merges: merges, avatar: avatar });
+            }
+            return out.length > 0 ? out : null;
+          }
+
+          function mergeLabel(merges) {
+            return merges + (merges === 1 ? " merge" : " merges");
+          }
+
+          function overflowLine(hidden) {
+            if (hidden.length === 0) return "";
+            var n = hidden.length;
+            var lo = hidden[0].merges;
+            var hi = lo;
+            for (var i = 1; i < hidden.length; i++) {
+              if (hidden[i].merges < lo) lo = hidden[i].merges;
+              if (hidden[i].merges > hi) hi = hidden[i].merges;
+            }
+            var who = n === 1 ? "1 more person" : n + " more people";
+            var span = lo === hi ? mergeLabel(lo) : lo + "-" + hi + " merges";
+            return "and " + who + " with " + span;
+          }
+
+          function initials(name) {
+            var parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) {
+              return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            }
+            return (parts[0] || "?").charAt(0).toUpperCase();
+          }
+
+          // Distance tracks merges / the leader's count. The floor is only for a
+          // genuine zero, so a near-tie stays a near-tie.
+          function speedFor(merges, maxM) {
+            if (!(merges > 0)) return FLOOR_SPEED;
+            if (!(maxM > 0)) return LEADER_SPEED;
+            return (LEADER_SPEED * merges) / maxM;
+          }
+
+          function bounceX(distance, span) {
+            var cycle = span * 2;
+            if (!(cycle > 0)) return 0;
+            var phase = distance % cycle;
+            if (phase < 0) phase += cycle;
+            return phase <= span ? phase : cycle - phase;
+          }
+
+          var root = document.getElementById("wim-root");
+          var V = readVars();
+          var DURATION = num(root.getAttribute("data-block-duration"), 16, 0.1, 600);
+          var parsed = parseRows(V.rows) || FALLBACK_ROWS;
+          var rowsMax = Math.round(num(V.rows_max, 12, 1, 12));
+          var ranked = parsed.slice().sort(function (a, b) {
+            return b.merges - a.merges;
+          });
+          var rows = ranked.slice(0, rowsMax);
+          var hidden = ranked.slice(rowsMax);
+          var maxM = rows[0].merges;
+          for (var i = 1; i < rows.length; i++) {
+            if (rows[i].merges > maxM) maxM = rows[i].merges;
+          }
+
+          document.getElementById("wim-eyebrow").textContent = str(
+            V.eyebrow,
+            "ACME / WEEK IN MERGES",
+          );
+          document.getElementById("wim-title").textContent = str(
+            V.title,
+            "Pull requests merged this week",
+          );
+          document.getElementById("wim-period").textContent = str(V.period, "");
+          document.getElementById("wim-total").textContent = str(V.total, "");
+          document.getElementById("wim-footer").textContent = str(
+            V.footer,
+            "Speed proportional to merges · By PR author",
+          );
+          document.getElementById("wim-source").textContent = str(V.source, "");
+          var overflowEl = document.getElementById("wim-overflow");
+          var overflowText = str(V.overflow, "") || overflowLine(hidden);
+          overflowEl.textContent = overflowText;
+          overflowEl.style.display = overflowText ? "block" : "none";
+
+          var mount = document.getElementById("wim-rows");
+          var avatars = [];
+          for (var r = 0; r < rows.length; r++) {
+            var row = rows[r];
+            var rowEl = document.createElement("div");
+            rowEl.className = "wim-row";
+            rowEl.id = "wim-row-" + r;
+
+            var meta = document.createElement("div");
+            meta.className = "wim-meta";
+            var nameEl = document.createElement("div");
+            nameEl.className = "wim-name";
+            nameEl.id = "wim-name-" + r;
+            nameEl.textContent = row.name;
+            var countEl = document.createElement("div");
+            countEl.className = "wim-count";
+            countEl.id = "wim-count-" + r;
+            countEl.textContent = mergeLabel(row.merges);
+            meta.appendChild(nameEl);
+            meta.appendChild(countEl);
+
+            var lane = document.createElement("div");
+            lane.className = "wim-lane";
+            lane.id = "wim-lane-" + r;
+
+            var avatar = document.createElement("div");
+            avatar.className =
+              "wim-avatar " + (row.merges === maxM ? "wim-avatar-lead" : "wim-avatar-rest");
+            avatar.id = "wim-avatar-" + r;
+
+            if (row.avatar) {
+              var img = document.createElement("img");
+              img.id = "wim-avatar-img-" + r;
+              img.alt = "";
+              img.src = row.avatar;
+              avatar.appendChild(img);
+            } else {
+              var letters = document.createElement("div");
+              letters.className = "wim-initials";
+              letters.id = "wim-initials-" + r;
+              letters.textContent = initials(row.name);
+              avatar.appendChild(letters);
+            }
+
+            lane.appendChild(avatar);
+            rowEl.appendChild(meta);
+            rowEl.appendChild(lane);
+            mount.appendChild(rowEl);
+            avatars.push({ el: avatar, nameEl: nameEl, speed: speedFor(row.merges, maxM) });
+          }
+
+          var rowH = avatars.length ? document.getElementById("wim-row-0").clientHeight : 120;
+          var avatarPx = Math.max(36, Math.min(96, Math.floor(rowH * 0.62)));
+          var namePx = Math.max(18, Math.min(36, Math.floor(rowH * 0.26)));
+          var countPx = Math.max(13, Math.min(16, Math.floor(namePx * 0.48)));
+          root.style.setProperty("--wim-avatar", avatarPx + "px");
+          for (var a = 0; a < avatars.length; a++) {
+            avatars[a].nameEl.style.fontSize = namePx + "px";
+            avatars[a].el.querySelector(".wim-initials") &&
+              (avatars[a].el.querySelector(".wim-initials").style.fontSize =
+                Math.round(avatarPx * 0.4) + "px");
+            var count = document.getElementById("wim-count-" + a);
+            if (count) count.style.fontSize = countPx + "px";
+          }
+
+          var laneW = avatars.length ? document.getElementById("wim-lane-0").clientWidth : 560;
+          var span = Math.max(0, laneW - avatarPx);
+
+          function render(t) {
+            for (var i = 0; i < avatars.length; i++) {
+              var x = bounceX(avatars[i].speed * t, span);
+              avatars[i].el.style.transform = "translateX(" + x.toFixed(2) + "px)";
+            }
+          }
+
+          // GSAP seek calls the setter. A timeline onUpdate does not run on seek.
+          var driver = { _t: 0 };
+          Object.defineProperty(driver, "t", {
+            get: function () {
+              return this._t;
+            },
+            set: function (value) {
+              this._t = value;
+              render(value);
+            },
+          });
+
+          var tl = gsap.timeline({ paused: true });
+          tl.to(driver, { t: DURATION, duration: DURATION, ease: "none" }, 0);
+          render(0);
+
+          __rwTL = __rwTL || {};
+          __rwTL["week-in-merges"] = tl;
+        })();
+      
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["week-in-merges"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["week-in-merges"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

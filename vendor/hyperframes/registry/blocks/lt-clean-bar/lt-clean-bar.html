@@ -1,0 +1,160 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): lt-clean-bar v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/lt-clean-bar/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 400; font-display: block; src: url("compositions/lt-clean-bar/fonts/montserrat/400.woff2") format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; font-display: block; src: url("compositions/lt-clean-bar/fonts/montserrat/600.woff2") format("woff2"); }
+[data-composition-id="lt-clean-bar"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="lt-clean-bar"]:not(:has([data-hf-inner-root])), [data-composition-id="lt-clean-bar"] > [data-hf-inner-root], [data-composition-id="lt-clean-bar"] * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="lt-clean-bar"]:not(:has([data-hf-inner-root])), [data-composition-id="lt-clean-bar"] > [data-hf-inner-root],
+      [data-composition-id="lt-clean-bar"]:not(:has([data-hf-inner-root])), [data-composition-id="lt-clean-bar"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="lt-clean-bar"]:not(:has([data-hf-inner-root])), [data-composition-id="lt-clean-bar"] > [data-hf-inner-root] {
+        width: 1920px;
+        height: 1080px;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      [data-composition-id="lt-clean-bar"] .lt {
+        position: absolute;
+        left: 120px;
+        bottom: 110px;
+        display: flex;
+        align-items: stretch;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 14px 44px rgba(15, 17, 21, 0.18);
+        will-change: clip-path;
+      }
+      [data-composition-id="lt-clean-bar"] .lt-tab {
+        width: 12px;
+        background: #ff5a36;
+        flex-shrink: 0;
+      }
+      [data-composition-id="lt-clean-bar"] .lt-body {
+        background: #ffffff;
+        padding: 22px 40px 24px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      [data-composition-id="lt-clean-bar"] .lt-name {
+        font-size: 52px;
+        font-weight: 700;
+        color: #0f1115;
+        line-height: 1.06;
+        letter-spacing: -0.015em;
+        white-space: nowrap;
+      }
+      [data-composition-id="lt-clean-bar"] .lt-role {
+        font-size: 27px;
+        font-weight: 400;
+        color: #5a6170;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+    
+</style>
+<div
+      id="root"
+      data-composition-id="lt-clean-bar"
+      data-width="1920"
+      data-height="1080"
+      data-block-start="0"
+      data-block-duration="4.8"
+    >
+      <div id="lt-clip" class="clip" data-block-start="0" data-block-duration="4.8" data-track-index="0">
+        <div id="lt" class="lt">
+          <div id="lt-tab" class="lt-tab"></div>
+          <div class="lt-body">
+            <div id="lt-name" class="lt-name">Dr. Maya Chen</div>
+            <div id="lt-role" class="lt-role">Host · Neuroscientist</div>
+          </div>
+        </div>
+      </div>
+    </div>
+<script>
+(function () { // lt-clean-bar: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/lt-clean-bar/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("lt-clean-bar" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["lt-clean-bar" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("lt-clean-bar" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Montserrat\"","600 1em \"Montserrat\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      __rwTL = __rwTL || {};
+      var tl = gsap.timeline({ paused: true });
+
+      var card = document.getElementById("lt");
+      var tab = document.getElementById("lt-tab");
+      var nameEl = document.getElementById("lt-name");
+      var role = document.getElementById("lt-role");
+
+      // Card wipes in from the left (clip-path), accent tab grows, text rises with a small stagger.
+      gsap.set(card, { clipPath: "inset(0 100% 0 0)" });
+      gsap.set(tab, { scaleY: 0, transformOrigin: "50% 0%" });
+      gsap.set(nameEl, { y: 22, opacity: 0 });
+      gsap.set(role, { y: 22, opacity: 0 });
+
+      tl.to(card, { clipPath: "inset(0 0% 0 0)", duration: 0.55, ease: "power3.out" }, 0.1);
+      tl.to(tab, { scaleY: 1, duration: 0.45, ease: "power2.out" }, 0.28);
+      tl.to(nameEl, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.34);
+      tl.to(role, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.44);
+
+      // Exit: settle out, then hard kill the inner element.
+      tl.to(card, { y: 18, opacity: 0, duration: 0.35, ease: "power2.in" }, 4.3);
+      tl.set(card, { visibility: "hidden" }, 4.75);
+
+      __rwTL["lt-clean-bar"] = tl;
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["lt-clean-bar"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["lt-clean-bar"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

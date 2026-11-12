@@ -1,0 +1,1 @@
+| us-atlas 3.0.1 (`states-10m.json`) | `vendor/us-atlas/` | ISC, [LICENSE](vendor/us-atlas/LICENSE) | Copyright 2013-2019 Michael Bostock. https://github.com/topojson/us-atlas. Loaded by converted HyperFrames blocks (tools/blocks.mjs). Unchanged; what we took: [VENDORED.md](vendor/us-atlas/VENDORED.md). |

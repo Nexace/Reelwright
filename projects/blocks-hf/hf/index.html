@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- A HyperFrames composition driven by the reelwright kit. tools/renderers/hyperframes.mjs renders it; the root
+     timeline is KIT.start's render(t), so every timing comes from hf/kit-data.js (tools/sched.py).
+     Preview in a browser: open hf/index.html#4.2 (a moment) or #play (rough real-time playback). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  /* layout only; colors, fonts and radius come from the theme's --kit-* tokens */
+  body { background: var(--kit-bg); }
+  /* sizes in --kit-u (px at 1080p, short side), positions in the title-safe box, so 16x9, 9x16 and 1x1 all fit */
+  .big { left: var(--kit-safe-x); right: var(--kit-safe-x); top: calc(var(--kit-safe-y) + var(--kit-safe-h) / 2);
+         transform: translateY(-50%); text-align: center; font-family: var(--kit-font-display);
+         font-size: calc(112 * var(--kit-u)); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking);
+         text-transform: var(--kit-display-case); line-height: 1.08; }
+  .pulse { left: 50%; top: calc(var(--kit-safe-y) + 64 * var(--kit-u)); width: calc(26 * var(--kit-u)); height: calc(26 * var(--kit-u));
+           margin-left: calc(-13 * var(--kit-u)); border-radius: 50%; background: var(--kit-accent); }
+  .label { left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--kit-label-font);
+           font-size: calc(22 * var(--kit-u)); letter-spacing: 2px; text-transform: uppercase; color: var(--kit-muted); }
+  .logo { left: var(--kit-safe-x); right: var(--kit-safe-x); top: calc(var(--kit-safe-y) + var(--kit-safe-h) / 2);
+          transform: translateY(-50%); text-align: center; white-space: nowrap; font-family: var(--kit-font-display);
+          font-size: min(calc(150 * var(--kit-u)), calc(var(--kit-safe-w) / 8.5)); font-weight: var(--kit-display-weight);
+          letter-spacing: var(--kit-display-tracking); text-transform: var(--kit-display-case); }
+  /* catalog blocks, re-skinned with the theme */
+  #stage .hf-catalog-animated-bar-chart, #stage .hf-catalog-directional-wipe { font-family: var(--kit-font-text);
+    border-radius: var(--kit-radius); border: var(--kit-border); box-shadow: var(--kit-shadow); }
+  #stage .hf-catalog-animated-bar-chart { background: var(--kit-surface); --hf-ink: var(--kit-ink); --accent: var(--kit-accent);
+    --hf-muted: var(--kit-muted); --hf-hair: color-mix(in srgb, var(--kit-ink) 14%, transparent);
+    --hf-l1: var(--kit-accent); --hf-l2: color-mix(in srgb, var(--kit-accent) 60%, transparent);
+    --hf-l3: color-mix(in srgb, var(--kit-ink) 18%, transparent); --hf-l4: color-mix(in srgb, var(--kit-ink) 8%, transparent); }
+  #stage .hf-catalog-animated-bar-chart h3, #stage .hf-catalog-animated-bar-chart strong { font-family: var(--kit-font-display);
+    font-weight: var(--kit-display-weight); }
+  #stage .hf-catalog-directional-wipe .scene { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight);
+    text-transform: var(--kit-display-case); }
+  #stage .hf-catalog-directional-wipe .to { background: var(--kit-accent); color: var(--kit-on-accent); }
+  #stage .hf-catalog-directional-wipe .from { background: var(--kit-surface); color: var(--kit-ink); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>   <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script> <!-- copied from tools/ by the renderer -->
+<script src="kit/compose.js"></script> <!-- KIT.mount / KIT.block -->
+<script src="film.js"></script>
+</body>
+</html>

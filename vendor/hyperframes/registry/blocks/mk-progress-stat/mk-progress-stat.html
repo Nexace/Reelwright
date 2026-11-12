@@ -1,0 +1,233 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): mk-progress-stat v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/mk-progress-stat/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/mk-progress-stat/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/mk-progress-stat/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="mk-progress-stat"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="mk-progress-stat"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-progress-stat"] > [data-hf-inner-root], [data-composition-id="mk-progress-stat"] *, [data-composition-id="mk-progress-stat"] *::before, [data-composition-id="mk-progress-stat"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="mk-progress-stat"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-progress-stat"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="mk-progress-stat"]:not(:has([data-hf-inner-root])), [data-composition-id="mk-progress-stat"] > [data-hf-inner-root] {
+        /* ---- mk tokens: override in the host to re-skin the family ---- */
+        --mk-font: "Inter", "Inter", sans-serif;
+        --mk-ink: #1d1d1f;
+        --mk-ink-dim: #6e6e73;
+        --mk-ink-dark: #f5f5f7;
+        --mk-ink-dim-dark: #a1a1a6;
+        --mk-accent: #0071e3;
+        --mk-accent-dark: #7d5cff;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage or mk-background */
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-group {
+        position: absolute;
+        font-family: var(--mk-font);
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-num {
+        font-weight: 600;
+        font-size: 190px;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--mk-ink);
+        font-variant-numeric: tabular-nums;
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-label {
+        margin-top: 10px;
+        font-weight: 500;
+        font-size: 42px;
+        letter-spacing: -0.01em;
+        color: var(--mk-ink);
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-track {
+        position: relative;
+        margin-top: 28px;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(29, 29, 31, 0.1);
+        overflow: hidden;
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-fill {
+        position: absolute;
+        inset: 0;
+        border-radius: 3px;
+        background: var(--mk-accent);
+        transform-origin: left center;
+      }
+      [data-composition-id="mk-progress-stat"] #mk-ps-caption {
+        margin-top: 22px;
+        font-weight: 400;
+        font-size: 30px;
+        color: var(--mk-ink-dim);
+      }
+      [data-composition-id="mk-progress-stat"] .mk-dark #mk-ps-num,
+      [data-composition-id="mk-progress-stat"] .mk-dark #mk-ps-label {
+        color: var(--mk-ink-dark);
+      }
+      [data-composition-id="mk-progress-stat"] .mk-dark #mk-ps-caption {
+        color: var(--mk-ink-dim-dark);
+      }
+      [data-composition-id="mk-progress-stat"] .mk-dark #mk-ps-track {
+        background: rgba(245, 245, 247, 0.18);
+      }
+      [data-composition-id="mk-progress-stat"] .mk-dark #mk-ps-fill {
+        background: var(--mk-accent-dark);
+      }
+    
+</style>
+<div
+      id="mk-ps-root"
+      data-composition-id="mk-progress-stat"
+      data-block-start="0"
+      data-block-duration="7"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="mk-ps-group">
+        <div id="mk-ps-num">0</div>
+        <div id="mk-ps-label"></div>
+        <div id="mk-ps-track"><div id="mk-ps-fill"></div></div>
+        <div id="mk-ps-caption"></div>
+      </div>
+      <div
+        id="mk-ps-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="7"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // mk-progress-stat: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/mk-progress-stat/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("mk-progress-stat" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["mk-progress-stat" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("mk-progress-stat" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters (inspector-style CONFIG) ----
+           A "22 · Goals reached" progress card: big count-up
+           numeral, label, thin accent track filling to value/max, caption. */
+        var CONFIG = {
+          scheme: "light", // "light" | "dark"
+          value: 22,
+          suffix: "", // e.g. "%", "K"
+          label: "Goals reached",
+          caption: "Great job, we are getting closer!",
+          max: 30, // track fills to value/max
+          trackWidth: 480, // px
+          x: 1300, // group left edge; null = centered
+          y: 250, // group top edge; null = centered
+          animationIn: true,
+          animationOut: true,
+        };
+
+        var DUR = 7;
+        var root = document.getElementById("mk-ps-root");
+        var group = document.getElementById("mk-ps-group");
+        var num = document.getElementById("mk-ps-num");
+        var fill = document.getElementById("mk-ps-fill");
+
+        if (CONFIG.scheme === "dark") root.classList.add("mk-dark");
+        document.getElementById("mk-ps-label").textContent = CONFIG.label;
+        document.getElementById("mk-ps-caption").textContent = CONFIG.caption;
+        document.getElementById("mk-ps-track").style.width = CONFIG.trackWidth + "px";
+
+        /* position (measure after filling text) */
+        var rect = group.getBoundingClientRect();
+        group.style.left =
+          (CONFIG.x === null ? Math.round((1920 - rect.width) / 2) : CONFIG.x) + "px";
+        group.style.top =
+          (CONFIG.y === null ? Math.round((1080 - rect.height) / 2) : CONFIG.y) + "px";
+
+        var tl = gsap.timeline({ paused: true });
+
+        if (CONFIG.animationIn) {
+          gsap.set(group, { opacity: 0, y: 28 });
+          tl.to(group, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.3);
+        }
+
+        /* count-up + track fill on the same ease (the data-viz recipe) */
+        var st = { v: 0 };
+        tl.to(
+          st,
+          {
+            v: CONFIG.value,
+            duration: 1.6,
+            ease: "power2.out",
+            onUpdate: function () {
+              num.textContent = Math.round(st.v) + CONFIG.suffix;
+            },
+          },
+          0.5,
+        );
+        gsap.set(fill, { scaleX: 0 });
+        tl.to(fill, { scaleX: CONFIG.value / CONFIG.max, duration: 1.6, ease: "power2.out" }, 0.5);
+
+        if (CONFIG.animationOut) {
+          tl.to(group, { opacity: 0, y: -20, duration: 0.4, ease: "power2.in" }, DUR - 0.5);
+        }
+        tl.set(root, { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["mk-progress-stat"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["mk-progress-stat"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["mk-progress-stat"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

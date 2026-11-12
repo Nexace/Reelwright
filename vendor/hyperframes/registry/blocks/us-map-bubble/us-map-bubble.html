@@ -1,0 +1,525 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): us-map-bubble v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/us-map-bubble/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/us-map-bubble/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/us-map-bubble/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="us-map-bubble"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="us-map-bubble"]:not(:has([data-hf-inner-root])), [data-composition-id="us-map-bubble"] > [data-hf-inner-root], [data-composition-id="us-map-bubble"] * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="us-map-bubble"]:not(:has([data-hf-inner-root])), [data-composition-id="us-map-bubble"] > [data-hf-inner-root],
+      [data-composition-id="us-map-bubble"]:not(:has([data-hf-inner-root])), [data-composition-id="us-map-bubble"] > [data-hf-inner-root] {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: #0f172a;
+      }
+    
+
+        [data-composition-id="us-map-bubble"]:not(:has([data-hf-inner-root])), [data-composition-id="us-map-bubble"] > [data-hf-inner-root] {
+          width: 1920px;
+          height: 1080px;
+          background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+          font-family: "Inter", sans-serif;
+          color: #e2e8f0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          overflow: hidden;
+        }
+
+        [data-composition-id="us-map-bubble"] .map-container {
+          width: 1700px;
+          height: 950px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+        }
+
+        [data-composition-id="us-map-bubble"] .header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        [data-composition-id="us-map-bubble"] .headline {
+          font-size: 52px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: #f8fafc;
+          clip-path: inset(0 100% 0 0);
+        }
+
+        [data-composition-id="us-map-bubble"] .subtitle {
+          font-size: 20px;
+          font-weight: 300;
+          color: #94a3b8;
+          margin-top: 8px;
+          opacity: 0;
+        }
+
+        [data-composition-id="us-map-bubble"] .map-svg {
+          width: 1500px;
+          height: 750px;
+          overflow: visible;
+        }
+
+        [data-composition-id="us-map-bubble"] .state-path {
+          fill: #1e293b;
+          stroke: #334155;
+          stroke-width: 0.5;
+          opacity: 0;
+        }
+
+        [data-composition-id="us-map-bubble"] .city-bubble {
+          fill: rgba(59, 130, 246, 0.6);
+          stroke: #ffffff;
+          stroke-width: 1;
+          transform-origin: center center;
+        }
+
+        [data-composition-id="us-map-bubble"] .city-pulse {
+          fill: none;
+          stroke: rgba(59, 130, 246, 0.4);
+          stroke-width: 2;
+          opacity: 0;
+        }
+
+        [data-composition-id="us-map-bubble"] .callout-group {
+          opacity: 0;
+        }
+
+        [data-composition-id="us-map-bubble"] .callout-line {
+          stroke: rgba(148, 163, 184, 0.5);
+          stroke-width: 1;
+          fill: none;
+        }
+
+        [data-composition-id="us-map-bubble"] .callout-name {
+          font-size: 13px;
+          font-weight: 600;
+          fill: #f8fafc;
+        }
+
+        [data-composition-id="us-map-bubble"] .callout-value {
+          font-size: 11px;
+          font-weight: 400;
+          fill: #94a3b8;
+        }
+
+        [data-composition-id="us-map-bubble"] .connection-line {
+          stroke: rgba(59, 130, 246, 0.3);
+          stroke-width: 1;
+          fill: none;
+          stroke-dasharray: 6 4;
+        }
+
+        [data-composition-id="us-map-bubble"] .source {
+          position: absolute;
+          bottom: 0;
+          right: 40px;
+          font-size: 12px;
+          color: #475569;
+          opacity: 0;
+        }
+      
+</style>
+<div
+      id="us-map-bubble"
+      data-composition-id="us-map-bubble"
+      data-width="1920"
+      data-height="1080"
+      data-block-start="0"
+      data-block-duration="12"
+    >
+      <div class="map-container">
+        <div class="header">
+          <h1 class="headline">Top 20 US Cities by Population</h1>
+          <p class="subtitle">Proportional bubble markers by metropolitan population</p>
+        </div>
+
+        <svg class="map-svg" viewBox="0 0 1400 820" preserveAspectRatio="xMidYMid meet">
+          <g class="states-group"></g>
+          <g class="connections-group"></g>
+          <g class="bubbles-group"></g>
+          <g class="callouts-group"></g>
+        </svg>
+
+        <div class="source">Source: U.S. Census Bureau, 2024</div>
+      </div>
+
+      
+
+      
+    </div>
+<script>
+(function () { // us-map-bubble: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/us-map-bubble/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("us-map-bubble" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["us-map-bubble" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("us-map-bubble" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+__rwLib("kit/d3/d3.min.js");
+;
+__rwLib("kit/topojson-client/topojson-client.min.js");
+;
+
+        (function () {
+          var US_TOPO_URL = "kit/us-atlas/states-10m.json";
+
+          var cities = [
+            { name: "New York", lat: 40.7128, lon: -74.006, pop: 8300000 },
+            { name: "Los Angeles", lat: 34.0522, lon: -118.2437, pop: 3900000 },
+            { name: "Chicago", lat: 41.8781, lon: -87.6298, pop: 2700000 },
+            { name: "Houston", lat: 29.7604, lon: -95.3698, pop: 2300000 },
+            { name: "Phoenix", lat: 33.4484, lon: -112.074, pop: 1600000 },
+            { name: "Philadelphia", lat: 39.9526, lon: -75.1652, pop: 1600000 },
+            { name: "San Antonio", lat: 29.4241, lon: -98.4936, pop: 1400000 },
+            { name: "San Diego", lat: 32.7157, lon: -117.1611, pop: 1400000 },
+            { name: "Dallas", lat: 32.7767, lon: -96.797, pop: 1300000 },
+            { name: "Jacksonville", lat: 30.3322, lon: -81.6557, pop: 950000 },
+            { name: "Austin", lat: 30.2672, lon: -97.7431, pop: 960000 },
+            { name: "San Jose", lat: 37.3382, lon: -121.8863, pop: 1000000 },
+            { name: "Fort Worth", lat: 32.7555, lon: -97.3308, pop: 930000 },
+            { name: "Columbus", lat: 39.9612, lon: -82.9988, pop: 910000 },
+            { name: "Charlotte", lat: 35.2271, lon: -80.8431, pop: 870000 },
+            { name: "Indianapolis", lat: 39.7684, lon: -86.1581, pop: 880000 },
+            { name: "San Francisco", lat: 37.7749, lon: -122.4194, pop: 870000 },
+            { name: "Seattle", lat: 47.6062, lon: -122.3321, pop: 740000 },
+            { name: "Denver", lat: 39.7392, lon: -104.9903, pop: 710000 },
+            { name: "Nashville", lat: 36.1627, lon: -86.7816, pop: 690000 },
+          ];
+
+          var radiusScale = d3.scaleSqrt().domain([500000, 8500000]).range([6, 45]);
+
+          var svg = document.querySelector("#us-map-bubble .map-svg");
+          var statesGroup = svg.querySelector(".states-group");
+          var bubblesGroup = svg.querySelector(".bubbles-group");
+          var calloutsGroup = svg.querySelector(".callouts-group");
+          var connectionsGroup = svg.querySelector(".connections-group");
+          var tl = gsap.timeline({ paused: true });
+
+          function formatPop(n) {
+            if (n >= 1000000) {
+              return (n / 1000000).toFixed(1) + "M";
+            }
+            return (n / 1000).toFixed(0) + "K";
+          }
+
+          __rwFetch(US_TOPO_URL)
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (us) {
+              var states = topojson.feature(us, us.objects.states).features;
+              var projection = d3.geoAlbersUsa().fitSize([1380, 800], {
+                type: "FeatureCollection",
+                features: states,
+              });
+              var path = d3.geoPath().projection(projection);
+
+              states.forEach(function (feature) {
+                var d = path(feature);
+                if (!d) return;
+
+                var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                el.setAttribute("d", d);
+                el.setAttribute("class", "state-path");
+                statesGroup.appendChild(el);
+              });
+
+              var projectedCities = [];
+              cities.forEach(function (city) {
+                var coords = projection([city.lon, city.lat]);
+                if (!coords) return;
+                projectedCities.push({
+                  name: city.name,
+                  pop: city.pop,
+                  x: coords[0],
+                  y: coords[1],
+                  r: radiusScale(city.pop),
+                });
+              });
+
+              projectedCities.sort(function (a, b) {
+                return b.pop - a.pop;
+              });
+
+              var nycCoords = null;
+              projectedCities.forEach(function (city) {
+                if (city.name === "New York") {
+                  nycCoords = { x: city.x, y: city.y };
+                }
+              });
+
+              var connectionTargets = ["Los Angeles", "Chicago", "Houston", "Phoenix"];
+              connectionTargets.forEach(function (targetName) {
+                if (!nycCoords) return;
+                var target = null;
+                projectedCities.forEach(function (c) {
+                  if (c.name === targetName) target = c;
+                });
+                if (!target) return;
+
+                var midX = (nycCoords.x + target.x) / 2;
+                var midY = Math.min(nycCoords.y, target.y) - 60;
+
+                var pathD =
+                  "M " +
+                  nycCoords.x +
+                  " " +
+                  nycCoords.y +
+                  " Q " +
+                  midX +
+                  " " +
+                  midY +
+                  " " +
+                  target.x +
+                  " " +
+                  target.y;
+
+                var line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                line.setAttribute("d", pathD);
+                line.setAttribute("class", "connection-line");
+                connectionsGroup.appendChild(line);
+
+                var length = line.getTotalLength();
+                line.style.strokeDasharray = length;
+                line.style.strokeDashoffset = length;
+              });
+
+              projectedCities.forEach(function (city) {
+                var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", city.x);
+                circle.setAttribute("cy", city.y);
+                circle.setAttribute("r", city.r);
+                circle.setAttribute("class", "city-bubble");
+                circle.setAttribute("data-city", city.name);
+                bubblesGroup.appendChild(circle);
+              });
+
+              var pulseCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+              if (nycCoords) {
+                pulseCircle.setAttribute("cx", nycCoords.x);
+                pulseCircle.setAttribute("cy", nycCoords.y);
+                pulseCircle.setAttribute("r", radiusScale(8300000));
+                pulseCircle.setAttribute("class", "city-pulse");
+                bubblesGroup.appendChild(pulseCircle);
+              }
+
+              var top5 = projectedCities.slice(0, 5);
+              top5.forEach(function (city, i) {
+                var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", "callout-group");
+
+                var offsetX = city.r + 12;
+                var offsetY = -8;
+
+                if (city.name === "Los Angeles" || city.name === "San Francisco") {
+                  offsetX = -(city.r + 80);
+                }
+
+                var calloutLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                calloutLine.setAttribute("x1", city.x);
+                calloutLine.setAttribute("y1", city.y);
+                calloutLine.setAttribute("x2", city.x + offsetX);
+                calloutLine.setAttribute("y2", city.y + offsetY);
+                calloutLine.setAttribute("class", "callout-line");
+                g.appendChild(calloutLine);
+
+                var nameText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                nameText.setAttribute("x", city.x + offsetX + (offsetX > 0 ? 6 : -6));
+                nameText.setAttribute("y", city.y + offsetY - 2);
+                nameText.setAttribute("class", "callout-name");
+                if (offsetX < 0) {
+                  nameText.setAttribute("text-anchor", "end");
+                }
+                nameText.textContent = city.name;
+                g.appendChild(nameText);
+
+                var valueText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                valueText.setAttribute("x", city.x + offsetX + (offsetX > 0 ? 6 : -6));
+                valueText.setAttribute("y", city.y + offsetY + 14);
+                valueText.setAttribute("class", "callout-value");
+                if (offsetX < 0) {
+                  valueText.setAttribute("text-anchor", "end");
+                }
+                valueText.textContent = formatPop(city.pop) + " residents";
+                g.appendChild(valueText);
+
+                calloutsGroup.appendChild(g);
+              });
+
+              buildTimeline(projectedCities, pulseCircle);
+            });
+
+          function buildTimeline(projectedCities, pulseCircle) {
+            var statePaths = statesGroup.querySelectorAll(".state-path");
+            var bubbles = bubblesGroup.querySelectorAll(".city-bubble");
+            // Own the full transform via GSAP from the start (not CSS), so the
+            // scale tween below doesn't clobber a value GSAP never tracked.
+            gsap.set(bubbles, { scale: 0 });
+            var callouts = calloutsGroup.querySelectorAll(".callout-group");
+            var connections = connectionsGroup.querySelectorAll(".connection-line");
+
+            tl.to(
+              "#us-map-bubble .headline",
+              {
+                clipPath: "inset(0 0% 0 0)",
+                duration: 1.0,
+                ease: "power2.inOut",
+              },
+              0,
+            );
+
+            tl.to(
+              "#us-map-bubble .subtitle",
+              {
+                opacity: 1,
+                duration: 0.6,
+                ease: "power2.out",
+              },
+              0.4,
+            );
+
+            tl.to(
+              statePaths,
+              {
+                opacity: 0.8,
+                duration: 0.6,
+                ease: "power2.out",
+              },
+              0.8,
+            );
+
+            tl.to(
+              bubbles,
+              {
+                scale: 1,
+                duration: 0.5,
+                stagger: {
+                  each: 0.08,
+                  from: "start",
+                },
+                ease: "back.out(1.7)",
+              },
+              1.5,
+            );
+
+            tl.set(callouts, { x: 20 }, 3.9);
+
+            tl.to(
+              callouts,
+              {
+                opacity: 1,
+                x: 0,
+                duration: 0.6,
+                stagger: 0.3,
+                ease: "power2.out",
+              },
+              4.0,
+            );
+
+            connections.forEach(function (line) {
+              tl.to(
+                line,
+                {
+                  strokeDashoffset: 0,
+                  duration: 1.2,
+                  ease: "power2.inOut",
+                },
+                6.0,
+              );
+            });
+
+            if (pulseCircle) {
+              tl.to(
+                pulseCircle,
+                {
+                  opacity: 1,
+                  duration: 0.01,
+                },
+                8.0,
+              );
+
+              tl.fromTo(
+                pulseCircle,
+                {
+                  attr: { r: radiusScale(8300000) },
+                  opacity: 0.6,
+                },
+                {
+                  attr: { r: radiusScale(8300000) + 30 },
+                  opacity: 0,
+                  duration: 1.5,
+                  repeat: 2,
+                  ease: "power2.out",
+                },
+                8.0,
+              );
+            }
+
+            tl.to(
+              "#us-map-bubble .source",
+              {
+                opacity: 1,
+                duration: 0.5,
+                ease: "power2.out",
+              },
+              5.5,
+            );
+
+            __rwTL = __rwTL || {};
+            __rwTL["us-map-bubble"] = tl;
+          }
+        })();
+      
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["us-map-bubble"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["us-map-bubble"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

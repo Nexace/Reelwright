@@ -1,0 +1,301 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): camera-dolly-zoom v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/camera-dolly-zoom/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/camera-dolly-zoom/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/camera-dolly-zoom/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="camera-dolly-zoom"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="camera-dolly-zoom"]:not(:has([data-hf-inner-root])), [data-composition-id="camera-dolly-zoom"] > [data-hf-inner-root], [data-composition-id="camera-dolly-zoom"] * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="camera-dolly-zoom"]:not(:has([data-hf-inner-root])), [data-composition-id="camera-dolly-zoom"] > [data-hf-inner-root],
+      [data-composition-id="camera-dolly-zoom"]:not(:has([data-hf-inner-root])), [data-composition-id="camera-dolly-zoom"] > [data-hf-inner-root] {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+    
+
+        [data-composition-id="camera-dolly-zoom"]:not(:has([data-hf-inner-root])), [data-composition-id="camera-dolly-zoom"] > [data-hf-inner-root] {
+          width: 1920px;
+          height: 1080px;
+          position: relative;
+          overflow: hidden;
+          background: #0b1020;
+          font-family: Inter, sans-serif;
+        }
+
+        /* The camera. `perspective` is the focal length and is solved from
+           the dolly distance every frame -- see the script. */
+        [data-composition-id="camera-dolly-zoom"] #dz-stage {
+          position: absolute;
+          inset: 0;
+          perspective-origin: 50% 50%;
+        }
+
+        /* The rig root. Carries the camera's z offset so the subject plane
+           always sits exactly `d` in front of the camera. */
+        [data-composition-id="camera-dolly-zoom"] #dz-rig {
+          position: absolute;
+          inset: 0;
+          transform-style: preserve-3d;
+        }
+
+        /* --- authored depth layers ------------------------------------ */
+
+        [data-composition-id="camera-dolly-zoom"] .dz-arch {
+          position: absolute;
+          left: -140px;
+          top: -80px;
+          width: 2200px;
+          height: 1240px;
+          border: 16px solid #465280;
+          border-radius: 8px;
+          transform-style: preserve-3d;
+        }
+
+        [data-composition-id="camera-dolly-zoom"] #dz-backwall {
+          position: absolute;
+          left: -3040px;
+          top: -1710px;
+          width: 8000px;
+          height: 4500px;
+          background: #10162c;
+          transform-style: preserve-3d;
+        }
+
+        /* Bright doorway on the back wall -- the layer whose on-screen size
+           changes while the subject's does not. */
+        [data-composition-id="camera-dolly-zoom"] #dz-portal {
+          position: absolute;
+          left: 3300px;
+          top: 1850px;
+          width: 1400px;
+          height: 1500px;
+          background: #cfe4ff;
+        }
+
+        /* --- the subject: z = 0, the plane the solve holds ------------- */
+
+        [data-composition-id="camera-dolly-zoom"] #dz-subject {
+          position: absolute;
+          left: 840px;
+          top: 300px;
+          width: 240px;
+          height: 620px;
+          transform-style: preserve-3d;
+        }
+        [data-composition-id="camera-dolly-zoom"] .dz-fig-head {
+          width: 120px;
+          height: 120px;
+          margin: 0 auto;
+          border-radius: 50%;
+          background: #f2b134;
+        }
+        [data-composition-id="camera-dolly-zoom"] .dz-fig-body {
+          width: 240px;
+          height: 470px;
+          margin-top: 30px;
+          border-radius: 120px 120px 10px 10px;
+          background: #f2b134;
+        }
+
+        /* --- flat overlay (outside the 3D rig) ------------------------- */
+
+        [data-composition-id="camera-dolly-zoom"] .dz-label {
+          position: absolute;
+          left: 64px;
+          bottom: 56px;
+          padding: 14px 22px;
+          border-radius: 8px;
+          background: #0b1020;
+          color: #e9eeff;
+          font-size: 26px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+      
+</style>
+<div
+      id="dz-root"
+      data-composition-variables='[{"id":"direction","type":"enum","label":"Dolly direction","default":"out","options":[{"value":"out","label":"Dolly out + zoom in (background rushes in)"},{"value":"in","label":"Dolly in + zoom out (background falls away)"}]},{"id":"strength","type":"number","label":"Move strength (end / start distance ratio)","default":2,"min":1.1,"max":4,"step":0.1},{"id":"subjectDistance","type":"number","label":"Camera-to-subject distance at the start of the move","default":1400,"min":600,"max":3000,"step":50,"unit":"px"},{"id":"easing","type":"enum","label":"Dolly easing","default":"power2.inOut","options":[{"value":"none","label":"Linear"},{"value":"sine.inOut","label":"Sine in-out"},{"value":"power1.inOut","label":"Power1 in-out"},{"value":"power2.inOut","label":"Power2 in-out"},{"value":"power3.inOut","label":"Power3 in-out"}]}]' data-composition-id="camera-dolly-zoom"
+      data-block-start="0"
+      data-block-duration="4"
+      data-width="1920"
+      data-height="1080"
+    >
+      
+
+      <div id="dz-stage" class="clip" data-block-start="0" data-block-duration="4" data-track-index="0">
+        <div id="dz-rig">
+          <div id="dz-backwall" data-layout-allow-overflow style="transform: translateZ(-3200px)">
+            <div id="dz-portal"></div>
+          </div>
+
+          <div
+            class="dz-arch"
+            data-layout-allow-overflow
+            style="transform: translateZ(-2360px); border-color: #384166"
+          ></div>
+          <div
+            class="dz-arch"
+            data-layout-allow-overflow
+            style="transform: translateZ(-1720px); border-color: #465280"
+          ></div>
+          <div
+            class="dz-arch"
+            data-layout-allow-overflow
+            style="transform: translateZ(-1120px); border-color: #57669c"
+          ></div>
+          <div
+            class="dz-arch"
+            data-layout-allow-overflow
+            style="transform: translateZ(-560px); border-color: #6b7cb8"
+          ></div>
+          <div
+            class="dz-arch"
+            data-layout-allow-overflow
+            style="transform: translateZ(0px); border-color: #8194d4"
+          ></div>
+
+          <div id="dz-subject" style="transform: translateZ(0px)">
+            <div class="dz-fig-head"></div>
+            <div class="dz-fig-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dz-label">Dolly zoom &middot; d &times; tan(fov/2) = const</div>
+    </div>
+<script>
+(function () { // camera-dolly-zoom: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/camera-dolly-zoom/";
+const __rwVars = Object.assign({"direction":"out","strength":2,"subjectDistance":1400,"easing":"power2.inOut"}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("camera-dolly-zoom" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["camera-dolly-zoom" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("camera-dolly-zoom" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      __rwTL = __rwTL || {};
+
+      (function () {
+        var DEFAULTS = {
+          direction: "out",
+          strength: 2,
+          subjectDistance: 1400,
+          easing: "power2.inOut",
+        };
+        var declared =
+          __hyperframes && __hyperframes.getVariables
+            ? __hyperframes.getVariables()
+            : {};
+        var vars = Object.assign({}, DEFAULTS, declared);
+
+        function clamp(value, lo, hi, fallback) {
+          var n = Number(value);
+          if (!isFinite(n)) return fallback;
+          return Math.min(hi, Math.max(lo, n));
+        }
+        function oneOf(value, allowed, fallback) {
+          return allowed.indexOf(String(value)) >= 0 ? String(value) : fallback;
+        }
+
+        var direction = oneOf(vars.direction, ["in", "out"], DEFAULTS.direction);
+        var strength = clamp(vars.strength, 1.1, 4, DEFAULTS.strength);
+        var ease = oneOf(
+          vars.easing,
+          ["none", "sine.inOut", "power1.inOut", "power2.inOut", "power3.inOut"],
+          DEFAULTS.easing,
+        );
+
+        // d0 = camera-to-subject distance at the start of the move (px).
+        // d1 = distance at the end. "out" pulls the camera back and zooms in;
+        // "in" pushes the camera forward and zooms out.
+        var d0 = clamp(vars.subjectDistance, 600, 3000, DEFAULTS.subjectDistance);
+        var d1 = direction === "in" ? d0 / strength : d0 * strength;
+
+        // ---- the solve --------------------------------------------------
+        // Subject size is fixed iff  d * tan(FOV/2) = const. With CSS 3D,
+        // tan(FOV/2) = (width/2) / perspective, so that invariant is exactly
+        // perspective / distance = SUBJECT_SCALE. Focal length is therefore
+        // derived from the dolly, never animated alongside it.
+        var SUBJECT_SCALE = 1; // subject renders 1:1 => its plane is z = 0
+
+        var stage = document.getElementById("dz-stage");
+        var rig = document.getElementById("dz-rig");
+
+        function applyCamera(u) {
+          var d = d0 + (d1 - d0) * u; // dolly -- pure function of u
+          var P = SUBJECT_SCALE * d; // focal length solved from d
+          var camZ = P - d; // put the subject plane at camera distance d
+          stage.style.perspective = P + "px";
+          rig.style.transform = "translateZ(" + camZ + "px)";
+        }
+
+        // GSAP suppresses timeline-level onUpdate during seek(), so the camera
+        // is driven by a property setter on the tweened object instead: that
+        // fires on every render, seeks included.
+        var camera = {
+          _u: 0,
+          get u() {
+            return this._u;
+          },
+          set u(value) {
+            this._u = value;
+            applyCamera(value);
+          },
+        };
+
+        applyCamera(0);
+
+        var tl = gsap.timeline({ paused: true });
+        tl.to(camera, { u: 1, duration: 4, ease: ease }, 0);
+        __rwTL["camera-dolly-zoom"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["camera-dolly-zoom"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["camera-dolly-zoom"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

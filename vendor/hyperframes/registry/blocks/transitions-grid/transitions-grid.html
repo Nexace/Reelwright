@@ -1,0 +1,358 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): transitions-grid v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/transitions-grid/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/transitions-grid/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/transitions-grid/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Helvetica"; font-weight: 400; font-display: block; src: url("compositions/transitions-grid/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Helvetica"; font-weight: 600; font-display: block; src: url("compositions/transitions-grid/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Arial"; font-weight: 400; font-display: block; src: url("compositions/transitions-grid/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Arial"; font-weight: 600; font-display: block; src: url("compositions/transitions-grid/fonts/inter/600.woff2") format("woff2"); }
+@font-face { font-family: "Segoe UI"; font-weight: 400; font-display: block; src: url("compositions/transitions-grid/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Segoe UI"; font-weight: 600; font-display: block; src: url("compositions/transitions-grid/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="main"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="main"]:not(:has([data-hf-inner-root])), [data-composition-id="main"] > [data-hf-inner-root], [data-composition-id="main"] * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="main"]:not(:has([data-hf-inner-root])), [data-composition-id="main"] > [data-hf-inner-root] {
+        background: #000;
+        overflow: hidden;
+      }
+
+      [data-composition-id="main"] .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      [data-composition-id="main"] .scene-inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      [data-composition-id="main"] #scene1 .scene-inner {
+        background: #1b263b;
+      }
+      [data-composition-id="main"] #scene2 .scene-inner {
+        background: #e07a5f;
+      }
+
+      [data-composition-id="main"] .scene-num {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 200px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.08);
+        line-height: 1;
+      }
+      [data-composition-id="main"] .scene-label {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 48px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.25);
+        letter-spacing: 12px;
+        text-transform: uppercase;
+        margin-top: 10px;
+      }
+
+      [data-composition-id="main"] .info-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.88);
+        padding: 28px 60px;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      [data-composition-id="main"] .info-bar .info-name {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+      }
+      [data-composition-id="main"] .info-bar .info-cat {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 4px;
+        text-transform: uppercase;
+      }
+
+      /* Title / Outro */
+      [data-composition-id="main"] #title-card,
+      [data-composition-id="main"] #outro-card {
+        position: absolute;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background: #0d1117;
+        opacity: 0;
+      }
+      [data-composition-id="main"] .card-title {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 72px;
+        font-weight: 800;
+        color: #fff;
+      }
+      [data-composition-id="main"] .card-sub {
+        font-family: "Inter", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 28px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 16px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+      }
+    
+</style>
+<div
+      id="main"
+      data-composition-id="main"
+      data-block-start="0"
+      data-block-duration="11"
+      data-width="1920"
+      data-height="1080"
+      style="position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000"
+    >
+      
+      <div id="title-card">
+        <div class="card-title">Grid Transitions</div>
+        <div class="card-sub">Grid Dissolve</div>
+      </div>
+
+      
+      <div id="scene1" class="scene" style="opacity: 0">
+        <div id="s1" class="scene-inner">
+          <div class="scene-num">ONE</div>
+          <div class="scene-label">Scene A</div>
+        </div>
+      </div>
+
+      
+      <div id="scene2" class="scene" style="opacity: 0">
+        <div id="s2" class="scene-inner">
+          <div class="scene-num">TWO</div>
+          <div class="scene-label">Scene B</div>
+        </div>
+      </div>
+
+      
+      <div
+        id="grid-container"
+        style="
+          position: absolute;
+          inset: 0;
+          z-index: 50;
+          pointer-events: none;
+          display: grid;
+          grid-template-columns: repeat(4, 480px);
+          grid-template-rows: repeat(3, 360px);
+        "
+      ></div>
+
+      
+      <div id="info1" class="info-bar">
+        <div class="info-name">Grid Dissolve</div>
+        <div class="info-cat">Grid</div>
+      </div>
+
+      
+      <div id="outro-card">
+        <div class="card-title">Grid Transitions</div>
+        <div class="card-sub">End</div>
+      </div>
+    </div>
+<script>
+(function () { // transitions-grid: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/transitions-grid/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("transitions-grid" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["main" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("transitions-grid" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\"","400 1em \"Helvetica\"","600 1em \"Helvetica\"","400 1em \"Arial\"","600 1em \"Arial\"","400 1em \"Segoe UI\"","600 1em \"Segoe UI\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        var tl = gsap.timeline({ defaults: { ease: "none" } });
+        __rwTL = __rwTL || {};
+        __rwTL["main"] = tl;
+
+        // Generate grid cells
+        var gridColors = [
+          "#F72585",
+          "#7209B7",
+          "#3A0CA3",
+          "#4361EE",
+          "#4CC9F0",
+          "#F72585",
+          "#7209B7",
+          "#3A0CA3",
+          "#4361EE",
+          "#4CC9F0",
+          "#F72585",
+          "#7209B7",
+        ];
+        var gridHTML = "";
+        for (var g = 0; g < 12; g++) {
+          gridHTML +=
+            '<div id="cell-' +
+            g +
+            '" style="background:' +
+            gridColors[g % gridColors.length] +
+            '; opacity:0;"></div>';
+        }
+        document.getElementById("grid-container").innerHTML = gridHTML;
+
+        function resetScenes() {
+          tl.set("#scene1", { opacity: 1 });
+          tl.set("#scene2", { opacity: 0 });
+          tl.set("#s1", { x: 0, y: 0, scale: 1, filter: "blur(0px)", opacity: 1 });
+          tl.set("#s2", { x: 0, y: 0, scale: 1, filter: "blur(0px)", opacity: 1 });
+          for (var g = 0; g < 12; g++) {
+            tl.set("#cell-" + g, { opacity: 0 });
+          }
+        }
+
+        // ===== TITLE CARD (0–3s) =====
+        tl.set("#title-card", { opacity: 1 }, 0);
+        tl.fromTo(
+          ".card-title",
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" },
+          0.4,
+        );
+        tl.fromTo(
+          ".card-sub",
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
+          0.8,
+        );
+        tl.to("#title-card", { opacity: 0, duration: 0.4, ease: "power2.in" }, 2.6);
+
+        // ===== DEMO 1: Grid Dissolve (3–8s) =====
+        var T;
+
+        tl.call(function () {}, [], 3);
+        resetScenes();
+
+        // Show info bar
+        tl.to("#info1", { opacity: 1, duration: 0.3, ease: "power2.out" }, 3);
+
+        // Hold 1.5s, transition at T=4.5
+        T = 4.5;
+
+        // Cell positions (col, row) and distance from center (1.5, 1)
+        var cells = [];
+        for (var g = 0; g < 12; g++) {
+          var col = g % 4;
+          var row = Math.floor(g / 4);
+          var dist = Math.sqrt(Math.pow(col - 1.5, 2) + Math.pow(row - 1, 2));
+          cells.push({ id: g, dist: dist });
+        }
+        cells.sort(function (a, b) {
+          return a.dist - b.dist;
+        });
+
+        // Ripple in from center
+        var stag = 0.04;
+        for (var c = 0; c < cells.length; c++) {
+          tl.to(
+            "#cell-" + cells[c].id,
+            { opacity: 1, duration: 0.15, ease: "power2.out" },
+            T + c * stag,
+          );
+        }
+
+        // Swap scenes at midpoint
+        tl.set("#scene1", { opacity: 0 }, T + 0.35);
+        tl.set("#scene2", { opacity: 1 }, T + 0.35);
+
+        // Ripple out
+        for (var c = 0; c < cells.length; c++) {
+          tl.to(
+            "#cell-" + cells[c].id,
+            { opacity: 0, duration: 0.15, ease: "power2.in" },
+            T + 0.5 + c * stag,
+          );
+        }
+
+        // Hold 1.0s, hide info, gap 0.5s
+        tl.to("#info1", { opacity: 0, duration: 0.3, ease: "power2.in" }, 7.0);
+
+        // ===== OUTRO (8–11s) =====
+        tl.set("#scene1", { opacity: 0 }, 8);
+        tl.set("#scene2", { opacity: 0 }, 8);
+        tl.set("#outro-card", { opacity: 1 }, 8);
+        tl.fromTo(
+          "#outro-card .card-title",
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" },
+          8.3,
+        );
+        tl.fromTo(
+          "#outro-card .card-sub",
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
+          8.7,
+        );
+        tl.to("#outro-card", { opacity: 0, duration: 0.4, ease: "power2.in" }, 10.5);
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["main"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["main"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

@@ -1,0 +1,366 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): yt-comment-card v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/yt-comment-card/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("compositions/yt-comment-card/fonts/inter/400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: block; src: url("compositions/yt-comment-card/fonts/inter/600.woff2") format("woff2"); }
+[data-composition-id="yt-comment-card"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      [data-composition-id="yt-comment-card"]:not(:has([data-hf-inner-root])), [data-composition-id="yt-comment-card"] > [data-hf-inner-root], [data-composition-id="yt-comment-card"] *, [data-composition-id="yt-comment-card"] *::before, [data-composition-id="yt-comment-card"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="yt-comment-card"]:not(:has([data-hf-inner-root])), [data-composition-id="yt-comment-card"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="yt-comment-card"]:not(:has([data-hf-inner-root])), [data-composition-id="yt-comment-card"] > [data-hf-inner-root] {
+        /* ---- yt tokens: override in the host to re-skin the family ---- */
+        --yt-font: "Inter", "Inter", sans-serif;
+        --yt-ink: #1d1d1f;
+        --yt-ink-dim: #5a5a5f;
+        /* overlay-scheme text over footage — distinct from the --yt-ink board tokens */
+        --yt-text: #ffffff;
+        --yt-text-dim: rgba(255, 255, 255, 0.72);
+        --yt-red: #e62e2e;
+        --yt-cyan: #35c8d9;
+        --yt-scanline-alpha: 0.04;
+        --yt-scanline-gap: 3px;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage or a yt-lcd board */
+        font-family: var(--yt-font);
+      }
+      /* optional full-frame LCD pass while comments are up */
+      [data-composition-id="yt-comment-card"] #yt-cc-scan {
+        position: absolute;
+        inset: 0;
+        display: none;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, var(--yt-scanline-alpha)) 0 1px,
+          transparent 1px var(--yt-scanline-gap)
+        );
+      }
+      [data-composition-id="yt-comment-card"] #yt-cc-col {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-card {
+        display: flex;
+        gap: 22px;
+        align-items: flex-start;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-avatar {
+        flex: none;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 26px;
+        color: #ffffff;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-user {
+        font-weight: 700;
+        font-size: 27px;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-time {
+        font-weight: 400;
+        font-size: 23px;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-text {
+        margin-top: 8px;
+        font-weight: 500;
+        font-size: 34px;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        max-width: 860px;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-text .ch {
+        opacity: 0;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-row {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 22px;
+        opacity: 0;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-row svg {
+        width: 24px;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+      [data-composition-id="yt-comment-card"] .yt-cc-reply {
+        margin-left: 18px;
+        letter-spacing: 0.1em;
+      }
+      /* scheme: overlay (white over footage, w/ shadow) vs light (ink on boards) */
+      [data-composition-id="yt-comment-card"] .yt-overlay .yt-cc-user,
+      [data-composition-id="yt-comment-card"] .yt-overlay .yt-cc-text {
+        color: var(--yt-text);
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+      }
+      [data-composition-id="yt-comment-card"] .yt-overlay .yt-cc-time,
+      [data-composition-id="yt-comment-card"] .yt-overlay .yt-cc-row {
+        color: var(--yt-text-dim);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+      }
+      [data-composition-id="yt-comment-card"] .yt-overlay .yt-cc-row svg {
+        stroke: var(--yt-text-dim);
+      }
+      [data-composition-id="yt-comment-card"] .yt-light .yt-cc-user,
+      [data-composition-id="yt-comment-card"] .yt-light .yt-cc-text {
+        color: var(--yt-ink);
+      }
+      [data-composition-id="yt-comment-card"] .yt-light .yt-cc-time,
+      [data-composition-id="yt-comment-card"] .yt-light .yt-cc-row {
+        color: var(--yt-ink-dim);
+      }
+      [data-composition-id="yt-comment-card"] .yt-light .yt-cc-row svg {
+        stroke: var(--yt-ink-dim);
+      }
+    
+</style>
+<div
+      id="yt-cc-root"
+      data-composition-id="yt-comment-card"
+      data-block-start="0"
+      data-block-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="yt-cc-scan"></div>
+      <div id="yt-cc-col"></div>
+      <div
+        id="yt-cc-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="8"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // yt-comment-card: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/yt-comment-card/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("yt-comment-card" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["yt-comment-card" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("yt-comment-card" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["400 1em \"Inter\"","600 1em \"Inter\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters (inspector-style CONFIG) ----
+           Social comments typing on over footage — creator-style
+           comment cards. avatar: image path, or null -> initials chip. */
+        var CONFIG = {
+          scheme: "overlay", // "overlay" (white over footage) | "light" (ink on boards)
+          comments: [
+            {
+              avatar: null,
+              initials: "PW",
+              avatarHue: 210, // initials-chip hue when no image
+              username: "@pixelwaves",
+              time: "2 days ago",
+              text: "Your videos are the best!",
+              likes: 47,
+            },
+            {
+              avatar: null,
+              initials: "FR",
+              avatarHue: 340,
+              username: "@framerate",
+              time: "1 day ago",
+              text: "That camera move at 0:12 though 🔥",
+              likes: 12,
+            },
+          ],
+          x: 140,
+          y: null, // null = vertically centered
+          typeCharDelay: 0.024, // s per character (capped so a comment types <= 2.2s)
+          scanlines: false, // full-frame LCD pass while comments are up
+          animationIn: true,
+          animationOut: true,
+        };
+
+        var DUR = 8;
+        function clamp(v, lo, hi) {
+          return Math.min(hi, Math.max(lo, v));
+        }
+        var OUT = clamp(DUR * 0.06, 0.25, 0.6);
+
+        var root = document.getElementById("yt-cc-root");
+        var col = document.getElementById("yt-cc-col");
+        root.classList.add(CONFIG.scheme === "light" ? "yt-light" : "yt-overlay");
+        if (CONFIG.scanlines) document.getElementById("yt-cc-scan").style.display = "block";
+
+        var THUMB =
+          '<svg viewBox="0 0 24 24"><path d="M7 11v9M7 11l3.2-6.4a2 2 0 0 1 3.6 1.2V9h4.6a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7M7 11H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3"/></svg>';
+
+        /* build cards */
+        CONFIG.comments.forEach(function (c, i) {
+          var card = document.createElement("div");
+          card.className = "yt-cc-card";
+          card.id = "yt-cc-card-" + i;
+
+          var av = document.createElement("div");
+          av.className = "yt-cc-avatar";
+          av.id = "yt-cc-av-" + i;
+          if (c.avatar) {
+            var img = document.createElement("img");
+            img.src = c.avatar;
+            av.appendChild(img);
+          } else {
+            av.textContent = c.initials || "?";
+            av.style.background =
+              "linear-gradient(135deg, hsl(" +
+              (c.avatarHue || 210) +
+              ", 62%, 52%), hsl(" +
+              ((c.avatarHue || 210) + 40) +
+              ", 62%, 42%))";
+          }
+          card.appendChild(av);
+
+          var body = document.createElement("div");
+          var meta = document.createElement("div");
+          meta.className = "yt-cc-meta";
+          meta.id = "yt-cc-meta-" + i;
+          var user = document.createElement("span");
+          user.className = "yt-cc-user";
+          user.textContent = c.username;
+          var time = document.createElement("span");
+          time.className = "yt-cc-time";
+          time.textContent = c.time || "";
+          meta.appendChild(user);
+          meta.appendChild(time);
+          body.appendChild(meta);
+
+          var text = document.createElement("div");
+          text.className = "yt-cc-text";
+          text.id = "yt-cc-text-" + i;
+          Array.from(c.text).forEach(function (ch) {
+            var span = document.createElement("span");
+            span.className = "ch";
+            span.textContent = ch;
+            text.appendChild(span);
+          });
+          body.appendChild(text);
+
+          var row = document.createElement("div");
+          row.className = "yt-cc-row";
+          row.id = "yt-cc-row-" + i;
+          row.innerHTML =
+            THUMB + "<span>" + (c.likes || 0) + '</span><span class="yt-cc-reply">REPLY</span>';
+          body.appendChild(row);
+          card.appendChild(body);
+          col.appendChild(card);
+        });
+
+        /* position (measure after building) */
+        col.style.left = CONFIG.x + "px";
+        var rect = col.getBoundingClientRect();
+        col.style.top =
+          (CONFIG.y === null ? Math.round((1080 - rect.height) / 2) : CONFIG.y) + "px";
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* comments enter sequentially: avatar pops, meta fades, text types, row fades */
+        var t = CONFIG.animationIn ? 0.3 : 0;
+        CONFIG.comments.forEach(function (c, i) {
+          var av = "#yt-cc-av-" + i,
+            meta = "#yt-cc-meta-" + i,
+            row = "#yt-cc-row-" + i;
+          var chars = document.querySelectorAll("#yt-cc-text-" + i + " .ch");
+          var delay = Math.min(CONFIG.typeCharDelay, 2.2 / Math.max(1, chars.length));
+
+          gsap.set(av, { opacity: 0, scale: 0.5 });
+          gsap.set(meta, { opacity: 0, y: 10 });
+          tl.to(av, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, t);
+          tl.to(meta, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + 0.12);
+          t += 0.4;
+          tl.to(chars, { opacity: 1, duration: 0.02, stagger: delay, ease: "none" }, t);
+          t += chars.length * delay + 0.15;
+          tl.to(row, { opacity: 1, duration: 0.35, ease: "power2.out" }, t);
+          t += 0.5;
+        });
+
+        /* exit + hard kill (auto-scaled out) */
+        if (CONFIG.animationOut) {
+          tl.to(col, { opacity: 0, y: -18, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+        }
+        tl.set(root, { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["yt-comment-card"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["yt-comment-card"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["yt-comment-card"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

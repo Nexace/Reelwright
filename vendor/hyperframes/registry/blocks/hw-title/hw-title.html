@@ -1,0 +1,303 @@
+<!-- Changed from upstream HyperFrames (Apache-2.0, Copyright HeyGen): hw-title v0.9.19 turned into a KIT.mount template (tools/blocks.mjs): CSS scoped to the root, CDN scripts → kit/ (gsap 3.15.1, lottie, three r187 via an import map), Google/remote fonts → bundled fonts/, asset paths → compositions/hw-title/, scripts in one wrapper seeked with local time. -->
+<template>
+<style>
+[data-composition-id="hw-title"] { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+[data-block-off] { visibility: hidden !important; }
+</style>
+<style>
+
+      @font-face {
+        font-family: "Caveat";
+        src: url("compositions/hw-title/fonts/caveat/700.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      [data-composition-id="hw-title"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-title"] > [data-hf-inner-root], [data-composition-id="hw-title"] *, [data-composition-id="hw-title"] *::before, [data-composition-id="hw-title"] *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      [data-composition-id="hw-title"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-title"] > [data-hf-inner-root] {
+        background: transparent;
+        overflow: hidden;
+      }
+      [data-composition-id="hw-title"]:not(:has([data-hf-inner-root])), [data-composition-id="hw-title"] > [data-hf-inner-root] {
+        /* ---- hw tokens ---- */
+        --hw-font-print: "Caveat", cursive;
+        --hw-font-script: "Caveat", cursive;
+        --hw-ink: #f4f2ec;
+        --hw-ink-dark: #26241f;
+        --hw-accent-warm: #ffb020;
+
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent; /* overlays footage or a board */
+        font-family: var(--hw-font-print, "Caveat", cursive);
+      }
+      [data-composition-id="hw-title"] #hw-t-wrap {
+        position: absolute;
+        pointer-events: none;
+      }
+      [data-composition-id="hw-title"] #hw-t-line {
+        font-weight: 700;
+        line-height: 1.1;
+        white-space: nowrap;
+        text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
+      }
+      [data-composition-id="hw-title"] #hw-t-line .w {
+        display: inline;
+      }
+      [data-composition-id="hw-title"] #hw-t-under {
+        overflow: visible;
+        display: block;
+      }
+      [data-composition-id="hw-title"] #hw-t-under path {
+        fill: none;
+        stroke: var(--hw-accent-warm);
+        stroke-width: 7;
+        stroke-linecap: round;
+      }
+    
+</style>
+<div
+      id="hw-t-root"
+      data-composition-id="hw-title"
+      data-block-start="0"
+      data-block-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="hw-t-wrap">
+        <div id="hw-t-line"></div>
+        <svg id="hw-t-under" width="10" height="34"><path id="hw-t-under-path"></path></svg>
+      </div>
+      <div
+        id="hw-t-drv"
+        class="clip"
+        data-block-start="0"
+        data-block-duration="6"
+        data-track-index="0"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none"
+      ></div>
+    </div>
+<script>
+(function () { // hw-title: the block's scripts, run by KIT.mount (tools/compose.js); see tools/blocks.mjs
+const __rwHost = document.currentScript.parentNode, __rwRoot = __rwHost.querySelector('[data-composition-id]');
+const __rwOuter = window.__hyperframes, __rwBase = "compositions/hw-title/";
+const __rwVars = Object.assign({}, (__rwOuter && __rwOuter.getVariables && __rwOuter.getVariables()) || {});
+const __hyperframes = Object.assign({}, __rwOuter || {}, { getVariables: () => Object.assign({}, __rwVars),
+  assetUrl: (p) => /^(compositions\/|data:|blob:|\/|https?:)/.test(p) ? p : __rwBase + String(p).replace(/^\.\//, '') });
+let __rwTL = {}, __hfThreeTime = 0, __hfLottie = [];
+// players the block puts on __hfLottie are marked, and hidden from the HyperFrames lottie adapter (it would seek them to film time)
+__hfLottie.push = (...a) => { for (const x of a) if (x) x.__rwBlock = true; return Array.prototype.push.apply(__hfLottie, a); };
+const __rwHideLottie = () => { const L = window.lottie; if (!L || L.__rwHidden || typeof L.getRegisteredAnimations !== 'function') return;
+  const g = L.getRegisteredAnimations.bind(L); L.getRegisteredAnimations = () => g().filter((x) => !x.__rwBlock); L.__rwHidden = true; };
+const __rwSeekers = [], __rwOnSeek = (f) => { __rwSeekers.push(f); };
+// the block's own data files (kit/…, compositions/…) load synchronously: what it builds from them in .then() is done in
+// microtasks right after mount, before the first seek, instead of racing it
+const __rwGet = (u) => { const x = new XMLHttpRequest(); x.open('GET', u, false); x.send(); if (x.status >= 400) throw new Error("hw-title" + ': ' + x.status + ' ' + u); return x.responseText; };
+const __rwOwn = (u) => typeof u === 'string' && /^(\.\/)?(kit|compositions)\//.test(u);
+const __rwFetch = (u, o) => { if (o || !__rwOwn(u)) return window.fetch(u, o);
+  try { const t = __rwGet(u); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(t)), text: () => Promise.resolve(t) }); }
+  catch (e) { return Promise.reject(e); } };
+const __rwJson = (u, o) => __rwOwn(u) && !o ? __rwFetch(u).then((r) => r.json()) : window.d3.json(u, o);
+const __rwReady = (k, p) => { const h = (window.__hf = window.__hf || {}); (h.buildReady = h.buildReady || {})["hw-title" + ':' + k] = p; return p; };
+const __rwLib = (src) => {   // a classic library, once per page, synchronously (scripts after it use it at once)
+  const L = (window.__rwLibs = window.__rwLibs || {});
+  if (L[src] || document.querySelector('script[src$="' + src + '"]') || (/\/gsap\.min\.js$/.test(src) && window.gsap) || (/lottie\.min\.js$/.test(src) && window.lottie)) return;
+  const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+  if (!x.responseText) throw new Error("hw-title" + ': no ' + src);
+  // an inline <script> runs at once, at global scope (top-level const/let stay visible to later scripts, unlike eval)
+  const s = document.createElement('script'); s.textContent = x.responseText + '\n//# sourceURL=' + src; document.head.appendChild(s); L[src] = true;
+};
+{ const m = document.createElement('script'); m.type = 'importmap'; m.textContent = "{\"imports\":{\"three\":\"./kit/three/three.module.js\",\"three/addons/\":\"./kit/three/addons/\"}}"; document.head.appendChild(m); }
+__rwReady('fonts', Promise.all(["700 1em \"Caveat\""].map((f) => document.fonts.load(f))));
+__rwLib("kit/gsap/dist/gsap.min.js");
+;
+
+      (function () {
+        __rwTL = __rwTL || {};
+
+        /* ---- published parameters ----
+           Handwritten title with the highlight-sweep scalar (the shared
+           mk-callout-highlight mechanic) + squiggle underline + the boil.
+           Demonstrates the dispatcher composing sweep + boil on one
+           timeline (learning: one onUpdate — everything through hwOnUpdate). */
+        var CONFIG = {
+          text: "shine like the star you are",
+          fontSize: 120,
+          scheme: "chalk", // "chalk" (white, over footage) | "ink" (dark, boards)
+          sweep: { enabled: true, start: 0.8, end: 3.2 },
+          underline: { enabled: true, wobble: 6 },
+          boil: { enabled: true, amp: 1.4, rot: 0.3, frameDrop: 3 },
+          seed: 8,
+          x: null, // null = centered
+          y: null,
+          animationIn: true,
+          animationOut: true,
+        };
+
+        var DUR = 6;
+        function clamp(v, lo, hi) {
+          return Math.min(hi, Math.max(lo, v));
+        }
+        var IN = clamp(DUR * 0.08, 0.3, 0.8);
+        var OUT = clamp(DUR * 0.06, 0.25, 0.6);
+
+        /* hw family runtime */
+        window.hwOnUpdate = function (tl, fn) {
+          if (!tl.__hwRenders) {
+            tl.__hwRenders = [];
+            tl.eventCallback("onUpdate", function () {
+              for (var i = 0; i < tl.__hwRenders.length; i++) tl.__hwRenders[i]();
+            });
+          }
+          tl.__hwRenders.push(fn);
+          fn();
+        };
+        window.hwHash = function (n, seed) {
+          var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453;
+          return (x - Math.floor(x)) * 2 - 1;
+        };
+        window.hwBoil = function (tl, target, opts) {
+          opts = opts || {};
+          var amp = opts.amp !== undefined ? opts.amp : 1.6;
+          var rot = opts.rot !== undefined ? opts.rot : 0.5;
+          var fps = opts.fps || 30;
+          var drop = opts.frameDrop || 3;
+          var seed = opts.seed || 1;
+          var els = gsap.utils.toArray(target);
+          window.hwOnUpdate(tl, function () {
+            var step = Math.floor((tl.time() * fps) / drop);
+            for (var i = 0; i < els.length; i++) {
+              gsap.set(els[i], {
+                x: window.hwHash(step * 3 + i * 97, seed) * amp,
+                y: window.hwHash(step * 3 + 1 + i * 97, seed) * amp,
+                rotation: (opts.baseRot || 0) + window.hwHash(step * 3 + 2 + i * 97, seed) * rot,
+              });
+            }
+          });
+        };
+
+        var FULL = CONFIG.scheme === "ink" ? "#26241f" : "#f4f2ec";
+        var FAINT = CONFIG.scheme === "ink" ? "rgba(38,36,31,0.3)" : "rgba(244,242,236,0.32)";
+
+        var wrap = document.getElementById("hw-t-wrap");
+        var line = document.getElementById("hw-t-line");
+        line.style.fontSize = CONFIG.fontSize + "px";
+
+        /* word spans */
+        var wordEls = [];
+        CONFIG.text.split(/\s+/).forEach(function (w, i) {
+          if (i > 0) line.appendChild(document.createTextNode(" "));
+          var span = document.createElement("span");
+          span.className = "w";
+          span.textContent = w;
+          span.style.color = CONFIG.sweep.enabled ? FAINT : FULL;
+          line.appendChild(span);
+          wordEls.push(span);
+        });
+
+        /* measure + position; build squiggle underline to match width */
+        var rect = line.getBoundingClientRect();
+        wrap.style.left =
+          (CONFIG.x === null ? Math.round((1920 - rect.width) / 2) : CONFIG.x) + "px";
+        wrap.style.top =
+          (CONFIG.y === null ? Math.round((1080 - rect.height) / 2) - 20 : CONFIG.y) + "px";
+
+        var underPath = document.getElementById("hw-t-under-path");
+        if (CONFIG.underline.enabled) {
+          var uw = Math.round(rect.width);
+          var svg = document.getElementById("hw-t-under");
+          svg.setAttribute("width", uw);
+          svg.setAttribute("viewBox", "0 0 " + uw + " 34");
+          var segs = Math.max(6, Math.round(uw / 90));
+          var d = "M 2 " + (16 + window.hwHash(0, CONFIG.seed) * 4).toFixed(1);
+          for (var i = 1; i <= segs; i++) {
+            var x = (uw / segs) * i;
+            var y = 16 + window.hwHash(i * 5 + 1, CONFIG.seed) * CONFIG.underline.wobble;
+            var cxp = x - uw / segs / 2 + window.hwHash(i * 5 + 2, CONFIG.seed) * 10;
+            var cyp = 16 + (i % 2 ? -1 : 1) * (8 + window.hwHash(i * 5 + 3, CONFIG.seed) * 4);
+            d +=
+              " Q " +
+              cxp.toFixed(1) +
+              " " +
+              cyp.toFixed(1) +
+              " " +
+              x.toFixed(1) +
+              " " +
+              y.toFixed(1);
+          }
+          underPath.setAttribute("d", d);
+        } else {
+          document.getElementById("hw-t-under").style.display = "none";
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        if (CONFIG.animationIn) {
+          gsap.set(wrap, { opacity: 0 });
+          tl.to(wrap, { opacity: 1, duration: IN, ease: "power2.out" }, 0.1);
+        }
+
+        /* the sweep scalar — registered through the dispatcher so it
+           coexists with the boil on the same timeline */
+        if (CONFIG.sweep.enabled) {
+          var mix = gsap.utils.interpolate(FAINT, FULL);
+          var st = { p: 0 };
+          window.hwOnUpdate(tl, function () {
+            var k = st.p * wordEls.length;
+            for (var i = 0; i < wordEls.length; i++) {
+              var f = Math.max(0, Math.min(1, k - i));
+              wordEls[i].style.color = mix(f);
+            }
+          });
+          tl.to(
+            st,
+            { p: 1, duration: CONFIG.sweep.end - CONFIG.sweep.start, ease: "none" },
+            CONFIG.sweep.start,
+          );
+        }
+
+        /* underline draws as the sweep lands */
+        if (CONFIG.underline.enabled) {
+          var len = underPath.getTotalLength();
+          gsap.set(underPath, { strokeDasharray: len, strokeDashoffset: len });
+          var uAt = CONFIG.sweep.enabled ? CONFIG.sweep.end - 0.2 : 0.8;
+          tl.to(underPath, { strokeDashoffset: 0, duration: 0.7, ease: "power2.inOut" }, uAt);
+        }
+
+        if (CONFIG.boil.enabled) {
+          window.hwBoil(tl, "#hw-t-wrap", {
+            amp: CONFIG.boil.amp,
+            rot: CONFIG.boil.rot,
+            frameDrop: CONFIG.boil.frameDrop,
+            seed: CONFIG.seed,
+          });
+        }
+
+        if (CONFIG.animationOut) {
+          tl.to(wrap, { opacity: 0, duration: OUT, ease: "power2.in" }, DUR - OUT - 0.05);
+        }
+        tl.set("#hw-t-root", { visibility: "hidden" }, DUR - 0.02);
+
+        __rwTL["hw-title"] = tl;
+      })();
+    
+;
+__rwHideLottie();
+const __rwClips = [...__rwRoot.querySelectorAll('[data-block-start]')];
+const __rwRun = (tl, t) => { if (!tl) return; if (tl.pause) tl.pause(); if (typeof tl.totalTime === 'function') tl.totalTime(t, false); else if (tl.seek) tl.seek(t, false); };
+window.__timelines["hw-title"] = { pause() {}, seek(t) {
+  t = Math.max(0, t); __hfThreeTime = t;
+  __rwRun(__rwTL["hw-title"] || __rwTL[Object.keys(__rwTL)[0]], t);
+  for (const f of __rwSeekers) f({ type: 'hf-seek', detail: { time: t, waitUntil() {} } });
+  for (const a of __hfLottie) if (a.goToAndStop) a.goToAndStop(Math.min(t * (a.frameRate || 30), Math.max(0, (a.totalFrames || 1) - 1)), true);
+  for (const el of __rwClips) { const s = parseFloat(el.dataset.blockStart), d = parseFloat(el.dataset.blockDuration);
+    el.toggleAttribute('data-block-off', Number.isFinite(s) && (t < s || (d > 0 && t >= s + d))); }
+} };
+})();
+</script>
+</template>

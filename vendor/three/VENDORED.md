@@ -15,7 +15,19 @@ From the tarball's `build/`, byte for byte:
 
 Both JS files are unminified: 0.187 ships no minified or classic-script build, it is ESM only.
 
-Left out: `three.cjs` (it now only re-exports the ESM via `require`), the webgpu and tsl builds, `examples/` and addons, `src/`.
+From the tarball's `examples/jsm/`, byte for byte, into `addons/` (same sub-paths): the addons the vendored HyperFrames
+blocks import (`three/addons/…`, mapped to `kit/three/addons/` by the block's import map, tools/blocks.mjs), and what
+those import. Same MIT LICENSE; each file's own header names its authors.
+
+- `addons/environments/RoomEnvironment.js` ← `examples/jsm/environments/RoomEnvironment.js` (4960 bytes, sha256 `55f466192cc84298755a424c5e040345006b2ee1455589b3b54126c2ea4123f4`)
+- `addons/geometries/RoundedBoxGeometry.js` ← `examples/jsm/geometries/RoundedBoxGeometry.js` (6470 bytes, sha256 `c5feab96123858ed8823c889b238dc8734adab7e760e3cfd21e7f3f2f3e348e3`)
+- `addons/geometries/TextGeometry.js` ← `examples/jsm/geometries/TextGeometry.js` (3312 bytes, sha256 `edf69c1cd6087c84d020156d1adbb29b40b098e4cbe8da4c0c36bbadc58dceac`)
+- `addons/loaders/FontLoader.js` ← `examples/jsm/loaders/FontLoader.js` (5364 bytes, sha256 `cf9ecc7c4615763cf6ca473736b2055291b663103c7790e745f917dd2bdcb1bc`)
+- `addons/loaders/GLTFLoader.js` ← `examples/jsm/loaders/GLTFLoader.js` (119861 bytes, sha256 `532ac726e120039acbcd6cf54328c57acbf7b438176afaa6951257126d11bff1`)
+- `addons/utils/BufferGeometryUtils.js` ← `examples/jsm/utils/BufferGeometryUtils.js` (39153 bytes, sha256 `7bda2a8ba836b2bcf67cb938d4b9e1bb5d1b1bc616817103ed858c0b58296ce7`)
+- `addons/utils/SkeletonUtils.js` ← `examples/jsm/utils/SkeletonUtils.js` (11535 bytes, sha256 `b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f`)
+
+Left out: `three.cjs` (it now only re-exports the ESM via `require`), the webgpu and tsl builds, every other `examples/` file, `src/`.
 
 ## What we changed
 
@@ -30,7 +42,8 @@ and list the change here.
 
 ## Updating
 
-`npm pack three@<version>` in a scratch folder, copy `build/three.module.js`, `build/three.core.js` and `LICENSE` over these,
+`npm pack three@<version>` in a scratch folder, copy `build/three.module.js`, `build/three.core.js`, `LICENSE` and the
+`addons/` files (from `examples/jsm/`) over these,
 update the version, integrity and sizes above, run `node tools/selfcheck/runtimes.mjs`. If a release ships a different
 file layout, check what `three.module.js` imports before copying.
 

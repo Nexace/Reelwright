@@ -59,7 +59,9 @@ const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "pyt
 process.env.PYTHONUTF8 = "1";
 process.env.REELWRIGHT_NODE = process.execPath;   // tools/qa.py runs its node checks with the same node
 
-const [cmd = "help", ...args] = process.argv.slice(2);
+const [cmd0 = "help", ...args] = process.argv.slice(2);
+// `stills` with --at, --frames, --range, --zoom or --against is tools/commands/stills2.mjs (not together with --formats)
+const cmd = cmd0 === "stills" && !args.includes("--formats") && args.some((a) => /^--(at|frames|range|zoom|against|pad|min-ssim)$/.test(a)) ? "stills2" : cmd0;
 const st = args.indexOf("--style");   // any command: build with themes/<name>.css, output <out>-<name>.mp4
 if (st >= 0) process.env.REELWRIGHT_STYLE = args.splice(st, 2)[1];
 const lg = args.indexOf("--lang");     // any command: voice project.json langs.<code>, output <out>-<code>.mp4
@@ -79,6 +81,14 @@ if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
   if (isDir(a)) { proj = a; args.shift(); }
   else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }
+}
+
+// --variables '<json>' | --variables-file <file> [--strict-variables]   any command: composition variables for this run
+// (checked first, written to the page's kit-vars.js, put back on exit; tools/commands/batch.mjs, docs/playbook/variables.md)
+{
+  const [vj, vf] = ["--variables", "--variables-file"].map((f) => { const i = args.indexOf(f); return i >= 0 ? args.splice(i, 2)[1] : undefined; });
+  const sv = args.indexOf("--strict-variables"); if (sv >= 0) args.splice(sv, 1);
+  if (vj || vf) (await import("../tools/commands/batch.mjs")).applyVariables(proj, { json: vj, file: vf, strict: sv >= 0 });
 }
 
 function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }

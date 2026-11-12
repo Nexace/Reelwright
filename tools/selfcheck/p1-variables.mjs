@@ -94,7 +94,8 @@ async function open(renderer, mutate) {
   const probe = () => page.evaluate(() => {
     const st = document.getElementById("stage"), bars = [...st.querySelectorAll(".bar")];
     return { vars: window.KIT.vars(), title: st.querySelector("h1").textContent, src: st.querySelector("img").getAttribute("src"), cssAccent: st.style.getPropertyValue("--accent"),
-      barColor: getComputedStyle(bars[0]).backgroundColor, bars: bars.length, panel: getComputedStyle(st.querySelector(".panel")).backgroundColor };
+      barColor: getComputedStyle(bars[0]).backgroundColor, bars: bars.length, panel: getComputedStyle(st.querySelector(".panel")).backgroundColor,
+      rt: window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null };
   });
   return { page, errs, at, probe, close: async () => { await browser.close(); server && server.close(); } };
 }
@@ -118,6 +119,7 @@ for (const renderer of ["pvk", "hyperframes"]) {
   assert.equal(ov.title, "Overridden", "data-var-text"); assert.equal(ov.src, OVER.logo.url, "data-var-src takes an image {url}");
   assert.equal(ov.bars, 5, "film.js built 5 bars from KIT.vars().bars"); assert.equal(ov.barColor, rgb("#0000ff"), "var(--accent) follows the override");
   assert.equal(ov.panel, rgb("#ee3333"), "enum tone=loud");
+  if (renderer === "hyperframes") { assert.ok(ov.rt, "the HyperFrames runtime's __hyperframes.getVariables() exists"); assert.equal(ov.rt.title, "Overridden"); assert.equal(ov.rt.bars, 5); assert.equal(ov.rt.tone, "loud"); }
   assert.notDeepEqual(ovShot, defShot, `${renderer}: the override changes the pixels`);
   await p.close();
   seen[renderer] = ov;
@@ -128,7 +130,7 @@ for (const renderer of ["pvk", "hyperframes"]) {
   assert.ok(p.errs.some((e) => /KIT\.vars: "bars" expected number, got string/.test(e)), `${renderer}: bad type throws; got ${p.errs.join(" | ")}`);
   await p.close();
 }
-assert.deepEqual({ ...seen.pvk, panel: 0 }, { ...seen.hyperframes, panel: 0 }, "both renderers see the same variables, text, src and CSS");
+assert.deepEqual({ ...seen.pvk, panel: 0, rt: 0 }, { ...seen.hyperframes, panel: 0, rt: 0 }, "both renderers see the same variables, text, src and CSS");
 
 // declarations from <html data-composition-variables> alone (no __hfDeclared), the canonical HyperFrames shape
 {

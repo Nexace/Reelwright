@@ -41,9 +41,16 @@ Sample films, scripts, the demo apps, synthesised music and sound effects are or
 | [NumPy](https://numpy.org) | BSD-3-Clause | audio |
 | [Pillow](https://python-pillow.org) | MIT-CMU (HPND) | contact sheets, QA |
 | [Remotion](https://www.remotion.dev) (`remotion`, `@remotion/cli` 4.0.540) with React and ReactDOM 19.3.1 (MIT) | Remotion License: **custom, not open source**. Free for individuals, for-profit companies of up to 3 people and non-profits; other companies need a paid Company License ([remotion.pro/license](https://www.remotion.pro/license)). Reelwright grants no Remotion licence and is not affiliated with Remotion. | the optional `renderer: remotion`; installed per project (`projects/<name>/rm/`) only after you answer yes. Never bundled. See [docs/playbook/remotion.md](docs/playbook/remotion.md). |
-| [Manim Community Edition](https://www.manim.community) (`manim[typst]==0.22.1`) | MIT | the optional `renderer: manim`; installed with `reelwright manim <project> install ce --yes` into `.venv-manim` by [uv](https://github.com/astral-sh/uv) (MIT / Apache 2.0, you install it first). Its dependency pycairo is LGPL/MPL and stays in that venv. |
+| [Manim Community Edition](https://www.manim.community) (`manim[typst]==0.22.1`) | MIT | the optional `renderer: manim`; installed with `reelwright manim <project> install ce --yes` into `.venv-manim` by [uv](https://github.com/astral-sh/uv) (you install it first; see the external tools below). Its dependency pycairo stays in that venv. |
 | [ManimGL](https://github.com/3b1b/manim) (`manimgl==1.7.2`) | MIT | the optional ManimGL adapter; installed into `.venv-manim-gl` the same way. |
-| [Typst](https://typst.app) (the `typst` Python package that `manim[typst]` pulls in) | Apache 2.0 | Manim `MathTypst` equations, so no TeX is needed. Installed inside the Manim venv. |
+
+Optional external tools, installed by the user (or by `reelwright manim ... install --yes` into the venv), not redistributed here:
+
+| What | License | Notes |
+|---|---|---|
+| [Typst](https://typst.app) | Apache-2.0 | typesets Manim `MathTypst` equations; the `typst` Python package comes in with `manim[typst]`. |
+| [uv](https://github.com/astral-sh/uv) | Apache-2.0 OR MIT (the repo ships LICENSE-APACHE and LICENSE-MIT; GitHub reports Apache-2.0) | creates the `.venv-manim` / `.venv-manim-gl` environments. |
+| [pycairo](https://github.com/pygobject/pycairo) | LGPL-2.1 OR MPL-1.1 | a dependency of Manim, installed inside the Manim venv. |
 
 Reelwright does not install TinyTeX or any other TeX distribution; real LaTeX (`MathTex`) needs one you manage yourself. Nothing from Manim, ManimGL or Remotion is vendored.
 

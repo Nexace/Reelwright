@@ -74,25 +74,63 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 
 ---
 
-## What's new in 0.2
+## What's new in 0.3
 
-- **Motion vocabulary.** `KIT.easing('power3.out')` (GSAP-style names), `KIT.bezier`, a closed-form `KIT.spring`, `KIT.keys`
-  keyframes, `KIT.stagger` and `KIT.local`. Each theme sets motion tokens (ease, tempo, stagger, settle), so swapping
-  `"style"` changes how everything moves. [PLAYBOOK → Motion](docs/PLAYBOOK.md#motion-kiteasing-kitbezier-kitspring-kitkeys-toolsenginejs)
-- **Camera shots.** `KIT.shot.pushIn`, `pullBack`, `crashZoom`, `whipPan`, `dollyZoom`, `orbit`, `craneRise`, `dutchRoll`,
-  plus hand-held drift and speed ramps, filmed onto a layer with `KIT.shoot`. Example: `projects/shots-hf`.
-- **Doodle theme.** A notebook-page look (Caveat, Patrick Hand, marker colours) and `KIT.doodle.underline`, `circle` and
-  `drawOn`: hand-drawn marks that draw on a spoken word and boil like redrawn frames. `"style": "doodle"`.
-- **Math and equations.** `KIT.math.axes`, `numberLine`, `plot`, `morph` and `equation` (typeset by the vendored
-  [KaTeX](vendor/katex/VENDORED.md)). Example: `projects/math-hf`.
-- **Beat sheets.** `reelwright beats import` / `export` moves a script between a spreadsheet CSV (or a `timeline` JSON) and
-  `project.json`.
-- **More QA.** `qa` adds `WARN` checks that never fail a build: overlapping text, tiny text, labels that repeat the voiceover,
-  long dark stretches, and AI-generated media shown without a label.
-- **Optional generation connector.** `reelwright gen` for AI stills and clips, off by default; see
-  [Connectors](#connectors-optional).
+Phase 10 brought the parts of the neighbouring video tools that fit this kit (HyperFrames, motion-design and camera
+libraries, Remotion, Manim) and rebuilt them as seekable, offline, pure-in-`t` code. Everything is opt-in: a film written
+for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to hyperframes films; every committed one
+passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
+source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
-Nothing in 0.2 changes how an existing film builds.
+**Parity, stated plainly.** 0.3.0 reaches parity on 222 of 601 audited features (EQUAL or BETTER); the rest are listed as
+planned or accepted exceptions in [docs/PARITY.md](docs/PARITY.md): 158 accepted exceptions (owner-approved 2026-11-12), 27
+planned for Phase 11, 168 partly built (the missing part planned) and 26 rows not yet tagged. Nothing planned is claimed as done.
+
+- **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
+  blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs
+  no server and no network, so it plays from `file://`, in the desktop app's side panel or as a private artifact.
+  [PLAYBOOK → Working with Claude](docs/PLAYBOOK.md#working-with-claude-brief--script--stills--taste--preview--render)
+- **Studio.** `reelwright studio` opens a local editor on `127.0.0.1:4175`: the film in the player, a timeline of VO lines,
+  scenes, beats and SFX cues, and an inspector for each line's text and gap, the style, title and fps, plus stills, taste
+  and embed jobs. It writes only `project.json` and `brand.json`, never film code, and never calls a paid service.
+  [PLAYBOOK → Studio](docs/PLAYBOOK.md#studio-reelwright-studio-toolsstudio)
+- **Recipes and the taste check.** [`docs/recipes/`](docs/recipes/README.md) has eight proven scenes (hook title, kinetic
+  line, stat count-up, chart, feature stagger, before/after, push-in, end card), each with its snippet and a still.
+  `node tools/checks/taste.page.mjs projects/<name>` (seconds, no render; `qa` prints the same as `WARN taste:`) flags
+  motion spikes, lopsided or empty frames, low contrast and VO that is too fast. It never fails a build.
+- **HyperFrames lint in QA.** `qa` runs the vendored `@hyperframes/lint` on hyperframes films: its errors are a gate, its
+  warnings are `WARN` lines. [PLAYBOOK → QA lint](docs/PLAYBOOK.md#qa-lint-for-hyperframes-films-toolscheckshf-lintpagemjs)
+- **Animation runtimes.** GSAP and its plugins, Lottie, anime.js v4, Three.js r187 and plain CSS/WAAPI, bundled and driven only
+  by seeking from `render(t)` (`KIT.gsap`, `KIT.lottie`, `KIT.anime`, `KIT.three`, `KIT.animations`). A `seekable-runtimes` QA gate
+  bans the paths that use real time or `Math.random`. GSAP is **not MIT** (Webflow's "Standard No Charge" licence, see
+  [THIRD_PARTY.md](THIRD_PARTY.md)). [PLAYBOOK → Animation runtimes](docs/PLAYBOOK.md#animation-runtimes-kitgsap-kitlottie-kitanime-kitthree-toolsruntimesjs)
+- **27 themes.** The eleven originals plus HyperFrames' three theme-pack looks and thirteen frame presets, each mapped to
+  the `--kit-*` tokens with a motion archetype and caption skin. `reelwright theme-brief "<what the product is>"` drafts a
+  theme from a one-line brief, offline. `node tools/theme-check.mjs` and `node tools/theme-gallery.mjs` check and picture them.
+- **Blocks and nested compositions.** `reelwright add <block>` brings in one of 136 supported HyperFrames blocks (of 210
+  upstream); `KIT.mount` / `KIT.block` drop it, or any HyperFrames composition file, into a film as one timed layer.
+- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (14 WebGL
+  transitions), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
+  `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`.
+- **Motion blur, grading and effects.** `"motionBlur": true` in `project.json`; `KIT.grade` (grade presets, vignette, grain,
+  LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer.
+- **Video clips and extra audio.** `KIT.video` (speed ramps, trims) and `KIT.audio` mix clips and sounds over the soundtrack.
+- **Sound.** New synthesised SFX kinds (shutter, sparkle, riser, subdrop, whoosh variants, …) and `house` and `hiphop` music
+  beds beside `chill` and `drive`.
+- **Doodle and math depth.** Pen strokes (pencil, riso, marker, …), a self-drawing score, pen lettering and depth seams;
+  `KIT.tex` (MathJax glyphs that write and morph), shapes, plots, vector fields and `KIT.math3d`.
+- **Output formats.** `--as webm|mov|gif|apng|png|hls` (or `"output"` in `project.json`), transparent alpha, HDR from the
+  hyperframes renderer, and `--formats 4x5` (1080×1350) and `16x10` (1920×1200).
+- **Optional renderers, opt-in.** `"renderer": "remotion"` renders a React film with Remotion; Manim scenes play as a layer in a
+  normal film (`reelwright manim`). Neither is bundled and nothing installs without a yes ([Renderers](#renderers)).
+  **Remotion is not open source:** free for individuals, companies of up to 3 people and non-profits, paid otherwise.
+- **Demo films in CI.** Every project with `"ci": true` (`blocks-hf`, `doodle2-hf`, `engine-hf`, `math2-hf`, `motion-hf`,
+  `runtimes-hf`) is built end to end on macOS, Windows and Ubuntu, and every `tools/selfcheck/*.mjs` runs.
+
+**0.2 in one paragraph:** a motion vocabulary (`KIT.easing`, `KIT.bezier`, `KIT.spring`, `KIT.keys`, `KIT.stagger`; themes set
+motion tokens), camera shots (`KIT.shot.*`), the doodle theme and hand-drawn marks, `KIT.math` charts and KaTeX equations,
+`beats` import/export for spreadsheet scripts, more `WARN` checks, and the optional paid `gen` connector (off by default,
+see [Connectors](#connectors-optional)).
 
 ---
 
@@ -104,14 +142,15 @@ Nothing in 0.2 changes how an existing film builds.
 | Capture a website | **Playwright** (`tools/capture_site.mjs`) | Scrolls first so scroll-animations fire, then saves each section, the full page and every image, plus the page's text, headings, colours and fonts (`site.json`). Read-only: form posts and other writes never leave the browser. |
 | Film or theme from a URL | `reelwright from-url`, `reelwright theme-from` (`tools/from_url.mjs`, `tools/theme_from.mjs`) | Drafts a whole project (script, look, screenshots) or a theme from a page, by rules — no AI service, no key. |
 | Use Figma designs | **Figma REST API** (`tools/figma_export.py`) | Exports every screen frame in a section as PNG — make a film from designs before the app exists. |
-| Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Camera shots (`tools/shots.js`), hand-drawn marks (`tools/doodle.js`) and charts, curves and equations (`tools/math.js`) load on top. Plus anything CSS, SVG or 3D transforms can draw. |
-| Render | **Playwright** (headless Chrome) → JPEG frames (`tools/renderers/pvk.mjs`), or **HyperFrames** (vendored, `tools/renderers/hyperframes.mjs`) | Deterministic, 60 fps, parallel pages. 16x9, 9x16 or 1x1 from one edit. See [Renderers](#renderers). |
+| Edit / animate | **HTML + CSS + JS "director"** (`film/film.js` + `tools/engine.js`) | The edit is code: `render(t)` draws the frame at time *t*. Built in: phone and browser mock-ups, a cursor that follows the recorded mouse, magnifier lens, counters, karaoke subtitles, words that appear as spoken. Camera shots (`tools/shots.js`, `shots2.js`), hand-drawn marks (`tools/doodle.js`, `doodle2.js`), charts, curves and equations (`tools/math.js`, `tex.js`, `plot2.js`, `math3d.js`), transitions, paths and the animation runtimes load on top. Plus anything CSS, SVG or 3D transforms can draw. |
+| Render | **Playwright** (headless Chrome) → JPEG frames (`tools/renderers/pvk.mjs`), or **HyperFrames** (vendored, `tools/renderers/hyperframes.mjs`); optionally **Remotion** | Deterministic, 60 fps, parallel pages. 16x9, 9x16, 1x1, 4x5 or 16x10 from one edit. See [Renderers](#renderers). |
 | Voiceover | **edge-tts** — Microsoft neural voices, free, no account (`tools/vo.py`) | Natural voices (Andrew, Ava, Hindi Swara…) **with word timings**, so visuals land on exact words. |
-| Music | Any track (e.g. **Mixkit**, free licence) + beat-grid fit (`tools/beatgrid.py`), or a built-in original soundtrack: `chill` or `drive` (with a drop and a final hit) (`tools/music.py`) | Cuts land on the beat. The fit measures the real tempo from the drums — never trust a listed BPM. |
-| Sound effects | Synthesised in **numpy** (`tools/mix.py`) | Whooshes, taps, pops, impacts, chimes — generated, no sample licences. Placed by `cue()` calls in the film. |
+| Music | Any track (e.g. **Mixkit**, free licence) + beat-grid fit (`tools/beatgrid.py`), or a built-in original soundtrack: `chill`, `drive`, `house` or `hiphop` (the last three with a drop and a final hit) (`tools/music.py`) | Cuts land on the beat. The fit measures the real tempo from the drums — never trust a listed BPM. |
+| Sound effects | Synthesised in **numpy** (`tools/mix.py`) | Whooshes, taps, pops, risers, impacts, chimes — generated, no sample licences. Placed by `cue()` calls in the film. |
 | Mix | **numpy + ffmpeg loudnorm** (`tools/mix.py`) | Music ducks under the voice automatically; output normalised to −14 LUFS (YouTube/Instagram level). |
-| Encode | **ffmpeg** (H.264 + AAC) | Plays everywhere: WhatsApp, Slack, Drive, YouTube, Keynote. |
-| QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked; plus `WARN` checks that never fail. Contact sheet of stills to review the whole film at a glance. |
+| Encode | **ffmpeg** (H.264 + AAC) | Plays everywhere: WhatsApp, Slack, Drive, YouTube, Keynote. Optional extra outputs: webm, ProRes mov, gif, apng, png frames, HLS, with alpha. |
+| QA | `tools/qa.py`, `tools/qa_page.mjs`, `tools/sheet.py` | Finds blank frames and jumpy cuts, then gates that fail the build: loudness, caption fit and contrast, flashing (photosensitivity), an "Illustrative data" label on numbers, and code that can't be seeked (plus the HyperFrames lint for hyperframes films); `WARN` checks that never fail, including a taste check (motion, balance, empty frames, contrast, pacing). Contact sheet of stills to review the whole film at a glance. |
+| Preview / edit | `reelwright preview` (scrubber), `embed` (one self-contained page), `studio` (local editor); the vendored HyperFrames player (`vendor/hf-player/`) | Look at the film without rendering it: `embed` plays offline from `file://` or as an artifact, `studio` edits the script, gaps and look. |
 
 Optional: a coding agent in this folder (Claude Code, Codex, Antigravity, OpenCode, …) does all of the above from plain English; its instructions are in [AGENTS.md](AGENTS.md) (`CLAUDE.md` imports it).
 
@@ -132,8 +171,8 @@ Every command is `node bin/reelwright.mjs <command> [project]` on any platform (
 | Platform | Status |
 |---|---|
 | **macOS** (Apple Silicon or Intel) | ✅ Supported. All the sample films were made on a Mac. |
-| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds both example films on Ubuntu, macOS and Windows for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
-| **Windows 10 / 11** | ✅ Native, no WSL. CI builds both example films on Windows for every commit; nobody has tried it on a real Windows machine yet, so reports welcome. Use `node bin/reelwright.mjs` where the docs say `./video.sh`. |
+| **Linux** (Ubuntu / Debian) | ✅ Supported. CI builds both example films and the `"ci": true` demo films, and runs every self-check, on Ubuntu, macOS and Windows for every commit. Other distros work if you install ffmpeg, Node and Python yourself. |
+| **Windows 10 / 11** | ✅ Native, no WSL. CI builds the example and demo films on Windows for every commit; nobody has tried it on a real Windows machine yet, so reports welcome. Use `node bin/reelwright.mjs` where the docs say `./video.sh`. |
 
 Fonts: themed films use the bundled fonts in `fonts/`, so they look the same everywhere. Older samples without a
 `"style"` use the system UI font, which is San Francisco on macOS and a fallback elsewhere.
@@ -210,12 +249,15 @@ Preview without rendering: `./video.sh preview my-film` opens a live scrubber at
 the film's own page (so a frame there is the frame the renderer makes), a slider stepping whole frames
 (←/→ one frame, shift ±1 s, space plays with sound), and the `mix.wav` waveform with the VO lines, SFX cues,
 beats, bars and the drop marked. Saving film.js, data, the theme or the kit reloads it at the same moment; a
-`project.json` edit shows "script changed: run `reelwright audio`". Or render stills:
+`project.json` edit shows "script changed: run `reelwright audio`". `./video.sh embed my-film` writes one
+self-contained page (`out/embed.html`, plays offline from `file://`) to hand to someone, and `./video.sh studio my-film`
+opens a local editor for the script, gaps and look (see [What's new in 0.3](#whats-new-in-03)). Or render stills:
 ```bash
 ./video.sh sched my-film && ./video.sh stills my-film          # 12 evenly spaced stills + stills/sheet.jpg
 ./video.sh stills my-film 3.2,7.8,15                            # specific moments
 ./video.sh remix my-film     # the 25/50/75 % moments in the 3 themes furthest from yours, as 16x9, 9x16 and 1x1
 ```
+Before a full render, `node tools/checks/taste.page.mjs projects/my-film` prints taste `WARN`s in seconds.
 `remix` writes `stills-remix/sheet.jpg`, one labelled row per look; pick one with `"style"` in project.json.
 It also runs the variety check (a `qa` line too): a WARN when another film in `projects/` uses the same
 theme, or the same fonts, a palette within ΔE 10 and the same `KIT.layout` scenes.
@@ -249,25 +291,46 @@ compares them to the manifest — identical on the same machine. What can differ
 ## Renderers
 
 `"renderer"` in `project.json` picks how frames are drawn. Everything else (voice, timing, music, mix, encode,
-captions, QA) is the same for both, and both run the same engine (`W`, `V`, `KIT.snap`, `cue`, themes, layouts).
+captions, QA) is the same for all of them, and they run the same timing helpers (`W`, `V`, `KIT.snap`, `cue`, themes).
 
 | | `"pvk"` (default) | `"hyperframes"` |
 |---|---|---|
 | Film lives in | `film/index.html` + `film/film.js` | `hf/index.html` + `hf/film.js` (a HyperFrames composition) |
 | Drawn by | Playwright pages calling `render(t)` | the vendored HyperFrames engine (`vendor/hyperframes/`) |
-| Use it for | screen recordings: phone/browser mock-ups, the recorded take, cursor, magnifier | motion-graphics films: titles, charts, catalog components (`reelwright add`) |
+| Use it for | screen recordings: phone/browser mock-ups, the recorded take, cursor, magnifier | motion-graphics films: titles, charts, blocks and catalog components (`reelwright add`), shader transitions, grading, HDR |
 | Re-renders | incremental: unchanged frames come from `.cache/frames/` | always the whole film |
 | Start one | `./video.sh new my-film` | `./video.sh new my-film --renderer hyperframes` |
 
 Pick pvk when the film is built around a recording of your product; pick HyperFrames when it's mostly type,
-shapes and data and you want catalog components. `projects/example` and `projects/example-hf` are the starters.
+shapes and data and you want blocks and components. `projects/example` and `projects/example-hf` are the starters.
+
+**Optional, opt-in.** Two more things ship as files only; nothing is installed until you say yes.
+
+- **Remotion** (`"renderer": "remotion"`): a film written in React (`rm/src/Film.jsx`), for when you need something from the
+  Remotion ecosystem. `./video.sh new my-film --renderer remotion` copies `templates/remotion`; the first `all` shows
+  Remotion's licence notice and installs the pinned versions into `projects/my-film/rm/` (about 250 MB) only after you type
+  `yes` (with no terminal it prints the notice and exits). Renders use Playwright's browser, and renders are muted: the mix is
+  Reelwright's. **Licence caveat:** Remotion is not open source. It is free for individuals, for-profit companies of up to 3
+  people and non-profits; any other company needs a paid Company License (remotion.pro/license). Using this renderer makes
+  you a Remotion user; Reelwright is not affiliated with Remotion and does not grant a licence. Not run on Windows; no
+  `preview`, `hdr`, `motionBlur` or shader windows. [PLAYBOOK → Remotion](docs/PLAYBOOK.md#the-remotion-renderer-optional-renderer-remotion)
+- **Manim** (scenes as a layer, not a whole-film renderer): most of what Manim authors do is native (`KIT.math`, `KIT.tex`,
+  `KIT.math3d`); use real Manim only for full LaTeX, Pango text, plug-ins or scenes you already have. `reelwright manim
+  <project> install ce` prints the plan and downloads nothing; with `--yes` it creates one shared venv, `<repo>/.venv-manim`
+  (gitignored, about 125 MB, Python 3.12 via uv). Scenes render to cached alpha clips (`manim <project> render`, after
+  `sched`; `all` does not run Manim) and play with `KIT.manim(id)`. Manim CE 0.22.1 is verified on macOS arm64; Windows and
+  Linux installs, and ManimGL, are untested. [PLAYBOOK → Optional Manim scenes](docs/PLAYBOOK.md#optional-manim-scenes-reelwright-manim-kitmanim)
 
 ## Themes, layouts and formats
 
 **Themes** — `"style": "<name>"` in `project.json` (or `--style <name>` for one build, output `<out>-<name>.mp4`)
-picks `themes/<name>.css`: colours, fonts, radius, shadows, caption style and motion (easing, tempo). Eleven ship:
-editorial, brutalist, pastel, dark-tech, playful, retro, swiss, luxury, clean, neon, doodle (`./video.sh themes` lists
-them). The fonts are bundled in `fonts/` (SIL OFL, see [fonts/LICENSES.md](fonts/LICENSES.md)), so macOS, Windows
+picks `themes/<name>.css`: colours, fonts, radius, shadows, caption style and motion (easing, tempo). 27 ship (`./video.sh themes`
+lists them): eleven of ours (editorial, brutalist, pastel, dark-tech, playful, retro, swiss, luxury, clean, neon, doodle), the
+three HyperFrames theme-pack looks (hf-bold, hf-editorial, hf-neutral) and thirteen ported HyperFrames frame presets
+(biennale-yellow, blockframe, blue-professional, bold-poster, broadside, capsule, cartesian, cobalt-grid, code-editorial,
+coral, creative-mode, daisy-days, editorial-forest). The picture of all of them is in the
+[PLAYBOOK → Themes](docs/PLAYBOOK.md#themes-themescss-style-theme-check-theme-gallery). `theme-brief` drafts a theme from a
+one-line product description (offline), `theme-from` from a site or image. The fonts are bundled in `fonts/` (SIL OFL, see [fonts/LICENSES.md](fonts/LICENSES.md)), so macOS, Windows
 and Linux render the same type. An optional `brand.json` in the project overrides colours, fonts and logo on top
 of the theme; `theme-from` drafts a theme from a site or image (see below).
 
@@ -275,9 +338,11 @@ of the theme; `theme-from` drafts a theme from a site or image (see below).
 (`tools/layouts.js`): ready-made scenes styled from the theme and sized to the safe area. `projects/layouts-hf`
 shows all of them; the playbook says when to use each.
 
-**Formats** — `--formats 16x9,9x16,1x1` on `film`, `all`, `stills`, `frames`, `encode` or `qa` builds 1920×1080,
-1080×1920 and 1080×1080 from one `film.js`: audio once, then `out/<name>-<fmt>.mp4`. `KIT.fmt`, `KIT.safe` and
-`KIT.u` let the edit adapt.
+**Formats** — `--formats 16x9,9x16,1x1,4x5,16x10` on `film`, `all`, `stills`, `frames`, `encode` or `qa` builds 1920×1080,
+1080×1920, 1080×1080, 1080×1350 and 1920×1200 from one `film.js`: audio once, then `out/<name>-<fmt>.mp4`. `KIT.fmt`,
+`KIT.safe` and `KIT.u` let the edit adapt. `--as webm|mov|gif|apng|png|hls` (or `"output"` in `project.json`) writes an extra
+file beside the mp4, with transparent alpha where the format has it; the mp4 is always written
+([PLAYBOOK → Output formats](docs/PLAYBOOK.md#output-formats-alpha-hdr-45-output---as---formats)).
 
 **Languages** — add `"langs": { "es": { "voice": "es-ES-AlvaroNeural", "lines": { "<id>": "…" } } }` to
 `project.json`, then `./video.sh all my-film --lang es` → `<out>-es.mp4` with Spanish voice and captions. Every
@@ -290,8 +355,9 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 
 | Command | What it does |
 |---|---|
-| `new <name> [--renderer hyperframes]` | copy the example (or example-hf) into `projects/<name>` |
-| `add <component>` | copy a HyperFrames catalog component into `<project>/hf/blocks/` (then `KIT.block('<component>')`) |
+| `new <name> [--renderer hyperframes\|remotion]` | copy the example (or example-hf, or `templates/remotion`) into `projects/<name>` |
+| `add [project] <name>` | a HyperFrames catalog component → `<project>/hf/blocks/<name>.html` (use with `KIT.block`), or a HyperFrames block → `<project>/hf/compositions/<name>.html` (use with `KIT.mount`; hyperframes films only); prints the title, duration, variables and usage line |
+| `add --list [tag]` | the supported blocks and components |
 | `record` | run `record.mjs` → the screen take (`clips/`) + `film/clip.js` |
 | `vo` | voiceover from `project.json` lines → `vo/` (only changed lines regenerate) |
 | `beatgrid` | fit the beat grid of `music/track.mp3` → `music/grid.json` |
@@ -302,14 +368,18 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `stills [t,t,..]` | preview frames → `stills/` + `stills/sheet.jpg` |
 | `frames` | render every frame → `frames/` (`--no-cache` to skip the frame cache) |
 | `encode` | frames + `mix.wav` → the mp4, plus `.srt`, `.vtt` and `.manifest.json` beside it |
-| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable), WARN checks (overlap, tiny-text, wordy, dark) and a variety line |
+| `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable; for hyperframes films also the HyperFrames lint and `seekable-runtimes`), WARN checks (overlap, tiny-text, wordy, dark, taste, lint warnings) and a variety line |
 | `verify` | inputs still match the manifest and a fresh render gives the same frames |
 | `preview` | live scrubber at http://localhost:4173 |
+| `embed [project] [--out <file.html>]` | one self-contained preview page → `<project>/out/embed.html` (`sched` runs first): the film with every script, style, font, image and block inlined, played by the vendored HyperFrames player with `mix.wav`; works offline, from `file://` and as an artifact; add `#12.5` to open at a moment; lists any file the page still asks the network for |
+| `studio [project] [--port N]` | local editor at http://localhost:4175 (`PORT=…` works too): film in the player, timeline of lines, scenes, beats and cues, inspector for each line's text and gap, style, title and fps, raw `project.json` / `brand.json` editors, stills, taste and embed jobs; writes only those two files, listens on 127.0.0.1 |
 | `remix` | stills in the 3 themes furthest from yours × 16x9, 9x16, 1x1 → `stills-remix/sheet.jpg` |
 | `clean` | delete `frames/`, `stills/`, `.cache/` and intermediate audio (keeps the mp4) |
 | `themes` | list the themes |
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
+| `theme-brief "<what the product is>" [name]` | draft `themes/<name>.css` from a one-line brief ("budgeting app for students"): the best-matching product type's palette, font pairing and mood from the `ui-ux-pro-max` data (MIT), fonts mapped to the bundled OFL families; prints what it picked, what to avoid and the theme check; offline |
+| `manim [project] install [ce\|gl] [--yes] \| doctor [ce\|gl] \| render [--force] \| verify` | optional Manim scenes (`"manim"` block in `project.json`, `KIT.manim` in `film.js`): `install` prints what it would download into `<repo>/.venv-manim` and does it only with `--yes`; `render` runs after `sched` and after any VO change (`all` does not run Manim); exit 1 on any problem |
 | `beats [project] import <file.csv\|timeline.json> [--replace] \| export [file.csv] [--replace]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; only those keys change; `--replace` overwrites (on export: an existing csv) |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
@@ -317,7 +387,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image\|video] [--yes]` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
 | `gen [project] --import <file> --source firefly\|express "<note>"` | register a file made in Firefly or Express in `assets/gen.json` (offline) |
 
-Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1`, `--no-cache` (above). Environment:
+Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1,4x5,16x10`, `--as <format>` (webm, mov, gif, apng, png, hls: an extra output beside the mp4), `--no-cache` (above). Environment:
 `PAGES=6` (parallel browser pages), `FPS`, `BROWSER=chrome|chromium`, `PYTHON`.
 
 `gen` is off by default and needs a key for Higgsfield; setup, costs and the manual Firefly/Express route are in
@@ -381,8 +451,9 @@ without it nothing needs a key, an account or a network beyond what the core alr
 Keys, costs, errors, terms and how to add a provider: [docs/CONNECTORS.md](docs/CONNECTORS.md).
 
 **Works without any connector:** `new`, `add`, `record`, `vo`, `beatgrid`, `sched`, `info`, `music`, `mix`, `stills`, `frames`,
-`encode`, `qa`, `verify`, `preview`, `remix`, `clean`, `themes`, `from-url`, `theme-from`, `beats`, `all`, `audio` and `film`.
-Only `gen` is optional. (`vo` and `from-url` use the internet as before: edge-tts, and the page you point it at.)
+`encode`, `qa`, `verify`, `preview`, `embed`, `studio`, `remix`, `clean`, `themes`, `from-url`, `theme-from`, `theme-brief`, `beats`,
+`all`, `audio` and `film`. Only `gen` is optional. (`vo` and `from-url` use the internet as before: edge-tts, and the page you point
+it at. `manim` and the Remotion renderer need their own opt-in installs, see [Renderers](#renderers).)
 
 ---
 
@@ -416,7 +487,7 @@ HyperFrames' own cloud rendering (AWS Lambda) isn't used: it's paid.
 ## Folder layout
 
 ```
-bin/reelwright.mjs          every build step (video.sh is a wrapper for it)
+bin/reelwright.mjs          every build step (video.sh is a wrapper for it); loads the plug-in commands
 bin/pvk                     video.sh from any folder (adds Homebrew's ffmpeg to PATH)
 setup.mjs, setup.sh         one-time setup
 tools/                      shared — you rarely edit these
@@ -424,24 +495,43 @@ tools/                      shared — you rarely edit these
   render.mjs                stills / frames / encode, through the renderer project.json picks
   renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
+  renderers/remotion.mjs    the opt-in "renderer": "remotion" (installs nothing without a yes)
+  renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs   KIT.video frames and the KIT.shader transition pass
+  commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief (header = its help)
+  checks/                   plug-in QA checks: hf-lint, seekable-runtimes, taste (WARN or gate declared in the file)
+  studio/                   reelwright studio: server, page and the preview shims it shares with embed
+  selfcheck/                CI self-checks (node tools/selfcheck/<name>.mjs): runtimes, motion, themes, studio, sound, …
   layouts.js, theme.mjs     KIT.layout.* scenes; writes each film's theme.css from themes/ + brand.json
-  shots.js, doodle.js, math.js   KIT.shot.* camera moves, KIT.doodle.* hand-drawn marks, KIT.math.* charts and equations
+  shots.js, shots2.js       KIT.shot.* camera moves; the second file adds tour, planes (parallax), bulletTime, rackFocus, dof
+  doodle.js, doodle2.js     KIT.doodle.* hand-drawn marks; pen strokes, score, lettering, seams
+  math.js, math2.js, tex.js, plot2.js, math3d.js   KIT.math.* charts, KIT.tex (MathJax), shapes, plots and fields, KIT.math3d
+  runtimes.js               KIT.gsap, KIT.lottie, KIT.anime, KIT.three, KIT.animations — seek-only
+  path.js, transitions.js, motion.js, shaders.js   KIT.path, KIT.transition, KIT.rate / indicate / typewriter / sim, KIT.shader
+  compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
+  manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer
+  theme-check.mjs, theme-gallery.mjs, theme_from.mjs   check, picture and draft themes (theme-brief is in commands/)
   beats.mjs                 reelwright beats: beat-sheet CSV / timeline JSON <-> project.json
   gen.mjs, gen/             reelwright gen: optional generation connector (Higgsfield) and manual import; off by default
   motion-check.mjs          self-check of the easing, spring, doodle and math code (node tools/motion-check.mjs)
   vo.py, sched.py           voiceover + placing it on the timeline
-  beatgrid.py, music.py     music tempo fit + music bed
+  beatgrid.py, music.py     music tempo fit + music bed (chill, drive, house, hiphop)
   mix.py                    voice + ducked music + SFX → mix.wav
   qa.py, qa_page.mjs, sheet.py   checks, QA gates and contact sheets
   preview.mjs, preview.html the live scrubber (reelwright preview)
   look.mjs                  a film's resolved look: remix's theme pick and the variety check
   manifest.mjs              <out>.manifest.json and reelwright verify
   capture_site.mjs, figma_export.py, browser.mjs
-  from_url.mjs, theme_from.mjs, from_url/   reelwright from-url / theme-from and the film template they copy
+  from_url.mjs, from_url/   reelwright from-url and the film template it copies
   smoke.mjs                 can this machine render? one frame each from Chromium and HyperFrames
-vendor/hyperframes/         HyperFrames (Apache 2.0): render packages + catalog components, see VENDORED.md
-vendor/katex/               KaTeX (MIT), typesets KIT.math.equation, see VENDORED.md
-themes/                     the eleven themes (themes/<name>.css), plus any theme-from writes
+vendor/hyperframes/         HyperFrames (Apache 2.0): render packages, lint, blocks and catalog components, see VENDORED.md
+vendor/hf-player/           the HyperFrames player (Apache 2.0) behind embed and studio
+vendor/gsap/ lottie/ anime/ three/ three-r147/   animation runtimes behind tools/runtimes.js (GSAP is not MIT, see its LICENSE-GSAP.md)
+vendor/katex/ mathjax/ flubber/ paths/           math and paths: KIT.math.equation, KIT.tex, morphs, KIT.path
+vendor/d3/ topojson-client/ world-atlas/ us-atlas/   what the map blocks load
+vendor/ui-ux-pro-max/       product-type data behind theme-brief (MIT)
+python/reelwright_manim/    the Manim adapter (RWScene, frame-quantised timing); Manim itself is installed on request into .venv-manim
+templates/remotion/         what new --renderer remotion copies; Remotion is installed per project, never bundled
+themes/                     the 27 themes (themes/<name>.css), plus any theme-from / theme-brief writes
 fonts/                      bundled OFL fonts and LICENSES.md (fetch.mjs re-downloads them)
 cloud/                      reelwright_colab.ipynb + colab_build.py: free rendering in Colab, files in Drive
 projects/
@@ -450,20 +540,26 @@ projects/
   layouts-hf/               every KIT.layout scene, in the editorial theme
   shots-hf/                 camera shots (KIT.shot.*) and a doodle underline, in the dark-tech theme
   math-hf/                  axes, a plotted curve, a morph and a typeset equation (KIT.math.*)
-  qa-broken/                trips every QA gate on purpose (CI checks that it fails)
+  blocks-hf/ doodle2-hf/ engine-hf/ math2-hf/ motion-hf/ runtimes-hf/   the 0.3 demo films ("ci": true, built in CI)
+  manim-hf/                 a real Manim scene as a layer (needs `manim install`, so not in CI)
+  qa-broken/, qa-broken-lint/   trip the QA gates on purpose (CI checks that they fail)
   teaser/ website/ stats/ dashboard/ reel/   the other sample films — each shows different techniques
 projects/<name>/
   project.json              script, voice, music, size, output path
   record.mjs                the screen take
   film/index.html, film.js  the look (CSS) and the edit
-  hf/index.html, film.js    the same, for "renderer": "hyperframes"; hf/blocks/ holds catalog components
-                            (reelwright add <project> <component>, then KIT.block('<component>') in film.js)
+  hf/index.html, film.js    the same, for "renderer": "hyperframes"; hf/blocks/ holds catalog components, hf/compositions/ blocks
+                            (reelwright add <project> <name>, then KIT.block / KIT.mount in film.js)
+  rm/                       the same, for "renderer": "remotion" (src/Film.jsx; node_modules installed there on request)
+  manim/                    Manim scene files, when the film uses any
   demo-app/                 (example only) the fake app being filmed
   .cache/frames/            rendered frames by fingerprint (reused by frames; clean deletes it)
-docs/PLAYBOOK.md            what makes these films good — read before your first real one
+docs/PLAYBOOK.md            what makes these films good — read before your first real one (topic sources in docs/playbook/)
+docs/recipes/               eight proven scenes with a snippet and a still each, from one real film
+docs/parity/                the audit of each source we ported from (HyperFrames, Remotion, Manim, …), one file per source
 docs/CONNECTORS.md          the optional generation connector: keys, costs, manual Firefly / Express import
 docs/REPRODUCIBLE.md        the manifest, verify, and what can differ across operating systems
-docs/archive/plans/         how this repo was built: the plan, phase specs and their status
+docs/plans/, docs/archive/plans/   how this repo was built: the plans, phase specs and their status
 NOTICE, THIRD_PARTY.md      licenses of the vendored code, fonts and tools
 ```
 
@@ -487,5 +583,7 @@ Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more e
 Code: [MIT](LICENSE). The example app, script and sounds are original and covered by the same licence.
 Voices are generated by Microsoft Edge's online TTS through [edge-tts](https://github.com/rany2/edge-tts) —
 check Microsoft's terms for your use. Third-party code, fonts and tools: [THIRD_PARTY.md](THIRD_PARTY.md) and [NOTICE](NOTICE). `vendor/hyperframes/` is HyperFrames by HeyGen under
-[Apache 2.0](vendor/hyperframes/LICENSE) ([what we took and changed](vendor/hyperframes/VENDORED.md)). Music you add is under its own licence (e.g. the
+[Apache 2.0](vendor/hyperframes/LICENSE) ([what we took and changed](vendor/hyperframes/VENDORED.md)). `vendor/gsap/` is GSAP under Webflow's
+"Standard No Charge" licence, **not MIT** ([LICENSE-GSAP.md](vendor/gsap/LICENSE-GSAP.md)). Remotion is not open source and is never bundled
+(see [Renderers](#renderers)); Manim is installed on request into its own venv. Music you add is under its own licence (e.g. the
 [Mixkit licence](https://mixkit.co/license/)); it is never committed (see `.gitignore`).

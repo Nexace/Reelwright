@@ -1,0 +1,1 @@
+{ "about": "Copied into hf/kit/polygon-clipping/ for HyperFrames films (tools/kit_files.mjs). KIT.math.bool (tools/manim-grid.js) loads polygon-clipping.umd.min.js before it.", "licence": "MIT, see LICENSE; bundles splaytree (MIT) and a Microsoft TypeScript-helper notice (Apache-2.0), see THIRD_PARTY.md" }

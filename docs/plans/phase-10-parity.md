@@ -182,10 +182,3 @@ Before deleting, the exact list with sizes is shown (as in Phases 8 and 9e).
 > own worktree, touching only the files it owns. Use subagent-driven development with explicit model and effort per
 > subagent. Ask before vendoring anything not listed, adding a dependency, deleting files or any paid call. Exit test
 > passes → merge `main` in, push, report CI; the owner decides the merge.
-
-## After Phase 10 (owner, 2026-11-09)
-
-- **Figma as the design step.** Claude designs the film's UI screens and scene frames in Figma (Figma MCP: create the file,
-  build frames with the film's theme tokens as Figma variables), then the film uses them: export through the MCP (no
-  token) or `tools/figma_export.py`. The skill gains a "design in Figma" step between script and scenes. Creating Figma
-  files is an outward action: ask before each new file.

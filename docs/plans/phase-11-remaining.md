@@ -117,10 +117,10 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
 
 | Wave | Package | State |
 |---|---|---|
-| 1 | P1 P2 P3 P4 | not started |
+| 1 | P1 P2 P3 P4 | running (dispatched 2026-11-13) |
 | 2 | P5 P6 P7 P8 | not started |
 | 3 | P9 P10 P11 | not started |
-| 0 | triage and assignments | not started |
+| 0 | triage and assignments | done: docs/plans/phase-11-assignments.md (221 rows); owner rulings 2026-11-13: vendor dotLottie, polygon-clipping, shiki; Remotion transcribe = exception |
 | 4 | close-out, final release | not started |
 
 ## Start prompt (paste into a new session in this repo)

@@ -121,8 +121,8 @@ After all waves are done: run the final cleanup (the cleanup list), then release
 
 | Wave | Package | State |
 |---|---|---|
-| 1 | P1 P2 P3 P4 | running (dispatched 2026-11-13) |
-| 2 | P5 P6 P7 P8 | not started |
+| 1 | P1 P2 P3 P4 | merged, verified, 110 rows flipped (332/601) |
+| 2 | P5 P6 P7 P8 | running (dispatched 2026-11-13) |
 | 3 | P9 P10 P11 | not started |
 | 0 | triage and assignments | done: docs/plans/phase-11-assignments.md (221 rows); owner rulings 2026-11-13: vendor dotLottie, polygon-clipping, shiki; Remotion transcribe = exception |
 | 4 | close-out, final release | not started |

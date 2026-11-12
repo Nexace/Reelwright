@@ -22,10 +22,10 @@ Compiled 2026-11-12 from the five per-source checklists in [docs/parity/](parity
 | State | Rows |
 |---|--:|
 | EQUAL, BETTER or EQUAL/BETTER | 222 |
-| Accepted exceptions (owner-approved 2026-11-12) | 154 |
+| Accepted exceptions (owner-approved 2026-11-12) | 158 |
 | Planned (Phase 11), not claimed | 27 |
 | Partial: some shipped, the rest planned (open) | 168 |
-| Proposed exceptions waiting for the owner | 4 |
+| Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 26 |
 | **Total** | **601** |
 
@@ -641,19 +641,19 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 | 8 | Image generation per scene, with reference image(s) | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen/higgsfield.mjs` text-to-image only (`gen --kind image`, default `higgsfield-ai/soul/standard`; tools/gen/higgsfield.mjs). No… |
 | 9 | Image-to-video (animate each still; camera move + action, duration, r… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen/higgsfield.mjs` text-to-video only; default `kling-video/v2.5-turbo/pro/text-to-video` (tools/gen/higgsfield.mjs) |
 | 10 | Motion transfer / video-reference recreation: reuse a supplied clip's… | MISSING — exception (owner-approved 2026-11-12) | as generation. The *process* (map + compare) is docs-only |
-| 11 | Preset gallery: 10 looks (kinetic typography, glass UI launch, produc… | PARTIAL — proposed exception, awaiting the owner | `themes/layouts` 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel… |
+| 11 | Preset gallery: 10 looks (kinetic typography, glass UI launch, produc… | PARTIAL — exception (owner-approved 2026-11-12) | `themes/layouts` 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel… |
 | 12 | Timeline-per-preset (start_s/end_s/label sections) | EQUAL | `tools/beats.mjs` |
-| 13 | Prompt craft rules: viewer takeaway first; each beat reveals somethin… | PARTIAL — proposed exception, awaiting the owner | `docs/PLAYBOOK.md,` Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); readin… |
+| 13 | Prompt craft rules: viewer takeaway first; each beat reveals somethin… | PARTIAL — exception (owner-approved 2026-11-12) | `docs/PLAYBOOK.md,` Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); readin… |
 | 14 | Text-on-screen handled by the model (garbled text risk) vs exact over… | BETTER | `tools/qa_page.mjs` |
 | 15 | Prompt-fix recipes: no morphing, one-direction camera, name elements… | MISSING — exception (owner-approved 2026-11-12) | as docs; only meaningful with generation |
 | 16 | Music generation (sonilo_music, prompt + duration, covers full length) | EQUAL/BETTER | `tools/music.py` |
-| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL — proposed exception, awaiting the owner | `tools/mix.py,` (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tool… |
+| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/mix.py,` (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tool… |
 | 18 | Assembly (Remotion): clips in order, no per-scene transitions, one 0.… | BETTER | `tools/sched.py` |
 | 19 | Generation orchestration: batches of 3 (plan concurrency), `--wait`,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen.mjs,` one request at a time, poll 2 s x1.5 to 10 s, 15 min timeout, 429 Retry-After, cache, estimate then confirm (… |
 | 20 | Cost control / access preflight ("estimate, never generate as a probe… | BETTER | `docs/CONNECTORS.md,` |
 | 21 | Asset management: scene folders, backups `still-v1`, manifest of prom… | PARTIAL — exception (owner-approved 2026-11-12) | `docs/CONNECTORS.md` /BETTER: `assets/gen.json` (file, provider, model, kind, prompt, date, sha256, host), cache keyed by provider… |
 | 22 | Asset provenance and AI labelling | BETTER | `tools/qa_page.mjs,` |
-| 23 | Review checklist: requirement+time / planned asset / observed result+… | PARTIAL — proposed exception, awaiting the owner | `tools/qa.py` automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet… |
+| 23 | Review checklist: requirement+time / planned asset / observed result+… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/qa.py` automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet… |
 | 24 | Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen.mjs` changing the prompt -> new cache key -> pays again, old cached file kept in `.gen` (tools/gen.mjs) so compari… |
 | 25 | Add a beat mid-production (new row, new assets, recompute duration, r… | BETTER | `tools/music.py,` |
 | 26 | One-complete-film request: all timed shots in a single video prompt w… | MISSING — exception (owner-approved 2026-11-12) | as generation (gen has no multi-shot prompt builder). The same *structure* is Reelwright's own beats + film.js |
@@ -667,9 +667,9 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 222 EQUAL/BETTER, 154 accepted exceptions, 27 planned, 168 partial, 4 proposed, 26 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 222 EQUAL/BETTER, 158 accepted exceptions, 27 planned, 168 partial, 0 proposed, 26 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
-### Accepted exceptions (154, owner-approved 2026-11-12)
+### Accepted exceptions (158, owner-approved 2026-11-12)
 
 Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and rows the re-audit tagged `[10z: except]` or "Suggest: accept as exception" (reason = the row's own note).
 
@@ -822,7 +822,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `doodle-shots-motion:4.22` — ScrollTrigger, ScrollSmoother, ScrollTo, Observer, Draggable, Inertia, matchMedia, ticker/delayedCa… — N/A — reason: Not seekable / not deterministic, so kept out by the seekable gate
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — reason: Not applicable by design (N/A, UNVERIFIED, DIFFERENT)
 
-#### Higgsfield workflows (docusphere, cth9191) (17)
+#### Higgsfield workflows (docusphere, cth9191) (21)
 
 - `higgsfield-workflows:1` — Style locking: three fixed text blocks (image style, video style, avoid-list) reused verbatim for e… — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:2` — Style reference sheet: generate one master board image, get approval, attach to EVERY later generat… — MISSING — reason: Paid-connector-only (Higgsfield)
@@ -831,9 +831,13 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `higgsfield-workflows:8` — Image generation per scene, with reference image(s) — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:9` — Image-to-video (animate each still; camera move + action, duration, resolution, optional baked audi… — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:10` — Motion transfer / video-reference recreation: reuse a supplied clip's choreography with a new subje… — MISSING — reason: Paid-connector-only (Higgsfield)
+- `higgsfield-workflows:11` — Preset gallery: 10 looks (kinetic typography, glass UI launch, product hyper-motion, tropical produ… — PARTIAL — reason: Paid-connector-only (Higgsfield)
+- `higgsfield-workflows:13` — Prompt craft rules: viewer takeaway first; each beat reveals something; "headline hidden" meaning t… — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:15` — Prompt-fix recipes: no morphing, one-direction camera, name elements by position, always repeat sty… — MISSING — reason: Paid-connector-only (Higgsfield)
+- `higgsfield-workflows:17` — Audio design: sound effects baked per clip, VO separate, music continuous at ~0.25, clip audio ~0.3 — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:19` — Generation orchestration: batches of 3 (plan concurrency), `--wait`, timeouts — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:21` — Asset management: scene folders, backups `still-v1`, manifest of prompts/models/job ids, "save exac… — PARTIAL — reason: Paid-connector-only (Higgsfield)
+- `higgsfield-workflows:23` — Review checklist: requirement+time / planned asset / observed result+timestamp / pass-fail-not-insp… — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:24` — Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked), regenerate, keep first resu… — PARTIAL — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:26` — One-complete-film request: all timed shots in a single video prompt with design-world, motion-rules… — MISSING — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:27` — Reference roles: identity vs style vs start/end frame vs motion; storyboard sheet only as general r… — MISSING — reason: Paid-connector-only (Higgsfield)
@@ -842,14 +846,10 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `higgsfield-workflows:32` — Setup / connection (CLI login `higgsfield auth login`, Pro plan; MCP connection) — DIFFERENT — reason: Paid-connector-only (Higgsfield)
 - `higgsfield-workflows:33` — Gallery preview videos and wordmark/screenshots — N/A — reason: Licence-blocked or non-OSI (and what was done instead)
 
-### Proposed exceptions waiting for the owner (4)
+### Proposed exceptions waiting for the owner (0)
 
 Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.
 
-- `higgsfield-workflows:11` — Preset gallery: 10 looks (kinetic typography, glass UI launch, product hyper-motion, tropical produ… — PARTIAL
-- `higgsfield-workflows:13` — Prompt craft rules: viewer takeaway first; each beat reveals something; "headline hidden" meaning t… — PARTIAL
-- `higgsfield-workflows:17` — Audio design: sound effects baked per clip, VO separate, music continuous at ~0.25, clip audio ~0.3 — PARTIAL
-- `higgsfield-workflows:23` — Review checklist: requirement+time / planned asset / observed result+timestamp / pass-fail-not-insp… — PARTIAL
 
 ### Planned (Phase 11) (27)
 

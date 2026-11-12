@@ -82,6 +82,11 @@ for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to
 passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
 source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
+**Parity, stated plainly.** 0.3.0 reaches parity on 222 of 601 audited features (EQUAL or BETTER); the rest are listed as
+planned or accepted exceptions in [docs/PARITY.md](docs/PARITY.md): 154 accepted exceptions (owner-approved 2026-11-12), 27
+planned for Phase 11, 168 partly built (the missing part planned), 4 proposed exceptions waiting for the owner and 26 rows
+not yet tagged. Nothing planned is claimed as done.
+
 - **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
   blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs
   no server and no network, so it plays from `file://`, in the desktop app's side panel or as a private artifact.

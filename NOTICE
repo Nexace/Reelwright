@@ -4,14 +4,38 @@ Copyright (c) 2026 Arnavxy and product-video-kit contributors
 Licensed under the MIT License (see LICENSE).
 
 This product includes software developed by HeyGen as HyperFrames
-(https://github.com/heygen-com/hyperframes), licensed under the Apache License,
-Version 2.0. The copy is in vendor/hyperframes/ with its LICENSE and CREDITS.md;
-vendor/hyperframes/VENDORED.md lists the upstream commit and every change made.
+(https://github.com/heygen-com/hyperframes) and @hyperframes/player, Copyright 2026 HeyGen, Inc.,
+licensed under the Apache License, Version 2.0. Copies are in vendor/hyperframes/ and vendor/hf-player/
+with their LICENSE files (and CREDITS.md); each VENDORED.md lists the upstream version and every change made.
 Catalog components copied into projects (hf/blocks/) carry a header naming their source.
 
-This product includes KaTeX (https://katex.org), Copyright (c) 2013-2020 Khan Academy and
-other contributors, licensed under the MIT License. The copy is in vendor/katex/ with its LICENSE;
-vendor/katex/VENDORED.md lists the version and files taken (unchanged).
+This product includes MathJax (https://www.mathjax.org), The MathJax Consortium, licensed under the
+Apache License, Version 2.0 (vendor/mathjax/LICENSE).
+
+This product includes the following MIT-licensed components, each in vendor/<name>/ with its licence file:
+  KaTeX, Copyright (c) 2013-2020 Khan Academy and other contributors
+  three.js 0.187.0, Copyright (c) 2010-2026 three.js authors
+  three.js 0.147.0, Copyright (c) 2010-2022 three.js authors
+  lottie-web, Copyright (c) 2015 Bodymovin
+  Anime.js, Copyright (c) 2025 Julian Garnier
+  flubber, Copyright (c) 2017 Noah Veltman (and the libraries bundled in it, see vendor/flubber/THIRD_PARTY.md)
+  @remotion/paths, Copyright (c) 2023 JonnyBurger (changed from upstream, see vendor/paths/VENDORED.md)
+  ui-ux-pro-max-skill data, Copyright (c) 2024 Next Level Builder
+
+This product includes the following ISC-licensed components, each in vendor/<name>/ with its licence file:
+  D3, Copyright 2010-2026 Mike Bostock
+  topojson-client, Copyright 2012-2019 Michael Bostock
+  us-atlas and world-atlas (data), Copyright 2013-2019 Michael Bostock
+
+This product includes GSAP, Copyright 2026 GreenSock (owned by Webflow, Inc.), in vendor/gsap/dist/,
+used under the GSAP "Standard No Charge" License (vendor/gsap/LICENSE-GSAP.md). GSAP is not open
+source and is not covered by Reelwright's MIT licence; its copyright banners are left in place.
+
+Remotion (https://www.remotion.dev) is not included. The optional Remotion renderer installs it into a
+project only when you say yes; Remotion has its own licence (free for individuals, companies of up to
+3 people and non-profits; other companies need a paid licence, see remotion.pro/license). Reelwright
+grants no Remotion licence. Manim Community Edition and ManimGL (MIT) are likewise installed on request
+into .venv-manim and not shipped.
 
 This product bundles fonts licensed under the SIL Open Font License 1.1, in fonts/
 (each family with its OFL.txt; fonts/LICENSES.md lists copyright holders and sources).

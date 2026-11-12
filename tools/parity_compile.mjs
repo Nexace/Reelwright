@@ -169,6 +169,14 @@ const REASONS = [
 ];
 const reasonOf = (r) => REASONS.find((g) => g.test(r)).id;
 
+// Owner ruling 2026-11-12: every row in reason groups 1-9 is a permanent exception; the "todo" group (and the rows the
+// audit marked mixed) stay open. Exception: these four Higgsfield rows were moved into group 7 after the ruling (owner
+// dropped checkpoint 10l on 2026-11-09), so they are proposed and wait for the owner's yes.
+const APPROVED_ON = '2026-11-12';
+const PENDING_OWNER = new Set(['higgsfield-workflows:11', 'higgsfield-workflows:13', 'higgsfield-workflows:17', 'higgsfield-workflows:23']);
+const stateOf = (r) => (GOOD.has(r.status) ? 'good' : reasonOf(r) === 'todo' ? 'open' : PENDING_OWNER.has(`${r.source}:${r.id}`) ? 'proposed' : 'approved');
+const reasonTitle = (r) => REASONS.find((g) => g.id === reasonOf(r)).title;
+
 // What the approach column says is still to do, for sub-grouping the to-do list.
 const KINDS = [
   ['Docs / PLAYBOOK note only', /^(\[D\]|R\d\s+docs|docs\b)/i],
@@ -222,12 +230,13 @@ function renderParity({ data, count }, date) {
   }
   L.push(`| **All** | ${STATUSES.map((s) => `**${tot[s]}**`).join(' | ')} | **${T_}** |`, '');
   const good = tot.EQUAL + tot.BETTER + tot['EQUAL/BETTER'];
-  L.push(`${good} of ${T_} rows are EQUAL, BETTER or EQUAL/BETTER; ${T_ - good} are not.`, '');
+  const allRows = data.flatMap((d) => d.rows), nOf = (k) => allRows.filter((r) => stateOf(r) === k).length;
+  L.push(`${good} of ${T_} rows are EQUAL, BETTER or EQUAL/BETTER; ${T_ - good} are not: **${nOf('approved')} approved exceptions** (owner, ${APPROVED_ON}), **${nOf('proposed')} proposed exceptions** waiting for the owner, and **${nOf('open')} open** (not done, no stated reason).`, '');
   for (const d of data) {
     L.push(`## ${d.title}`, '', `Source: [docs/parity/${d.key}.md](parity/${d.key}.md). ${d.rows.length} rows.`, '');
     L.push('| ID | Feature | Status | Proof or note |', '|---|---|---|---|');
     for (const r of d.rows) {
-      const st = shown(r);
+      const st = shown(r) + (stateOf(r) === 'approved' ? ` — exception (owner-approved ${APPROVED_ON})` : stateOf(r) === 'proposed' ? ' — proposed exception' : '');
       const proof = proofOf(r);
       const note = trim(noteOf(r), 110);
       L.push(`| ${esc(r.id)} | ${esc(trim(r.feature, 70))} | ${st} | ${esc(proof ? `\`${proof}\`` + (GOOD.has(r.status) ? '' : ` ${note}`) : note)} |`);
@@ -235,17 +244,16 @@ function renderParity({ data, count }, date) {
     L.push('');
   }
   L.push('## Exceptions', '');
-  L.push('Rows that are not EQUAL, BETTER or EQUAL/BETTER are listed, grouped by the reason their own text gives, in [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md). **A row is an exception only once the owner approves it there.** Until then every such row is open work. Nothing in this file or the script decides an exception.', '');
-  L.push('Proposed by the plan ([Known exceptions](plans/phase-10-parity.md)), awaiting owner confirmation:', '');
-  for (const e of [
-    'AWS/GCP cloud render (excluded by owner; Colab stays).',
-    'AI-generated footage, bespoke AI music and cloned voices: only through the paid Higgsfield connector.',
-    'HyperFrames blocks needing WebGPU hardware (37): supported only where the machine has it; flagged otherwise.',
-    'HyperFrames cloud/HeyGen-account items and the closed-source desktop app (6 rows).',
-    "shotcraft's JianYing export, Upload-Post publishing and Freesound tool (skipped: social publishing/third-party tools).",
-    'Remotion features that need its own Chrome build or are UNLICENSED (shader presentations, @remotion/effects): native rewrites instead.',
-  ]) L.push(`- ${e}`);
-  L.push('');
+  L.push(`Counts: ${good} EQUAL/BETTER, ${nOf('approved')} approved exceptions, ${nOf('proposed')} proposed exceptions (waiting for the owner), ${nOf('open')} open. Only the owner approves an exception; nothing in this file or the script decides one. The full text of every non-EQUAL row, grouped by reason, is in [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).`, '');
+  const exc = allRows.filter((r) => ['approved', 'proposed'].includes(stateOf(r)));
+  for (const g of REASONS.filter((x) => x.id !== 'todo')) {
+    const rs = exc.filter((r) => reasonOf(r) === g.id);
+    if (!rs.length) continue;
+    L.push(`### ${g.title} (${rs.length})`, '');
+    for (const r of rs) L.push(`- \`${r.source}:${r.id}\` — ${trim(r.feature, 100)} — ${shown(r)} — ${stateOf(r) === 'approved' ? `exception (owner-approved ${APPROVED_ON})` : 'proposed exception, awaiting the owner'}`);
+    L.push('');
+  }
+  L.push(`### Open (${nOf('open')})`, '', 'Not exceptions: the row is not EQUAL/BETTER and gives no reason. They stay open until the checkpoint that shipped the feature re-audits the row and flips it with a proving file. IDs are in the "Not done, no stated reason" group of [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).', '');
   return L.join('\n');
 }
 
@@ -253,14 +261,14 @@ function renderExceptions({ data, all }, date) {
   const L = [];
   const notGood = all.filter((r) => !GOOD.has(r.status));
   const groups = REASONS.map((g) => ({ ...g, rows: notGood.filter((r) => reasonOf(r) === g.id) }));
-  const line = (r) => `- \`${r.source}:${r.id}\` — ${trim(r.feature, 140)} — ${shown(r)}`;
+  const line = (r) => `- \`${r.source}:${r.id}\` — ${trim(r.feature, 140)} — ${shown(r)}${stateOf(r) === 'proposed' ? ' — PROPOSED (awaiting the owner)' : stateOf(r) === 'approved' ? ` — exception (owner-approved ${APPROVED_ON})` : ''}`;
   const why = (r) => {
     const n = trim(noteOf(r), 220);
     return n ? `\n  - says: ${n}` : '';
   };
   const gap = (r) => (r.approach ? `\n  - approach: ${trim(r.approach, 200)}` : '');
-  L.push('# Phase 10z: proposed exceptions (owner to rule)', '');
-  L.push(`Generated ${date} by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Nothing here is an exception until the owner approves it.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.`, '');
+  L.push('# Phase 10z: non-EQUAL rows, grouped by reason', '');
+  L.push(`Generated ${date} by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner ruling 2026-11-12: groups 1-9 are permanent exceptions (except the rows tagged "proposed", which are waiting for the owner); the last group is open work, not exceptions.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.`, '');
   const eq = all.filter((r) => GOOD.has(r.status)).length;
   L.push(`Total rows ${all.length}; EQUAL + BETTER + EQUAL/BETTER ${eq}; not ${notGood.length} (grand total of the groups below: ${groups.reduce((a, g) => a + g.rows.length, 0)}).`, '');
   L.push('| # | Group | Rows |', '|--:|---|--:|');
@@ -269,7 +277,8 @@ function renderExceptions({ data, all }, date) {
   L.push('Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.', '');
   L.push('How rows are grouped: a row goes to the first group whose keyword rule matches what the row itself says (feature, status text, and for some groups the approach or licence cell); anything unmatched is in the last group. The rules are in `REASONS` in tools/parity_compile.mjs. The grouping is a reading aid, not a ruling: read the quoted text. A row with `(mixed)` was written EQUAL or BETTER but its own text also names a MISSING or PARTIAL piece, so it is counted PARTIAL. Rows the audit marked `same row` inherit the status of the row above.', '');
   groups.forEach((g, i) => {
-    L.push(`## ${i + 1}. ${g.title} (${g.rows.length})`, '', g.blurb, '');
+    const nApp = g.rows.filter((r) => stateOf(r) === 'approved').length, nProp = g.rows.filter((r) => stateOf(r) === 'proposed').length;
+    L.push(`## ${i + 1}. ${g.title} (${g.rows.length})${g.id === 'todo' ? ' — OPEN, not exceptions' : ` — ${nApp} exception${nApp === 1 ? '' : 's'} (owner-approved ${APPROVED_ON})${nProp ? `, ${nProp} proposed (awaiting the owner)` : ''}`}`, '', g.blurb, '');
     if (g.id === 'todo') {
       L.push(`**These ${g.rows.length} rows are the honest to-do list: not done, and the row gives no reason.** They are not proposed as exceptions; they are open work.`, '');
     }

@@ -17,7 +17,7 @@ Compiled 2026-11-12 from the five per-source checklists in [docs/parity/](parity
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
 | **All** | **164** | **29** | **6** | **241** | **133** | **6** | **20** | **2** | **601** |
 
-199 of 601 rows are EQUAL, BETTER or EQUAL/BETTER; 402 are not.
+199 of 601 rows are EQUAL, BETTER or EQUAL/BETTER; 402 are not: **80 approved exceptions** (owner, 2026-11-12), **4 proposed exceptions** waiting for the owner, and **318 open** (not done, no stated reason).
 
 ## HyperFrames
 
@@ -39,13 +39,13 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | A12 | 18 media effects: Blur, Pixelate, Bloom; Tape Damage, Film Artifacts,… | EQUAL | `docs/playbook/grading-effects.md` |
 | A13 | `data-vfx-chain`: per-pixel WebGL2 kernels (wave-warp, displacement-m… | EQUAL | on the hyperframes renderer (10a). `KIT.vfx(host,nodes)` builds the `data-vfx-chain` host; its setter writes… |
 | A14 | Motion blur `data-motion-blur` (shutter angle 0-720, samples 2-64, ti… | EQUAL | `docs/playbook/motion-blur.md` |
-| A15 | HTML-in-canvas (`drawElementImage`, Chrome experimental flag) as WebG… | MISSING | (eng; flag logic vendored). Browser-version fragile |
+| A15 | HTML-in-canvas (`drawElementImage`, Chrome experimental flag) as WebG… | MISSING — exception (owner-approved 2026-11-12) | (eng; flag logic vendored). Browser-version fragile |
 | A16 | Frame sources `registerFrameSource({element,ready,render(t,signal),di… | EQUAL | `tools/engine.js` |
 | A17 | Determinism rules (no Date.now, rAF, unseeded random; fonts ready; fi… | BETTER | `tools/qa.py` |
 | A18 | Font handling: Google Fonts fetched at compile time into `~/.cache/hy… | BETTER | 19 bundled OFL families in `fonts/`, no network. Blocks use Google Fonts in 47 blocks + 18 components (rewrit… |
 | A19 | Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (… | MISSING | Layouts size by `--kit-u`; QA flags caption overflow |
 | A20 | Tailwind browser runtime `init --tailwind` (`__tailwindReady`) | MISSING | Uses a CDN script; breaks offline rule |
-| A21 | Interactive slideshow (manifest, fragments, branches, hotspots, prese… | MISSING | Output is a live deck, not an MP4 |
+| A21 | Interactive slideshow (manifest, fragments, branches, hotspots, prese… | MISSING — exception (owner-approved 2026-11-12) | Output is a live deck, not an MP4 |
 | A22 | Readiness gating (fonts, media, timelines, 45 s player-ready timeout,… | EQUAL | `tools/engine.js` |
 | B1 | GSAP (paused timelines, `__timelines`, absolute positions, `fromTo` b… | EQUAL | `vendor/gsap/,` |
 | B2 | CSS `@keyframes` / transitions found and seeked automatically | EQUAL | `tools/runtimes.js` |
@@ -53,10 +53,10 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | B4 | anime.js v4 (`window.__hfAnime`, `anim.seek(ms)`, seeded random) | EQUAL | `vendor/anime/,` |
 | B5 | Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) | PARTIAL | `vendor/lottie/,` →EQUAL for shapes (10b): lottie-web 5.13.0 bundled in vendor/lottie/, `KIT.lottie(el, json, {t0, speed, loop,… |
 | B6 | Three.js (loading-manager readiness, `window.__hfThreeTime`, `hf-seek… | EQUAL | `vendor/three/` |
-| B7 | TypeGPU / raw WebGPU (`__hfTypegpuTime`, `data-requires-webgpu`, hard… | MISSING | (eng). 37 blocks need it; not byte-reproducible across GPUs |
+| B7 | TypeGPU / raw WebGPU (`__hfTypegpuTime`, `data-requires-webgpu`, hard… | MISSING — exception (owner-approved 2026-11-12) | (eng). 37 blocks need it; not byte-reproducible across GPUs |
 | B8 | d3 transitions readiness (`__hfD3`) | MISSING |  |
-| B9 | Map readiness: Leaflet, MapLibre, Mapbox GL, Google Maps (wait for lo… | MISSING | Tiles need network, Mapbox/Google need keys: conflicts with offline core |
-| B10 | Video textures into WebGL/WebGPU in render mode (`video-texture-compa… | MISSING | (needs A7) |
+| B9 | Map readiness: Leaflet, MapLibre, Mapbox GL, Google Maps (wait for lo… | MISSING — exception (owner-approved 2026-11-12) | Tiles need network, Mapbox/Google need keys: conflicts with offline core |
+| B10 | Video textures into WebGL/WebGPU in render mode (`video-texture-compa… | MISSING — exception (owner-approved 2026-11-12) | (needs A7) |
 | B11 | p5 / canvas / generative via `hf-seek` event (`e.detail.time`) | EQUAL | `render(t)` draws canvas directly |
 | B12 | Custom `FrameAdapter` interface (experimental v0) | EQUAL | in effect (`K.start`) |
 | C1 | `@hyperframes/shader-transitions`: 14 GLSL transitions (domain-warp,… | EQUAL | `tools/shaders.js` |
@@ -74,11 +74,11 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | D11 | `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.… | PARTIAL | Synthesised SFX/music (`mix.py`, `music.py`), `gen` connector (paid, Higgsfield) |
 | E1 | 238 components (`hyperframes:snippet`, 1 html each; 230 use GSAP, 155… | EQUAL | `vendor/hyperframes/registry/components` |
 | E2 | Asset-bearing components (9) | PARTIAL | `add` refuses them (VENDORED.md) |
-| E3 | 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-c… | PARTIAL | `tools/blocks.mjs` (10f). 136 of 210 vendored, converted to `KIT.mount` templates by `tools/blocks.mjs import` and each verified… |
+| E3 | 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-c… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/blocks.mjs` (10f). 136 of 210 vendored, converted to `KIT.mount` templates by `tools/blocks.mjs import` and each verified… |
 | E4 | Block categories to cover: transitions (33 tagged), overlays (31), ba… | PARTIAL | (10f): every category has supported blocks (maps: 3 of 8, E7); see CATALOG.md tags |
 | E5 | 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph,… | PARTIAL | `themes/hf-{bold,editorial,neutral}.css` Themes part BETTER since 10c: the 3 upstream packs are `themes/hf-{bold,editorial,neutral}.css` (27 themes in… |
 | E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | PARTIAL | `add <component>` only; CATALOG.md read by hand |
-| E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
+| E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL — exception (owner-approved 2026-11-12) | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
 | E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | PARTIAL | In the vendored set but need `transcript.json` (D10); Reelwright has its own karaoke captions from VO words |
 | E9 | Registry item schema (`registry-item.json`: params, variables, contro… | PARTIAL | (reads `registry-item.json` in `add`) |
 | E10 | 13 frame presets (`FRAME.md` spec + `caption-skin.html` + showcase ea… | BETTER | `themes/hf-*.css` |
@@ -98,17 +98,17 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G10 | `render` (see section I) and `benchmark` (tries fps/quality/workers,… | PARTIAL | / MISSING |
 | G11 | `preview` (hot reload, background/foreground/status/list, port) | PARTIAL | `tools/preview.mjs` `preview` scrubber on :4173 with SSE reload (`tools/preview.mjs`) |
 | G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | PARTIAL | `setup`, `clean`, `info`; PLAYBOOK for docs |
-| G14 | `skills` / `update` / `upgrade` / `figma` / `events` / `templates` /… | OUT | for `auth billing cloud lambda cloudrun publish open catch-up usage telemetry feedback templates` (HeyGen acc… |
+| G14 | `skills` / `update` / `upgrade` / `figma` / `events` / `templates` /… | OUT — exception (owner-approved 2026-11-12) | for `auth billing cloud lambda cloudrun publish open catch-up usage telemetry feedback templates` (HeyGen acc… |
 | G15 | `--json` envelope on every command, `_meta` version/update notice, ex… | PARTIAL | (no global `--json`) |
 | G16 | `figma asset/tokens/component` (REST: SVG/PNG/JPG/PDF assets frozen u… | PARTIAL | `tools/figma_export.py` `tools/figma_export.py` exports section frames as PNG only |
-| G17 | `catch-up`, `open` (desktop app) | OUT | (desktop app is closed source, needs a HeyGen sign-in) |
+| G17 | `catch-up`, `open` (desktop app) | OUT — exception (owner-approved 2026-11-12) | (desktop app is closed source, needs a HeyGen sign-in) |
 | H1 | What it is: `npx hyperframes preview` serves the React 19 app `@hyper… | PARTIAL | `tools/studio/` (10k). `reelwright studio` (`tools/studio/`, `tools/commands/studio.mjs`): a plain-JS local server on 127.0.0… |
 | H2 | Edits source-backed DOM: click element in preview, Design panel (Text… | MISSING | (10k covers the data Reelwright stores, not the DOM: no click-to-edit in the frame) |
 | H3 | Timeline: tracks, move/trim/split/ripple/linked selection/snapping/be… | PARTIAL | (10k). Timeline of scenes, VO lines, beat/bar grid with drop and SFX cues read from the film's `FILM`; click/… |
 | H4 | Keyframe animation panel (auto-record manual edits as keyframes, GSAP… | MISSING | (10k edits project.json and brand.json only; no GSAP/keyframe authoring by design: GSAP licence) |
 | H5 | Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab… | PARTIAL | (10k). Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playh… |
-| H6 | WebMCP tools (`studio_look/select/inspect/set_style/frame`) for an in… | OUT | (repo rule: no MCP; browser origin trial only) |
-| H7 | Studio desktop app (agent beside preview, Make-something box, brand k… | OUT | (closed source, HeyGen sign-in, not in this repo) |
+| H6 | WebMCP tools (`studio_look/select/inspect/set_style/frame`) for an in… | OUT — exception (owner-approved 2026-11-12) | (repo rule: no MCP; browser origin trial only) |
+| H7 | Studio desktop app (agent beside preview, Make-something box, brand k… | OUT — exception (owner-approved 2026-11-12) | (closed source, HeyGen sign-in, not in this repo) |
 | I1 | Formats: `mp4` (H.264 + AAC), `webm` (VP9 + alpha, Opus), `mov` (ProR… | EQUAL | `tools/renderers/pvk.mjs` |
 | I2 | Alpha / transparent output (webm, mov, png-sequence; transparent root… | EQUAL | (10a). `"output": {"alpha": true}`: pvk takes PNG screenshots with a transparent page, hf keeps the producer'… |
 | I3 | fps: 1-240 or rational (`30000/1001`); root `data-fps` | PARTIAL | `FPS` env / project fps, integers, default 60 |
@@ -122,7 +122,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I11 | Docker deterministic render (`--docker`) | MISSING | `docs/REPRODUCIBLE.md` Determinism via software GL + `verify`; `docs/REPRODUCIBLE.md` |
 | I12 | Fast capture: BeginFrame screenshots, draw-element capture ~2x, page-… | EQUAL | for hf (producer defaults); pvk uses Playwright screenshots |
 | I13 | Timeouts and safety: browser/player-ready/protocol timeouts, `--stric… | PARTIAL | (hf path inherits producer defaults) |
-| I14 | Distributed render plan/assemble (Lambda, Cloud Run, k8s jobs) | OUT | (owner: no cloud). Colab render (`cloud/`) stays |
+| I14 | Distributed render plan/assemble (Lambda, Cloud Run, k8s jobs) | OUT — exception (owner-approved 2026-11-12) | (owner: no cloud). Colab render (`cloud/`) stays |
 | J1 | `<hyperframes-player>` web component (CDN or `import "@hyperframes/pl… | EQUAL | `vendor/hf-player/` |
 | J2 | Attributes: `src`, `type=video/mp4`, `srcdoc`, `width/height`, `contr… | EQUAL | (10d): the vendored component, so every attribute; `embed` uses `srcdoc`, `controls`, `autoplay`, `loop`, `mu… |
 | J3 | JS API (`play pause seek currentTime playbackRate muted duration paus… | EQUAL | (10d): the vendored component; `embed.html#12.5` uses `seek` on `ready` |
@@ -130,12 +130,12 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | K1 | `remove-background`: `u2net_human_seg` ONNX (~168 MB, CoreML/CUDA/CPU… | MISSING |  |
 | K2 | `init --video` converts non-web codecs to H.264, preview proxies for… | MISSING | (needs A7) |
 | K3 | Local generation: mflux images, LTX video (opt-in) | PARTIAL | (`gen` is paid Higgsfield, off by default) |
-| K4 | `SDK` (`openComposition`, `find`, text/style/timing/asset/variable/an… | MISSING | only useful for HF-native HTML |
-| K5 | `parsers`: HTML parse/serialise, GSAP AST read/write (acorn, recast),… | PARTIAL | (vendored, unused). Reelwright has its own `KIT.spring` |
-| K6 | `inspector` package (source maps, CSS/JS scope analysis for the studi… | MISSING | not needed without H2 |
+| K4 | `SDK` (`openComposition`, `find`, text/style/timing/asset/variable/an… | MISSING — exception (owner-approved 2026-11-12) | only useful for HF-native HTML |
+| K5 | `parsers`: HTML parse/serialise, GSAP AST read/write (acorn, recast),… | PARTIAL — exception (owner-approved 2026-11-12) | (vendored, unused). Reelwright has its own `KIT.spring` |
+| K6 | `inspector` package (source maps, CSS/JS scope analysis for the studi… | MISSING — exception (owner-approved 2026-11-12) | not needed without H2 |
 | L1 | 9 agent skills (`hyperframes`, `hyperframes-cli`, `hyperframes-regist… | PARTIAL | One skill `.claude/skills/product-video/SKILL.md` + AGENTS.md + PLAYBOOK |
 | L2 | Workflow guides: product launch, faceless explainer, PR to video, mus… | PARTIAL | PLAYBOOK + `from-url`; no PR-to-video or lyric-video recipe |
-| L3 | Claude/Codex/Cursor plugin packaging and marketplace | OUT | (repo rule: standalone, no plugin/MCP) |
+| L3 | Claude/Codex/Cursor plugin packaging and marketplace | OUT — exception (owner-approved 2026-11-12) | (repo rule: standalone, no plugin/MCP) |
 | L4 | `prompting/` cookbook (color grading, data and maps, design systems,… | PARTIAL |  |
 
 ## Remotion + its skills
@@ -157,13 +157,13 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.1.11 | `<Series>` / `Series.Sequence offset` | MISSING |  |
 | 2.1.12 | `<Loop times durationInFrames>` / `useLoop()`; `loop` prop | PARTIAL | modulo by hand; no helper |
 | 2.1.13 | `<Freeze frame>` / `<Sequence freeze>` | PARTIAL | `K.keys` clamp holds a value; no whole-scene freeze |
-| 2.1.14 | `<Track>` non-overlapping named timeline lanes; editable timeline gro… | MISSING | (Studio-only concept) |
-| 2.1.15 | Premounting (`premountFor`), `SequenceActivityBudget` | N/A | (pure `render(t)` has no mount cost) |
+| 2.1.14 | `<Track>` non-overlapping named timeline lanes; editable timeline gro… | MISSING — exception (owner-approved 2026-11-12) | (Studio-only concept) |
+| 2.1.15 | Premounting (`premountFor`), `SequenceActivityBudget` | N/A — exception (owner-approved 2026-11-12) | (pure `render(t)` has no mount cost) |
 | 2.1.16 | `delayRender()/continueRender()/cancelRender()`, `useDelayRender` | EQUAL | in effect: pvk waits for `window.READY`/fonts/images (README, pvk.mjs) |
 | 2.1.17 | `calculateMetadata` (duration/size/props from data or media) | EQUAL | duration comes from `sched.py` + `K.start({dur})` |
 | 2.1.18 | `useVideoConfig`, `useCurrentFrame`, `useCurrentScale`, `usePixelDens… | EQUAL | `K.fmt/K.u/K.W_/K.H_`, `t` |
 | 2.1.19 | Multiple frame rates per composition (`--fps`) | EQUAL | `FPS` env + `--formats` |
-| 2.1.20 | `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selecti… | PARTIAL | one film per project folder |
+| 2.1.20 | `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selecti… | PARTIAL — exception (owner-approved 2026-11-12) | one film per project folder |
 | 2.1.21 | `@remotion/animation-utils` `interpolateStyles`, `makeTransform` | MISSING |  |
 | 2.1.22 | `@remotion/gsap` `useGsapTimeline` (paused timeline seeked to current… | EQUAL | `tools/runtimes.js` |
 | 2.2.1 | `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - o… | PARTIAL | `tools/transitions.js` (10e): `KIT.transition` with chains; scenes overlap by the transition window (no TransitionSeries length arit… |
@@ -171,41 +171,41 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.2.3 | Presentation `fade` | EQUAL | `tools/transitions.js` |
 | 2.2.4 | `slide` (from-left/right/top/bottom), `wipe` (4 dir, entering slides… | EQUAL | `tools/transitions.js` |
 | 2.2.5 | `pushCut` (punch-in + flash), `cube` (3D, added 4.0.540), `none` + `u… | EQUAL | `tools/transitions.js` |
-| 2.2.6 | HTML-in-canvas shader presentations: `blurSlide, bookFlip, crossZoom,… | MISSING |  |
+| 2.2.6 | HTML-in-canvas shader presentations: `blurSlide, bookFlip, crossZoom,… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.2.7 | Custom presentation API (`presentationDirection`, `presentationProgre… | EQUAL | `tools/transitions.js` |
 | 2.2.8 | Audio transitions (`addSound` wraps a presentation with `<Audio>` on… | EQUAL | `tools/transitions.js` |
 | 2.2.9 | Light leaks: `lightLeak({progress, seed, hueShift})` (WebGL2; reveals… | EQUAL | `tools/transitions.js` |
 | 2.2.10 | Starburst / `filmBurn` / `starburst()` effect, `@remotion/starburst` | MISSING |  |
 | 2.2.11 | `<AbsoluteFill>` | EQUAL | (stage is absolute) |
 | 2.2.12 | Layout scenes (split, bento, stat, quote...) | BETTER | `tools/layouts.js` |
-| 2.3.1 | `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `… | MISSING | (no effects stack; CSS filters only via themes) |
+| 2.3.1 | `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `… | MISSING — exception (owner-approved 2026-11-12) | (no effects stack; CSS filters only via themes) |
 | 2.3.2 | Colour and tone: brightness, contrast, saturation, hue, grayscale, in… | MISSING |  |
 | 2.3.3 | Blur family: blur, lightTrail, linearProgressiveBlur, radialProgressi… | MISSING |  |
 | 2.3.4 | Lighting: dropShadow, longShadows, glow, shine, vignette | PARTIAL | (themes have shadows; no vignette/glow helper) |
 | 2.3.5 | Distortion: barrelDistortion, chromaticAberration, cornerPin, fisheye… | PARTIAL | glitch RGB split exists in teaser; no general lib |
 | 2.3.6 | Textures/patterns: burlap, checkerboard, contourLines, dotGrid, embos… | MISSING |  |
-| 2.3.7 | Edges and 3D: outline, roughenEdges, shrinkwrap, tear, bevelAlpha, cy… | MISSING |  |
+| 2.3.7 | Edges and 3D: outline, roughenEdges, shrinkwrap, tear, bevelAlpha, cy… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.3.8 | Weather/reveal: snowFall, rainFall, irisWipe, radialWipe, evolve, pix… | MISSING |  |
-| 2.3.9 | `createEffect()` custom effect API (2d/webgl2/webgpu backends) | N/A |  |
-| 2.3.10 | `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chr… | MISSING |  |
+| 2.3.9 | `createEffect()` custom effect API (2d/webgl2/webgpu backends) | N/A — exception (owner-approved 2026-11-12) |  |
+| 2.3.10 | `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chr… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.3.11 | Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `… | MISSING |  |
-| 2.3.12 | Greenscreen via `colorKey()`; video matting (`@remotion/video-matting… | MISSING |  |
+| 2.3.12 | Greenscreen via `colorKey()`; video matting (`@remotion/video-matting… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.4.1 | `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trim… | PARTIAL | /EQUAL for screen takes: `K.clip` anchors (re-time recording to words, 0.4x-2.5x guard); no general footage l… |
 | 2.4.2 | `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) | PARTIAL | same as 2.4.1 |
-| 2.4.3 | `<Html5Video>`, `<Html5Audio>` | N/A | (non-seekable, qa forbids) |
+| 2.4.3 | `<Html5Video>`, `<Html5Audio>` | N/A — exception (owner-approved 2026-11-12) | (non-seekable, qa forbids) |
 | 2.4.4 | `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `v… | PARTIAL | mix.py does voice + ducked music + SFX; `music.start` trims; no per-clip volume curves/pitch in film code |
 | 2.4.5 | Audio exports: `--separate-audio-to`, `--for-seamless-aac-concatenati… | EQUAL/BETTER | encode owns audio; loudnorm gate |
 | 2.4.6 | SFX library (`@remotion/sfx`: ~35 wav at remotion.media, peak -3 dB,… | BETTER | `tools/mix.py` |
 | 2.4.7 | Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bi… | PARTIAL | `KIT.pulse`/beats only (beatgrid.py); no continuous spectrum |
 | 2.4.8 | `getAudioDuration`, `getVideoDuration`, `getVideoDimensions`, `getIma… | EQUAL | ffprobe in tools |
 | 2.4.9 | Silence detection recipe (loudnorm `input_thresh` -> `silencedetect n… | MISSING |  |
-| 2.4.10 | `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/… | N/A | (ffmpeg does this) |
+| 2.4.10 | `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/… | N/A — exception (owner-approved 2026-11-12) | (ffmpeg does this) |
 | 2.4.11 | FFmpeg shipped: `npx remotion ffmpeg/ffprobe`; trim re-encode rule | EQUAL | (system ffmpeg, setup checks it) |
 | 2.4.12 | Images: `<Img>`, `<CanvasImage fit crop>`, dynamic paths, image seque… | EQUAL | `K.img` + DOM |
 | 2.4.13 | Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`… | MISSING | (no GIF layer) |
 | 2.4.14 | Cropping `cropLeft/Right/Top/Bottom` ratios on any layer | PARTIAL | (CSS clip-path by hand) |
 | 2.4.15 | Fonts: `@remotion/google-fonts` (typed loaders, blocks render until r… | BETTER | offline: 17 bundled OFL families, theme tokens (fonts/LICENSES.md) |
-| 2.4.16 | Arabic/RTL text rules (direction, animate by word, keep letters joine… | UNVERIFIED | (not tested in Reelwright) |
+| 2.4.16 | Arabic/RTL text rules (direction, animate by word, keep letters joine… | UNVERIFIED — exception (owner-approved 2026-11-12) | (not tested in Reelwright) |
 | 2.4.17 | `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`… | PARTIAL | qa gates caption fit/contrast and overlap/tiny-text WARNs, no authoring-time `fitText` |
 | 2.4.18 | `@remotion/rounded-text-box` (rounded highlight box behind multi-line… | MISSING |  |
 | 2.4.19 | `staticFile()`, `getStaticFiles`, `watchStaticFile`, `prefetch/preloa… | EQUAL | files in project dir; encode writes .srt/.vtt/manifest |
@@ -216,18 +216,18 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.5.5 | Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transfo… | MISSING | (we only have TTS word times; no speech-to-text for supplied audio/video) |
 | 2.5.6 | Voiceover: ElevenLabs per scene -> `calculateMetadata` duration | BETTER | for core (edge-tts free, word timings). Paid ElevenLabs = out of scope (connectors doc) |
 | 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | PARTIAL | `tools/doodle.js` doodle underline/circle/drawOn (tools/doodle.js); no highlight/strike/crossed-off/box/bracket |
-| 2.5.8 | `@remotion/animated-emoji` (Noto animated emoji) | MISSING |  |
-| 2.5.9 | `@remotion/mac-cursors` (macOS cursor set) | PARTIAL | drawn `K.cursor` |
+| 2.5.8 | `@remotion/animated-emoji` (Noto animated emoji) | MISSING — exception (owner-approved 2026-11-12) |  |
+| 2.5.9 | `@remotion/mac-cursors` (macOS cursor set) | PARTIAL — exception (owner-approved 2026-11-12) | drawn `K.cursor` |
 | 2.6.1 | `@remotion/lottie` `<Lottie animationData>` driven by frame; `getLott… | EQUAL | `tools/runtimes.js` |
-| 2.6.2 | `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentF… | PARTIAL | `tools/runtimes.js` →EQUAL for a WebGL scene (10b): Three.js bundled, `KIT.three(el, build)` with preserveDrawingBuffer; no React… |
-| 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | MISSING |  |
-| 2.6.4 | `@remotion/rive` `<RemotionRiveCanvas>` | MISSING |  |
+| 2.6.2 | `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentF… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/runtimes.js` →EQUAL for a WebGL scene (10b): Three.js bundled, `KIT.three(el, build)` with preserveDrawingBuffer; no React… |
+| 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | MISSING — exception (owner-approved 2026-11-12) |  |
+| 2.6.4 | `@remotion/rive` `<RemotionRiveCanvas>` | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.6.5 | Spline/Figma/After Effects import | PARTIAL | `tools/figma_export.py` `tools/figma_export.py` exports PNG |
 | 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | MISSING | (math.js draws axes/plots only) |
 | 2.6.7 | `@remotion/paths`: `getLength`, `getPointAtLength`, `getTangentAtLeng… | EQUAL | `vendor/paths` |
 | 2.6.8 | `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1… | MISSING | (only music.py uses numpy noise) |
 | 2.6.9 | Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Tur… | MISSING |  |
-| 2.6.10 | Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@rem… | N/A |  |
+| 2.6.10 | Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@rem… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.6.11 | Text rules in skills `video-layout.md`: 1080-wide minimums 84 px head… | PARTIAL | `KIT.safe`, qa tiny-text WARN |
 | 2.7.1 | Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profi… | PARTIAL | encode = H.264 + AAC mp4 only |
 | 2.7.2 | Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-si… | PARTIAL | fixed ffmpeg args |
@@ -239,21 +239,21 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.7.8 | Animated GIF render (`--codec=gif`, `--number-of-gif-loops`, `--every… | PARTIAL | README samples are GIFs made outside the CLI |
 | 2.7.9 | Concurrency `--concurrency` (tabs; default from CPU), `--disallow-par… | EQUAL | `PAGES=` |
 | 2.7.10 | Parameterised renders: `--props file.json\|'{...}'` -> `getInputProps(… | PARTIAL | `project.json` + `--lang/--style/--formats` only; no per-run props |
-| 2.7.11 | Env/config: `remotion.config.ts` (`Config.set*`), `--env-file`, `--lo… | N/A |  |
+| 2.7.11 | Env/config: `remotion.config.ts` (`Config.set*`), `--env-file`, `--lo… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.7.12 | Browser: Chrome Headless Shell auto-installed (mac arm64/x64, win x64… | EQUAL | (Playwright Chromium; HF uses its headless shell) |
-| 2.7.13 | Media cache sizes: `--media-cache-size-in-bytes`, `--offthreadvideo-c… | N/A |  |
+| 2.7.13 | Media cache sizes: `--media-cache-size-in-bytes`, `--offthreadvideo-c… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.7.14 | HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--me… | PARTIAL | manifest.json has hashes, no mp4 metadata tags |
-| 2.7.15 | Cloud: Lambda, Cloud Run, Vercel Sandbox, Azure, Cloudflare, `@remoti… | N/A | (owner: no cloud render to AWS/GCP; Colab/Actions exist) |
-| 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A |  |
-| 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A |  |
+| 2.7.15 | Cloud: Lambda, Cloud Run, Vercel Sandbox, Azure, Cloudflare, `@remoti… | N/A — exception (owner-approved 2026-11-12) | (owner: no cloud render to AWS/GCP; Colab/Actions exist) |
+| 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A — exception (owner-approved 2026-11-12) |  |
+| 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.7.18 | Optional renderer `"renderer": "remotion"` (React films rendered by R… | EQUAL | `tools/renderers/remotion.mjs` |
 | 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | PARTIAL | `preview` scrubber (read-only, whole frames, waveform with VO/SFX/beats marked) |
-| 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING |  |
+| 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.8.3 | Connected compositions / pre-compose a scene with its own timeline | MISSING |  |
 | 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | MISSING | (owner wants embeddable web player) |
-| 2.8.5 | Studio export to OpenTimelineIO; Editor Starter ($600) and Timeline (… | N/A |  |
+| 2.8.5 | Studio export to OpenTimelineIO; Editor Starter ($600) and Timeline (… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.8.6 | AI helpers: Remotion Skills (this repo), plugins for Claude Code/Code… | PARTIAL | `.claude/skills/product-video`, AGENTS.md |
-| 2.8.7 | `npx create-video`, `npx remotion add <pkg>` (installs the exact matc… | N/A |  |
+| 2.8.7 | `npx create-video`, `npx remotion add <pkg>` (installs the exact matc… | N/A — exception (owner-approved 2026-11-12) |  |
 
 ## Manim CE + ManimGL + manim skills
 
@@ -267,7 +267,7 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m1.4 | `.animate` builder, `MoveToTarget`/`generate_target`, `save_state`/`R… | EQUAL | `K.keys(t, pts, eases)` keyframes, closed form in t |
 | m1.5 | Updaters (`add_updater`, `dt` form), `always_redraw`, `UpdateFromFunc… | PARTIAL (mixed) | for closed-form (recompute in `render(t)`); PARTIAL for dt-accumulating state (no stateful sims) |
 | m1.6 | `ValueTracker`, `ComplexValueTracker`, GL `ExponentialValueTracker` | EQUAL | a number computed from t; `K.count` for tickers (engine.js:408) |
-| m1.7 | `Wait` with `stop_condition`, `wait_until` | N/A | by design (data-driven timing; stop conditions are time-dependent state) |
+| m1.7 | `Wait` with `stop_condition`, `wait_until` | N/A — exception (owner-approved 2026-11-12) | by design (data-driven timing; stop conditions are time-dependent state) |
 | m1.8 | Sections (`next_section`, `--save_sections`), `add_subcaption` (SRT) | EQUAL | `tools/beats.mjs,` |
 | m1.9 | `add_sound` | BETTER | mix.py ducks music, normalises, places SFX cues |
 | m1.10 | Frame size/fps/background/`transparent`/quality presets (`-ql..-qk`,… | EQUAL | project.json width/height/fps, `--formats` (render.mjs) |
@@ -286,7 +286,7 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m3.6 | `FadeIn`/`FadeOut` (shift, scale), GL `FadeInFromPoint/OutToPoint`, `… | EQUAL | opacity+transform in layouts/`K.E` |
 | m3.7 | `GrowFromPoint/Center/Edge`, `GrowArrow`, `SpinInFromNothing` | EQUAL | via CSS transform + easing |
 | m4.1 | `Indicate`, `Flash`, `FocusOn`, `Circumscribe`, `Wiggle`, `Blink`, `A… | EQUAL | `tools/motion.js` |
-| m4.2 | GL-only: `CircleIndicate`, `FlashAround`, `FlashUnder`, `ShowCreation… | PARTIAL | same helpers cover most |
+| m4.2 | GL-only: `CircleIndicate`, `FlashAround`, `FlashUnder`, `ShowCreation… | PARTIAL — exception (owner-approved 2026-11-12) | same helpers cover most |
 | m4.3 | `Broadcast` (expanding rings) | MISSING | (HF catalog has confetti, not rings) |
 | m5.1 | `Transform`, `ReplacementTransform`, `TransformFromCopy`, `ClockwiseT… | PARTIAL | `tools/tex.js` (10h): glyph morphs (flubber) and path_arc in `KIT.tex.transform`; multi-path `KIT.math.morphShapes` (math2.j… |
 | m5.2 | `TransformMatchingShapes`, `TransformMatchingTex`, GL `TransformMatch… | EQUAL | `tools/tex.js` |
@@ -339,7 +339,7 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m11.1 | Morph-Don't-Fade, Rack-Focus, caption bands cut, narration never prin… | EQUAL | PLAYBOOK Math bullets, qa `overlap` + `wordy` WARNs (qa_page.mjs:13-15) |
 | m11.2 | Layout lint OFF-FRAME / TEXT-OVERLAP / TINY-TEXT | PARTIAL (mixed) | for DOM; MISSING for Manim frames: `rw.label_illustrative()` marks scenes, `texts.json` lint not built (10i) |
 | m11.3 | Pace lint (<= 2.5 words/s, gaps, >= 15 % unnarrated), dark-stretch li… | PARTIAL | real word times make RUSHED impossible; `dark` WARN exists (qa.py); unnarrated-fraction info line MISSING |
-| m11.4 | Landmines: LaTeX probe (binary present != pipeline works), stale segm… | N/A |  |
+| m11.4 | Landmines: LaTeX probe (binary present != pipeline works), stale segm… | N/A — exception (owner-approved 2026-11-12) |  |
 | m12.1 | OpenGL/wgpu GPU renderer (shader-drawn strokes/fills, bundled draws) | MISSING | by nature (we are DOM/SVG); output quality comparable for 2D |
 | m12.2 | Interactive embed: `-se <line>`, `embed()`, `checkpoint_paste()`, `In… | PARTIAL | `preview` scrubber for the finished film, no live editing of Manim code |
 | m12.3 | Interactive controls `Slider`, `Button`, `Checkbox`, `ControlPanel`,… | MISSING | (not meaningful in a rendered film) |
@@ -350,9 +350,9 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m12.8 | GL `DotCloud`, `GlowDots`, `TrueDot` (shader points) and `Surface` sh… | PARTIAL | `tools/math3d.js` (10h): `points` (additive glow sprites) = GlowDots/DotCloud; no TrueDot shader (`tools/math3d.js`); shuffled-… |
 | m12.9 | GL `VideoMobject`, `Sprite` (master only) | EQUAL | via `K.clip` frame sequences |
 | m12.10 | GL `StreamLines`, `AnimatedStreamLines`, `TimeVaryingVectorField` | EQUAL | `tools/plot2.js` |
-| m12.11 | GL-only API renames: `ShowCreation`=CE `Create`, `Tex`=`MathTex`, `Te… | N/A |  |
-| m13.1 | Scene block in project.json rendered to a cached clip, played by `KIT… | PARTIAL | `tools/manim.js` (10i): `"manim"` block, `reelwright manim <p> install\|doctor\|render\|verify`, clips cached by input hash, play… |
-| m13.2 | `"renderer": "manim"` whole-film mode (`tools/renderers/manim.mjs`, s… | MISSING | (not built in 10i: scenes are layers in a normal film) |
+| m12.11 | GL-only API renames: `ShowCreation`=CE `Create`, `Tex`=`MathTex`, `Te… | N/A — exception (owner-approved 2026-11-12) |  |
+| m13.1 | Scene block in project.json rendered to a cached clip, played by `KIT… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/manim.js` (10i): `"manim"` block, `reelwright manim <p> install\|doctor\|render\|verify`, clips cached by input hash, play… |
+| m13.2 | `"renderer": "manim"` whole-film mode (`tools/renderers/manim.mjs`, s… | MISSING — exception (owner-approved 2026-11-12) | (not built in 10i: scenes are layers in a normal film) |
 | m13.3 | Timing bridge (kit.json: VO words, beats, theme, fmt) + Python helper… | EQUAL | (10i): `kit.json` from film data (VO words, beats, theme, fonts) and the `rw` Python API (word, line, beat, s… |
 | m13.4 | `verify` / manifest / `clean` / `qa` integration | PARTIAL | (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js; `all`/`verify`/manifest do… |
 
@@ -379,7 +379,7 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.15 | Lessons: step sheet + captioned timelapse, drawn-stroke captions | MISSING |  |
 | 1.16 | Pen-written lettering: authored centrelines, pointed-pen width from d… | EQUAL | (10g): `D.letters` on an authored single-stroke skeleton (A–Z 0–9 punctuation), pointed-nib width, constant n… |
 | 1.17 | Illustrated kinetic type: every word drawn stroke by stroke in a medi… | PARTIAL | KIT.layout.kinetic = font text landing per spoken word |
-| 1.18 | 32 art styles (pencil, watercolour, woodcut, rubber hose, sumi-e, toy… | PARTIAL | (10g: 6 pen styles in `D.styles`: pencil, riso, marker, ballpoint, chalk, blueprint; full style plates not po… |
+| 1.18 | 32 art styles (pencil, watercolour, woodcut, rubber hose, sumi-e, toy… | PARTIAL — exception (owner-approved 2026-11-12) | (10g: 6 pen styles in `D.styles`: pencil, riso, marker, ballpoint, chalk, blueprint; full style plates not po… |
 | 1.19 | Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/a… | PARTIAL | PLAYBOOK Motion + Camera grammar cover ~10 of them |
 | 1.20 | Six seam mechanisms (foreground-as-transition, persistent actor, sele… | EQUAL | `docs/playbook/doodle.md` |
 | 1.21 | Shape handoff: one outline travels, stretches, becomes the target; co… | PARTIAL | `KIT.math.morph(pathA,pathB)` reshapes one path |
@@ -399,13 +399,13 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.35 | People placement by head size; pop-out on a disc | MISSING |  |
 | 1.36 | 3D with three.js (extruded type, puppets, camera through space) on th… | EQUAL | `tools/runtimes.js` |
 | 1.37 | Mechanism explainers: exploded axonometric machine, free-angle camera… | MISSING |  |
-| 1.38 | Isometric / low-poly / halftone / stipple render styles | MISSING |  |
-| 1.39 | Photo -> marks (tone + direction fields from a user photo) | MISSING |  |
+| 1.38 | Isometric / low-poly / halftone / stipple render styles | MISSING — exception (owner-approved 2026-11-12) |  |
+| 1.39 | Photo -> marks (tone + direction fields from a user photo) | MISSING — exception (owner-approved 2026-11-12) |  |
 | 1.40 | Style adaptation from a reference image | PARTIAL | `tools/theme_from.mjs` `theme-from` builds a theme from a URL (tools/theme_from.mjs) |
 | 1.41 | Brand import (Figma sheet, logos, inventory, check) | PARTIAL | `tools/figma_export.py,` brand.json, tools/figma_export.py, theme-from |
-| 1.42 | Character consistency across shots/styles | MISSING |  |
-| 1.43 | Original score composed in code: 21 genre vocabularies, instruments,… | PARTIAL | (10g: 4 numpy beds — chill, drive, house, hiphop; no genre engine by design) |
-| 1.44 | Optional recorded-instrument sound pack (piano, harp, marimba... 373… | MISSING |  |
+| 1.42 | Character consistency across shots/styles | MISSING — exception (owner-approved 2026-11-12) |  |
+| 1.43 | Original score composed in code: 21 genre vocabularies, instruments,… | PARTIAL — exception (owner-approved 2026-11-12) | (10g: 4 numpy beds — chill, drive, house, hiphop; no genre engine by design) |
+| 1.44 | Optional recorded-instrument sound pack (piano, harp, marimba... 373… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 1.45 | SFX kit: 14 layered seeded effects (tick, press, pop, ink, scratch, p… | EQUAL | `tools/mix.py` |
 | 1.46 | SFX placement rules: cue by frame, score ducks under each cue, <=6 dB… | EQUAL | (10g): PEAK table lands peaks on cues, repeat variants + ×0.8 step, music ducks −6 dB under subdrop (impact/r… |
 | 1.47 | Narration: multiple providers (say, kokoro local; cloud gemini/openai… | PARTIAL | vo.py edge-tts (free, word timings) + cache; no ASR verification; cloud TTS only through opt-in gen connector |
@@ -553,13 +553,13 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 2b.12 | Three modes: template / autonomous / guided co-creation with confirma… | EQUAL | AGENTS.md Workflow (ask audience, show VO lines before building) |
 | 2b.13 | Page capture trio: 2x full-page PNG, per-element transparent cutouts,… | PARTIAL | `tools/capture_site.mjs` tools/capture_site.mjs: sections, full page, images, text, colours, fonts (site.json), read-only |
 | 2b.14 | Motion Workbench: CapCut-style browser editor (tracks, retime, swap s… | MISSING | `tools/preview.mjs` tools/preview.mjs is a live scrubber, not an editor |
-| 2b.15 | JianYing (CapCut CN) draft export: per-shot clips, caption tracks, SF… | MISSING |  |
-| 2b.16 | Social publishing via Upload-Post API (TikTok, IG, YouTube, LinkedIn,… | MISSING |  |
+| 2b.15 | JianYing (CapCut CN) draft export: per-shot clips, caption tracks, SF… | MISSING — exception (owner-approved 2026-11-12) |  |
+| 2b.16 | Social publishing via Upload-Post API (TikTok, IG, YouTube, LinkedIn,… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2b.17 | Gallery of 150 looping previews + library.json API + llms.txt | MISSING | stills/sheet.jpg contact sheet only |
 | 2b.18 | Beat-synced cutting methodology: librosa grid fit, kick/snare/hat ons… | PARTIAL | `tools/beatgrid.py` tools/beatgrid.py (tempo fit from drums, drop), KIT.snap, K.beat; no post-render cut-error report |
 | 2b.19 | Output-audio offset compensation: AAC priming (~1.28 f) and per-file… | PARTIAL | (10g: per-kind PEAK table in mix.py, peaks known by construction; AAC priming not measured) |
 | 2b.20 | Sound design vocabulary: riser -> impact -> sparkle closing phrase; F… | EQUAL | `docs/playbook/sound.md` |
-| 2b.21 | Freesound SFX search/download tool (CC0 default, manifest + credits,… | MISSING |  |
+| 2b.21 | Freesound SFX search/download tool (CC0 default, manifest + credits,… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2b.22 | Bundled BGM: 5 Mixkit tracks (bgm-tech-house untraceable, cat-walk, g… | EQUAL | `tools/music.py` |
 | 2b.23 | Template SFX (11 mp3: click-camera, transition-soft/snap, swoosh-quic… | EQUAL | (10g): every template sound has a synth kind (shutter, whooshsoft/fast/deep, swish, impact, typing, riser, sp… |
 | 2b.24 | Shot-polish tooling: contact sheets, compare pages, decisions.json fo… | MISSING | `tools/sheet.py` tools/sheet.py |
@@ -579,7 +579,7 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 3.12 | State & feedback (button press, hover, toggle, success, error shake,… | PARTIAL | catalog press-ripple, settings-toggle-flow, success-check, input-feedback, toggle-flip |
 | 3.13 | Property selection (transform+opacity, never opacity alone for import… | EQUAL | PLAYBOOK: render(t) sets only opacity/transform/src/text |
 | 3.14 | Quality checklist + severity tiers + troubleshooting | PARTIAL | qa gates cover technical items |
-| 3.15 | Accessibility / reduced motion / performance / context adaptation | N/A | mp4 output; photosensitivity flash gate exists (qa.py) |
+| 3.15 | Accessibility / reduced motion / performance / context adaptation | N/A — exception (owner-approved 2026-11-12) | mp4 output; photosensitivity flash gate exists (qa.py) |
 | 4.1 | gsap.timeline({paused:true}) + tl.totalTime(t) seek (the seekable pat… | EQUAL | `tools/runtimes.js` |
 | 4.2 | Tweens: to / from / fromTo / set, function-based values, keyframes, d… | EQUAL | `tools/runtimes.js` |
 | 4.3 | Timeline position parameter ('<', '+=', '>-0.1', 'label+=0.3'), label… | EQUAL | `tools/runtimes.js` |
@@ -594,15 +594,15 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 4.12 | MorphSVG: shape index, multi-subpath, convertToPath, origin | EQUAL | `tools/runtimes.js` |
 | 4.13 | MotionPath: move/rotate along a path, autoRotate, align, curviness, p… | EQUAL | `tools/path.js` |
 | 4.14 | TextPlugin: replace text progressively | EQUAL | `tools/runtimes.js` |
-| 4.15 | ScrambleText: scramble then reveal | PARTIAL (mixed) | BY-EXCLUSION (10b): not bundled and banned by the `seekable-runtimes` gate (Math.random every render); seeded… |
+| 4.15 | ScrambleText: scramble then reveal | PARTIAL (mixed) — exception (owner-approved 2026-11-12) | BY-EXCLUSION (10b): not bundled and banned by the `seekable-runtimes` gate (Math.random every render); seeded… |
 | 4.16 | Physics2D / PhysicsProps: velocity + gravity / acceleration (closed f… | EQUAL | `tools/runtimes.js` |
 | 4.17 | Flip: record layout state, animate to new layout | MISSING |  |
 | 4.18 | CSSRulePlugin (animate pseudo-elements / stylesheet rules) | MISSING |  |
-| 4.19 | gsap.utils: interpolate, mapRange, snap, wrap, clamp, normalize, pipe… | PARTIAL | (10b): bundled with gsap.min.js; `utils.random/shuffle` banned by the seekable-runtimes gate; the rest untest… |
+| 4.19 | gsap.utils: interpolate, mapRange, snap, wrap, clamp, normalize, pipe… | PARTIAL — exception (owner-approved 2026-11-12) | (10b): bundled with gsap.min.js; `utils.random/shuffle` banned by the seekable-runtimes gate; the rest untest… |
 | 4.20 | GSDevTools (scrubber UI for a timeline) | BETTER | `tools/preview.mjs` |
-| 4.21 | MotionPathHelper (in-browser path editor) | N/A |  |
-| 4.22 | ScrollTrigger, ScrollSmoother, ScrollTo, Observer, Draggable, Inertia… | N/A | interactive or wall-clock features, not seekable |
-| 4.23 | EaselPlugin / PixiPlugin (canvas libraries) | N/A |  |
+| 4.21 | MotionPathHelper (in-browser path editor) | N/A — exception (owner-approved 2026-11-12) |  |
+| 4.22 | ScrollTrigger, ScrollSmoother, ScrollTo, Observer, Draggable, Inertia… | N/A — exception (owner-approved 2026-11-12) | interactive or wall-clock features, not seekable |
+| 4.23 | EaselPlugin / PixiPlugin (canvas libraries) | N/A — exception (owner-approved 2026-11-12) |  |
 | 4.24 | gsap-skills agent guidance (8 SKILL.md: core, timeline, plugins, util… | PARTIAL | PLAYBOOK GSAP section (own words), THIRD_PARTY credit |
 | 5.1 | Play a Lottie JSON on a layer, SVG renderer, seek from render(t) | EQUAL | `tools/runtimes.js` |
 | 5.2 | Canvas renderer | EQUAL | `tools/runtimes.js` |
@@ -621,49 +621,155 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 | ID | Feature | Status | Proof or note |
 |---|---|---|---|
-| 1 | Style locking: three fixed text blocks (image style, video style, avo… | PARTIAL | `tools/look.mjs,` (mixed: EQUAL for free output): theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING… |
-| 2 | Style reference sheet: generate one master board image, get approval,… | MISSING | `tools/gen.mjs,` (gen takes a prompt only: tools/gen.mjs, gen/higgsfield.mjs `bodyOf` = prompt + opts) |
+| 1 | Style locking: three fixed text blocks (image style, video style, avo… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/look.mjs,` (mixed: EQUAL for free output): theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING… |
+| 2 | Style reference sheet: generate one master board image, get approval,… | MISSING — exception (owner-approved 2026-11-12) | `tools/gen.mjs,` (gen takes a prompt only: tools/gen.mjs, gen/higgsfield.mjs `bodyOf` = prompt + opts) |
 | 3 | Beat sheet: spreadsheet CSV, 11 columns (Scene, Beat Label, VO Script… | BETTER | `tools/beats.mjs,` |
-| 4 | Assembled prompt columns (IMG = style + shot + text; VID = style + ac… | PARTIAL | `tools/beats.mjs` columns survive in `raw` but are not used or assembled (tools/beats.mjs header comment) |
-| 5 | Clip Duration must be >= VO Length and in the model's allowed set (4/… | PARTIAL | `tools/beats.mjs` `beats` stores `target`/`clip`; no check against measured TTS length (tools/beats.mjs; vo.py measures real le… |
+| 4 | Assembled prompt columns (IMG = style + shot + text; VID = style + ac… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/beats.mjs` columns survive in `raw` but are not used or assembled (tools/beats.mjs header comment) |
+| 5 | Clip Duration must be >= VO Length and in the model's allowed set (4/… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/beats.mjs` `beats` stores `target`/`clip`; no check against measured TTS length (tools/beats.mjs; vo.py measures real le… |
 | 6 | Scene scaffold: one folder per beat (`scenes/scene-NN-slug/`: still,… | BETTER | `tools/gen.mjs` |
 | 7 | Voice selection (ElevenLabs preset or cloned voice through Higgsfield… | EQUAL | `tools/vo.py,` |
-| 8 | Image generation per scene, with reference image(s) | PARTIAL | `tools/gen/higgsfield.mjs` text-to-image only (`gen --kind image`, default `higgsfield-ai/soul/standard`; tools/gen/higgsfield.mjs). No… |
-| 9 | Image-to-video (animate each still; camera move + action, duration, r… | PARTIAL | `tools/gen/higgsfield.mjs` text-to-video only; default `kling-video/v2.5-turbo/pro/text-to-video` (tools/gen/higgsfield.mjs) |
-| 10 | Motion transfer / video-reference recreation: reuse a supplied clip's… | MISSING | as generation. The *process* (map + compare) is docs-only |
-| 11 | Preset gallery: 10 looks (kinetic typography, glass UI launch, produc… | PARTIAL | `themes/layouts` 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel… |
+| 8 | Image generation per scene, with reference image(s) | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen/higgsfield.mjs` text-to-image only (`gen --kind image`, default `higgsfield-ai/soul/standard`; tools/gen/higgsfield.mjs). No… |
+| 9 | Image-to-video (animate each still; camera move + action, duration, r… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen/higgsfield.mjs` text-to-video only; default `kling-video/v2.5-turbo/pro/text-to-video` (tools/gen/higgsfield.mjs) |
+| 10 | Motion transfer / video-reference recreation: reuse a supplied clip's… | MISSING — exception (owner-approved 2026-11-12) | as generation. The *process* (map + compare) is docs-only |
+| 11 | Preset gallery: 10 looks (kinetic typography, glass UI launch, produc… | PARTIAL — proposed exception | `themes/layouts` 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel… |
 | 12 | Timeline-per-preset (start_s/end_s/label sections) | EQUAL | `tools/beats.mjs` |
-| 13 | Prompt craft rules: viewer takeaway first; each beat reveals somethin… | PARTIAL | `docs/PLAYBOOK.md,` Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); readin… |
+| 13 | Prompt craft rules: viewer takeaway first; each beat reveals somethin… | PARTIAL — proposed exception | `docs/PLAYBOOK.md,` Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); readin… |
 | 14 | Text-on-screen handled by the model (garbled text risk) vs exact over… | BETTER | `tools/qa_page.mjs` |
-| 15 | Prompt-fix recipes: no morphing, one-direction camera, name elements… | MISSING | as docs; only meaningful with generation |
+| 15 | Prompt-fix recipes: no morphing, one-direction camera, name elements… | MISSING — exception (owner-approved 2026-11-12) | as docs; only meaningful with generation |
 | 16 | Music generation (sonilo_music, prompt + duration, covers full length) | EQUAL/BETTER | `tools/music.py` |
-| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL | `tools/mix.py,` (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tool… |
+| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL — proposed exception | `tools/mix.py,` (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tool… |
 | 18 | Assembly (Remotion): clips in order, no per-scene transitions, one 0.… | BETTER | `tools/sched.py` |
-| 19 | Generation orchestration: batches of 3 (plan concurrency), `--wait`,… | PARTIAL | `tools/gen.mjs,` one request at a time, poll 2 s x1.5 to 10 s, 15 min timeout, 429 Retry-After, cache, estimate then confirm (… |
+| 19 | Generation orchestration: batches of 3 (plan concurrency), `--wait`,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen.mjs,` one request at a time, poll 2 s x1.5 to 10 s, 15 min timeout, 429 Retry-After, cache, estimate then confirm (… |
 | 20 | Cost control / access preflight ("estimate, never generate as a probe… | BETTER | `docs/CONNECTORS.md,` |
-| 21 | Asset management: scene folders, backups `still-v1`, manifest of prom… | PARTIAL | `docs/CONNECTORS.md` /BETTER: `assets/gen.json` (file, provider, model, kind, prompt, date, sha256, host), cache keyed by provider… |
+| 21 | Asset management: scene folders, backups `still-v1`, manifest of prom… | PARTIAL — exception (owner-approved 2026-11-12) | `docs/CONNECTORS.md` /BETTER: `assets/gen.json` (file, provider, model, kind, prompt, date, sha256, host), cache keyed by provider… |
 | 22 | Asset provenance and AI labelling | BETTER | `tools/qa_page.mjs,` |
-| 23 | Review checklist: requirement+time / planned asset / observed result+… | PARTIAL | `tools/qa.py` automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet… |
-| 24 | Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked… | PARTIAL | `tools/gen.mjs` changing the prompt -> new cache key -> pays again, old cached file kept in `.gen` (tools/gen.mjs) so compari… |
+| 23 | Review checklist: requirement+time / planned asset / observed result+… | PARTIAL — proposed exception | `tools/qa.py` automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet… |
+| 24 | Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/gen.mjs` changing the prompt -> new cache key -> pays again, old cached file kept in `.gen` (tools/gen.mjs) so compari… |
 | 25 | Add a beat mid-production (new row, new assets, recompute duration, r… | BETTER | `tools/music.py,` |
-| 26 | One-complete-film request: all timed shots in a single video prompt w… | MISSING | as generation (gen has no multi-shot prompt builder). The same *structure* is Reelwright's own beats + film.js |
-| 27 | Reference roles: identity vs style vs start/end frame vs motion; stor… | MISSING |  |
-| 28 | Media upload handoff: local path is not a remote attachment; upload,… | MISSING |  |
+| 26 | One-complete-film request: all timed shots in a single video prompt w… | MISSING — exception (owner-approved 2026-11-12) | as generation (gen has no multi-shot prompt builder). The same *structure* is Reelwright's own beats + film.js |
+| 27 | Reference roles: identity vs style vs start/end frame vs motion; stor… | MISSING — exception (owner-approved 2026-11-12) |  |
+| 28 | Media upload handoff: local path is not a remote attachment; upload,… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 29 | Vertical delivery recompose (1080x1920, conservative margins) | EQUAL | `tools/qa_page.mjs` |
 | 30 | Supplied-footage overlays (graphics over existing footage) | EQUAL/BETTER | `tools/engine.js` |
-| 31 | Targeted video edit / audio finishing via Higgsfield media tools | MISSING |  |
-| 32 | Setup / connection (CLI login `higgsfield auth login`, Pro plan; MCP… | DIFFERENT | `docs/CONNECTORS.md` intentionally: REST key via env or git-ignored file, plain fetch, no SDK (docs/CONNECTORS.md). CLI needs a pa… |
-| 33 | Gallery preview videos and wordmark/screenshots | N/A | third-party media, all rights reserved; do not vendor |
+| 31 | Targeted video edit / audio finishing via Higgsfield media tools | MISSING — exception (owner-approved 2026-11-12) |  |
+| 32 | Setup / connection (CLI login `higgsfield auth login`, Pro plan; MCP… | DIFFERENT — exception (owner-approved 2026-11-12) | `docs/CONNECTORS.md` intentionally: REST key via env or git-ignored file, plain fetch, no SDK (docs/CONNECTORS.md). CLI needs a pa… |
+| 33 | Gallery preview videos and wordmark/screenshots | N/A — exception (owner-approved 2026-11-12) | third-party media, all rights reserved; do not vendor |
 
 ## Exceptions
 
-Rows that are not EQUAL, BETTER or EQUAL/BETTER are listed, grouped by the reason their own text gives, in [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md). **A row is an exception only once the owner approves it there.** Until then every such row is open work. Nothing in this file or the script decides an exception.
+Counts: 199 EQUAL/BETTER, 80 approved exceptions, 4 proposed exceptions (waiting for the owner), 318 open. Only the owner approves an exception; nothing in this file or the script decides one. The full text of every non-EQUAL row, grouped by reason, is in [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
-Proposed by the plan ([Known exceptions](plans/phase-10-parity.md)), awaiting owner confirmation:
+### Excluded by owner decision or repo rule (7)
 
-- AWS/GCP cloud render (excluded by owner; Colab stays).
-- AI-generated footage, bespoke AI music and cloned voices: only through the paid Higgsfield connector.
-- HyperFrames blocks needing WebGPU hardware (37): supported only where the machine has it; flagged otherwise.
-- HyperFrames cloud/HeyGen-account items and the closed-source desktop app (6 rows).
-- shotcraft's JianYing export, Upload-Post publishing and Freesound tool (skipped: social publishing/third-party tools).
-- Remotion features that need its own Chrome build or are UNLICENSED (shader presentations, @remotion/effects): native rewrites instead.
+- `hyperframes:G14` — `skills` / `update` / `upgrade` / `figma` / `events` / `templates` / `usage` / `telemetry` / `feedb… — OUT — exception (owner-approved 2026-11-12)
+- `hyperframes:G17` — `catch-up`, `open` (desktop app) — OUT — exception (owner-approved 2026-11-12)
+- `hyperframes:H6` — WebMCP tools (`studio_look/select/inspect/set_style/frame`) for an in-browser agent — OUT — exception (owner-approved 2026-11-12)
+- `hyperframes:H7` — Studio desktop app (agent beside preview, Make-something box, brand kits, reference video, share) — OUT — exception (owner-approved 2026-11-12)
+- `hyperframes:I14` — Distributed render plan/assemble (Lambda, Cloud Run, k8s jobs) — OUT — exception (owner-approved 2026-11-12)
+- `hyperframes:L3` — Claude/Codex/Cursor plugin packaging and marketplace — OUT — exception (owner-approved 2026-11-12)
+- `remotion:2.7.15` — Cloud: Lambda, Cloud Run, Vercel Sandbox, Azure, Cloudflare, `@remotion/lambda`, distributed render… — N/A — exception (owner-approved 2026-11-12)
+
+### Needs WebGPU / specific hardware (3)
+
+- `hyperframes:B7` — TypeGPU / raw WebGPU (`__hfTypegpuTime`, `data-requires-webgpu`, hardware adapter required unless S… — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:B10` — Video textures into WebGL/WebGPU in render mode (`video-texture-compat`) — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:E3` — 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-compositions at `compositions/<… — PARTIAL — exception (owner-approved 2026-11-12)
+
+### Licence-blocked or non-OSI (and what was done instead) (3)
+
+- `hyperframes:E7` — Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-hex`, `world-map`, `spain-map`,… — PARTIAL — exception (owner-approved 2026-11-12)
+- `remotion:2.3.1` — `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `docs/effects/`); `effects={[..… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:33` — Gallery preview videos and wordmark/screenshots — N/A — exception (owner-approved 2026-11-12)
+
+### Not seekable / not deterministic, so kept out by the seekable gate (4)
+
+- `remotion:2.4.3` — `<Html5Video>`, `<Html5Audio>` — N/A — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:4.15` — ScrambleText: scramble then reveal — PARTIAL (mixed) — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:4.19` — gsap.utils: interpolate, mapRange, snap, wrap, clamp, normalize, pipe, distribute, shuffle/random(n… — PARTIAL — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:4.22` — ScrollTrigger, ScrollSmoother, ScrollTo, Observer, Draggable, Inertia, matchMedia, ticker/delayedCa… — N/A — exception (owner-approved 2026-11-12)
+
+### Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) (13)
+
+- `remotion:2.1.14` — `<Track>` non-overlapping named timeline lanes; editable timeline groups — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.2.6` — HTML-in-canvas shader presentations: `blurSlide, bookFlip, crossZoom, crosswarp, dissolve, dreamyZo… — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.3.7` — Edges and 3D: outline, roughenEdges, shrinkwrap, tear, bevelAlpha, cylinder, sphere, pageTurn (WebG… — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.3.9` — `createEffect()` custom effect API (2d/webgl2/webgpu backends) — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.3.10` — `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chrome 149+ flag; nesting needs C… — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.6.2` — `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentFrame` (no `useFrame`), `<Seque… — PARTIAL — exception (owner-approved 2026-11-12)
+- `remotion:2.6.3` — `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-skia CanvasKit WASM) — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.6.4` — `@remotion/rive` `<RemotionRiveCanvas>` — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.8.2` — Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()` + `InteractivitySchema` (numbe… — MISSING — exception (owner-approved 2026-11-12)
+- `manim:m4.2` — GL-only: `CircleIndicate`, `FlashAround`, `FlashUnder`, `ShowCreationThenDestruction(Around)`, `Sho… — PARTIAL — exception (owner-approved 2026-11-12)
+- `manim:m12.11` — GL-only API renames: `ShowCreation`=CE `Create`, `Tex`=`MathTex`, `TexText`=`Tex`, `Text` same, `se… — N/A — exception (owner-approved 2026-11-12)
+- `manim:m13.1` — Scene block in project.json rendered to a cached clip, played by `KIT.manim()` — PARTIAL — exception (owner-approved 2026-11-12)
+- `manim:m13.2` — `"renderer": "manim"` whole-film mode (`tools/renderers/manim.mjs`, same contract as pvk/hyperframe… — MISSING — exception (owner-approved 2026-11-12)
+
+### shotcraft audio, social publishing, JianYing and third-party tools skipped (4)
+
+- `doodle-shots-motion:1.43` — Original score composed in code: 21 genre vocabularies, instruments, form fits length; novelty gate — PARTIAL — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:2b.15` — JianYing (CapCut CN) draft export: per-shot clips, caption tracks, SFX/BGM tracks (mac tested, win… — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:2b.16` — Social publishing via Upload-Post API (TikTok, IG, YouTube, LinkedIn, X) — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:2b.21` — Freesound SFX search/download tool (CC0 default, manifest + credits, no API key) — MISSING — exception (owner-approved 2026-11-12)
+
+### Paid-connector-only (Higgsfield) (20)
+
+- `higgsfield-workflows:1` — Style locking: three fixed text blocks (image style, video style, avoid-list) reused verbatim for e… — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:2` — Style reference sheet: generate one master board image, get approval, attach to EVERY later generat… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:4` — Assembled prompt columns (IMG = style + shot + text; VID = style + action + text + sfx + avoid) — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:5` — Clip Duration must be >= VO Length and in the model's allowed set (4/6/8 s) — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:8` — Image generation per scene, with reference image(s) — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:9` — Image-to-video (animate each still; camera move + action, duration, resolution, optional baked audi… — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:10` — Motion transfer / video-reference recreation: reuse a supplied clip's choreography with a new subje… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:11` — Preset gallery: 10 looks (kinetic typography, glass UI launch, product hyper-motion, tropical produ… — PARTIAL — proposed exception, awaiting the owner
+- `higgsfield-workflows:13` — Prompt craft rules: viewer takeaway first; each beat reveals something; "headline hidden" meaning t… — PARTIAL — proposed exception, awaiting the owner
+- `higgsfield-workflows:15` — Prompt-fix recipes: no morphing, one-direction camera, name elements by position, always repeat sty… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:17` — Audio design: sound effects baked per clip, VO separate, music continuous at ~0.25, clip audio ~0.3 — PARTIAL — proposed exception, awaiting the owner
+- `higgsfield-workflows:19` — Generation orchestration: batches of 3 (plan concurrency), `--wait`, timeouts — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:21` — Asset management: scene folders, backups `still-v1`, manifest of prompts/models/job ids, "save exac… — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:23` — Review checklist: requirement+time / planned asset / observed result+timestamp / pass-fail-not-insp… — PARTIAL — proposed exception, awaiting the owner
+- `higgsfield-workflows:24` — Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked), regenerate, keep first resu… — PARTIAL — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:26` — One-complete-film request: all timed shots in a single video prompt with design-world, motion-rules… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:27` — Reference roles: identity vs style vs start/end frame vs motion; storyboard sheet only as general r… — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:28` — Media upload handoff: local path is not a remote attachment; upload, record returned ids — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:31` — Targeted video edit / audio finishing via Higgsfield media tools — MISSING — exception (owner-approved 2026-11-12)
+- `higgsfield-workflows:32` — Setup / connection (CLI login `higgsfield auth login`, Pro plan; MCP connection) — DIFFERENT — exception (owner-approved 2026-11-12)
+
+### The audit's own approach column says skip / defer / not needed (21)
+
+- `hyperframes:A15` — HTML-in-canvas (`drawElementImage`, Chrome experimental flag) as WebGL/Three texture; draw-element… — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:A21` — Interactive slideshow (manifest, fragments, branches, hotspots, presenter view, deck audio), `prese… — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:B9` — Map readiness: Leaflet, MapLibre, Mapbox GL, Google Maps (wait for load/tiles) — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:K4` — `SDK` (`openComposition`, `find`, text/style/timing/asset/variable/animation edits, JSON patches, u… — MISSING — exception (owner-approved 2026-11-12)
+- `hyperframes:K5` — `parsers`: HTML parse/serialise, GSAP AST read/write (acorn, recast), `hf-id` stamping, spring-ease… — PARTIAL — exception (owner-approved 2026-11-12)
+- `hyperframes:K6` — `inspector` package (source maps, CSS/JS scope analysis for the studio picker) — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.1.15` — Premounting (`premountFor`), `SequenceActivityBudget` — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.1.20` — `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selection — PARTIAL — exception (owner-approved 2026-11-12)
+- `remotion:2.3.12` — Greenscreen via `colorKey()`; video matting (`@remotion/video-matting`, local WebGPU model) — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.4.10` — `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/transcribe in browser), Remoti… — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.5.8` — `@remotion/animated-emoji` (Noto animated emoji) — MISSING — exception (owner-approved 2026-11-12)
+- `remotion:2.5.9` — `@remotion/mac-cursors` (macOS cursor set) — PARTIAL — exception (owner-approved 2026-11-12)
+- `remotion:2.7.11` — Env/config: `remotion.config.ts` (`Config.set*`), `--env-file`, `--log`, `--timeout`, `--bundle-cac… — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.7.13` — Media cache sizes: `--media-cache-size-in-bytes`, `--offthreadvideo-cache-size-in-bytes`, `--offthr… — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.8.5` — Studio export to OpenTimelineIO; Editor Starter ($600) and Timeline (paid) editors; Recorder templa… — N/A — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:1.18` — 32 art styles (pencil, watercolour, woodcut, rubber hose, sumi-e, toy brick, ...) — PARTIAL — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:1.38` — Isometric / low-poly / halftone / stipple render styles — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:1.39` — Photo -> marks (tone + direction fields from a user photo) — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:1.42` — Character consistency across shots/styles — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:1.44` — Optional recorded-instrument sound pack (piano, harp, marimba... 373 MB, hash-pinned download) — MISSING — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:3.15` — Accessibility / reduced motion / performance / context adaptation — N/A — exception (owner-approved 2026-11-12)
+
+### Not applicable by design (N/A, UNVERIFIED, DIFFERENT) (9)
+
+- `remotion:2.4.16` — Arabic/RTL text rules (direction, animate by word, keep letters joined) — UNVERIFIED — exception (owner-approved 2026-11-12)
+- `remotion:2.6.10` — Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@remotion/enable-scss`, `@remotion… — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.7.16` — `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `renderStill`, `selectComposition`, `… — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.7.17` — Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders — N/A — exception (owner-approved 2026-11-12)
+- `remotion:2.8.7` — `npx create-video`, `npx remotion add <pkg>` (installs the exact matching version), `npx remotion u… — N/A — exception (owner-approved 2026-11-12)
+- `manim:m1.7` — `Wait` with `stop_condition`, `wait_until` — N/A — exception (owner-approved 2026-11-12)
+- `manim:m11.4` — Landmines: LaTeX probe (binary present != pipeline works), stale segment cache, HUD vanishes on pus… — N/A — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:4.21` — MotionPathHelper (in-browser path editor) — N/A — exception (owner-approved 2026-11-12)
+- `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
+
+### Open (318)
+
+Not exceptions: the row is not EQUAL/BETTER and gives no reason. They stay open until the checkpoint that shipped the feature re-audits the row and flips it with a proving file. IDs are in the "Not done, no stated reason" group of [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).

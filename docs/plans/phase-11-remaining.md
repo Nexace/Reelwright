@@ -1,8 +1,9 @@
 # Phase 11 plan: build the remaining rows (one session, parallel subagents)
 
-Status: **draft, owner starts it in a new session after 0.3.0 is released.** Goal: turn the open rows of `docs/PARITY.md`
-("Planned (Phase 11)", about 180 build rows, plus about 60 partly shipped rows) into EQUAL or BETTER, each flip proved by
-a file or self-check, and release 0.4.0. Excluded by the owner: Figma, Firefly and Premiere Pro work, Higgsfield depth.
+Status: **draft, owner starts it in a new session after 0.3.0 is released.** Goal: turn the open rows of `docs/PARITY.md` into EQUAL or BETTER, each flip proved by
+a file or self-check, and release 0.4.0. At 0.3.0 the open rows are 221: 27 Planned, 168 Partial (some shipped, the rest
+planned) and 26 with no tag, plus 4 proposed exceptions for the owner. Package sizes below are estimates; the orchestrator
+recounts from `docs/PARITY.md` and the `[10z: build]` tags first. Excluded by the owner: Figma, Firefly and Premiere Pro work, Higgsfield depth.
 
 ## How it runs: one session, subagents only
 

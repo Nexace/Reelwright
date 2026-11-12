@@ -12,10 +12,10 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 199; not 402 (grand total of the g
 | 4 | Not seekable / not deterministic, so kept out by the seekable gate | 4 |
 | 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 13 |
 | 6 | shotcraft audio, social publishing, JianYing and third-party tools skipped | 4 |
-| 7 | Paid-connector-only (Higgsfield) | 16 |
+| 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 322 |
+| 10 | Not done, no stated reason | 318 |
 | | **Grand total** | **402** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
@@ -177,16 +177,16 @@ By source: doodle-shots-motion 4
 - `doodle-shots-motion:2b.21` — Freesound SFX search/download tool (CC0 default, manifest + credits, no API key) — MISSING
   - approach: do NOT ship; the no-key page scraping may breach Freesound terms (UNVERIFIED). Offer instead: manual `assets/sfx/` folder + `sfx-credits.json` checked by qa when a CC BY file is mixed in
 
-## 7. Paid-connector-only (Higgsfield) (16)
+## 7. Paid-connector-only (Higgsfield) (20)
 
 Rows from the Higgsfield audit whose status or approach says the capability (generated media, AI music, cloned voices) needs the paid Higgsfield connector (docs/CONNECTORS.md). Core stays free, local and offline.
 
-By source: higgsfield-workflows 16
+By source: higgsfield-workflows 20
 
-### Higgsfield workflows (docusphere, cth9191) (16)
+### Higgsfield workflows (docusphere, cth9191) (20)
 
-- `higgsfield-workflows:1` — Style locking: three fixed text blocks (image style, video style, avoid-list) reused verbatim for every scene; "style once, action per clip" — PARTIAL (mixed)
-  - says: for free output (theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING for generated media: no stored style block feeding `gen`
+- `higgsfield-workflows:1` — Style locking: three fixed text blocks (image style, video style, avoid-list) reused verbatim for every scene; "style once, action per clip" — PARTIAL
+  - says: (mixed: EQUAL for free output): theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING for generated media: no stored style block feeding `gen`. Owner dropped checkpoint 10l (Higgsfield depth) on 2…
   - approach: Add optional `gen` block in project.json (`style`, `avoid`, per-kind) that `gen` prepends/appends to every prompt and includes in the cache key. Local: themes already do it. Paid need: nothing extra…
 - `higgsfield-workflows:2` — Style reference sheet: generate one master board image, get approval, attach to EVERY later generation as the visual source of truth — MISSING
   - says: (gen takes a prompt only: tools/gen.mjs, gen/higgsfield.mjs `bodyOf` = prompt + opts)
@@ -206,15 +206,27 @@ By source: higgsfield-workflows 16
 - `higgsfield-workflows:10` — Motion transfer / video-reference recreation: reuse a supplied clip's choreography with a new subject or copy — MISSING
   - says: as generation. The *process* (map + compare) is docs-only
   - approach: Higgsfield endpoints (docs-verified): `POST /higgsfield/genjutsu/motion-transfer/v1.0` (`video_url` >= 4 s, trimmed to 30 s; `image_urls` 1-8; `prompt` <= 10000; `resolution` 480p/720p/1080p; output…
+- `higgsfield-workflows:11` — Preset gallery: 10 looks (kinetic typography, glass UI launch, product hyper-motion, tropical product, exploded product, blueprint-to-build… — PARTIAL
+  - says: 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel; editorial -> editorial; glass UI -> dark-tech + tilted device). Gap: "glass" and "blueprint" palettes. 3D/CG…
+  - approach: Native themes `glass`, `blueprint` from palette words only (themes/*.css); optional "recipe" docs per look. CG looks: EQUAL impossible without a video model
+- `higgsfield-workflows:13` — Prompt craft rules: viewer takeaway first; each beat reveals something; "headline hidden" meaning test; exact-copy list per shot; reading h… — PARTIAL
+  - says: Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); reading-hold and takeaway checks not written down as a pre-build checklist
+  - approach: Docs: add "Brief" and "Self-review" sections to PLAYBOOK (paraphrased). `wordy`/`tiny-text` WARNs already cover copy density. Owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09: proposed e…
 - `higgsfield-workflows:15` — Prompt-fix recipes: no morphing, one-direction camera, name elements by position, always repeat style in video prompt, longer clip + simple… — MISSING
   - says: as docs; only meaningful with generation
   - approach: Short "when a generated clip misbehaves" paragraph in docs/CONNECTORS.md (own words). Free, no code
+- `higgsfield-workflows:17` — Audio design: sound effects baked per clip, VO separate, music continuous at ~0.25, clip audio ~0.3 — PARTIAL
+  - says: (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tools/mix.py, tools/qa.py). MISSING: mixing the *embedded* audio of a generated clip at a set level. Owner dropped…
+  - approach: Small option in mix.py/`clip` for embedded-audio gain (free). Generated-SFX quality: needs the video model's `generate_audio` (Seedance docs: default true)
 - `higgsfield-workflows:19` — Generation orchestration: batches of 3 (plan concurrency), `--wait`, timeouts — PARTIAL
   - says: one request at a time, poll 2 s x1.5 to 10 s, 15 min timeout, 429 Retry-After, cache, estimate then confirm (tools/gen.mjs, gen/higgsfield.mjs). No batch/queue
   - approach: `gen --batch beats.csv` running N at a time after one total estimate and ONE confirmation. Docs: concurrency number is per account in the console, not published (verify-higgsfield.md) so default 1-2…
 - `higgsfield-workflows:21` — Asset management: scene folders, backups `still-v1`, manifest of prompts/models/job ids, "save exact submitted prompt/settings/job record,… — PARTIAL
   - says: /BETTER: `assets/gen.json` (file, provider, model, kind, prompt, date, sha256, host), cache keyed by provider+model+kind+prompt, `verify` hashes assets (docs/CONNECTORS.md). MISSING: version history on regenerate (new p…
   - approach: Keep prior file as `<name>-v1` on overwrite; store `requestId`/`estimateUsd` in manifest; `gen --resume <request_id>` polling an existing job (status endpoint is documented and free to poll)
+- `higgsfield-workflows:23` — Review checklist: requirement+time / planned asset / observed result+timestamp / pass-fail-not-inspected; judge story and motion separately… — PARTIAL
+  - says: automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet and "look at frames around every flag" (AGENTS.md). No written per-requirement review table; no "listen for c…
+  - approach: Docs-only template in PLAYBOOK (table with the same four columns, own wording) + optional `reelwright review <name>` that prints the table prefilled from `beats` (label, time, exact on-screen copy) w…
 - `higgsfield-workflows:24` — Re-generation loop: inspect, fix SHOT/MOTION only (style stays locked), regenerate, keep first result for comparison; cth9191: ONE correcti… — PARTIAL
   - says: changing the prompt -> new cache key -> pays again, old cached file kept in `.gen` (tools/gen.mjs) so comparison is possible; no retry bound / counter, no per-beat redo command
   - approach: `gen --redo <beat>`: re-runs one beat's prompt with versioned output (row 21); optional `gen.maxAttempts` per asset in project.json (default 2) that refuses a 3rd paid call without `--yes`. Aligns wi…
@@ -335,13 +347,13 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A
   - approach: exclude
 
-## 10. Not done, no stated reason (322)
+## 10. Not done, no stated reason (318)
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 322 rows are the honest to-do list: not done, and the row gives no reason.** They are not proposed as exceptions; they are open work.
+**These 318 rows are the honest to-do list: not done, and the row gives no reason.** They are not proposed as exceptions; they are open work.
 
-By source: hyperframes 62, remotion 50, manim 41, doodle-shots-motion 165, higgsfield-workflows 4
+By source: hyperframes 62, remotion 50, manim 41, doodle-shots-motion 165
 
 ### HyperFrames (62)
 
@@ -1290,26 +1302,3 @@ By source: hyperframes 62, remotion 50, manim 41, doodle-shots-motion 165, higgs
   - approach: optional: `reelwright add-lottie x.lottie` unzips to JSON for lottie-web at add time (S, no WASM). Full dotlottie-web only if state machines/themes are asked for
 - `doodle-shots-motion:5.9` — Sample Lottie files — MISSING
   - approach: ship none except self-made test animation; user supplies files
-
-### Higgsfield workflows (docusphere, cth9191) (4)
-
-#### Docs / PLAYBOOK note only (2)
-
-- `higgsfield-workflows:13` — Prompt craft rules: viewer takeaway first; each beat reveals something; "headline hidden" meaning test; exact-copy list per shot; reading h… — PARTIAL
-  - says: Truthfulness rules + "Illustrative data" QA gate exist (docs/PLAYBOOK.md, tools/qa.py `illustrative`); reading-hold and takeaway checks not written down as a pre-build checklist
-  - approach: Docs: add "Brief" and "Self-review" sections to PLAYBOOK (paraphrased). `wordy`/`tiny-text` WARNs already cover copy density
-- `higgsfield-workflows:23` — Review checklist: requirement+time / planned asset / observed result+timestamp / pass-fail-not-inspected; judge story and motion separately… — PARTIAL
-  - says: automated gates for duration/loudness/captions/flash/seekable/ai-label (tools/qa.py) + `stills` contact sheet and "look at frames around every flag" (AGENTS.md). No written per-requirement review table; no "listen for c…
-  - approach: Docs-only template in PLAYBOOK (table with the same four columns, own wording) + optional `reelwright review <name>` that prints the table prefilled from `beats` (label, time, exact on-screen copy) w…
-
-#### Native code to add in tools/ (or a flag/command) (1)
-
-- `higgsfield-workflows:11` — Preset gallery: 10 looks (kinetic typography, glass UI launch, product hyper-motion, tropical product, exploded product, blueprint-to-build… — PARTIAL
-  - says: 4 look-alikes via themes/layouts (kinetic -> `kinetic` layout + brutalist/neon; flat-vector -> playful/pastel; editorial -> editorial; glass UI -> dark-tech + tilted device). Gap: "glass" and "blueprint" palettes. 3D/CG…
-  - approach: Native themes `glass`, `blueprint` from palette words only (themes/*.css); optional "recipe" docs per look. CG looks: EQUAL impossible without a video model
-
-#### Other (read the approach text) (1)
-
-- `higgsfield-workflows:17` — Audio design: sound effects baked per clip, VO separate, music continuous at ~0.25, clip audio ~0.3 — PARTIAL (mixed)
-  - says: for UI sounds: synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tools/mix.py, tools/qa.py). MISSING: mixing the *embedded* audio of a generated clip at a set level
-  - approach: Small option in mix.py/`clip` for embedded-audio gain (free). Generated-SFX quality: needs the video model's `generate_audio` (Seedance docs: default true)

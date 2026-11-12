@@ -621,7 +621,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 | ID | Feature | Status | Proof or note |
 |---|---|---|---|
-| 1 | Style locking: three fixed text blocks (image style, video style, avo… | PARTIAL (mixed) | `tools/look.mjs,` for free output (theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING for generated m… |
+| 1 | Style locking: three fixed text blocks (image style, video style, avo… | PARTIAL | `tools/look.mjs,` (mixed: EQUAL for free output): theme CSS + brand.json lock the look: tools/look.mjs, themes/*.css). MISSING… |
 | 2 | Style reference sheet: generate one master board image, get approval,… | MISSING | `tools/gen.mjs,` (gen takes a prompt only: tools/gen.mjs, gen/higgsfield.mjs `bodyOf` = prompt + opts) |
 | 3 | Beat sheet: spreadsheet CSV, 11 columns (Scene, Beat Label, VO Script… | BETTER | `tools/beats.mjs,` |
 | 4 | Assembled prompt columns (IMG = style + shot + text; VID = style + ac… | PARTIAL | `tools/beats.mjs` columns survive in `raw` but are not used or assembled (tools/beats.mjs header comment) |
@@ -637,7 +637,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 | 14 | Text-on-screen handled by the model (garbled text risk) vs exact over… | BETTER | `tools/qa_page.mjs` |
 | 15 | Prompt-fix recipes: no morphing, one-direction camera, name elements… | MISSING | as docs; only meaningful with generation |
 | 16 | Music generation (sonilo_music, prompt + duration, covers full length) | EQUAL/BETTER | `tools/music.py` |
-| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL (mixed) | `tools/mix.py,` for UI sounds: synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tools/mix.py, tools/… |
+| 17 | Audio design: sound effects baked per clip, VO separate, music contin… | PARTIAL | `tools/mix.py,` (mixed: BETTER for UI sounds): synth SFX at `KIT.cue` times, ducking, -14 LUFS normalise, loudness gate (tool… |
 | 18 | Assembly (Remotion): clips in order, no per-scene transitions, one 0.… | BETTER | `tools/sched.py` |
 | 19 | Generation orchestration: batches of 3 (plan concurrency), `--wait`,… | PARTIAL | `tools/gen.mjs,` one request at a time, poll 2 s x1.5 to 10 s, 15 min timeout, 429 Retry-After, cache, estimate then confirm (… |
 | 20 | Cost control / access preflight ("estimate, never generate as a probe… | BETTER | `docs/CONNECTORS.md,` |

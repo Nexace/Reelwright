@@ -54,3 +54,5 @@ node tools/checks/taste.page.mjs docs/recipes/film     # pre-render taste check
 ```
 
 The build output (`vo/`, `hf/kit/`, `stills/`, `out/`, …) is git-ignored; only the film's source and `img/` are committed. The film is not in CI.
+
+- [Shotcards A](shotcards/README.md) and [Shotcards B](shotcards/b-index.md): recipes for the video-shotcraft cards (KIT.shotcards).

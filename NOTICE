@@ -20,6 +20,8 @@ This product includes the following MIT-licensed components, each in vendor/<nam
   Anime.js, Copyright (c) 2025 Julian Garnier
   flubber, Copyright (c) 2017 Noah Veltman (and the libraries bundled in it, see vendor/flubber/THIRD_PARTY.md)
   @remotion/paths, Copyright (c) 2023 JonnyBurger (changed from upstream, see vendor/paths/VENDORED.md)
+  polygon-clipping, Copyright (c) 2018 Mike Fogel (and splaytree, see vendor/polygon-clipping/THIRD_PARTY.md)
+  shiki 3.23.0 (trimmed), Copyright (c) 2021 Pine Wu, (c) 2023 Anthony Fu (and the libraries bundled in it, see vendor/shiki/THIRD_PARTY.md)
   ui-ux-pro-max-skill data, Copyright (c) 2024 Next Level Builder
 
 This product includes the following ISC-licensed components, each in vendor/<name>/ with its licence file:

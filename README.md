@@ -380,6 +380,8 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
 | `theme-brief "<what the product is>" [name]` | draft `themes/<name>.css` from a one-line brief ("budgeting app for students"): the best-matching product type's palette, font pairing and mood from the `ui-ux-pro-max` data (MIT), fonts mapped to the bundled OFL families; prints what it picked, what to avoid and the theme check; offline |
 | `manim [project] install [ce\|gl] [--yes] \| doctor [ce\|gl] \| render [--force] \| verify` | optional Manim scenes (`"manim"` block in `project.json`, `KIT.manim` in `film.js`): `install` prints what it would download into `<repo>/.venv-manim` and does it only with `--yes`; `render` runs after `sched` and after any VO change (`all` does not run Manim); exit 1 on any problem |
+| `code [project] highlight <file> [--lang L] [--theme T] [--id name] [--lines a-b] \| model <file.obj> [--id name]` | build-time data for `KIT.math.code` (shiki) and `KIT.math3d` models: writes `film/code-<id>.js` or `model-<id>.js` (`hf/` for HyperFrames) |
+| `manim-lint [project] [texts\|pace\|dark\|all] [--video f.mp4] [--strict]` | Manim scene lints: OFF-FRAME, TEXT-OVERLAP, TINY-TEXT, RUSHED, GAP, UNNARRATED, DARK-STRETCH |
 | `beats [project] import <file.csv\|timeline.json> [--replace] \| export [file.csv] [--replace]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; only those keys change; `--replace` overwrites (on export: an existing csv) |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
@@ -526,7 +528,7 @@ tools/                      shared — you rarely edit these
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages, lint, blocks and catalog components, see VENDORED.md
 vendor/hf-player/           the HyperFrames player (Apache 2.0) behind embed and studio
 vendor/gsap/ lottie/ anime/ three/ three-r147/   animation runtimes behind tools/runtimes.js (GSAP is not MIT, see its LICENSE-GSAP.md)
-vendor/katex/ mathjax/ flubber/ paths/           math and paths: KIT.math.equation, KIT.tex, morphs, KIT.path
+vendor/katex/ mathjax/ flubber/ paths/ polygon-clipping/ shiki/   math, paths, boolean ops and code highlighting: KIT.math.equation, KIT.tex, morphs, KIT.path, KIT.math.bool, reelwright code
 vendor/d3/ topojson-client/ world-atlas/ us-atlas/   what the map blocks load
 vendor/ui-ux-pro-max/       product-type data behind theme-brief (MIT)
 python/reelwright_manim/    the Manim adapter (RWScene, frame-quantised timing); Manim itself is installed on request into .venv-manim

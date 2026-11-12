@@ -10,21 +10,21 @@ Compiled 2026-11-12 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 30 | 5 | 0 | 50 | 21 | 6 | 0 | 0 | 112 |
+| HyperFrames | 34 | 5 | 0 | 47 | 20 | 6 | 0 | 0 | 112 |
 | Remotion + its skills | 31 | 4 | 3 | 38 | 21 | 0 | 12 | 1 | 110 |
-| Manim CE + ManimGL + manim skills | 41 | 8 | 1 | 31 | 10 | 0 | 3 | 0 | 94 |
-| anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 82 | 5 | 0 | 123 | 38 | 0 | 4 | 0 | 252 |
+| Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
+| anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 170 | 5 | 0 | 47 | 26 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **187** | **29** | **6** | **254** | **97** | **6** | **20** | **2** | **601** |
+| **All** | **297** | **29** | **6** | **162** | **79** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 222 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 332 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 222 |
+| EQUAL, BETTER or EQUAL/BETTER | 332 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
-| Planned (Phase 11), not claimed | 27 |
-| Partial: some shipped, the rest planned (open) | 168 |
+| Planned (Phase 11), not claimed | 9 |
+| Partial: some shipped, the rest planned (open) | 76 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 26 |
 | **Total** | **601** |
@@ -39,8 +39,8 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | A2 | Timed clips: `data-start`, `data-duration`, `data-track-index`, `clas… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/blocks.mjs` Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them… |
 | A3 | Relative start `data-start="intro + 0.5"` (clip-id, +/- seconds, same… | BETTER | `tools/engine.js` |
 | A4 | Nested compositions: `data-composition-src` host + `<template>` file,… | EQUAL | `tools/compose.js` |
-| A5 | Composition variables: `data-composition-variables` (string number co… | PARTIAL — partial, rest planned (open) | `tools/compose.js,` Per-mount variables exist: KIT.mount/KIT.block `vars` write data-variable-values and window.__hyperframes.get… |
-| A6 | Batch render: one output per variables row (`--batch rows.json`, `--b… | MISSING — planned (Phase 11) | `bin/reelwright.mjs` No batch command in bin/reelwright.mjs or tools/commands/ (`beats import` parses CSV only). Not built: depend… |
+| A5 | Composition variables: `data-composition-variables` (string number co… | EQUAL | `tools/variables.js` |
+| A6 | Batch render: one output per variables row (`--batch rows.json`, `--b… | EQUAL | `tools/commands/batch.mjs` |
 | A7 | `<video>` layer: `data-media-start`, `data-playback-rate` 0.1-10, `da… | EQUAL | `tools/media.js` |
 | A8 | `<audio>` elements with `data-start`, fades `data-fade-in/out`, volum… | EQUAL | `tools/renderers/media.mjs` |
 | A9 | Speed ramps: `rate` lane in `data-automation` (log-scale points, curv… | EQUAL | (10a). `ramp:[{t,v,curve}]` on `KIT.video`: log-scale rate integrated to source time, ported from `speedRamp.… |
@@ -100,9 +100,9 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G2 | `add`, `catalog` | PARTIAL — partial, rest planned (open) | `tools/commands/add.mjs` `add <name>` installs a component or block and `add --list [tag]` lists supported blocks and components, filt… |
 | G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | PARTIAL — partial, rest planned (open) | `tools/capture_site.mjs` tools/capture_site.mjs (`from-url`, `theme-from`): scroll-to-load, hero + per-heading shots, sections, full p… |
 | G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/selfcheck/hf-lint.mjs` `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE;… |
-| G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | PARTIAL — partial, rest planned (open) | `tools/renderers/pvk.mjs,` `stills [t,t,..]` writes stills/t<time>.jpg (12 evenly spaced by default) and stills/sheet.jpg (tools/rendere… |
+| G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | EQUAL | `tools/commands/stills2.mjs` |
 | G6 | `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG o… | MISSING — exception (owner-approved 2026-11-12) | No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. N… |
-| G7 | `compare` N variants into one labelled PNG; `grade-compare` | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs,` `remix` renders stills at 25/50/75 % in 3 themes x 3 formats onto one labelled sheet (bin/reelwright.mjs, too… |
+| G7 | `compare` N variants into one labelled PNG; `grade-compare` | EQUAL | `tools/commands/compare.mjs` |
 | G8 | `timeline` (list tracks/clips; move/trim/split/delete/set/duplicate/a… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/studio/server.mjs` Script edits exist as `beats import/export` (CSV <-> project.json) and the studio inspector (line text and ga… |
 | G9 | `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per… | MISSING — planned (Phase 11) | `bin/reelwright.mjs,` No `measure`, `diff` or `reverse` command (bin/reelwright.mjs, tools/commands/); `verify` only compares Reelw… |
 | G10 | `render` (see section I) and `benchmark` (tries fps/quality/workers,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/renderers/pvk.mjs` `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS`… |
@@ -288,29 +288,29 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m1.15 | `manim checkhealth`, `manim plugins`, `%%manim` Jupyter magic | EQUAL | for the use case: `preview` scrubber, `stills` + sheet.jpg (preview.mjs, sheet.py) |
 | m2.1 | `linear`, `smooth`, `smoothstep/smootherstep/smoothererstep`, `there_… | EQUAL | `K.easing('power2.out'\|'sine.inOut'\|'elastic.out'\|…')` + `M.ease.smooth/thereAndBack` (engine.js:35-60, math.… |
 | m2.2 | `rush_into`, `rush_from`, `slow_into`, `double_smooth`, `there_and_ba… | EQUAL | `tools/motion.js` |
-| m3.1 | `Create` / GL `ShowCreation` (stroke draw-on), `Uncreate` | PARTIAL — partial, rest planned (open) | `tools/math2.js` (10z): Create = `KIT.math.mob` stroke draw-on then fill (`tools/math2.js`, fixture `tools/selfcheck/motion/ma… |
+| m3.1 | `Create` / GL `ShowCreation` (stroke draw-on), `Uncreate` | EQUAL | `tools/manim-fx.js` |
 | m3.2 | `DrawBorderThenFill` | EQUAL | `tools/math2.js` |
 | m3.3 | `Write` / `Unwrite` (glyph stroke-then-fill, text and Tex) | EQUAL | `tools/tex.js` |
 | m3.4 | `SpiralIn`, `ShowIncreasingSubsets`, `ShowSubmobjectsOneByOne`, `Show… | EQUAL | staggered opacity/draw via `K.stagger` |
-| m3.5 | `AddTextLetterByLetter`, `RemoveTextLetterByLetter`, `AddTextWordByWo… | PARTIAL — partial, rest planned (open) | `tools/motion.js` (10z): `KIT.typewriter(el, text, {cps, caret, mistakes})` types, blinks a caret, backspaces mistakes (`tools/… |
+| m3.5 | `AddTextLetterByLetter`, `RemoveTextLetterByLetter`, `AddTextWordByWo… | EQUAL | `tools/manim-fx.js` |
 | m3.6 | `FadeIn`/`FadeOut` (shift, scale), GL `FadeInFromPoint/OutToPoint`, `… | EQUAL | opacity+transform in layouts/`K.E` |
 | m3.7 | `GrowFromPoint/Center/Edge`, `GrowArrow`, `SpinInFromNothing` | EQUAL | via CSS transform + easing |
 | m4.1 | `Indicate`, `Flash`, `FocusOn`, `Circumscribe`, `Wiggle`, `Blink`, `A… | EQUAL | `tools/motion.js` |
 | m4.2 | GL-only: `CircleIndicate`, `FlashAround`, `FlashUnder`, `ShowCreation… | PARTIAL — exception (owner-approved 2026-11-12) | same helpers cover most |
-| m4.3 | `Broadcast` (expanding rings) | MISSING — planned (Phase 11) | `tools/motion.js` `KIT.indicate.flash` (tools/motion.js) bursts radial lines, not expanding rings; build: concentric circles sc… |
+| m4.3 | `Broadcast` (expanding rings) | EQUAL | `tools/manim-fx.js` |
 | m5.1 | `Transform`, `ReplacementTransform`, `TransformFromCopy`, `ClockwiseT… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/tex.js` (10h): glyph morphs (flubber) and `path_arc` in `KIT.tex.transform` (`tools/tex.js`), multi-path and hole-saf… |
 | m5.2 | `TransformMatchingShapes`, `TransformMatchingTex`, GL `TransformMatch… | EQUAL | `tools/tex.js` |
 | m5.3 | `ApplyMethod`, `ScaleInPlace`, `ShrinkToCenter`, `Rotate`/`Rotating`,… | EQUAL | transforms and `K.keys` |
 | m5.4 | `ApplyPointwiseFunction`, `ApplyMatrix`, `ApplyComplexFunction`, `Hom… | EQUAL | `tools/plot2.js` |
-| m5.5 | `PhaseFlow`, `MoveAlongPath` | PARTIAL — partial, rest planned (open) | `tools/path.js` (10z): MoveAlongPath = `KIT.path.follow` (`tools/path.js`, fixture `tools/selfcheck/motion/path.mjs`); missin… |
+| m5.5 | `PhaseFlow`, `MoveAlongPath` | EQUAL | `tools/manim-fx.js` |
 | m5.6 | `ChangeSpeed` | EQUAL/BETTER | `K.clip` anchors, shots speed ramps (engine.js:246, shots.js) |
 | m5.7 | `ChangingDecimal`, `ChangeDecimalToValue`, GL `CountInFrom` | EQUAL | `K.count` (engine.js:408) |
-| m5.8 | `TracedPath`, `AnimatedBoundary`, GL `TracingTail` | MISSING — planned (Phase 11) | no trail helper; `KIT.path.follow` + a `KIT.sim` position table can draw one by hand; build: `KIT.path.trace(… |
+| m5.8 | `TracedPath`, `AnimatedBoundary`, GL `TracingTail` | EQUAL | `tools/manim-fx.js` |
 | m6.1 | `Circle`, `Dot`, `Ellipse`, `Arc`, `ArcBetweenPoints`, `TangentialArc… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/math2.js` (10h): `KIT.math.shape.*` + `KIT.math.mob`: circle, ellipse, arc, arcBetween, annulus, sector, annularSector,… |
 | m6.2 | `Square`, `Rectangle`, `RoundedRectangle`, `Triangle`, `Polygon`, `Po… | EQUAL | `tools/math2.js` |
 | m6.3 | `Line`, `DashedLine`, `TangentLine`, `Elbow`, `Arrow`, `Vector`, `Dou… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/math2.js` (10h): line, dashed (`dash`), elbow, arrow tips (triangle/stealth/circle/square), double, curved, vector, ang… |
 | m6.4 | `SurroundingRectangle`, `BackgroundRectangle`, `Cross`, `Underline`,… | EQUAL | `tools/math2.js` |
-| m6.5 | Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` | MISSING — planned (Phase 11) | no path boolean ops; build: vendor polygon-clipping (MIT) for `Union/Difference/Intersection/Exclusion` over… |
+| m6.5 | Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` | EQUAL | `vendor/polygon-clipping/` |
 | m6.6 | `Label`, `LabeledDot`, `LabeledLine`, `LabeledArrow`, `LabeledPolygra… | EQUAL | `tools/math2.js` |
 | m6.7 | `Group`, `VGroup`, `VDict`, `arrange`, `arrange_in_grid`, `next_to`,… | BETTER | CSS flex/grid, layouts, `KIT.safe` (layouts.js) |
 | m6.8 | Colours: 130+ named constants (`BLUE_A..E`), `ManimColor`, `interpola… | PARTIAL — exception (owner-approved 2026-11-12) | `themes/*.css` theme tokens `--kit-*` (themes/*.css) and CSS `color-mix`; no Manim palette constants (a Manim scene gets the… |
@@ -319,36 +319,36 @@ Source: [docs/parity/manim.md](parity/manim.md). 94 rows.
 | m7.2 | `MathTex`/`Tex` (LaTeX), `substrings_to_isolate`, `tex_to_color_map`,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/commands/tex.mjs` (10h): `KIT.tex` (MathJax) with `color(match, c)` = set_color_by_tex (key-sequence match; misses a substring… |
 | m7.3 | `Typst`, `MathTypst` (+ `select` labels) | PARTIAL — exception (owner-approved 2026-11-12) | `projects/manim-hf` (10z): `MathTypst` works inside an optional Manim CE scene (`python/reelwright_manim/examples/hello.py`, `pro… |
 | m7.4 | `DecimalNumber`, `Integer`, `Variable`, GL `DecimalNumber` | EQUAL | `K.count` + tabular-nums |
-| m7.5 | `Matrix`, `DecimalMatrix`, `IntegerMatrix`, `MobjectMatrix`, GL `TexM… | PARTIAL — partial, rest planned (open) | `tools/tex.js` (10z): `KIT.tex` typesets and writes `\begin{bmatrix}` (tools/tex.js; `tools/selfcheck/tex-offline.mjs` types… |
-| m7.6 | `Table`, `MathTable`, `IntegerTable`, `DecimalTable`, `MobjectTable` | MISSING — planned (Phase 11) | HTML tables by hand are native in the browser; no `KIT.table` helper (grid + lines draw-on + entry reveal); b… |
-| m7.7 | `Code` (syntax highlighting), GL `Code` | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): HyperFrames code blocks installable with `reelwright add` (10f: code-diff, code-3d-extrude, code-parti… |
+| m7.5 | `Matrix`, `DecimalMatrix`, `IntegerMatrix`, `MobjectMatrix`, GL `TexM… | EQUAL | `tools/manim-grid.js` |
+| m7.6 | `Table`, `MathTable`, `IntegerTable`, `DecimalTable`, `MobjectTable` | EQUAL | `tools/manim-grid.js` |
+| m7.7 | `Code` (syntax highlighting), GL `Code` | EQUAL | `vendor/shiki/` |
 | m7.8 | `BulletedList`, `Title`, GL `TexTextFromPresetString` | EQUAL | layouts (`KIT.layout.*`) |
-| m8.1 | `Axes` (ranges, lengths, tips, ticks, `axis_config`, `add_coordinates… | PARTIAL — partial, rest planned (open) | `tools/math.js` (10z): `KIT.math.axes` plus `plane({kind})` with labels, `c2p`/`p2c`, sublines (`tools/math.js`, `tools/plot2… |
-| m8.2 | `NumberLine` (ticks, numbers, tip, `n2p`, `UnitInterval`, GL `Slider`) | PARTIAL — partial, rest planned (open) | `tools/math.js` `KIT.math.numberLine` basic (`tools/math.js`); missing: elongated ticks, labels at chosen values, brackets, `… |
+| m8.1 | `Axes` (ranges, lengths, tips, ticks, `axis_config`, `add_coordinates… | EQUAL | `tools/manim-graph.js` |
+| m8.2 | `NumberLine` (ticks, numbers, tip, `n2p`, `UnitInterval`, GL `Slider`) | EQUAL | `tools/manim-graph.js` |
 | m8.3 | `NumberPlane` (background + faded lines), `PolarPlane`, `ComplexPlane… | EQUAL | `tools/plot2.js` |
 | m8.4 | `plot`/`FunctionGraph` (discontinuities, `use_smoothing`), `plot_para… | EQUAL | `tools/plot2.js` |
 | m8.5 | `ImplicitFunction` / `plot_implicit_curve` (isosurfaces) | EQUAL | `tools/plot2.js` |
 | m8.6 | `get_area`, `get_riemann_rectangles`, `get_secant_slope_group`, `get_… | EQUAL | `tools/plot2.js` |
-| m8.7 | `BarChart`, `SampleSpace` | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): HyperFrames chart blocks installable with `reelwright add` (10f: bar-chart-race, data-chart, mk-line-g… |
+| m8.7 | `BarChart`, `SampleSpace` | EQUAL | `tools/manim-graph.js` |
 | m8.8 | `Graph`/`DiGraph` (networkx layouts: spring, circular, tree, partite,… | MISSING — exception (owner-approved 2026-11-12) | no graph layouts; except: niche, and spring layout needs a new vendored library (d3-force); circular/tree/gri… |
 | m8.9 | `VectorField`, `ArrowVectorField`, `StreamLines`, GL `TimeVaryingVect… | EQUAL | `tools/plot2.js` |
-| m8.10 | `LinearTransformationScene`, `VectorScene` (basis vectors, matrix app… | PARTIAL — partial, rest planned (open) | `tools/plot2.js` (10h): `KIT.math.basis` + matrix warp on a plane; no matrix label or add_transformable_label (`tools/plot2.js… |
+| m8.10 | `LinearTransformationScene`, `VectorScene` (basis vectors, matrix app… | EQUAL | `tools/manim-graph.js` |
 | m8.11 | GL fractals `MandelbrotFractal`, `JuliaFractal`, `NewtonFractal`, `Me… | MISSING — exception (owner-approved 2026-11-12) | `tools/shaders.js` `tools/shaders.js` holds the 14 shader transitions, not fractals; except: a GL-only effect; a fragment shader… |
 | m9.1 | `MovingCameraScene` (frame scale/move, `save_state`/`Restore`) | EQUAL | `KIT.shot.*`, `KIT.shoot` (shots.js) |
-| m9.2 | `ZoomedScene` (magnified inset, display frame) | MISSING — planned (Phase 11) | no magnified inset; build: `KIT.zoomInset(srcRect, dstRect)` as a second transformed copy of a layer with a f… |
+| m9.2 | `ZoomedScene` (magnified inset, display frame) | EQUAL | `tools/manim-fx.js` |
 | m9.3 | `MultiCamera`, `SplitScreenCamera`, `MappingCamera` | PARTIAL — exception (owner-approved 2026-11-12) | `tools/layouts.js` `KIT.layout` split composes panels and `KIT.shoot` moves each panel's layer (`tools/layouts.js`, `tools/shots… |
 | m9.4 | `ThreeDScene` (`set_camera_orientation` phi/theta/gamma/zoom/focal_di… | EQUAL | `tools/math3d.js` |
-| m9.5 | `add_fixed_in_frame_mobjects`, `add_fixed_orientation_mobjects`, GL `… | PARTIAL — partial, rest planned (open) | `projects/math2-hf` (10z): fixed-in-frame HUD = a DOM overlay above the 3D canvas (`projects/math2-hf`: tag and captions over `KI… |
+| m9.5 | `add_fixed_in_frame_mobjects`, `add_fixed_orientation_mobjects`, GL `… | EQUAL | `tools/manim-3d.js` |
 | m9.6 | `ThreeDAxes`, `Surface` (checkerboard, resolution, `set_fill_by_value… | EQUAL | `tools/math3d.js` |
 | m9.7 | `Sphere`, `Cube`, `Prism`, `Cone`, `Cylinder`, `Torus`; GL `Disk3D`,… | EQUAL | `tools/math3d.js` |
 | m9.8 | `Polyhedron`, `Tetrahedron`, `Octahedron`, `Icosahedron`, `Dodecahedr… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/math3d.js` (10h): tetrahedron, octahedron, icosahedron, dodecahedron (`tools/math3d.js`, fixture `tools/selfcheck/motion… |
-| m9.9 | Lighting (`light_source`), shading, `TexturedSurface`, `ThreeDModel`… | PARTIAL — partial, rest planned (open) | `tools/math3d.js` (10h): lights and MeshStandardMaterial shading (`tools/math3d.js`); no textures or OBJ/GLTF models (Three's l… |
+| m9.9 | Lighting (`light_source`), shading, `TexturedSurface`, `ThreeDModel`… | EQUAL | `tools/manim-3d.js` |
 | m9.10 | 3D determinism: WebGL in headless Chromium | EQUAL | `tools/runtimes.js` |
 | m10.1 | `VoiceoverScene.voiceover(text)` tracker: `duration`, `get_remaining_… | BETTER | `W(id, word, nth)` word times from edge-tts, beat snap, multi-language (sched.py, vo.py, engine.js:135) |
 | m10.2 | TTS back-ends: Azure, ElevenLabs, gTTS, OpenAI, pyttsx3, Gemini, reco… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/vo.py` edge-tts only (`tools/vo.py`); other voices go through the paid-connector pattern (docs/CONNECTORS.md); excep… |
 | m11.1 | Morph-Don't-Fade, Rack-Focus, caption bands cut, narration never prin… | EQUAL | PLAYBOOK Math bullets, qa `overlap` + `wordy` WARNs (qa_page.mjs:13-15) |
-| m11.2 | Layout lint OFF-FRAME / TEXT-OVERLAP / TINY-TEXT | PARTIAL — partial, rest planned (open) | `tools/qa_page.mjs` (10i): DOM lint exists (`tools/qa_page.mjs`); a Manim scene can mark itself with `rw.label_illustrative()`; m… |
-| m11.3 | Pace lint (<= 2.5 words/s, gaps, >= 15 % unnarrated), dark-stretch li… | PARTIAL — partial, rest planned (open) | `tools/checks/taste.page.mjs` (10z): the taste check warns on VO lines faster than 6.5 words/s and on stretches over 4 s where nothing move… |
+| m11.2 | Layout lint OFF-FRAME / TEXT-OVERLAP / TINY-TEXT | EQUAL | `tools/checks/manim-lint.mjs` |
+| m11.3 | Pace lint (<= 2.5 words/s, gaps, >= 15 % unnarrated), dark-stretch li… | EQUAL | `tools/checks/manim-lint.mjs` |
 | m11.4 | Landmines: LaTeX probe (binary present != pipeline works), stale segm… | N/A — exception (owner-approved 2026-11-12) |  |
 | m12.1 | OpenGL/wgpu GPU renderer (shader-drawn strokes/fills, bundled draws) | PARTIAL — exception (owner-approved 2026-11-12) | `projects/manim-hf` (10i): a ManimGL adapter (`python/reelwright_manim/gl.py`) and tests that skip without it; ManimGL was never… |
 | m12.2 | Interactive embed: `-se <line>`, `embed()`, `checkpoint_paste()`, `In… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/studio/` `reelwright preview` scrubs a finished film and `reelwright studio` (10k, `tools/studio/`) edits the native f… |
@@ -427,128 +427,128 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.53 | Interactive web art: <ani-doodle> mascots that follow the cursor, scr… | MISSING — exception (owner-approved 2026-11-12) | `tools/commands/embed.mjs` Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs an… |
 | 2.1 | basic-3d-scene [1 shot] | EQUAL | `tools/shots2.js` |
 | 2.2 | crash-zoom-punch [1 shot] | EQUAL | `tools/shots.js` |
-| 2.3 | cursor-flyover [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots2.js` (10z): camera is KIT.shot.tour (tools/shots2.js), proved by tools/selfcheck/motion/shots2.mjs and projects/mo… |
+| 2.3 | cursor-flyover [1 shot] | EQUAL | `tools/shotcards/camera.js` |
 | 2.4 | depth-layer-moves [1 shot] | EQUAL | `tools/shots2.js` |
 | 2.5 | graze-face-tour [1 shot] | EQUAL | `tools/shots2.js` |
 | 2.6 | overhead-camera-moves (tilt-reveal, overhead-tabletop-drop) [2 shots] | EQUAL | `tools/shots2.js` |
 | 2.7 | space-camera-moves (exploded-view, drone-dive-landing) [2 shots] | EQUAL | `tools/shots2.js` |
 | 2.8 | steep-tilt-glide [1 shot] | EQUAL | `tools/shots2.js` |
-| 2.9 | tension-camera-moves (bullet-time-freeze-orbit, pull-back-isolation)… | PARTIAL — partial, rest planned (open) | `tools/shots2.js,` (10z): KIT.shot.bulletTime two clocks (tools/shots2.js, fixture tools/selfcheck/motion/shots2.mjs, docs/playb… |
-| 2.10 | terminal-3d [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots2.js,` (10z): KIT.shot.tour (tools/shots2.js, fixture) and KIT.typewriter (tools/motion.js, projects/motion-hf) both… |
-| 2.11 | before-after-slider-scrub [1 shot] | PARTIAL — partial, rest planned (open) | `tools/transitions.js` (10z): KIT.transition('wipe') moves a clip edge over two layers (tools/transitions.js; selfcheck motion/trans… |
-| 2.12 | chart-live-moves (oscilloscope-stream, unit-dot-swarm-regroup, axis-r… | PARTIAL — partial, rest planned (open) | `projects/blocks-hf` (10z): block oscilloscope-trace (reelwright add, used in projects/blocks-hf) covers oscilloscope-stream; KIT.… |
-| 2.13 | gauge-readout-moves (needle-sweep-selftest, tape-scroll-fixed-pointer… | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): K.count (tools/engine.js), catalog conic-progress-ring and number-wheel install with `reelwright add`;… |
-| 2.14 | scroll-brake-moves (changelog-scroll-brake, brake-reticle-lock) [2 sh… | MISSING — planned (Phase 11) | `tools/engine.js` cat: scroll-feed (scroll only, no brake/reticle); 10z: not built; everything needed exists (K.keys, K.easing… |
-| 2.15 | timeline-travel [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): K.camAt (tools/engine.js) and KIT.math.numberLine (tools/math.js) both shipped; missing: no timeline-t… |
-| 2.16 | assemble-then-type-flyin [1 shot] | MISSING — planned (Phase 11) | `tools/shots.js` cat: grid-card-assemble (skeleton only); 10z: not built; smallest: recipe using grid-card-assemble then K.sta… |
-| 2.17 | aurora-bloom-bg-flip [1 shot] | PARTIAL — partial, rest planned (open) | (10z): mesh-gradient-bg installs via `reelwright add`, animated gradient bg through --hf-x1..y3 vars (hand-dr… |
+| 2.9 | tension-camera-moves (bullet-time-freeze-orbit, pull-back-isolation)… | EQUAL | `tools/shotcards/camera.js` |
+| 2.10 | terminal-3d [1 shot] | EQUAL | `tools/shotcards/camera.js` |
+| 2.11 | before-after-slider-scrub [1 shot] | EQUAL | `tools/shotcards/data.js` |
+| 2.12 | chart-live-moves (oscilloscope-stream, unit-dot-swarm-regroup, axis-r… | EQUAL | `tools/shotcards/data.js` |
+| 2.13 | gauge-readout-moves (needle-sweep-selftest, tape-scroll-fixed-pointer… | EQUAL | `tools/shotcards/data.js` |
+| 2.14 | scroll-brake-moves (changelog-scroll-brake, brake-reticle-lock) [2 sh… | EQUAL | `tools/shotcards/data.js` |
+| 2.15 | timeline-travel [1 shot] | EQUAL | `tools/shotcards/data.js` |
+| 2.16 | assemble-then-type-flyin [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.17 | aurora-bloom-bg-flip [1 shot] | EQUAL | `tools/shotcards/effects.js` |
 | 2.18 | brand-frame-snap [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: film-local: a K.snap-timed CSS colour step on the frame; too small for a kit helper (AGENTS.md: single-f… |
-| 2.19 | fui-hud-moves [1 shot] | PARTIAL — partial, rest planned (open) | `tools/motion.js` (10z): KIT.indicate.circumscribe and showPassingFlash (tools/motion.js; selfcheck motion/motion.mjs, projects… |
-| 2.20 | glow-flyline-moves (glow-orb-ambient, flyline-arc, orb-flyline-relay)… | PARTIAL — partial, rest planned (open) | `tools/path.js,` (10z): KIT.path.draw/follow replace GSAP MotionPath (tools/path.js, fixture tools/selfcheck/motion/path.mjs,… |
-| 2.21 | icon-performance-moves [1 shot] | PARTIAL — partial, rest planned (open) | `tools/motion.js` (10z): KIT.indicate.indicate/wiggle (scale pop, rotate shake; tools/motion.js), KIT.spring overshoot, badge-p… |
-| 2.22 | impact-feedback (hit-counter, anime-impact) [2 shots] | PARTIAL — partial, rest planned (open) | `tools/shots.js,` (10z): K.shake and K.cue impact (tools/shots.js, tools/engine.js), catalog camera-shake, shutter-slam, rubber… |
-| 2.23 | light-play-moves (spotlight-sweep, sheen-sweep) [2 shots] | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): shimmer-sweep (--shimmer-pos gradient sheen) and spotlight-card (CSS-var spotlight + lit border) insta… |
-| 2.24 | radial-ripple-phone-chips [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): K.phone (tools/engine.js), catalog radial-surround and press-ripple install with `reelwright add`; mis… |
-| 2.25 | riso-print-hits [1 shot] | MISSING — planned (Phase 11) | 10z: not built; smallest: recipe of 2-3 stacked copies with mix-blend-mode multiply and seeded per-hit offset… |
-| 2.26 | scan-bracket-sweep [1 shot] | PARTIAL — partial, rest planned (open) | `tools/motion.js` (10z): KIT.indicate.circumscribe and showPassingFlash (tools/motion.js; selfcheck motion/motion.mjs); missing… |
-| 2.27 | scanline-annotate-focus [1 shot] | PARTIAL — partial, rest planned (open) | `tools/doodle.js,` (10z): KIT.doodle.underline/circle marks (tools/doodle.js, projects/shots-hf) and KIT.indicate.focusOn/circum… |
-| 2.28 | scanline-assemble-flyin [1 shot] | MISSING — planned (Phase 11) | 10z: not built; smallest: recipe sweeping a seeded scanline with K.stagger fly-in of elements it passes [10z:… |
-| 2.29 | slam-entrance-moves (kanada-perspective-snap, score-slam, impact-burs… | PARTIAL — partial, rest planned (open) | `tools/shots.js` (10z): KIT.shake impact decay and crashZoom (tools/shots.js), KIT.spring overshoot, KIT.layout.fullBleed word… |
-| 2.30 | spotlight-sweep-moves (glow-wake-sleep-panel, slide-spotlight-pan, co… | PARTIAL — partial, rest planned (open) | (10z): catalog spotlight-card and light-sweep-pass install with `reelwright add`; missing: glow-wake-sleep-pa… |
+| 2.19 | fui-hud-moves [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.20 | glow-flyline-moves (glow-orb-ambient, flyline-arc, orb-flyline-relay)… | EQUAL | `tools/shotcards/effects.js` |
+| 2.21 | icon-performance-moves [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.22 | impact-feedback (hit-counter, anime-impact) [2 shots] | EQUAL | `tools/shotcards/effects.js` |
+| 2.23 | light-play-moves (spotlight-sweep, sheen-sweep) [2 shots] | EQUAL | `tools/shotcards/effects.js` |
+| 2.24 | radial-ripple-phone-chips [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.25 | riso-print-hits [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.26 | scan-bracket-sweep [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.27 | scanline-annotate-focus [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.28 | scanline-assemble-flyin [1 shot] | EQUAL | `tools/shotcards/effects.js` |
+| 2.29 | slam-entrance-moves (kanada-perspective-snap, score-slam, impact-burs… | EQUAL | `tools/shotcards/effects.js` |
+| 2.30 | spotlight-sweep-moves (glow-wake-sleep-panel, slide-spotlight-pan, co… | EQUAL | `tools/shotcards/effects.js` |
 | 2.31 | autolayout-gap-dial [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: film-local: CSS gap driven by K.keys plus a dial drawn in the film; niche Figma UI mock, not worth a kit… |
-| 2.32 | canvas-materialize-moves (panel-to-canvas, diagram-cascade) [2 shots] | MISSING — planned (Phase 11) | 10z: not built; smallest: recipe on modal-morph then KIT.stagger cascading diagram nodes with KIT.path.draw e… |
+| 2.32 | canvas-materialize-moves (panel-to-canvas, diagram-cascade) [2 shots] | EQUAL | `tools/shotcards/interaction.js` |
 | 2.33 | chip-grid-single-select-blackout [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: film-local selection state machine over K.keys; niche UI mock [10z: except] |
-| 2.34 | collab-cursor-moves [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js,` (10z): KIT.cursor pointer and KIT.path travel (tools/engine.js, tools/path.js; selfcheck motion/path.mjs); mi… |
+| 2.34 | collab-cursor-moves [1 shot] | EQUAL | `tools/shotcards/interaction.js` |
 | 2.35 | glass-pill-dictation-typing [1 shot] | EQUAL | `tools/motion.js` |
 | 2.36 | hashtag-to-pill-materialize [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: film-local text-to-pill morph (CSS radius/padding from K.keys); too small for a kit helper [10z: except] |
-| 2.37 | picker-carousel-feature-cycle [1 shot] | PARTIAL — partial, rest planned (open) | `tools/selfcheck/blocks.mjs` (10z): tabs-slide-indicator (pill slides via --hf-tab-x; hand-driven, HF only) + verified carousel-circle/orb… |
-| 2.38 | segmented-thumb-hero [1 shot] | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): tabs-slide-indicator is the sliding segmented thumb (--hf-tab-x, pill/width vars); settings-toggle-flo… |
-| 2.39 | theme-switch-moves (theme-sweep-toggle, palette-theme-ripple) [2 shot… | MISSING — planned (Phase 11) | `tools/theme.mjs` themes are CSS tokens (tools/theme.mjs) but no runtime ripple; 10z: not built; smallest: two stacked scene co… |
-| 2.40 | type-and-filter [1 shot] | PARTIAL — partial, rest planned (open) | `tools/motion.js,` (10z): KIT.typewriter (tools/motion.js, fixture tools/selfcheck/motion/motion.mjs, projects/motion-hf) and ca… |
-| 2.41 | voice-waveform-live [1 shot] | MISSING — planned (Phase 11) | beatgrid.py finds onsets only, no continuous energy curve; 10z: not built; smallest: dump a 30 fps RMS array… |
-| 2.42 | brand-ink-open [1 shot] | PARTIAL — partial, rest planned (open) | `tools/doodle2.js` (10z): pen-drawn brand mark via KIT.doodle2 stroke/letters/drawSVG (tools/doodle2.js; selfcheck doodle2.mjs;… |
-| 2.43 | crane-rise-reveal [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots.js` (10z): S.craneRise camera (tools/shots.js) is equal; missing: rowPulse option (rows pulse as the camera cross… |
-| 2.44 | dataviz-landscape-open [1 shot] | MISSING — planned (Phase 11) | 10z: not built; smallest: recipe on math3d.scene surface with camera.orient opening move and bars from KIT.st… |
-| 2.45 | fracture [1 shot] | MISSING — planned (Phase 11) | 10z: not built; smallest: a function-type transition (the API accepts one) with seeded triangle clip-path pol… |
-| 2.46 | icon-field-colorize [1 shot] | PARTIAL — partial, rest planned (open) | `cloud/logo-wall` cat: avatar-cloud, logo-wall; 10z: Only avatar-cloud/logo-wall exist: GSAP+CDN, never seeked by KIT.block; no… |
-| 2.47 | letterspace-materialize [1 shot] | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): tracking-in component (letter-spacing + rise reveal; hand-driven, HF only); a letter-spacing tween fro… |
+| 2.37 | picker-carousel-feature-cycle [1 shot] | EQUAL | `tools/shotcards/interaction.js` |
+| 2.38 | segmented-thumb-hero [1 shot] | EQUAL | `tools/shotcards/interaction.js` |
+| 2.39 | theme-switch-moves (theme-sweep-toggle, palette-theme-ripple) [2 shot… | EQUAL | `tools/shotcards/interaction.js` |
+| 2.40 | type-and-filter [1 shot] | EQUAL | `tools/shotcards/interaction.js` |
+| 2.41 | voice-waveform-live [1 shot] | EQUAL | `tools/shotcards/interaction.js` |
+| 2.42 | brand-ink-open [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.43 | crane-rise-reveal [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.44 | dataviz-landscape-open [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.45 | fracture [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.46 | icon-field-colorize [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.47 | letterspace-materialize [1 shot] | EQUAL | `tools/shotcards/opening.js` |
 | 2.48 | magician-card-flourish [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: Niche opening gimmick (cards fanned and flipped by a magician flourish); nothing in the repo does it, bu… |
-| 2.49 | orbit-ring-title-open [1 shot] | PARTIAL — partial, rest planned (open) | `tools/selfcheck/blocks.mjs` (10z): carousel-orbit-1..5 blocks (KIT.mount; tools/selfcheck/blocks.mjs), KIT.path ellipse travel (tools/pat… |
-| 2.50 | spotlight-hero-card [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots.js,` (10z): KIT.shot.tour/pushIn/orbit/crashZoom (tools/shots.js, shots2.js) can fly z 0.78 to 2.6 with ry 34 via… |
+| 2.49 | orbit-ring-title-open [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.50 | spotlight-hero-card [1 shot] | EQUAL | `tools/shotcards/opening.js` |
 | 2.51 | stroke-segment-build [1 shot] | EQUAL | `tools/doodle.js` |
-| 2.52 | text-as-mask [1 shot] | PARTIAL — partial, rest planned (open) | cat: texture-mask-text, svg-mask-reveal; 10z: svg-mask-reveal is GSAP+CDN (not seeked by KIT.block); texture-… |
-| 2.53 | grain-dissolve [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shaders.js` (10z): KIT.shader domain-warp/ridged-burn noise dissolves (tools/shaders.js; docs/playbook/shader-transitions… |
-| 2.54 | logo-shrink-wordmark-lockup [1 shot] | PARTIAL — partial, rest planned (open) | `docs/recipes/end-card.md` (10z): docs/recipes/end-card.md (logo pop with KIT.spring, CTA, hold) + verified logo-outro/yt-logo-intro blo… |
-| 2.55 | neon-triple-marquee [1 shot] | PARTIAL — partial, rest planned (open) | (10z): perspective-marquee component (3D tilted marquee via --hf-marquee-x; hand-driven, HF only) with neon v… |
-| 2.56 | outro-group-photo-launch [1 shot] | PARTIAL — partial, rest planned (open) | `vendor/hyperframes/registry/components` (10z): avatar-cloud, radial-surround, locked-nucleus-orbit and logo-brand-close components (vendor/hyperframe… |
-| 2.57 | ui-strip-away-outro [1 shot] | PARTIAL — partial, rest planned (open) | (10z): skeleton-reveal, filmed-screen, physical-exit, paper-collage-reveal and logo-brand-close components co… |
-| 2.58 | ui-to-brand-morph (icon-flip-bloom, input-morph-assemble) [2 shots] | PARTIAL — partial, rest planned (open) | `tools/path.js,` (10z): morph-swap, modal-morph, menu-morph, icon-morph-beat components and KIT.path.morph/KIT.math.morphShape… |
+| 2.52 | text-as-mask [1 shot] | EQUAL | `tools/shotcards/opening.js` |
+| 2.53 | grain-dissolve [1 shot] | EQUAL | `tools/shotcards/dissolve.js` |
+| 2.54 | logo-shrink-wordmark-lockup [1 shot] | EQUAL | `tools/shotcards/outro.js` |
+| 2.55 | neon-triple-marquee [1 shot] | EQUAL | `tools/shotcards/outro.js` |
+| 2.56 | outro-group-photo-launch [1 shot] | EQUAL | `tools/shotcards/outro.js` |
+| 2.57 | ui-strip-away-outro [1 shot] | EQUAL | `tools/shotcards/outro.js` |
+| 2.58 | ui-to-brand-morph (icon-flip-bloom, input-morph-assemble) [2 shots] | EQUAL | `tools/shotcards/outro.js` |
 | 2.59 | beat-cut-moves [1 shot] | EQUAL | `tools/transitions.js,` |
-| 2.60 | beat-step-list-theme-cycle [1 shot] | PARTIAL — partial, rest planned (open) | `docs/recipes/feature-stagger.md,` (10z): list stepping on spoken words/beats (docs/recipes/feature-stagger.md, K.snap/K.beat), beat-timeline an… |
-| 2.61 | panel-grid-moves [1 shot] | PARTIAL — partial, rest planned (open) | `tools/layouts.js` (10z): comparison-split, split-tilt-cards components, KIT.layout.split/bento (tools/layouts.js), KIT.transiti… |
-| 2.62 | quad-split-parallel-scenes [1 shot] | PARTIAL — partial, rest planned (open) | `tools/compose.js,` (10z): KIT.mount/KIT.block (tools/compose.js, docs/playbook/nested-compositions.md) host independently timed… |
-| 2.63 | rhythm-interrupt-moves [1 shot] | PARTIAL — partial, rest planned (open) | (10z): KIT.shot.track (hard cuts between camera shots, PLAYBOOK), K.remap, micro-transitions component; missi… |
-| 2.64 | sakuga-timing-shift [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): KIT.easing('steps(n)') (tools/engine.js), KIT.remap time remap (tools/shots.js), KIT.shot.bulletTime t… |
+| 2.60 | beat-step-list-theme-cycle [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
+| 2.61 | panel-grid-moves [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
+| 2.62 | quad-split-parallel-scenes [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
+| 2.63 | rhythm-interrupt-moves [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
+| 2.64 | sakuga-timing-shift [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
 | 2.65 | speed-ramp-freeze [1 shot] | EQUAL | `tools/media.js,` |
-| 2.66 | trailer-grammar-moves [1 shot] | PARTIAL — partial, rest planned (open) | (10z): headline-slam, titlecard-calm/lockup, logo-sting, beat-accent components and KIT.transition fadeThroug… |
+| 2.66 | trailer-grammar-moves [1 shot] | EQUAL | `tools/shotcards/rhythm.js` |
 | 2.67 | bottom-push-stack-wipe [1 shot] | EQUAL | `tools/transitions.js` |
 | 2.68 | card-flip-reveal [1 shot] | EQUAL | `tools/transitions.js` |
-| 2.69 | card-flock-tumble [1 shot] | MISSING — planned (Phase 11) | 10z: No file makes many cards tumble into a word (char-slam-explode moves glyphs, not cards). Build a recipe:… |
+| 2.69 | card-flock-tumble [1 shot] | EQUAL | `tools/shotcards/transition.js` |
 | 2.70 | circle-match-iris [1 shot] | EQUAL | `tools/transitions.js` |
-| 2.71 | gradient-transition [1 shot] | PARTIAL — partial, rest planned (open) | `tools/transitions.js` (10z): KIT.transition fadeThrough (c.color wash), lightLeak and custom (p, ctx) types (tools/transitions.js;… |
+| 2.71 | gradient-transition [1 shot] | EQUAL | `tools/shotcards/dissolve.js` |
 | 2.72 | line-carry-transition [1 shot] | EQUAL | `tools/selfcheck/doodle2.mjs,` |
 | 2.73 | mosaic-reframe [1 shot] | EQUAL | (10z): grid-pixelate-wipe component (grid squares fade with stagger; hand-driven, HF only) + verified transit… |
-| 2.74 | page-turn-transitions [1 shot] | PARTIAL — partial, rest planned (open) | `tools/transitions.js,` (10z): barnDoor, flip, cube via KIT.transition (tools/transitions.js, fixture selfcheck/motion/transitions.mj… |
-| 2.75 | print-texture-transitions [1 shot] | PARTIAL — partial, rest planned (open) | `tools/transitions.js` (10z): KIT.transition('brush') ragged-bristle ink wipe (tools/transitions.js; selfcheck transitions.mjs, proj… |
+| 2.74 | page-turn-transitions [1 shot] | EQUAL | `tools/shotcards/transition.js` |
+| 2.75 | print-texture-transitions [1 shot] | EQUAL | `tools/shotcards/dissolve.js` |
 | 2.76 | shot-transitions (flash-cut, whip-pan, mask-wipe) [3 shots] | EQUAL | `tools/transitions.js` |
-| 2.77 | tear-streak-transitions [1 shot] | PARTIAL — partial, rest planned (open) | `tools/transitions.js,` (10z): KIT.transition('glitch'), KIT.shader chromatic-split/glitch (tools/transitions.js, tools/shaders.js; s… |
-| 2.78 | transition-hidden-cut (invisible-cut, versus-slam, light-leak-burn) [… | PARTIAL — partial, rest planned (open) | (10z): light-leak burn = KIT.transition(lightLeak) plus light-leak blocks; hidden cut = whip-pan-cut componen… |
-| 2.79 | transition-travel [1 shot] | PARTIAL — partial, rest planned (open) | (10z): zoom-through-transition and parallax-zoom components, KIT.transition(zoom), S.crashZoom/S.tour onto a… |
+| 2.77 | tear-streak-transitions [1 shot] | EQUAL | `tools/shotcards/dissolve.js` |
+| 2.78 | transition-hidden-cut (invisible-cut, versus-slam, light-leak-burn) [… | EQUAL | `tools/shotcards/transition.js` |
+| 2.79 | transition-travel [1 shot] | EQUAL | `tools/shotcards/transition.js` |
 | 2.80 | white-flash-logo-simplify-cut [1 shot] | EQUAL | `tools/transitions.js` |
 | 2.81 | wipe-transitions [1 shot] | EQUAL | `tools/transitions.js` |
 | 2.82 | blur-slide [1 shot] | EQUAL | cat: blur-in, soft-blur-in, blur-out-up |
 | 2.83 | brace-expand [1 shot] | EQUAL | `tools/math2.js,` |
-| 2.84 | countdown-arc-scatter [1 shot] | PARTIAL — partial, rest planned (open) | (10z): conic-progress-ring, count-up, number-wheel components, K.count (counts down with from>to), KIT.math a… |
+| 2.84 | countdown-arc-scatter [1 shot] | EQUAL | `tools/shotcards/typography.js` |
 | 2.85 | document-typewriter-reveal [1 shot] | EQUAL | `tools/motion.js` |
-| 2.86 | flying-words [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots2.js,` (10z): KIT.shot.planes + S.tour (tools/shots2.js, depth parallax from one camera) can fly words past the came… |
+| 2.86 | flying-words [1 shot] | EQUAL | `tools/shotcards/typography.js` |
 | 2.87 | glitch-cycle [1 shot] | EQUAL | `tools/engine.js` |
-| 2.88 | gradient-word-sweep [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): shimmer-sweep component sweeps a gradient band through text (--shimmer-pos/width/color; hand-driven, H… |
-| 2.89 | lead-word-zoom-assemble [1 shot] | PARTIAL — partial, rest planned (open) | `tools/layouts.js` (10z): KIT.layout.kinetic words landing in turn (tools/layouts.js), S.crashZoom/pushIn onto a word; missing:… |
+| 2.88 | gradient-word-sweep [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.89 | lead-word-zoom-assemble [1 shot] | EQUAL | `tools/shotcards/typography.js` |
 | 2.90 | marker-underline-title [1 shot] | EQUAL | `tools/doodle.js` |
-| 2.91 | outline-word-fill [1 shot] | PARTIAL — partial, rest planned (open) | `tools/doodle2.js` (10z): KIT.doodle2.drawSVG draws outlines then washes fills in (tools/doodle2.js; selfcheck doodle2.mjs, proj… |
+| 2.91 | outline-word-fill [1 shot] | EQUAL | `tools/shotcards/typography.js` |
 | 2.92 | paper-title-card [1 shot] | EQUAL | `tools/layouts.js` |
-| 2.93 | pill-chip-slot-cycle-handled [1 shot] | PARTIAL — partial, rest planned (open) | (10z): slot-machine-roll component (vertical reel via --hf-slot-y; hand-driven, HF only) inside a CSS pill; m… |
-| 2.94 | pill-slot-cycle [1 shot] | PARTIAL — partial, rest planned (open) | `tools/blocks.mjs` (10z): slot-machine-roll component is the pill slot cycle (vertical reel, direction/size/tone vars, --hf-slot… |
-| 2.95 | text-column-converge [1 shot] | MISSING — planned (Phase 11) | 10z: line-by-line-slide and kinetic-center-build slide text in from one side only; nothing converges columns… |
-| 2.96 | title-demote-to-label [1 shot] | MISSING — planned (Phase 11) | K.keys/K.lerp only; 10z: No title-to-label demote exists (text-match-cut swaps lines, card-resize resizes car… |
-| 2.97 | type-assembly-moves (split-text-stagger, drift-assembly, text-on-path… | PARTIAL — partial, rest planned (open) | (10z): split-text-stagger = K.words, text-stagger, per-word-rise; drift-assembly = char-slam-explode; text-on… |
-| 2.98 | type-entrance-moves [1 shot] | PARTIAL — partial, rest planned (open) | `tools/motion.js` (10z): bottom-up-letters, top-down-letters, char-slam-explode components, K.spring and KIT.sim (bouncing, too… |
-| 2.99 | type-rhythm-sync (font-weight-pump, karaoke-fill-sync) [2 shots] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): karaoke fill via K.subtitles (.said/.now; tools/engine.js) + weight-wave block (wght/slnt travelling c… |
+| 2.93 | pill-chip-slot-cycle-handled [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.94 | pill-slot-cycle [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.95 | text-column-converge [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.96 | title-demote-to-label [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.97 | type-assembly-moves (split-text-stagger, drift-assembly, text-on-path… | EQUAL | `tools/shotcards/typography.js` |
+| 2.98 | type-entrance-moves [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.99 | type-rhythm-sync (font-weight-pump, karaoke-fill-sync) [2 shots] | EQUAL | `tools/shotcards/typography.js` |
 | 2.100 | typewriter-moves [1 shot] | EQUAL | `tools/motion.js` |
-| 2.101 | vertical-word-roll-blur-cycle [1 shot] | PARTIAL — partial, rest planned (open) | (10z): slot-machine-roll component (vertical reel; hand-driven, HF only) covers the roll; missing: word-level… |
-| 2.102 | word-relay-filmstrip [1 shot] | PARTIAL — partial, rest planned (open) | (10z): rail with fast throw and snap via velocity-throw-snap, swipe-rail components and text-match-cut; missi… |
+| 2.101 | vertical-word-roll-blur-cycle [1 shot] | EQUAL | `tools/shotcards/typography.js` |
+| 2.102 | word-relay-filmstrip [1 shot] | EQUAL | `tools/shotcards/typography.js` |
 | 2.103 | word-relay-geometry [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: Niche word handoff through geometry shapes; no primitive missing (KIT.math.morphShapes plus text-match-c… |
-| 2.104 | avatar-bracket-carousel [1 shot] | PARTIAL — partial, rest planned (open) | `vendor/hyperframes/registry/components/` (10z): catalog avatar-cloud and avatar-group-hover install with `reelwright add` (vendor/hyperframes/registry… |
-| 2.105 | bezier-source-converge-merge [1 shot] | PARTIAL — partial, rest planned (open) | `tools/path.js,` (10z): KIT.path.follow/fromPoints (tools/path.js, selfcheck/motion/path.mjs) and offset-path-traveler compone… |
-| 2.106 | card-stack [1 shot] | PARTIAL — partial, rest planned (open) | `tools/layouts.js,` (10z): catalog spring-stack-shuffle installs with `reelwright add`; KIT.layout.bento (tools/layouts.js, proje… |
+| 2.104 | avatar-bracket-carousel [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.105 | bezier-source-converge-merge [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.106 | card-stack [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2.107 | carousel-3d [1 shot] | EQUAL | `tools/blocks.mjs,` |
-| 2.108 | cloner-depth-echo [1 shot] | PARTIAL — partial, rest planned (open) | `tools/shots2.js,` (10z): catalog echo-trail, echo-smear and camera-rig-depth-stack install with `reelwright add`; KIT.shot.plan… |
-| 2.109 | deck-deal-flyin [1 shot] | PARTIAL — partial, rest planned (open) | (10z): spring-stack-shuffle, notification-pileup (accelerating arrivals), multi-device-splay components; miss… |
+| 2.108 | cloner-depth-echo [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.109 | deck-deal-flyin [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2.110 | doc-park-left-pill-deal [1 shot] | MISSING — exception (owner-approved 2026-11-12) | 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-… |
 | 2.111 | draw-svg-trace [1 shot] | EQUAL | `tools/doodle.js` |
-| 2.112 | element-body-moves [1 shot] | PARTIAL — partial, rest planned (open) | (10z): body moves pendulum-swing, physical-exit, spring-pop components and KIT.sim; missing: contact-shadow-l… |
-| 2.113 | integration-hub-map [1 shot] | PARTIAL — partial, rest planned (open) | (10z): catalog constellation-hub installs with `reelwright add` (nodes light in narration order, connectors d… |
+| 2.112 | element-body-moves [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.113 | integration-hub-map [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2.114 | list-reveal [1 shot] | EQUAL | cat: stagger-cascade, line-by-line-slide, staggered-fade-up; K.stagger |
-| 2.115 | list-stack-press [1 shot] | PARTIAL — partial, rest planned (open) | (10z): press-ripple, gesture-tap, touch-indicator, notification-stack, spring-stack-shuffle components; missi… |
-| 2.116 | neon-frame-forerun [1 shot] | PARTIAL — partial, rest planned (open) | (10z): catalog caption-neon-glow and svg-stroke-trace install with `reelwright add`, and block lt-neon-border… |
-| 2.117 | neon-frame-orbit-drop [1 shot] | PARTIAL — partial, rest planned (open) | `tools/path.js` (10z): catalog caption-neon-glow and svg-stroke-trace install with `reelwright add`, block lt-neon-border is… |
-| 2.118 | page-waterfall-wall [1 shot] | PARTIAL — partial, rest planned (open) | (10z): catalog scroll-feed and parallax-device-dive install with `reelwright add`; missing: multi-column wate… |
-| 2.119 | product-card-progressive-assemble [1 shot] | PARTIAL — partial, rest planned (open) | `tools/layouts.js,` (10z): KIT.layout.bento (tools/layouts.js, used in projects/layouts-hf) and catalog grid-card-assemble (reelw… |
-| 2.120 | radial-wave [1 shot] | PARTIAL — partial, rest planned (open) | (10z): catalog radial-surround and press-ripple install with `reelwright add`; missing: radial-wave recipe/do… |
-| 2.121 | research-card-stack-scroll [1 shot] | PARTIAL — partial, rest planned (open) | (10z): catalog scroll-feed and spring-stack-shuffle install with `reelwright add`; missing: card-stack-into-s… |
-| 2.122 | row-embed [1 shot] | PARTIAL — partial, rest planned (open) | (10z): card-resize, panel-reveal and modal-morph components expand a row or card in place; missing: row-embed… |
-| 2.123 | value-stagger-gradient [1 shot] | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z): K.stagger and K.count (tools/engine.js), KIT.layout.stat (tools/layouts.js), catalog count-up and numb… |
-| 2.124 | wall-reveal-moves (bento-light-up, wireframe-draw-on) [2 shots] | PARTIAL — partial, rest planned (open) | (10z): KIT.layout.bento, stagger-lattice, mk-placeholder-grid block, skeleton-reveal, KIT.path.draw/KIT.doodl… |
+| 2.115 | list-stack-press [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.116 | neon-frame-forerun [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.117 | neon-frame-orbit-drop [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.118 | page-waterfall-wall [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.119 | product-card-progressive-assemble [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.120 | radial-wave [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.121 | research-card-stack-scroll [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.122 | row-embed [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.123 | value-stagger-gradient [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
+| 2.124 | wall-reveal-moves (bento-light-up, wireframe-draw-on) [2 shots] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2b.1 | Camera layer: layout-scale `zoom` instead of scale so text stays shar… | PARTIAL — partial, rest planned (open) | `tools/shots.js` KIT.camCSS/shoot still use transform scale() (tools/shots.js); shots2 planes set --kit-line for stroke weight… |
 | 2b.2 | Gradient depth-of-field band on a tilted page (backdrop blur + mask) | EQUAL | `tools/shots2.js` |
 | 2b.3 | Velocity helpers: velocityAt, lagged, dampedSettle (state-free) | PARTIAL — partial, rest planned (open) | `tools/shots.js` (10z): K.speedBlur central-difference velocity (tools/shots.js), steepTilt `ghosts` trailing copies (tools/sh… |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 222 EQUAL/BETTER, 158 accepted exceptions, 27 planned, 168 partial, 0 proposed, 26 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 332 EQUAL/BETTER, 158 accepted exceptions, 9 planned, 76 partial, 0 proposed, 26 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -851,13 +851,12 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.
 
 
-### Planned (Phase 11) (27)
+### Planned (Phase 11) (9)
 
 Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.
 
-#### HyperFrames (5)
+#### HyperFrames (4)
 
-- `hyperframes:A6` — Batch render: one output per variables row (`--batch rows.json`, `--batch-concurrency`, `--batch-fa… — MISSING — plan: native: `reelwright batch <project> rows.csv` loops `film` per row with variables A5
 - `hyperframes:D1` — Audio FX rack per clip: 16 effects (highpass lowpass peaking lowshelf highshelf gain compressor lim… — MISSING — plan: native: map each effect to an ffmpeg filter (highpass, lowpass, equalizer, bass/treble, volume, acompressor, alimiter, agate, asoftclip, acrusher, aecho, choru…
 - `hyperframes:D2` — 22 presets (voice-clean, voice-broadcast, voice-warm, rumble-cut, room-gate, boom-tame, harsh-tame,… — MISSING — plan: native presets table on D1
 - `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — plan: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
@@ -868,39 +867,18 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `remotion:2.1.3` — `output:'perceptual-scale'` — MISSING — plan: [N] area-space lerp, 1 line (Phase 9 item 3)
 - `remotion:2.4.13` — Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`, `loopBehavior` loop/pause-af… — MISSING — plan: [N] decode GIF/APNG to PNG frames with ffmpeg at build, show frame by index from `render(t)`; honour loop behaviours. [R] free
 
-#### Manim CE + ManimGL + manim skills (5)
+#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (3)
 
-- `manim:m4.3` — `Broadcast` (expanding rings) — MISSING — plan: native
-- `manim:m5.8` — `TracedPath`, `AnimatedBoundary`, GL `TracingTail` — MISSING — plan: native: `KIT.math.trace(fn, {tail, fade})`
-- `manim:m6.5` — Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` — MISSING — plan: vendor polygon-clipping (polygons) or own for convex; path-level via flubber sampling
-- `manim:m7.6` — `Table`, `MathTable`, `IntegerTable`, `DecimalTable`, `MobjectTable` — MISSING — plan: native `KIT.table`
-- `manim:m9.2` — `ZoomedScene` (magnified inset, display frame) — MISSING — plan: native: `KIT.zoomInset(srcRect, dstRect)` second transformed copy of the stage layer
-
-#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (15)
-
-- `doodle-shots-motion:2.14` — scroll-brake-moves (changelog-scroll-brake, brake-reticle-lock) [2 shots] — MISSING — plan: R1 recipe (K.keys + brake ease)
-- `doodle-shots-motion:2.16` — assemble-then-type-flyin [1 shot] — MISSING — plan: R1 skeleton fly-in then per-char 3D text
-- `doodle-shots-motion:2.25` — riso-print-hits [1 shot] — MISSING — plan: R1 mix-blend-mode multiply offset layers (misregistration-hit)
-- `doodle-shots-motion:2.28` — scanline-assemble-flyin [1 shot] — MISSING — plan: R1 recipe
-- `doodle-shots-motion:2.32` — canvas-materialize-moves (panel-to-canvas, diagram-cascade) [2 shots] — MISSING — plan: R1 panel-to-canvas, diagram-cascade
-- `doodle-shots-motion:2.39` — theme-switch-moves (theme-sweep-toggle, palette-theme-ripple) [2 shots] — MISSING — plan: R1 clip-path ripple that swaps --kit-* vars (theme-sweep-toggle, palette-theme-ripple)
-- `doodle-shots-motion:2.41` — voice-waveform-live [1 shot] — MISSING — plan: R3 audio envelope in kit-data (Remotion-audio-reactive idea, ffmpeg astats/numpy) + recipe
-- `doodle-shots-motion:2.44` — dataviz-landscape-open [1 shot] — MISSING — plan: R1 recipe over math.js
-- `doodle-shots-motion:2.45` — fracture [1 shot] — MISSING — plan: R1 clip-path shard split recipe
-- `doodle-shots-motion:2.69` — card-flock-tumble [1 shot] — MISSING — plan: R1 recipe (many cards tumble into a word)
-- `doodle-shots-motion:2.95` — text-column-converge [1 shot] — MISSING — plan: R1 recipe
-- `doodle-shots-motion:2.96` — title-demote-to-label [1 shot] — MISSING — plan: R1 recipe (A and B variants)
 - `doodle-shots-motion:3.4` — Material easing (rigid 1.2x/0%, elastic 0.8x/15-25%, fluid 1.5x/5%, paper 1.0x/3-5%, gas 2.0x, glas… — MISSING — plan: docs table + `KIT.material(name)` returning {durScale, ease} S
 - `doodle-shots-motion:3.9` — Disney principles for UI, emotion-to-motion map, path as emotional language, narrative 4-act struct… — MISSING — plan: docs only (one compact section; film-relevant lines)
 - `doodle-shots-motion:5.8` — dotLottie (.lottie zip, multiple animations, themes, state machines) — MISSING — plan: optional: `reelwright add-lottie x.lottie` unzips to JSON for lottie-web at add time (S, no WASM). Full dotlottie-web only if state machines/themes are asked f…
 
-### Partial (168)
+### Partial (76)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
-#### HyperFrames (31)
+#### HyperFrames (28)
 
-- `hyperframes:A5` — Composition variables: `data-composition-variables` (string number color boolean enum font image),… — PARTIAL
 - `hyperframes:A19` — Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (no reflow) — PARTIAL
 - `hyperframes:B5` — Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) — PARTIAL
 - `hyperframes:B8` — d3 transitions readiness (`__hfD3`) — PARTIAL
@@ -917,8 +895,6 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `hyperframes:G2` — `add`, `catalog` — PARTIAL
 - `hyperframes:G3` — `capture <url>`: scroll screenshots (default 21, full-page plate), HTML/CSS, visible text, design t… — PARTIAL
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
-- `hyperframes:G5` — `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--against ref.mp4`, held video fram… — PARTIAL
-- `hyperframes:G7` — `compare` N variants into one labelled PNG; `grade-compare` — PARTIAL
 - `hyperframes:G13` — `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `browser ensure/path/clear`, `cle… — PARTIAL
 - `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL
 - `hyperframes:H3` — Timeline: tracks, move/trim/split/ripple/linked selection/snapping/beat markers/range select; wavef… — PARTIAL
@@ -944,23 +920,7 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `remotion:2.7.10` — Parameterised renders: `--props file.json|'{...}'` -> `getInputProps()`/component props; `defaultPr… — PARTIAL
 - `remotion:2.7.14` — HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--metadata key=value` into the mp4… — PARTIAL
 
-#### Manim CE + ManimGL + manim skills (13)
-
-- `manim:m3.1` — `Create` / GL `ShowCreation` (stroke draw-on), `Uncreate` — PARTIAL
-- `manim:m3.5` — `AddTextLetterByLetter`, `RemoveTextLetterByLetter`, `AddTextWordByWord`, `TypeWithCursor`, `Untype… — PARTIAL
-- `manim:m5.5` — `PhaseFlow`, `MoveAlongPath` — PARTIAL
-- `manim:m7.5` — `Matrix`, `DecimalMatrix`, `IntegerMatrix`, `MobjectMatrix`, GL `TexMatrix` — PARTIAL
-- `manim:m7.7` — `Code` (syntax highlighting), GL `Code` — PARTIAL
-- `manim:m8.1` — `Axes` (ranges, lengths, tips, ticks, `axis_config`, `add_coordinates`, `get_axis_labels`, log `Log… — PARTIAL
-- `manim:m8.2` — `NumberLine` (ticks, numbers, tip, `n2p`, `UnitInterval`, GL `Slider`) — PARTIAL
-- `manim:m8.7` — `BarChart`, `SampleSpace` — PARTIAL
-- `manim:m8.10` — `LinearTransformationScene`, `VectorScene` (basis vectors, matrix applied to grid, `add_vector`, `a… — PARTIAL
-- `manim:m9.5` — `add_fixed_in_frame_mobjects`, `add_fixed_orientation_mobjects`, GL `fix_in_frame`, `FullScreenRect… — PARTIAL
-- `manim:m9.9` — Lighting (`light_source`), shading, `TexturedSurface`, `ThreeDModel` (.obj via pywavefront/trimesh) — PARTIAL
-- `manim:m11.2` — Layout lint OFF-FRAME / TEXT-OVERLAP / TINY-TEXT — PARTIAL
-- `manim:m11.3` — Pace lint (<= 2.5 words/s, gaps, >= 15 % unnarrated), dark-stretch lint — PARTIAL
-
-#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (115)
+#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (39)
 
 - `doodle-shots-motion:1.12` — Callout: dot lands, leader line drawn, label written; anchor follows camera — PARTIAL
 - `doodle-shots-motion:1.17` — Illustrated kinetic type: every word drawn stroke by stroke in a medium, letters pop on landing — PARTIAL
@@ -977,82 +937,6 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `doodle-shots-motion:1.47` — Narration: multiple providers (say, kokoro local; cloud gemini/openai/elevenlabs), takes cached by… — PARTIAL
 - `doodle-shots-motion:1.49` — Determinism gate: hash frames forward vs reverse, cold vs cached; dead-air gate (something changes… — PARTIAL
 - `doodle-shots-motion:1.50` — Ship checks on the delivered file: framecheck (text whole, up long enough, 9:16 phone zones), A/V s… — PARTIAL
-- `doodle-shots-motion:2.3` — cursor-flyover [1 shot] — PARTIAL
-- `doodle-shots-motion:2.9` — tension-camera-moves (bullet-time-freeze-orbit, pull-back-isolation) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.10` — terminal-3d [1 shot] — PARTIAL
-- `doodle-shots-motion:2.11` — before-after-slider-scrub [1 shot] — PARTIAL
-- `doodle-shots-motion:2.12` — chart-live-moves (oscilloscope-stream, unit-dot-swarm-regroup, axis-rescale-shock) [3 shots] — PARTIAL
-- `doodle-shots-motion:2.13` — gauge-readout-moves (needle-sweep-selftest, tape-scroll-fixed-pointer) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.15` — timeline-travel [1 shot] — PARTIAL
-- `doodle-shots-motion:2.17` — aurora-bloom-bg-flip [1 shot] — PARTIAL
-- `doodle-shots-motion:2.19` — fui-hud-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.20` — glow-flyline-moves (glow-orb-ambient, flyline-arc, orb-flyline-relay) [3 shots] — PARTIAL
-- `doodle-shots-motion:2.21` — icon-performance-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.22` — impact-feedback (hit-counter, anime-impact) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.23` — light-play-moves (spotlight-sweep, sheen-sweep) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.24` — radial-ripple-phone-chips [1 shot] — PARTIAL
-- `doodle-shots-motion:2.26` — scan-bracket-sweep [1 shot] — PARTIAL
-- `doodle-shots-motion:2.27` — scanline-annotate-focus [1 shot] — PARTIAL
-- `doodle-shots-motion:2.29` — slam-entrance-moves (kanada-perspective-snap, score-slam, impact-burst-kit) [3 shots] — PARTIAL
-- `doodle-shots-motion:2.30` — spotlight-sweep-moves (glow-wake-sleep-panel, slide-spotlight-pan, corner-spotlight-reveal) [3 shot… — PARTIAL
-- `doodle-shots-motion:2.34` — collab-cursor-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.37` — picker-carousel-feature-cycle [1 shot] — PARTIAL
-- `doodle-shots-motion:2.38` — segmented-thumb-hero [1 shot] — PARTIAL
-- `doodle-shots-motion:2.40` — type-and-filter [1 shot] — PARTIAL
-- `doodle-shots-motion:2.42` — brand-ink-open [1 shot] — PARTIAL
-- `doodle-shots-motion:2.43` — crane-rise-reveal [1 shot] — PARTIAL
-- `doodle-shots-motion:2.46` — icon-field-colorize [1 shot] — PARTIAL
-- `doodle-shots-motion:2.47` — letterspace-materialize [1 shot] — PARTIAL
-- `doodle-shots-motion:2.49` — orbit-ring-title-open [1 shot] — PARTIAL
-- `doodle-shots-motion:2.50` — spotlight-hero-card [1 shot] — PARTIAL
-- `doodle-shots-motion:2.52` — text-as-mask [1 shot] — PARTIAL
-- `doodle-shots-motion:2.53` — grain-dissolve [1 shot] — PARTIAL
-- `doodle-shots-motion:2.54` — logo-shrink-wordmark-lockup [1 shot] — PARTIAL
-- `doodle-shots-motion:2.55` — neon-triple-marquee [1 shot] — PARTIAL
-- `doodle-shots-motion:2.56` — outro-group-photo-launch [1 shot] — PARTIAL
-- `doodle-shots-motion:2.57` — ui-strip-away-outro [1 shot] — PARTIAL
-- `doodle-shots-motion:2.58` — ui-to-brand-morph (icon-flip-bloom, input-morph-assemble) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.60` — beat-step-list-theme-cycle [1 shot] — PARTIAL
-- `doodle-shots-motion:2.61` — panel-grid-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.62` — quad-split-parallel-scenes [1 shot] — PARTIAL
-- `doodle-shots-motion:2.63` — rhythm-interrupt-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.64` — sakuga-timing-shift [1 shot] — PARTIAL
-- `doodle-shots-motion:2.66` — trailer-grammar-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.71` — gradient-transition [1 shot] — PARTIAL
-- `doodle-shots-motion:2.74` — page-turn-transitions [1 shot] — PARTIAL
-- `doodle-shots-motion:2.75` — print-texture-transitions [1 shot] — PARTIAL
-- `doodle-shots-motion:2.77` — tear-streak-transitions [1 shot] — PARTIAL
-- `doodle-shots-motion:2.78` — transition-hidden-cut (invisible-cut, versus-slam, light-leak-burn) [3 shots] — PARTIAL
-- `doodle-shots-motion:2.79` — transition-travel [1 shot] — PARTIAL
-- `doodle-shots-motion:2.84` — countdown-arc-scatter [1 shot] — PARTIAL
-- `doodle-shots-motion:2.86` — flying-words [1 shot] — PARTIAL
-- `doodle-shots-motion:2.88` — gradient-word-sweep [1 shot] — PARTIAL
-- `doodle-shots-motion:2.89` — lead-word-zoom-assemble [1 shot] — PARTIAL
-- `doodle-shots-motion:2.91` — outline-word-fill [1 shot] — PARTIAL
-- `doodle-shots-motion:2.93` — pill-chip-slot-cycle-handled [1 shot] — PARTIAL
-- `doodle-shots-motion:2.94` — pill-slot-cycle [1 shot] — PARTIAL
-- `doodle-shots-motion:2.97` — type-assembly-moves (split-text-stagger, drift-assembly, text-on-path) [3 shots] — PARTIAL
-- `doodle-shots-motion:2.98` — type-entrance-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.99` — type-rhythm-sync (font-weight-pump, karaoke-fill-sync) [2 shots] — PARTIAL
-- `doodle-shots-motion:2.101` — vertical-word-roll-blur-cycle [1 shot] — PARTIAL
-- `doodle-shots-motion:2.102` — word-relay-filmstrip [1 shot] — PARTIAL
-- `doodle-shots-motion:2.104` — avatar-bracket-carousel [1 shot] — PARTIAL
-- `doodle-shots-motion:2.105` — bezier-source-converge-merge [1 shot] — PARTIAL
-- `doodle-shots-motion:2.106` — card-stack [1 shot] — PARTIAL
-- `doodle-shots-motion:2.108` — cloner-depth-echo [1 shot] — PARTIAL
-- `doodle-shots-motion:2.109` — deck-deal-flyin [1 shot] — PARTIAL
-- `doodle-shots-motion:2.112` — element-body-moves [1 shot] — PARTIAL
-- `doodle-shots-motion:2.113` — integration-hub-map [1 shot] — PARTIAL
-- `doodle-shots-motion:2.115` — list-stack-press [1 shot] — PARTIAL
-- `doodle-shots-motion:2.116` — neon-frame-forerun [1 shot] — PARTIAL
-- `doodle-shots-motion:2.117` — neon-frame-orbit-drop [1 shot] — PARTIAL
-- `doodle-shots-motion:2.118` — page-waterfall-wall [1 shot] — PARTIAL
-- `doodle-shots-motion:2.119` — product-card-progressive-assemble [1 shot] — PARTIAL
-- `doodle-shots-motion:2.120` — radial-wave [1 shot] — PARTIAL
-- `doodle-shots-motion:2.121` — research-card-stack-scroll [1 shot] — PARTIAL
-- `doodle-shots-motion:2.122` — row-embed [1 shot] — PARTIAL
-- `doodle-shots-motion:2.123` — value-stagger-gradient [1 shot] — PARTIAL
-- `doodle-shots-motion:2.124` — wall-reveal-moves (bento-light-up, wireframe-draw-on) [2 shots] — PARTIAL
 - `doodle-shots-motion:2b.1` — Camera layer: layout-scale `zoom` instead of scale so text stays sharp under 3D; native-size textur… — PARTIAL
 - `doodle-shots-motion:2b.3` — Velocity helpers: velocityAt, lagged, dampedSettle (state-free) — PARTIAL
 - `doodle-shots-motion:2b.6` — Caption info-strip, DigitRoll odometer, FlashCut, VerticalTicker, ClipCard (video as card hero) — PARTIAL
@@ -1120,5 +1004,5 @@ Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 ## Phase 11: decisions that need the owner
 
 - `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `ins… — MISSING: speech-to-text (whisper.cpp or faster-whisper, opt-in, local after a model download). Needs the owner's call on the model size. Today accepted as an exception (the voiceover is generated, not recorded); revisit if films start from supplied audio.
-- `manim:m6.5` — Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` — MISSING: path boolean ops need a new vendored library (polygon-clipping, MIT). Owner's call before anything is vendored.
-- `manim:m7.7` — `Code` (syntax highlighting), GL `Code` — PARTIAL: syntax highlighting for native scenes needs a new vendored library (shiki, MIT; version unverified). Owner's call before anything is vendored.
+- `manim:m6.5` — Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` — EQUAL: path boolean ops need a new vendored library (polygon-clipping, MIT). Owner's call before anything is vendored.
+- `manim:m7.7` — `Code` (syntax highlighting), GL `Code` — EQUAL: syntax highlighting for native scenes needs a new vendored library (shiki, MIT; version unverified). Owner's call before anything is vendored.

@@ -2,21 +2,21 @@
 
 Generated 2026-11-12 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 222; not 379 (grand total of the groups below: 379).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 332; not 269 (grand total of the groups below: 269).
 
 | # | Group | Rows |
 |--:|---|--:|
 | 1 | Excluded by owner decision or repo rule | 7 |
 | 2 | Needs WebGPU / specific hardware | 4 |
 | 3 | Licence-blocked or non-OSI (and what was done instead) | 11 |
-| 4 | Not seekable / not deterministic, so kept out by the seekable gate | 5 |
+| 4 | Not seekable / not deterministic, so kept out by the seekable gate | 4 |
 | 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 15 |
 | 6 | shotcraft audio, social publishing, JianYing and third-party tools skipped | 4 |
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 283 |
-| | **Grand total** | **379** |
+| 10 | Not done, no stated reason | 174 |
+| | **Grand total** | **269** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -119,11 +119,11 @@ By source: hyperframes 1, remotion 9, higgsfield-workflows 1
   - says: third-party media, all rights reserved; do not vendor
   - approach: -
 
-## 4. Not seekable / not deterministic, so kept out by the seekable gate (5) — 4 approved, 1 partial
+## 4. Not seekable / not deterministic, so kept out by the seekable gate (4) — 4 approved
 
 Rows whose status text says the upstream feature is interactive, wall-clock or random, and is banned or excluded because Reelwright films must be pure functions of t.
 
-By source: remotion 1, doodle-shots-motion 4
+By source: remotion 1, doodle-shots-motion 3
 
 ### Remotion + its skills (1)
 
@@ -131,11 +131,8 @@ By source: remotion 1, doodle-shots-motion 4
   - says: (non-seekable, qa forbids)
   - approach: none
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (4)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (3)
 
-- `doodle-shots-motion:2.53` — grain-dissolve [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shader domain-warp/ridged-burn noise dissolves (tools/shaders.js; docs/playbook/shader-transitions.md), doodle2.grain tooth mask; missing: literal film-grain and halftone-dot dissolves; grain-overlay uses CSS…
-  - approach: R2 docs
 - `doodle-shots-motion:4.15` — ScrambleText: scramble then reveal — PARTIAL (mixed) — exception (owner-approved 2026-11-12)
   - says: BY-EXCLUSION (10b): not bundled and banned by the `seekable-runtimes` gate (Math.random every render); seeded scramble still MISSING
   - approach: DO NOT use: calls Math.random on every render (L102, L169, L246); two fresh pages gave 666 differing px at the same t. Native seeded `KIT.scramble(t, ...)` or catalog block
@@ -387,15 +384,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (283) — 72 approved, 27 planned, 166 partial, 18 open
+## 10. Not done, no stated reason (174) — 72 approved, 9 planned, 75 partial, 18 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 283 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 174 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
+By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 
-### HyperFrames (60)
+### HyperFrames (56)
 
 #### Docs / PLAYBOOK note only (5)
 
@@ -415,17 +412,11 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: Topic notes cover colour grading (docs/playbook/grading-effects.md), motion (motion.md), design systems (themes.md, theme-brief.md) and editing existing clips (video-audio.md); they document the API rather than give pro…
   - approach: docs only
 
-#### Native code to add in tools/ (or a flag/command) (41)
+#### Native code to add in tools/ (or a flag/command) (37)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
   - approach: native: `KIT.clip(el,{start,end})` that stamps `data-start/duration` from `W()/V()/snap()` at load, so HF tooling and blocks see real attributes
-- `hyperframes:A5` — Composition variables: `data-composition-variables` (string number color boolean enum font image), `getVariables()`, `data-var-text/src`, C… — PARTIAL — partial, rest planned (open)
-  - says: Per-mount variables exist: KIT.mount/KIT.block `vars` write data-variable-values and window.__hyperframes.getVariables() returns them; blocks keep their declared defaults (tools/compose.js, tools/blocks.mjs, docs/playbo…
-  - approach: native: `project.json "variables"` read by `KIT.vars`; `--variables`/`--variables-file` flags
-- `hyperframes:A6` — Batch render: one output per variables row (`--batch rows.json`, `--batch-concurrency`, `--batch-fail-fast`, JSON result) — MISSING — planned (Phase 11)
-  - says: No batch command in bin/reelwright.mjs or tools/commands/ (`beats import` parses CSV only). Not built: depends on film-level variables (A5). Suggest: build.
-  - approach: native: `reelwright batch <project> rows.csv` loops `film` per row with variables A5
 - `hyperframes:A19` — Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (no reflow) — PARTIAL — partial, rest planned (open)
   - says: tools/layouts.js:28 has a private binary-search `fit(el,w,h,max)` (clone, scrollWidth/Height, re-run after fonts) used by the title/number layouts; QA flags caption overflow (tools/qa_page.mjs). Missing: a public `KIT.f…
   - approach: native `KIT.fit(text,{font,maxWidth})` using canvas `measureText`
@@ -486,15 +477,9 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6, composition contract 27, CSS/scripts 2… — PARTIAL — partial, rest planned (open)
   - says: `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE; fixture `qa-broken-lint`; tools/selfcheck/hf-lint.mjs) plus qa.py/qa_page.mjs gates (loudness, captions, flash…
   - approach: ~~wire `lintProject()` into `qa` for hf projects (S)~~ done in 10m; vendor the four in-page audit scripts for layout/occlusion/contrast into `qa_page.mjs` (M)
-- `hyperframes:G5` — `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--against ref.mp4`, held video frames) — PARTIAL — partial, rest planned (open)
-  - says: `stills [t,t,..]` writes stills/t<time>.jpg (12 evenly spaced by default) and stills/sheet.jpg (tools/renderers/pvk.mjs, hyperframes.mjs, sheet.py). Missing: `--frames N`, `--zoom <selector>`, `--against <ref.mp4>` and…
-  - approach: native `stills --zoom` crop; `--against` = G9 diff
 - `hyperframes:G6` — `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG of one element) — MISSING — exception (owner-approved 2026-11-12)
   - says: No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. Not built: low value (the row itself says so), and `stills` at chosen times already shows motion. Suggest: exce…
   - approach: native onion skin: render N frames of one selector with ghosting; low value
-- `hyperframes:G7` — `compare` N variants into one labelled PNG; `grade-compare` — PARTIAL — partial, rest planned (open)
-  - says: `remix` renders stills at 25/50/75 % in 3 themes x 3 formats onto one labelled sheet (bin/reelwright.mjs, tools/sheet.py). No `compare <dirA> <dirB> --at` for arbitrary variants and no `grade-compare`. Not built: N-vari…
-  - approach: native `compare <dirA> <dirB> --at`
 - `hyperframes:G8` — `timeline` (list tracks/clips; move/trim/split/delete/set/duplicate/apply with `--plan` diff, receipts, `undo`) and `history` (who/label/fi… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Script edits exist as `beats import/export` (CSV <-> project.json) and the studio inspector (line text and gap, atomic save, sched re-run: tools/studio/server.mjs). No clip-level `timeline` verbs, `--plan` diffs, receip…
   - approach: native: `reelwright lines/beats` edit verbs with `--plan`, undo from a receipt; studio panel (H)
@@ -717,7 +702,7 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: (10k): `reelwright studio` (tools/studio/, docs/playbook/studio.md): vendored player, timeline of scenes / VO / beats / SFX, inspector for line text, gap, style, title, fps, raw project.json / brand.json editors, stills…
   - approach: owner wants a Reelwright studio editor: [N] build on preview.mjs (scrub + data panel + project.json edits); [R] gives Remotion Studio for free for `renderer: remotion` projects
 
-### Manim CE + ManimGL + manim skills (36)
+### Manim CE + ManimGL + manim skills (18)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -728,23 +713,8 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: `reelwright preview` scrubs a finished film and `reelwright studio` (10k, `tools/studio/`) edits the native film; no live editing of Manim code; except: authors iterate with Manim's own `-s`/`-n` stills [10z: except]
   - approach: docs: authors iterate with `-s`/`-n` stills on the GL side; studio editor (Phase 10) covers the native side
 
-#### Native code to add in tools/ (or a flag/command) (27)
+#### Native code to add in tools/ (or a flag/command) (11)
 
-- `manim:m3.1` — `Create` / GL `ShowCreation` (stroke draw-on), `Uncreate` — PARTIAL — partial, rest planned (open)
-  - says: (10z): Create = `KIT.math.mob` stroke draw-on then fill (`tools/math2.js`, fixture `tools/selfcheck/motion/math2.mjs`); `KIT.tex.unwrite` reverses glyph draw (`tools/tex.js`); missing: Uncreate as a reversed stroke for…
-  - approach: native: `KIT.math.create(group, {lag})` over sub-paths
-- `manim:m3.5` — `AddTextLetterByLetter`, `RemoveTextLetterByLetter`, `AddTextWordByWord`, `TypeWithCursor`, `UntypeWithCursor` — PARTIAL — partial, rest planned (open)
-  - says: (10z): `KIT.typewriter(el, text, {cps, caret, mistakes})` types, blinks a caret, backspaces mistakes (`tools/motion.js`, fixture `tools/selfcheck/motion/motion.mjs`); words by VO word via `K.words`; missing: a whole-tex…
-  - approach: native: `KIT.type(el, {cps, cursor})` pure in t
-- `manim:m4.3` — `Broadcast` (expanding rings) — MISSING — planned (Phase 11)
-  - says: `KIT.indicate.flash` (tools/motion.js) bursts radial lines, not expanding rings; build: concentric circles scaling and fading as a pure function of t, about 15 lines in tools/motion.js [10z: build]
-  - approach: native
-- `manim:m5.5` — `PhaseFlow`, `MoveAlongPath` — PARTIAL — partial, rest planned (open)
-  - says: (10z): MoveAlongPath = `KIT.path.follow` (`tools/path.js`, fixture `tools/selfcheck/motion/path.mjs`); missing: PhaseFlow (carry a mobject along a vector field: `KIT.sim` with `KIT.math.field` F would do it, no new libr…
-  - approach: native `KIT.sim` + `flow()`
-- `manim:m5.8` — `TracedPath`, `AnimatedBoundary`, GL `TracingTail` — MISSING — planned (Phase 11)
-  - says: no trail helper; `KIT.path.follow` + a `KIT.sim` position table can draw one by hand; build: `KIT.path.trace(fn, {tail, fade})` over a sampled position function [10z: build]
-  - approach: native: `KIT.math.trace(fn, {tail, fade})`
 - `manim:m6.1` — `Circle`, `Dot`, `Ellipse`, `Arc`, `ArcBetweenPoints`, `TangentialArc`, `Annulus`, `Sector`, `AnnularSector`, `CubicBezier`, GL `SmallDot` — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10h): `KIT.math.shape.*` + `KIT.math.mob`: circle, ellipse, arc, arcBetween, annulus, sector, annularSector, cubic; TangentialArc not built (`tools/math2.js`); shuffled-seek fixture in `tools/selfcheck/motion/`, docs/p…
   - approach: native: `KIT.math.shape.*` returning draw-on-ready SVG with theme tokens
@@ -763,45 +733,12 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
 - `manim:m7.3` — `Typst`, `MathTypst` (+ `select` labels) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10z): `MathTypst` works inside an optional Manim CE scene (`python/reelwright_manim/examples/hello.py`, `projects/manim-hf`, CE verified on macOS arm64); native equations use MathJax `KIT.tex` (`tools/tex.js`), not Typ…
   - approach: native option: Typst via `@myriaddreamin/typst-ts-node-compiler` at build time to SVG glyph paths (UNVERIFIED output ids); or inside the Manim renderer
-- `manim:m7.5` — `Matrix`, `DecimalMatrix`, `IntegerMatrix`, `MobjectMatrix`, GL `TexMatrix` — PARTIAL — partial, rest planned (open)
-  - says: (10z): `KIT.tex` typesets and writes `\begin{bmatrix}` (tools/tex.js; `tools/selfcheck/tex-offline.mjs` typesets one), `color(match, c)` colours entries; missing: a cell-grid API with per-entry `Indicate` and `get_entri…
-  - approach: native: HTML grid + brackets, entry `Indicate`
-- `manim:m7.6` — `Table`, `MathTable`, `IntegerTable`, `DecimalTable`, `MobjectTable` — MISSING — planned (Phase 11)
-  - says: HTML tables by hand are native in the browser; no `KIT.table` helper (grid + lines draw-on + entry reveal); build: small helper over `KIT.math.mob` lines + text cells [10z: build]
-  - approach: native `KIT.table`
-- `manim:m7.7` — `Code` (syntax highlighting), GL `Code` — PARTIAL — partial, rest planned (open)
-  - says: (10z): HyperFrames code blocks installable with `reelwright add` (10f: code-diff, code-3d-extrude, code-particle-assemble, code-slice-hero, code-shader-dissolve; `tools/blocks.mjs`, `tools/selfcheck/blocks.mjs`); missin…
-  - approach: native: build-time highlight (shiki, MIT) to spans, line-by-line reveal
-- `manim:m8.1` — `Axes` (ranges, lengths, tips, ticks, `axis_config`, `add_coordinates`, `get_axis_labels`, log `LogBase`/`LinearBase`), GL `Axes` — PARTIAL — partial, rest planned (open)
-  - says: (10z): `KIT.math.axes` plus `plane({kind})` with labels, `c2p`/`p2c`, sublines (`tools/math.js`, `tools/plot2.js`, fixture `tools/selfcheck/motion/plot2.mjs`); missing: axis tips, log scales, `get_axis_labels`/`add_coor…
-  - approach: native: extend `axes()` (tips, `scale:'log'`, `p2c`, axis labels)
-- `manim:m8.2` — `NumberLine` (ticks, numbers, tip, `n2p`, `UnitInterval`, GL `Slider`) — PARTIAL — partial, rest planned (open)
-  - says: `KIT.math.numberLine` basic (`tools/math.js`); missing: elongated ticks, labels at chosen values, brackets, `Slider` [10z: build]
-  - approach: native extend (elongated ticks, labels at values, brackets)
-- `manim:m8.7` — `BarChart`, `SampleSpace` — PARTIAL — partial, rest planned (open)
-  - says: (10z): HyperFrames chart blocks installable with `reelwright add` (10f: bar-chart-race, data-chart, mk-line-graph, animated-bar-chart; `tools/blocks.mjs`); missing: a native `KIT.math.bars` with braces and labels, and `…
-  - approach: native `KIT.math.bars` + brace/labels
 - `manim:m8.8` — `Graph`/`DiGraph` (networkx layouts: spring, circular, tree, partite, kamada_kawai) — MISSING — exception (owner-approved 2026-11-12)
   - says: no graph layouts; except: niche, and spring layout needs a new vendored library (d3-force); circular/tree/grid layouts would be a small native helper if wanted [10z: except]
   - approach: native: own layouts (circular/tree/grid) + vendor d3-force for spring
-- `manim:m8.10` — `LinearTransformationScene`, `VectorScene` (basis vectors, matrix applied to grid, `add_vector`, `add_transformable_label`) — PARTIAL — partial, rest planned (open)
-  - says: (10h): `KIT.math.basis` + matrix warp on a plane; no matrix label or add_transformable_label (`tools/plot2.js`); shuffled-seek fixture in `tools/selfcheck/motion/`, docs/playbook/math2.md; 10z: the matrix label and add_…
-  - approach: native: composed from `plane()`, `warp()`, `arrow()`
-- `manim:m9.2` — `ZoomedScene` (magnified inset, display frame) — MISSING — planned (Phase 11)
-  - says: no magnified inset; build: `KIT.zoomInset(srcRect, dstRect)` as a second transformed copy of a layer with a frame, small [10z: build]
-  - approach: native: `KIT.zoomInset(srcRect, dstRect)` second transformed copy of the stage layer
-- `manim:m9.5` — `add_fixed_in_frame_mobjects`, `add_fixed_orientation_mobjects`, GL `fix_in_frame`, `FullScreenRectangle` — PARTIAL — partial, rest planned (open)
-  - says: (10z): fixed-in-frame HUD = a DOM overlay above the 3D canvas (`projects/math2-hf`: tag and captions over `KIT.math3d`); fixed-orientation labels only as axes tick labels (Sprites, `tools/math3d.js`); missing: a general…
-  - approach: native: DOM overlay above the WebGL canvas
 - `manim:m9.8` — `Polyhedron`, `Tetrahedron`, `Octahedron`, `Icosahedron`, `Dodecahedron`, `ConvexHull3D` — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10h): tetrahedron, octahedron, icosahedron, dodecahedron (`tools/math3d.js`, fixture `tools/selfcheck/motion/math3d.mjs`); no `ConvexHull3D` (needs Three's ConvexGeometry add-on, not vendored); except: niche [10z: exce…
   - approach: native: Three.js `PolyhedronGeometry`; hull via three examples (UNVERIFIED path)
-- `manim:m9.9` — Lighting (`light_source`), shading, `TexturedSurface`, `ThreeDModel` (.obj via pywavefront/trimesh) — PARTIAL — partial, rest planned (open)
-  - says: (10h): lights and MeshStandardMaterial shading (`tools/math3d.js`); no textures or OBJ/GLTF models (Three's loaders are not vendored; adding them needs the owner's approval) [10z: build]
-  - approach: native: Three.js lights, `TextureLoader`, OBJ/GLTF loader (loaders vendored if wanted)
-- `manim:m11.3` — Pace lint (<= 2.5 words/s, gaps, >= 15 % unnarrated), dark-stretch lint — PARTIAL — partial, rest planned (open)
-  - says: (10z): the taste check warns on VO lines faster than 6.5 words/s and on stretches over 4 s where nothing moves (`tools/checks/taste.page.mjs`, `tools/selfcheck/taste.mjs`); real word times make Manim's RUSHED impossible…
-  - approach: native: info line in qa.py
 - `manim:m12.4` — `CameraFrame` as a Mobject (`.shift/.scale/.rotate`, `reorient`, `to_default_state`, `focus_on`), `ContinuousRotation` updaters — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10h): 3D camera via `KIT.math3d` orient/ambient (`tools/math3d.js`); 2D CameraFrame verbs stay `KIT.shot` (`tools/shots.js`, `tools/shots2.js`: tour, planes, orbit); the Mobject API (`.shift/.scale/.rotate/reorient/foc…
   - approach: native: Three.js camera rig with the same verbs
@@ -812,23 +749,17 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: (10h): `points` (additive glow sprites) = GlowDots/DotCloud (`tools/math3d.js`); no `TrueDot` shader; except: niche [10z: except]
   - approach: native: Three `Points` + additive blending
 
-#### Vendor a library (2)
+#### Vendor a library (1)
 
 - `manim:m5.1` — `Transform`, `ReplacementTransform`, `TransformFromCopy`, `ClockwiseTransform`/`CounterclockwiseTransform` (path_arc) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10h): glyph morphs (flubber) and `path_arc` in `KIT.tex.transform` (`tools/tex.js`), multi-path and hole-safe `KIT.math.morphShapes` (`tools/math2.js`, split subpaths); fixtures `tools/selfcheck/motion/tex.mjs`, `math2…
   - approach: vendor flubber for multi-subpath + hole handling; native colour/width lerp; `path_arc` as arc interpolation of points
-- `manim:m6.5` — Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` — MISSING — planned (Phase 11)
-  - says: no path boolean ops; build: vendor polygon-clipping (MIT) for `Union/Difference/Intersection/Exclusion` over sampled outlines: a new library, ask the owner first [10z: build]
-  - approach: vendor polygon-clipping (polygons) or own for convex; path-level via flubber sampling
 
-#### Other (read the approach text) (5)
+#### Other (read the approach text) (4)
 
 - `manim:m10.2` — TTS back-ends: Azure, ElevenLabs, gTTS, OpenAI, pyttsx3, Gemini, recorder, Whisper alignment, DeepL translate — PARTIAL — exception (owner-approved 2026-11-12)
   - says: edge-tts only (`tools/vo.py`); other voices go through the paid-connector pattern (docs/CONNECTORS.md); except: not Manim's job [10z: except]
   - approach: connector pattern (separate Phase 10 row); not Manim's job
-- `manim:m11.2` — Layout lint OFF-FRAME / TEXT-OVERLAP / TINY-TEXT — PARTIAL — partial, rest planned (open)
-  - says: (10i): DOM lint exists (`tools/qa_page.mjs`); a Manim scene can mark itself with `rw.label_illustrative()`; missing: scenes exporting `texts.json` (bbox, px size) and a QA check over it for OFF-FRAME, OVERLAP and TINY t…
-  - approach: optional renderer: scene exports `texts.json` (bbox, px size) and qa lints it (rewrite, MC has no licence)
 - `manim:m12.3` — Interactive controls `Slider`, `Button`, `Checkbox`, `ControlPanel`, `Textbox`, `MotionMobject`, `LinearNumberSlider` — MISSING — exception (owner-approved 2026-11-12)
   - says: not meaningful in a rendered film; except: out of scope (the studio editor exposes film parameters instead) [10z: except]
   - approach: out of scope; studio editor may expose params as sliders
@@ -839,9 +770,9 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js (`tools/manim.mjs`, `tools/selfcheck/manim.mjs`); `all`, `verify` and the manifest do not run Manim (shared files left alone by decision)…
   - approach: own code
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (149)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (62)
 
-#### Docs / PLAYBOOK note only (54)
+#### Docs / PLAYBOOK note only (15)
 
 - `doodle-shots-motion:1.15` — Lessons: step sheet + captioned timelapse, drawn-stroke captions — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no drawn-stroke captions. Suggest: accept as exception.
@@ -855,123 +786,6 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
 - `doodle-shots-motion:1.41` — Brand import (Figma sheet, logos, inventory, check) — PARTIAL — partial, rest planned (open)
   - says: brand.json (palette and fonts read by tools/look.mjs), tools/figma_export.py, `theme-from` (url or image); missing: logo inventory and the brand check (nothing in tools/ or bin/ inventories logos). Suggest: build.
   - approach: docs; S additions: logo inventory check
-- `doodle-shots-motion:2.11` — before-after-slider-scrub [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.transition('wipe') moves a clip edge over two layers (tools/transitions.js; selfcheck motion/transitions.mjs); missing: persistent divider + rest-at-split recipe; before-after-wipe/comparison-split are GSAP+C…
-  - approach: R2 docs + recipe wrapper
-- `doodle-shots-motion:2.17` — aurora-bloom-bg-flip [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): mesh-gradient-bg installs via `reelwright add`, animated gradient bg through --hf-x1..y3 vars (hand-driven, HF only); missing: bloom + bg colour flip recipe; aurora-drift is GSAP+CDN, not drivable [10z: build]
-  - approach: R2 docs + bg flip recipe
-- `doodle-shots-motion:2.19` — fui-hud-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.indicate.circumscribe and showPassingFlash (tools/motion.js; selfcheck motion/motion.mjs, projects/motion-hf) give a lock-on ring and glint; missing: corner-bracket HUD, readout ticker, reticle recipe; teleme…
-  - approach: R2 docs; reticle-lock-on recipe
-- `doodle-shots-motion:2.21` — icon-performance-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.indicate.indicate/wiggle (scale pop, rotate shake; tools/motion.js), KIT.spring overshoot, badge-pop component (hand-driven, HF only); missing: attention-bounce recipe doc, icon morph (icon-morph-beat/spring-…
-  - approach: R2 docs recipe attention-bounce
-- `doodle-shots-motion:2.23` — light-play-moves (spotlight-sweep, sheen-sweep) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): shimmer-sweep (--shimmer-pos gradient sheen) and spotlight-card (CSS-var spotlight + lit border) install via `reelwright add` (hand-driven, HF only); no per-component self-check; missing: no self-check proves the…
-  - approach: R2 docs (spotlight-sweep, sheen-sweep)
-- `doodle-shots-motion:2.26` — scan-bracket-sweep [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.indicate.circumscribe and showPassingFlash (tools/motion.js; selfcheck motion/motion.mjs); missing: scan band sweeping a bracketed subject; scan-band/camera-scan-gate are GSAP+CDN, not drivable [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.27` — scanline-annotate-focus [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.doodle.underline/circle marks (tools/doodle.js, projects/shots-hf) and KIT.indicate.focusOn/circumscribe (tools/motion.js); missing: scanline pass and connector + callout label; vox-annotate/cursor-annotate n…
-  - approach: R2 docs
-- `doodle-shots-motion:2.29` — slam-entrance-moves (kanada-perspective-snap, score-slam, impact-burst-kit) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shake impact decay and crashZoom (tools/shots.js), KIT.spring overshoot, KIT.layout.fullBleed word rise (tools/layouts.js); missing: kanada-perspective-snap, score-slam, impact-burst-kit; slam components are…
-  - approach: R2 docs (kanada-perspective-snap, score-slam, impact-burst-kit missing)
-- `doodle-shots-motion:2.34` — collab-cursor-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.cursor pointer and KIT.path travel (tools/engine.js, tools/path.js; selfcheck motion/path.mjs); missing: labelled multi-cursor ensemble (cast-ensemble), dotted trail; multiplayer-cursors/cursor-glyph-trail no…
-  - approach: R2 docs (cast-ensemble)
-- `doodle-shots-motion:2.37` — picker-carousel-feature-cycle [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): tabs-slide-indicator (pill slides via --hf-tab-x; hand-driven, HF only) + verified carousel-circle/orbit/path blocks (KIT.mount; tools/selfcheck/blocks.mjs); missing: picker-to-feature content cycle recipe; scree…
-  - approach: R2 docs
-- `doodle-shots-motion:2.38` — segmented-thumb-hero [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): tabs-slide-indicator is the sliding segmented thumb (--hf-tab-x, pill/width vars); settings-toggle-flow adds toggle rows; both install via `reelwright add` (hand-driven, HF only); missing: no self-check proves th…
-  - approach: R2 docs
-- `doodle-shots-motion:2.42` — brand-ink-open [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): pen-drawn brand mark via KIT.doodle2 stroke/letters/drawSVG (tools/doodle2.js; selfcheck doodle2.mjs; projects/doodle2-hf) and doodle.drawOn; missing: gooey ink-bleed bloom behind the mark; ink-bleed-reveal/white…
-  - approach: R2 docs
-- `doodle-shots-motion:2.46` — icon-field-colorize [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: cat: avatar-cloud, logo-wall; 10z: Only avatar-cloud/logo-wall exist: GSAP+CDN, never seeked by KIT.block; nothing in the kit builds an icon field. Recommend build: icon grid with KIT.stagger tweening filter grayscale t…
-  - approach: R2 docs
-- `doodle-shots-motion:2.47` — letterspace-materialize [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): tracking-in component (letter-spacing + rise reveal; hand-driven, HF only); a letter-spacing tween from KIT.seg in render(t) gives the same on both renderers; missing: no self-check proves the component (the 136…
-  - approach: R2 docs
-- `doodle-shots-motion:2.49` — orbit-ring-title-open [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): carousel-orbit-1..5 blocks (KIT.mount; tools/selfcheck/blocks.mjs), KIT.path ellipse travel (tools/path.js), KIT.shot.orbit camera (tools/shots.js); missing: nucleus + satellite title lockup recipe; locked-nucleu…
-  - approach: R2 docs
-- `doodle-shots-motion:2.52` — text-as-mask [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: cat: texture-mask-text, svg-mask-reveal; 10z: svg-mask-reveal is GSAP+CDN (not seeked by KIT.block); texture-mask-text ships 67 files so `add` refuses it; no kit helper or recipe masks media by text. Recommend build: do…
-  - approach: R2 docs
-- `doodle-shots-motion:2.54` — logo-shrink-wordmark-lockup [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): docs/recipes/end-card.md (logo pop with KIT.spring, CTA, hold) + verified logo-outro/yt-logo-intro blocks (KIT.mount); missing: logo-shrinks-into-wordmark lockup move; logo-brand-close/titlecard-lockup/cta-lockup…
-  - approach: R2 docs
-- `doodle-shots-motion:2.55` — neon-triple-marquee [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): perspective-marquee component (3D tilted marquee via --hf-marquee-x; hand-driven, HF only) with neon via text-shadow; missing: three counter-moving rows, neon recipe; caption-neon-glow not drivable [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.64` — sakuga-timing-shift [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.easing('steps(n)') (tools/engine.js), KIT.remap time remap (tools/shots.js), KIT.shot.bulletTime two clocks (tools/shots2.js); missing: stepped-time driver recipe (quantise t on twos/threes); stop-motion-cade…
-  - approach: R2 docs
-- `doodle-shots-motion:2.71` — gradient-transition [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.transition fadeThrough (c.color wash), lightLeak and custom (p, ctx) types (tools/transitions.js; selfcheck transitions.mjs); missing: feathered gradient-edge wipe; colorama-wipe not drivable (fade-through co…
-  - approach: R2 docs
-- `doodle-shots-motion:2.75` — print-texture-transitions [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.transition('brush') ragged-bristle ink wipe (tools/transitions.js; selfcheck transitions.mjs, projects/motion-hf), halftone-field block as texture; missing: halftone-dot dissolve, torn-paper edge, ink bleed (…
-  - approach: R2 docs
-- `doodle-shots-motion:2.77` — tear-streak-transitions [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.transition('glitch'), KIT.shader chromatic-split/glitch (tools/transitions.js, tools/shaders.js; selfcheck transitions.mjs), chromatic-aberration-wipe component (hand-driven, HF only), sfx cue 'glitch'; missi…
-  - approach: R2 docs
-- `doodle-shots-motion:2.88` — gradient-word-sweep [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): shimmer-sweep component sweeps a gradient band through text (--shimmer-pos/width/color; hand-driven, HF only); per-word timing from KIT.align and K.subtitles karaoke (tools/engine.js); missing: no self-check prov…
-  - approach: R2 docs
-- `doodle-shots-motion:2.91` — outline-word-fill [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.doodle2.drawSVG draws outlines then washes fills in (tools/doodle2.js; selfcheck doodle2.mjs, projects/doodle2-hf), doodle2.letters pen lettering; missing: live-text outline-to-fill recipe; stitched-text-draw…
-  - approach: R2 docs
-- `doodle-shots-motion:2.93` — pill-chip-slot-cycle-handled [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): slot-machine-roll component (vertical reel via --hf-slot-y; hand-driven, HF only) inside a CSS pill; missing: multi-chip rail with a settled state; state-chip-rail not drivable [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.94` — pill-slot-cycle [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): slot-machine-roll component is the pill slot cycle (vertical reel, direction/size/tone vars, --hf-slot-y; hand-driven, HF only); missing: no self-check proves the component (the 136 vendored blocks are verified b…
-  - approach: R2 docs
-- `doodle-shots-motion:2.99` — type-rhythm-sync (font-weight-pump, karaoke-fill-sync) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): karaoke fill via K.subtitles (.said/.now; tools/engine.js) + weight-wave block (wght/slnt travelling crest; KIT.mount); missing: beat-synced font-weight pump; variable-font-flex/caption-weight-shift not drivable…
-  - approach: R2 docs (font-weight-pump)
-- `doodle-shots-motion:2.101` — vertical-word-roll-blur-cycle [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): slot-machine-roll component (vertical reel; hand-driven, HF only) covers the roll; missing: word-level roll with blur and a multi-option cycle; kinetic-type-swap not drivable [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.104` — avatar-bracket-carousel [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog avatar-cloud and avatar-group-hover install with `reelwright add` (vendor/hyperframes/registry/components/); missing: no bracket-carousel recipe or doc mapping the shot to them [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.106` — card-stack [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog spring-stack-shuffle installs with `reelwright add`; KIT.layout.bento (tools/layouts.js, projects/layouts-hf) is a grid not a stack; missing: card-stack recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.108` — cloner-depth-echo [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog echo-trail, echo-smear and camera-rig-depth-stack install with `reelwright add`; KIT.shot.planes (tools/shots2.js, shuffled-seek fixture) gives depth; missing: cloner-echo-on-depth recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.113` — integration-hub-map [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog constellation-hub installs with `reelwright add` (nodes light in narration order, connectors draw from a hub); missing: integration-map recipe/doc (logo tiles, labels) [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.116` — neon-frame-forerun [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog caption-neon-glow and svg-stroke-trace install with `reelwright add`, and block lt-neon-border (reelwright add, hf films) is a neon frame; missing: forerun recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.117` — neon-frame-orbit-drop [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog caption-neon-glow and svg-stroke-trace install with `reelwright add`, block lt-neon-border is a neon frame, KIT.path.draw/follow (tools/path.js) can orbit a dot; missing: orbit-drop recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.118` — page-waterfall-wall [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog scroll-feed and parallax-device-dive install with `reelwright add`; missing: multi-column waterfall wall (several offset scroll-feeds) recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.119` — product-card-progressive-assemble [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.layout.bento (tools/layouts.js, used in projects/layouts-hf) and catalog grid-card-assemble (reelwright add) cover the assemble; missing: progressive card-fill (skeleton to filled) recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.120` — radial-wave [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog radial-surround and press-ripple install with `reelwright add`; missing: radial-wave recipe/doc (staggered ring of chips from a centre ripple) [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.121` — research-card-stack-scroll [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog scroll-feed and spring-stack-shuffle install with `reelwright add`; missing: card-stack-into-scroll recipe/doc [10z: build]
-  - approach: R2 docs
-- `doodle-shots-motion:2.123` — value-stagger-gradient [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.stagger and K.count (tools/engine.js), KIT.layout.stat (tools/layouts.js), catalog count-up and number-wheel; missing: value-driven gradient colour ramp recipe/doc [10z: build]
-  - approach: R2 docs
 - `doodle-shots-motion:2b.7` — Ink Press: complete 36 s validated promo template (10 shots, replace screenshots/copy/logo) — PARTIAL — partial, rest planned (open)
   - says: (10z): docs/recipes/film is one 8-scene HF film built from the 8 recipes (docs/recipes/*.md, stills); projects/example, teaser, website, dashboard; `from-url`; missing: a validated 10-shot promo template (`new --templat…
   - approach: docs: 'promo-energy-arc' project template (`reelwright new --template promo`) assembled from KIT.recipe.* (M). Do not copy template screenshots
@@ -1006,173 +820,29 @@ By source: hyperframes 60, remotion 38, manim 36, doodle-shots-motion 149
   - says: (10z): qa FAIL gates + WARNs (tools/qa.py, qa_page.mjs), taste WARNs (tools/checks/taste.page.mjs), hf-lint (docs/playbook/qa-lint.md); missing: one quality checklist table with severity tiers and troubleshooting [10z:…
   - approach: docs one table
 
-#### Recipe or KIT helper to add (R-tier) (55)
+#### Recipe or KIT helper to add (R-tier) (7)
 
-- `doodle-shots-motion:2.3` — cursor-flyover [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): camera is KIT.shot.tour (tools/shots2.js), proved by tools/selfcheck/motion/shots2.mjs and projects/motion-hf; missing: the cursor overlay at scale(1/s) has no helper, recipe or demo (catalog cursor-zoom-follow i…
-  - approach: R3 shot.tour + cursor drawn at scale(1/s)
-- `doodle-shots-motion:2.9` — tension-camera-moves (bullet-time-freeze-orbit, pull-back-isolation) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shot.bulletTime two clocks (tools/shots2.js, fixture tools/selfcheck/motion/shots2.mjs, docs/playbook/motion.md); missing: pull-back-isolation (S.pullBack plus sibling dim) not built; catalog focus-swap dims…
-  - approach: R3 K.timeRemap two-clock helper + isolation recipe
-- `doodle-shots-motion:2.10` — terminal-3d [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shot.tour (tools/shots2.js, fixture) and KIT.typewriter (tools/motion.js, projects/motion-hf) both shipped; catalog code-terminal-run installs; missing: no recipe/demo combining a 3D terminal tour with typing…
-  - approach: R3 shot.tour + typing after arrival
-- `doodle-shots-motion:2.12` — chart-live-moves (oscilloscope-stream, unit-dot-swarm-regroup, axis-rescale-shock) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): block oscilloscope-trace (reelwright add, used in projects/blocks-hf) covers oscilloscope-stream; KIT.math.axes/plot (tools/math.js) and catalog chart-story exist; missing: unit-dot-swarm-regroup and axis-rescale…
-  - approach: R1 oscilloscope-stream, unit-dot-swarm-regroup, axis-rescale-shock over math.js
-- `doodle-shots-motion:2.13` — gauge-readout-moves (needle-sweep-selftest, tape-scroll-fixed-pointer) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.count (tools/engine.js), catalog conic-progress-ring and number-wheel install with `reelwright add`; missing: needle sweep with self-test overshoot and tape scroll under a fixed pointer [10z: build]
-  - approach: R1 needle sweep + tape scroll
-- `doodle-shots-motion:2.14` — scroll-brake-moves (changelog-scroll-brake, brake-reticle-lock) [2 shots] — MISSING — planned (Phase 11)
-  - says: cat: scroll-feed (scroll only, no brake/reticle); 10z: not built; everything needed exists (K.keys, K.easing in tools/engine.js), only the decel curve and reticle snap recipe is absent [10z: build]
-  - approach: R1 recipe (K.keys + brake ease)
-- `doodle-shots-motion:2.15` — timeline-travel [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.camAt (tools/engine.js) and KIT.math.numberLine (tools/math.js) both shipped; missing: no timeline-travel recipe/demo composing them [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.16` — assemble-then-type-flyin [1 shot] — MISSING — planned (Phase 11)
-  - says: cat: grid-card-assemble (skeleton only); 10z: not built; smallest: recipe using grid-card-assemble then K.stagger per-char transforms (K.cam3, tools/shots.js) after the skeleton lands [10z: build]
-  - approach: R1 skeleton fly-in then per-char 3D text
 - `doodle-shots-motion:2.18` — brand-frame-snap [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: film-local: a K.snap-timed CSS colour step on the frame; too small for a kit helper (AGENTS.md: single-film tricks go in film.js) [10z: except]
   - approach: R1 colour flip on frame edge
-- `doodle-shots-motion:2.20` — glow-flyline-moves (glow-orb-ambient, flyline-arc, orb-flyline-relay) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.path.draw/follow replace GSAP MotionPath (tools/path.js, fixture tools/selfcheck/motion/path.mjs, projects/motion-hf rides a path); missing: glow-orb ambient and orb-flyline relay recipe [10z: build]
-  - approach: R1 fly-line + glow orb on MotionPath-style travel (own path walker or GSAP MotionPath)
-- `doodle-shots-motion:2.22` — impact-feedback (hit-counter, anime-impact) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.shake and K.cue impact (tools/shots.js, tools/engine.js), catalog camera-shake, shutter-slam, rubber-band-bumper, number-pop-in; missing: hit-counter and anime-impact overlays [10z: build]
-  - approach: R1 hit-counter, anime-impact overlays
-- `doodle-shots-motion:2.24` — radial-ripple-phone-chips [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.phone (tools/engine.js), catalog radial-surround and press-ripple install with `reelwright add`; missing: chips-radiating-from-phone-ripple recipe/doc [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.25` — riso-print-hits [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: not built; smallest: recipe of 2-3 stacked copies with mix-blend-mode multiply and seeded per-hit offsets [10z: build]
-  - approach: R1 mix-blend-mode multiply offset layers (misregistration-hit)
-- `doodle-shots-motion:2.28` — scanline-assemble-flyin [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: not built; smallest: recipe sweeping a seeded scanline with K.stagger fly-in of elements it passes [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.30` — spotlight-sweep-moves (glow-wake-sleep-panel, slide-spotlight-pan, corner-spotlight-reveal) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): catalog spotlight-card and light-sweep-pass install with `reelwright add`; missing: glow-wake-sleep-panel, slide-spotlight-pan and corner-spotlight-reveal recipes [10z: build]
-  - approach: R1 glow-wake-sleep-panel, slide-spotlight-pan, corner-spotlight-reveal
 - `doodle-shots-motion:2.31` — autolayout-gap-dial [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: film-local: CSS gap driven by K.keys plus a dial drawn in the film; niche Figma UI mock, not worth a kit helper [10z: except]
   - approach: R1 recipe
-- `doodle-shots-motion:2.32` — canvas-materialize-moves (panel-to-canvas, diagram-cascade) [2 shots] — MISSING — planned (Phase 11)
-  - says: 10z: not built; smallest: recipe on modal-morph then KIT.stagger cascading diagram nodes with KIT.path.draw edges [10z: build]
-  - approach: R1 panel-to-canvas, diagram-cascade
 - `doodle-shots-motion:2.33` — chip-grid-single-select-blackout [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: film-local selection state machine over K.keys; niche UI mock [10z: except]
   - approach: R1 recipe
 - `doodle-shots-motion:2.36` — hashtag-to-pill-materialize [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: film-local text-to-pill morph (CSS radius/padding from K.keys); too small for a kit helper [10z: except]
   - approach: R1 recipe
-- `doodle-shots-motion:2.39` — theme-switch-moves (theme-sweep-toggle, palette-theme-ripple) [2 shots] — MISSING — planned (Phase 11)
-  - says: themes are CSS tokens (tools/theme.mjs) but no runtime ripple; 10z: not built; smallest: two stacked scene copies, the top with --kit-* overrides, revealed by KIT.transition iris or clockWipe (tools/transitions.js) from…
-  - approach: R1 clip-path ripple that swaps --kit-* vars (theme-sweep-toggle, palette-theme-ripple)
-- `doodle-shots-motion:2.40` — type-and-filter [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.typewriter (tools/motion.js, fixture tools/selfcheck/motion/motion.mjs, projects/motion-hf) and catalog typed-prompt, typing-indicator exist; missing: filtered-list recipe (rows hide per typed char) [10z: bui…
-  - approach: R1 filtered list recipe
-- `doodle-shots-motion:2.41` — voice-waveform-live [1 shot] — MISSING — planned (Phase 11)
-  - says: beatgrid.py finds onsets only, no continuous energy curve; 10z: not built; smallest: dump a 30 fps RMS array (music or vo mp3 via ffmpeg and numpy, as beatgrid.py does) to a JSON the film reads, plus a bars recipe [10z:…
-  - approach: R3 audio envelope in kit-data (Remotion-audio-reactive idea, ffmpeg astats/numpy) + recipe
-- `doodle-shots-motion:2.43` — crane-rise-reveal [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): S.craneRise camera (tools/shots.js) is equal; missing: rowPulse option (rows pulse as the camera crosses them), no pulse code in tools/shots.js [10z: build]
-  - approach: R1 add rowPulse option
-- `doodle-shots-motion:2.44` — dataviz-landscape-open [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: not built; smallest: recipe on math3d.scene surface with camera.orient opening move and bars from KIT.stagger [10z: build]
-  - approach: R1 recipe over math.js
-- `doodle-shots-motion:2.45` — fracture [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: not built; smallest: a function-type transition (the API accepts one) with seeded triangle clip-path polygons drifting apart; the shader block transitions-destruction is a different look [10z: build]
-  - approach: R1 clip-path shard split recipe
 - `doodle-shots-motion:2.48` — magician-card-flourish [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: Niche opening gimmick (cards fanned and flipped by a magician flourish); nothing in the repo does it, but it is plain CSS 3D plus KIT.spring/KIT.stagger, so no kit gap and no reusable primitive. Propose as an excep…
-  - approach: R1 recipe
-- `doodle-shots-motion:2.50` — spotlight-hero-card [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shot.tour/pushIn/orbit/crashZoom (tools/shots.js, shots2.js) can fly z 0.78 to 2.6 with ry 34 via tour poses, but no heroPush preset or recipe; missing: S.heroPush (or a documented 2-pose tour) [10z: build]
-  - approach: R1 S.heroPush on cam3
-- `doodle-shots-motion:2.56` — outro-group-photo-launch [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): avatar-cloud, radial-surround, locked-nucleus-orbit and logo-brand-close components (vendor/hyperframes/registry/components) converge items round a wordmark; missing: the group-photo launch flight recipe [10z: bu…
-  - approach: R1 recipe: representatives converge round the wordmark
-- `doodle-shots-motion:2.57` — ui-strip-away-outro [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): skeleton-reveal, filmed-screen, physical-exit, paper-collage-reveal and logo-brand-close components cover the pieces; missing: a strip-the-UI-away-to-the-logo recipe (staggered exits then lockup) [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.58` — ui-to-brand-morph (icon-flip-bloom, input-morph-assemble) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): morph-swap, modal-morph, menu-morph, icon-morph-beat components and KIT.path.morph/KIT.math.morphShapes (tools/path.js, math2.js); missing: icon-flip-bloom and input-morph-assemble recipes [10z: build]
-  - approach: R1 icon-flip-bloom, input-morph-assemble
-- `doodle-shots-motion:2.60` — beat-step-list-theme-cycle [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): list stepping on spoken words/beats (docs/recipes/feature-stagger.md, K.snap/K.beat), beat-timeline and state-chip-rail components; missing: per-step theme/accent cycling on each beat [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.61` — panel-grid-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): comparison-split, split-tilt-cards components, KIT.layout.split/bento (tools/layouts.js), KIT.transition barnDoor/blinds and transitions-grid block; missing: comic-panel-split (multi-panel gutters revealed in tur…
-  - approach: R1 comic-panel-split
-- `doodle-shots-motion:2.62` — quad-split-parallel-scenes [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.mount/KIT.block (tools/compose.js, docs/playbook/nested-compositions.md) host independently timed sub-scenes that can be placed and scaled; missing: a four-up quad-split recipe or demo [10z: build]
-  - approach: R1 four sub-stages recipe
-- `doodle-shots-motion:2.63` — rhythm-interrupt-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shot.track (hard cuts between camera shots, PLAYBOOK), K.remap, micro-transitions component; missing: a documented jump-cut punch-in on the beat recipe [10z: build]
-  - approach: R1 jump-cut-punch-in
-- `doodle-shots-motion:2.66` — trailer-grammar-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): headline-slam, titlecard-calm/lockup, logo-sting, beat-accent components and KIT.transition fadeThrough/flash cover the parts; missing: the assembled bumper/title-card trailer-grammar recipe [10z: build]
-  - approach: R1 bumper/title-card grammar recipe
-- `doodle-shots-motion:2.69` — card-flock-tumble [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: No file makes many cards tumble into a word (char-slam-explode moves glyphs, not cards). Build a recipe: N cards from seeded scatter to glyph-box targets with KIT.stagger and KIT.sim for the tumble. [10z: build]
-  - approach: R1 recipe (many cards tumble into a word)
-- `doodle-shots-motion:2.74` — page-turn-transitions [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): barnDoor, flip, cube via KIT.transition (tools/transitions.js, fixture selfcheck/motion/transitions.mjs); missing: a page-turn type (hinged rotateY with fold shading) [10z: build]
-  - approach: R1 page-turn + barn-door-split
-- `doodle-shots-motion:2.78` — transition-hidden-cut (invisible-cut, versus-slam, light-leak-burn) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): light-leak burn = KIT.transition(lightLeak) plus light-leak blocks; hidden cut = whip-pan-cut component, whip-pan block, S.whipPan; missing: versus-slam (two halves slam together) transition [10z: build]
-  - approach: R3 KIT.transition + light-leak overlay (additive radial gradients, triangle opacity)
-- `doodle-shots-motion:2.79` — transition-travel [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): zoom-through-transition and parallax-zoom components, KIT.transition(zoom), S.crashZoom/S.tour onto a point; missing: letterform-zoom (zoom into a glyph to the next scene) recipe [10z: build]
-  - approach: R1 letterform-zoom
-- `doodle-shots-motion:2.84` — countdown-arc-scatter [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): conic-progress-ring, count-up, number-wheel components, K.count (counts down with from>to), KIT.math arcs; missing: the countdown arc with a scatter exit recipe [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.86` — flying-words [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.shot.planes + S.tour (tools/shots2.js, depth parallax from one camera) can fly words past the camera; missing: a word-tunnel recipe or helper (words along z, depth fade) [10z: build]
-  - approach: R1 word tunnel in cam3 perspective
-- `doodle-shots-motion:2.89` — lead-word-zoom-assemble [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.layout.kinetic words landing in turn (tools/layouts.js), S.crashZoom/pushIn onto a word; missing: lead-word zoom then assemble recipe [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.95` — text-column-converge [1 shot] — MISSING — planned (Phase 11)
-  - says: 10z: line-by-line-slide and kinetic-center-build slide text in from one side only; nothing converges columns from both sides. Build a recipe: columns slide toward centre with KIT.stagger and KIT.ease. [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.96` — title-demote-to-label [1 shot] — MISSING — planned (Phase 11)
-  - says: K.keys/K.lerp only; 10z: No title-to-label demote exists (text-match-cut swaps lines, card-resize resizes cards). Build a recipe: measure both boxes once, interpolate translate/scale/colour with K.lerp (A and B variants…
-  - approach: R1 recipe (A and B variants)
-- `doodle-shots-motion:2.97` — type-assembly-moves (split-text-stagger, drift-assembly, text-on-path) [3 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): split-text-stagger = K.words, text-stagger, per-word-rise; drift-assembly = char-slam-explode; text-on-path = hw-path-text block (handwriting only) and KIT.path.follow; missing: a general-font textOnPath helper […
-  - approach: R3 textOnPath (SVG textPath + startOffset keyed) / GSAP MotionPath
-- `doodle-shots-motion:2.98` — type-entrance-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): bottom-up-letters, top-down-letters, char-slam-explode components, K.spring and KIT.sim (bouncing, tools/motion.js); missing: letter-drop with bounce recipe [10z: build]
-  - approach: R1 letter-drop-physics (closed-form bounce)
-- `doodle-shots-motion:2.102` — word-relay-filmstrip [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): rail with fast throw and snap via velocity-throw-snap, swipe-rail components and text-match-cut; missing: word-relay filmstrip recipe (words handed along a strip) [10z: build]
   - approach: R1 recipe
 - `doodle-shots-motion:2.103` — word-relay-geometry [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: Niche word handoff through geometry shapes; no primitive missing (KIT.math.morphShapes plus text-match-cut cover the ingredients). Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
-- `doodle-shots-motion:2.105` — bezier-source-converge-merge [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.path.follow/fromPoints (tools/path.js, selfcheck/motion/path.mjs) and offset-path-traveler component move items along bezier paths; missing: multi-source converge-and-merge recipe [10z: build]
-  - approach: R1 recipe (or GSAP MotionPath)
-- `doodle-shots-motion:2.109` — deck-deal-flyin [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): spring-stack-shuffle, notification-pileup (accelerating arrivals), multi-device-splay components; missing: deck deal-in from a pile with orbit-open recipe [10z: build]
-  - approach: R1 recipe (accelerating deal, pile-orbit-open)
 - `doodle-shots-motion:2.110` — doc-park-left-pill-deal [1 shot] — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-card-assemble and KIT.stagger with no kit gap. Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
-- `doodle-shots-motion:2.112` — element-body-moves [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): body moves pendulum-swing, physical-exit, spring-pop components and KIT.sim; missing: contact-shadow-lift (shadow grows as the element lifts) recipe [10z: build]
-  - approach: R1 contact-shadow-lift recipe
-- `doodle-shots-motion:2.115` — list-stack-press [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): press-ripple, gesture-tap, touch-indicator, notification-stack, spring-stack-shuffle components; missing: list-stack press (rows compress under a press) recipe [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.122` — row-embed [1 shot] — PARTIAL — partial, rest planned (open)
-  - says: (10z): card-resize, panel-reveal and modal-morph components expand a row or card in place; missing: row-embed recipe (a list row growing to embed a card) [10z: build]
-  - approach: R1 recipe
-- `doodle-shots-motion:2.124` — wall-reveal-moves (bento-light-up, wireframe-draw-on) [2 shots] — PARTIAL — partial, rest planned (open)
-  - says: (10z): KIT.layout.bento, stagger-lattice, mk-placeholder-grid block, skeleton-reveal, KIT.path.draw/KIT.doodle drawOn; missing: bento-light-up and wireframe-draw-on recipes [10z: build]
-  - approach: R1 bento-light-up, wireframe-draw-on
 
 #### Native code to add in tools/ (or a flag/command) (23)
 

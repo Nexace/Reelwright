@@ -377,4 +377,5 @@ function main() {
   console.error(`total ${b.all.length}, EQUAL+BETTER+EQUAL/BETTER ${good}, not ${b.all.length - good}`);
   if (problems.length) process.exitCode = 1;
 }
-main();
+export { parseSource, SOURCES };
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

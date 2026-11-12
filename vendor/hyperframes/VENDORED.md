@@ -19,6 +19,14 @@ Left out: `.d.ts` and `.map` files, component `demo.html`, `README.md` and `asse
 
 Third-party code inside: none in what we took. Third-party npm packages the vendored code imports (puppeteer, hono, linkedom, postcss, …) install through npm under their own licenses.
 
+### Dropped after 0.3.0 (2026-11-13)
+
+27 files nothing imports or reads were removed (an import trace, `docs/plans/phase-10z-cleanup-list.md` §5): in `core/`
+the unused audio-fx modules, `htmlInCanvasDefects.js`, `runtime/clock.js`, `vfx/refs/`, `fonts/sfntFixture.js`, the
+`pickerApi.js` stub and `docs/`; in `engine/` the README, test fixtures, type stubs, `webglRelease.js` and
+`utils/parityContract.js`; the `producer/README.md`. They are in git history, and a re-unpack of the upstream
+tarball (see Updating) restores them. When updating, do not re-add them.
+
 ## What we changed
 
 - Every `package.json` under `producer/ engine/ core/ parsers/ lint/ studio-server/`: removed `devDependencies` and `scripts`. npm installs a `file:` package's devDependencies, which pulled in ~750 MB (AWS Lambda, ffprobe-static); the scripts are upstream's Bun build. JSON can't carry a header, so this line is the change note.

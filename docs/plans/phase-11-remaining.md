@@ -1,9 +1,20 @@
 # Phase 11 plan: build the remaining rows (one session, parallel subagents)
 
-Status: **draft, owner starts it in a new session after 0.3.0 is released.** Goal: turn the open rows of `docs/PARITY.md` into EQUAL or BETTER, each flip proved by
-a file or self-check, and release 0.4.0. At 0.3.0 the open rows are 221: 27 Planned, 168 Partial (some shipped, the rest
+Status: **draft, owner starts it in a new session after 0.3.0 is released. Phase 11 is the LAST phase (owner, 2026-11-12): when it ends nothing is left to build.** Goal: turn the open rows of `docs/PARITY.md` into EQUAL or BETTER, each flip proved by
+a file or self-check, and release the final version. At 0.3.0 the open rows are 221: 27 Planned, 168 Partial (some shipped, the rest
 planned) and 26 with no tag, plus 4 proposed exceptions for the owner. Package sizes below are estimates; the orchestrator
 recounts from `docs/PARITY.md` and the `[10z: build]` tags first. Excluded by the owner: Figma, Firefly and Premiere Pro work, Higgsfield depth.
+
+## Exit criterion: nothing open, nothing deferred
+
+Phase 11 does not end until `docs/PARITY.md` has **0 Planned, 0 Partial, 0 Proposed and 0 Open (no tag)** rows. Every one
+of the 601 rows is EQUAL or BETTER (proved by a file or self-check), or an exception the owner approved. There is no
+"Phase 12": a row that cannot be built is not parked, it is put to the owner once, with the reason, to accept as an
+exception or to keep working on. Accepted exceptions are final.
+
+- `node tools/parity_compile.mjs --check` exits 1 while any row is Planned, Partial, Proposed or Open; the orchestrator
+  adds it to CI in Wave 4, so the claim cannot regress.
+- The release at the end is the finished product (suggest `1.0.0`; the owner names it).
 
 ## How it runs: one session, subagents only
 
@@ -51,6 +62,13 @@ Rows below are skipped until the owner rules; the orchestrator asks at the start
 
 Row ids come from the Planned list in `docs/PARITY.md`; each package takes the rows whose source and category match.
 
+**Wave 0: triage (orchestrator, no subagents, about an hour)**
+- Recount from `docs/PARITY.md`. Give the 26 untagged rows a decision each: build or exception proposal. Put the 4
+  proposed exceptions and the five owner decisions to the owner in ONE message. Anything the owner approves as an
+  exception is final; everything else becomes a build row in a package below.
+- Assign every open row to exactly one package (a table `row id → package`, committed as
+  `docs/plans/phase-11-assignments.md`), so no row is left over and none is built twice.
+
 **Wave 1 (4 subagents, independent)**
 - **P1 HyperFrames: variables, batch, stills.** Composition variables (A5) first, then batch render (A6, depends on A5),
   then the full `stills` command (zoom, compare, frame ranges; G5). Files: `tools/commands/{batch,stills2}.mjs`,
@@ -77,11 +95,13 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
   rules for the new shotcards.
 
 **Wave 4: integration and release 0.4.0 (orchestrator, plus Haiku re-checkers)**
+0. Close-out: list every row still not EQUAL/BETTER. For each, either a subagent finishes it, or it goes to the owner in
+   one batch as an exception request with the reason. Repeat until `parity_compile.mjs --check` passes.
 1. Merge any shared-file requests; recompile `docs/PARITY.md` (`tools/parity_compile.mjs`).
 2. Independent re-check of every flipped row (Haiku or Sonnet subagents, one per source): open the proving file, run
    the command, confirm. Unproved flips are reverted.
 3. Fresh-clone build of the example films and every new demo; all gates pass; CI green on three OSes.
-4. Stitch docs, version 0.4.0, then tag and release **only with the owner's yes**, then the cleanup list (also with a yes).
+4. Stitch docs, final version number (owner names it), then tag and release **only with the owner's yes**, then the cleanup list (also with a yes).
 
 ## Orchestrator rules
 
@@ -100,7 +120,8 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
 | 1 | P1 P2 P3 P4 | not started |
 | 2 | P5 P6 P7 P8 | not started |
 | 3 | P9 P10 P11 | not started |
-| 4 | integration, 0.4.0 | not started |
+| 0 | triage and assignments | not started |
+| 4 | close-out, final release | not started |
 
 ## Start prompt (paste into a new session in this repo)
 

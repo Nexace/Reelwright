@@ -31,6 +31,7 @@
     }, (e) => { console.error('tools/runtimes.js: a runtime failed to load:', e); throw e; });
     waits.push(q); return q;
   };
+  K.wait = wait;   // other kit modules (tools/dotlottie.js) hold the first frame back through the same READY gate
   let css = false;
   const seekCss = (t) => {
     for (const a of document.getAnimations()) seen.add(a);

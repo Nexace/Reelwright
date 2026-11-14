@@ -1,8 +1,8 @@
 # Phase 10z: non-EQUAL rows, grouped by reason
 
-Generated 2026-11-12 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
+Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 332; not 269 (grand total of the groups below: 269).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 353; not 248 (grand total of the groups below: 248).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 332; not 269 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 174 |
-| | **Grand total** | **269** |
+| 10 | Not done, no stated reason | 153 |
+| | **Grand total** | **248** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -384,15 +384,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (174) — 72 approved, 9 planned, 75 partial, 18 open
+## 10. Not done, no stated reason (153) — 72 approved, 4 planned, 60 partial, 17 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 174 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 153 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
+By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
 
-### HyperFrames (56)
+### HyperFrames (53)
 
 #### Docs / PLAYBOOK note only (5)
 
@@ -412,7 +412,7 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
   - says: Topic notes cover colour grading (docs/playbook/grading-effects.md), motion (motion.md), design systems (themes.md, theme-brief.md) and editing existing clips (video-audio.md); they document the API rather than give pro…
   - approach: docs only
 
-#### Native code to add in tools/ (or a flag/command) (37)
+#### Native code to add in tools/ (or a flag/command) (34)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -420,12 +420,6 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `hyperframes:A19` — Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (no reflow) — PARTIAL — partial, rest planned (open)
   - says: tools/layouts.js:28 has a private binary-search `fit(el,w,h,max)` (clone, scrollWidth/Height, re-run after fonts) used by the title/number layouts; QA flags caption overflow (tools/qa_page.mjs). Missing: a public `KIT.f…
   - approach: native `KIT.fit(text,{font,maxWidth})` using canvas `measureText`
-- `hyperframes:D1` — Audio FX rack per clip: 16 effects (highpass lowpass peaking lowshelf highshelf gain compressor limiter truepeak gate saturate bitcrush del… — MISSING — planned (Phase 11)
-  - says: tools/mix.py has per-cue gain, a music duck, loudnorm and a tanh soft clip; no per-clip effect chain, `fx` key in project.json or filter mapping. Not built: no audio clips exist yet to hang a chain on (A8). Suggest: bui…
-  - approach: native: map each effect to an ffmpeg filter (highpass, lowpass, equalizer, bass/treble, volume, acompressor, alimiter, agate, asoftclip, acrusher, aecho, chorus, aphaser, rubberband) in `mix.py` / pr…
-- `hyperframes:D2` — 22 presets (voice-clean, voice-broadcast, voice-warm, rumble-cut, room-gate, boom-tame, harsh-tame, telephone, radio-am, megaphone, lofi-ta… — MISSING — planned (Phase 11)
-  - says: No preset table anywhere in tools/ or docs/playbook/sound.md. Not built: needs the D1 chain. Suggest: build (S, after D1).
-  - approach: native presets table on D1
 - `hyperframes:D3` — Automation lanes (`data-automation`: volume, FX params, sample-accurate), clip fades, volume above 1 — PARTIAL — partial, rest planned (open)
   - says: tools/mix.py has a −6 dB music duck under subdrop (and impact/riser with music.duck_sfx), per-cue `gain` and a 0.3 s end fade. Missing: automation lanes, per-clip fades, FX-parameter automation, gain above unity per cli…
   - approach: native on D1/A8
@@ -462,9 +456,6 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `hyperframes:E9` — Registry item schema (`registry-item.json`: params, variables, controls, preview, license, stability), `registry.json` — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in tools/ or .github/workflows/ci.yml. Not built: items are upstream's unmodified files, so schema checks add little…
   - approach: validate with the schema in CI
-- `hyperframes:F2` — Caption lint: overflow, container-relative position, fit-text scale, shadow on group, hard-kill exit, transcript not inline — PARTIAL — open
-  - says: Six caption rules (overflow risk, clipped scaled words, container-relative position, fit-text scale, shadow on group, hard-kill exit) are not in SKIP, so `qa` runs them via the vendored lint; `caption_transcript_not_inl…
-  - approach: port as WARN checks
 - `hyperframes:F3` — Caption editing in Studio (click a word, restyle, retime) — MISSING — exception (owner-approved 2026-11-12)
   - says: tools/studio/studio.js has no caption panel; captions are drawn by the engine from the VO line text and edge-tts word times, and the inspector edits the line text (re-voice to retime). Not built: hand-retiming or restyl…
   - approach: native studio panel (see H)
@@ -770,9 +761,9 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
   - says: (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js (`tools/manim.mjs`, `tools/selfcheck/manim.mjs`); `all`, `verify` and the manifest do not run Manim (shared files left alone by decision)…
   - approach: own code
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (62)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (44)
 
-#### Docs / PLAYBOOK note only (15)
+#### Docs / PLAYBOOK note only (7)
 
 - `doodle-shots-motion:1.15` — Lessons: step sheet + captioned timelapse, drawn-stroke captions — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no drawn-stroke captions. Suggest: accept as exception.
@@ -795,30 +786,6 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `doodle-shots-motion:2b.11` — Final independent review checklist (P/F/V/A/... items, clean-context reviewer) — PARTIAL — partial, rest planned (open)
   - says: (10z): docs/playbook/claude-workflow.md loop (stills, taste WARNs, qa FAIL/WARN) + AGENTS.md step 3; missing: an itemised final-review checklist and a clean-context reviewer step [10z: build]
   - approach: docs: PLAYBOOK 'Review' checklist
-- `doodle-shots-motion:3.1` — Pre-animation 8-step checklist, three pillars, three motion layers (primary / secondary / ambient) — PARTIAL — partial, rest planned (open)
-  - says: PLAYBOOK Motion rules (ease in/out, 1/3-screen, morph not fade, dim to 0.25, stagger budget); missing: pre-animation checklist and the primary/secondary/ambient layer model [10z: build]
-  - approach: docs: 1 paragraph + checklist in PLAYBOOK
-- `doodle-shots-motion:3.4` — Material easing (rigid 1.2x/0%, elastic 0.8x/15-25%, fluid 1.5x/5%, paper 1.0x/3-5%, gas 2.0x, glass 0.9x) — MISSING — planned (Phase 11)
-  - says: 10z: no material easing table or KIT.material in tools/engine.js or docs [10z: build]
-  - approach: docs table + `KIT.material(name)` returning {durScale, ease} S
-- `doodle-shots-motion:3.5` — Spring parameter palette (very stiff 400+/25-30 ... very bouncy 100-200/5-10) — PARTIAL — partial, rest planned (open)
-  - says: KIT.spring({mass,damping,stiffness}) closed form + KIT.springDur (tools/engine.js, PLAYBOOK Motion); missing: named presets (stiff/standard/bouncy) and the palette table [10z: build]
-  - approach: docs: named presets `KIT.springs.{stiff,standard,bouncy}`
-- `doodle-shots-motion:3.6` — Duration by element type, distance scaling (50 px=0.8x ... full screen 1.8-2x), exit = 65-75% of entrance — PARTIAL — partial, rest planned (open)
-  - says: KIT.dur tempo token, theme archetype settle/stagger (PLAYBOOK Motion); missing: duration-by-element table, distance scaling (KIT.distDur) and exit = 65-75% of entrance [10z: build]
-  - approach: docs + `KIT.distDur(px)` helper (formula derived from table; UNVERIFIED fit)
-- `doodle-shots-motion:3.9` — Disney principles for UI, emotion-to-motion map, path as emotional language, narrative 4-act structure — MISSING — planned (Phase 11)
-  - says: 10z: no Disney-principles / emotion-to-motion section in PLAYBOOK or docs/playbook; docs-only, one compact section [10z: build]
-  - approach: docs only (one compact section; film-relevant lines)
-- `doodle-shots-motion:3.10` — Entrance / exit strategies (direct, emergent, reveal, assembled; dissolve, collapse, transfer) + continuity — PARTIAL — partial, rest planned (open)
-  - says: (10z): layouts enter/exit with theme motion; KIT.transition 18 types incl. fade, iris, zoom, push (tools/transitions.js); catalog exits (blur-out-up …); missing: entrance/exit strategy table mapped to KIT calls [10z: bu…
-  - approach: docs table mapped to KIT calls
-- `doodle-shots-motion:3.12` — State & feedback (button press, hover, toggle, success, error shake, inline validation) — PARTIAL — partial, rest planned (open)
-  - says: (10z): blocks press-ripple, settings-toggle-flow, success-check, input-feedback, toggle-flip; KIT.indicate.wiggle/indicate/blink (tools/motion.js) for error shake and feedback; missing: a UI-state docs section [10z: bui…
-  - approach: docs only (UI states are shown inside recordings)
-- `doodle-shots-motion:3.14` — Quality checklist + severity tiers + troubleshooting — PARTIAL — partial, rest planned (open)
-  - says: (10z): qa FAIL gates + WARNs (tools/qa.py, qa_page.mjs), taste WARNs (tools/checks/taste.page.mjs), hf-lint (docs/playbook/qa-lint.md); missing: one quality checklist table with severity tiers and troubleshooting [10z:…
-  - approach: docs one table
 
 #### Recipe or KIT helper to add (R-tier) (7)
 
@@ -844,7 +811,7 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
   - says: 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-card-assemble and KIT.stagger with no kit gap. Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
 
-#### Native code to add in tools/ (or a flag/command) (23)
+#### Native code to add in tools/ (or a flag/command) (19)
 
 - `doodle-shots-motion:1.12` — Callout: dot lands, leader line drawn, label written; anchor follows camera — PARTIAL — partial, rest planned (open)
   - says: catalog vox-annotate, cursor-annotate, hw-box-label, hw-arrow (docs/playbook/blocks.md lists none as camera-anchored); missing: `D.callout` with dot landing, drawn leader, written label and an anchor that follows the ca…
@@ -903,20 +870,8 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `doodle-shots-motion:2b.19` — Output-audio offset compensation: AAC priming (~1.28 f) and per-file SFX peak lag (brush-write 2 f, paper-slide 10 f) — PARTIAL — partial, rest planned (open)
   - says: (10g): per-kind PEAK table in tools/mix.py (cue start = t − peak), proved ±10 ms by tools/selfcheck/sound.mjs; missing: AAC priming measurement / `verify-av` cross-correlation on the rendered mp4 [10z: build]
   - approach: native: per-kind PEAK table in mix.py for synthesised SFX (known by construction) + `verify-av` cross-correlation check on the rendered mp4 (S)
-- `doodle-shots-motion:3.3` — Easing standards as cubic-beziers (MD3 standard/emphasized/accelerate/decelerate, Apple HIG, gentle float, bounce, elastic snap) — PARTIAL — partial, rest planned (open)
-  - says: K.E premium, corporate, emphasized, accel, settle + any KIT.bezier(x1,y1,x2,y2) (tools/engine.js); GSAP CustomEase bundled (10b); missing names: MD3 decelerate (0,0,0,1), Apple HIG (.25,.1,.25,1), elastic snap (.68,-.55…
-  - approach: native: 3 more K.bezier names (S)
-- `doodle-shots-motion:3.7` — Stagger recipes by element class (list, grid, nav, dashboard), total < 500 ms, overlap % — PARTIAL — partial, rest planned (open)
-  - says: (10b): K.stagger linear + --kit-stagger + PLAYBOOK budget; GSAP and anime.js stagger from 'center' verified seekable via KIT.gsap / KIT.anime (tools/selfcheck/runtimes.mjs); missing: native K.stagger {from, grid, ease}…
-  - approach: native: K.stagger options {from:'center'/'edges', grid, ease} (also GSAP stagger parity); docs recipes
-- `doodle-shots-motion:3.8` — Choreography rules: lead with hero, spatial origin consistency, counter-motion 20-30%, 1/3-distance and 1/3-simultaneous rules — PARTIAL — partial, rest planned (open)
-  - says: (10z): PLAYBOOK 1/3-screen + stagger budget rules; taste `motion` WARN flags hard starts/stops at speed (tools/checks/taste.page.mjs); missing: lints for linear spatial moves, stagger total >0.5 s, >1/3 of elements movi…
-  - approach: native qa WARN lints: spatial move with linear ease, stagger total >0.5 s, >1/3 of 3+ elements moving at once (needs film introspection, M)
-- `doodle-shots-motion:3.11` — Ambient loops: breathing, float (layered durations), gradient shift, parallax, continuous rotation, shimmer, particle ambient (counts/speed… — PARTIAL — partial, rest planned (open)
-  - says: (10z): blocks aurora-drift, grain-field, drift-hold, shimmer-sweep, confetti, beat-pulse-background; KIT.pulse (beat pump), KIT.sim (seekable particles), math3d camera.ambient; missing: KIT.loop(t, period, shape) helper…
-  - approach: native `KIT.loop(t, period, shape)` (sine/saw, seeded phase per id) + docs; no particles lib (seeded D.rng)
 
-#### Other (read the approach text) (17)
+#### Other (read the approach text) (11)
 
 - `doodle-shots-motion:1.17` — Illustrated kinetic type: every word drawn stroke by stroke in a medium, letters pop on landing — PARTIAL — partial, rest planned (open)
   - says: (10g): `D.letters` (pen-written lettering, tools/doodle2.js) and `KIT.layout.kinetic` (font words landing on spoken words, tools/layouts.js) both exist; missing: `layout.kinetic({style:'drawn'})` joining them (no `style…
@@ -936,9 +891,6 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `doodle-shots-motion:1.53` — Interactive web art: <ani-doodle> mascots that follow the cursor, scroll-drawn hero, form companion — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs and the studio exist, neither is cursor-reactive web art). Suggest: accept as exception.
   - approach: out of scope (not a video; belongs to the embeddable-player/studio work)
-- `doodle-shots-motion:2b.6` — Caption info-strip, DigitRoll odometer, FlashCut, VerticalTicker, ClipCard (video as card hero) — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.subtitles, K.count (count-up), K.clip; KIT.transition('flash') (tools/transitions.js) covers FlashCut; blocks number-wheel, slot-machine-roll, news-ticker, ticker-takeover (`reelwright add`); missing: KIT.count…
-  - approach: KIT.count({roll:true}) S; ClipCard = K.clip inside a card (docs); flash via KIT.transition.flash
 - `doodle-shots-motion:2b.13` — Page capture trio: 2x full-page PNG, per-element transparent cutouts, layout.json bbox table — PARTIAL — partial, rest planned (open)
   - says: tools/capture_site.mjs saves 2x sections, full page, images, hero + per-heading shots and site.json (text, colours, fonts, heading y); missing: per-element transparent cutouts and a layout.json bbox table [10z: build]
   - approach: extend capture_site: element cutouts (omitBackground) + layout.json boxes; needed for 3D 'floating chip' recipes
@@ -954,18 +906,3 @@ By source: hyperframes 56, remotion 38, manim 18, doodle-shots-motion 62
 - `doodle-shots-motion:4.18` — CSSRulePlugin (animate pseudo-elements / stylesheet rules) — MISSING — exception (owner-approved 2026-11-12)
   - says: 10z: CSSRulePlugin not bundled, seek behaviour unverified (docs/playbook/runtimes.md 'Not bundled'); pseudo-elements can be animated with CSS vars from render(t) [10z: except]
   - approach: bundle optional; UNVERIFIED seek behaviour
-- `doodle-shots-motion:5.3` — HTML renderer — PARTIAL — partial, rest planned (open)
-  - says: (10b): vendor/lottie/lottie.min.js is the full 5.13.0 player incl. the html renderer and KIT.lottie passes `renderer` through (tools/runtimes.js); missing: only svg and canvas are verified (tools/selfcheck/runtimes.mjs)…
-  - approach: UNVERIFIED; do not bundle
-- `doodle-shots-motion:5.5` — Expressions (AE JS expressions evaluated by lottie-web) — PARTIAL — partial, rest planned (open)
-  - says: (10b): full lottie-web player (expressions engine included) seeked by KIT.lottie; missing: determinism test and the qa scan that warns on expression strings / rejects random, seedRandom, wiggle (seekable-runtimes.py has…
-  - approach: UNVERIFIED determinism (wiggle/random/time). Add a JSON scan in qa: warn on animations containing `"x":"var $bm_rt` expression strings; reject `random`/`seedRandom` until tested
-- `doodle-shots-motion:5.6` — Text layers and fonts in Lottie — PARTIAL — partial, rest planned (open)
-  - says: (10b): KIT.lottie loads any JSON; renders wait for document.fonts.ready before the first frame; missing: a Lottie text-layer seek test (playbook lists text as not tested) [10z: build]
-  - approach: UNVERIFIED; require document.fonts.ready before first seek
-- `doodle-shots-motion:5.7` — Image assets, masks, mattes, gradients, trim paths, repeaters, effects — PARTIAL — partial, rest planned (open)
-  - says: (10b): shape layers (group, rounded rect, fill, stroke; position/rotation/opacity/scale) verified in both renderers (tools/selfcheck/runtimes.mjs, projects/runtimes-hf); missing: seek tests for images, masks, mattes, gr…
-  - approach: run the seek test per bundled sample; list supported features in docs
-- `doodle-shots-motion:5.8` — dotLottie (.lottie zip, multiple animations, themes, state machines) — MISSING — planned (Phase 11)
-  - says: HF runtime adapter already handles DotLottie objects (setFrame / seek percent); 10z: no dotLottie player or .lottie unzip; only the vendored HF runtime adapter knows DotLottie objects; playbook says not tested. Smallest…
-  - approach: optional: `reelwright add-lottie x.lottie` unzips to JSON for lottie-web at add time (S, no WASM). Full dotlottie-web only if state machines/themes are asked for

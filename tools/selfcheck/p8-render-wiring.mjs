@@ -8,6 +8,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { applyPatch } from "../patch_util.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p8-render-"));
@@ -16,7 +17,7 @@ try {
   for (const d of ["vendor", "fonts", "themes", "node_modules", "python", "templates"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
   for (const d of ["tools", "bin"]) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
-  sh("patch", ["-p1", "-d", tmp, "-i", path.join(ROOT, "docs", "plans", "p8-patches", "render-opts.patch")]);
+  applyPatch(tmp, path.join(ROOT, "docs", "plans", "p8-patches", "render-opts.patch"));
 
   const mk = (name) => {
     const d = path.join(tmp, "p-" + name); fs.mkdirSync(path.join(d, "film"), { recursive: true });

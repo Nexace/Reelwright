@@ -7,6 +7,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { applyPatch } from "../patch_util.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p8-add-"));
@@ -15,7 +16,7 @@ try {
   for (const d of ["vendor", "fonts", "themes", "node_modules", "python"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
   for (const d of ["tools", "bin"]) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
-  let r = run("patch", ["-p1", "-i", path.join(ROOT, "docs", "plans", "p8-patches", "add-tag.patch")]); assert.equal(r.status, 0, r.stdout + r.stderr);
+  applyPatch(tmp, path.join(ROOT, "docs", "plans", "p8-patches", "add-tag.patch")); let r;
   const proj = path.join(tmp, "p"); fs.mkdirSync(proj); fs.writeFileSync(path.join(proj, "project.json"), JSON.stringify({ renderer: "hyperframes" }));
   const add = (...a) => run(process.execPath, [path.join(tmp, "bin", "reelwright.mjs"), "add", proj, ...a]);
   const have = (n) => fs.existsSync(path.join(proj, "hf", "blocks", n + ".html"));

@@ -8,6 +8,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { applyPatch } from "../patch_util.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
@@ -17,7 +18,7 @@ try {
   const orig = path.join(tmp, "orig"), patched = path.join(tmp, "patched");
   for (const d of [orig, patched]) { fs.mkdirSync(path.join(d, "tools"), { recursive: true }); fs.copyFileSync(path.join(ROOT, "tools", "mix.py"), path.join(d, "tools", "mix.py")); }
   fs.copyFileSync(path.join(ROOT, "tools", "mixfx.py"), path.join(patched, "tools", "mixfx.py"));
-  sh("patch", ["-p1", "-d", patched, "-i", path.join(ROOT, "docs", "plans", "p8-patches", "mix.patch")]);
+  applyPatch(patched, path.join(ROOT, "docs", "plans", "p8-patches", "mix.patch"));
 
   const proj = (name, extra) => {   // 6 s project: a loud 220 Hz + 3 kHz bed, no voice, one whoosh cue
     const d = path.join(tmp, name); fs.mkdirSync(path.join(d, "music"), { recursive: true });

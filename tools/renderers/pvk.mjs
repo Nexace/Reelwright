@@ -15,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
+import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
@@ -56,18 +57,19 @@ function fingerprint() {
 
 export default async function pvk(DIR, P, mode, [a3, a4] = []) {
   const FPS = Number(process.env.FPS || P.fps || 60);
-  const N = Number(process.env.PAGES || 4);
+  const N = Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY });   // PAGES wins; else min(cores/2, RAM/512 MB)
   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
+  const SCALE = process.env.REELWRIGHT_RESOLUTION ? resolution(P, process.env.REELWRIGHT_RESOLUTION).scale : 1;   // --resolution 4k: layout size stays, pixels x SCALE
   const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
   if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
   const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
 
   async function openPages(n, alpha = false) {
-    const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files"]);
+    const browser = await launch([`--force-device-scale-factor=${SCALE}`, "--allow-file-access-from-files"]);
     const pages = [], loaded = new Set();   // every file a page requested (frame cache key)
     let errors = 0;
     for (let i = 0; i < n; i++) {
-      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
+      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
       p.on("request", (r) => loaded.add(r.url()));
       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
@@ -95,7 +97,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     const css = await page.evaluate(() => [...document.styleSheets].map((s) => {
       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
     }).join("\n"));
-    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], platform: `${process.platform}-${process.arch}`,
+    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT, SCALE], platform: `${process.platform}-${process.arch}`,
       browser: process.env.BROWSER || "", version: browser.version(), shot: SHOTOPT }));
   }
   async function shot(p, t, file) {
@@ -209,7 +211,7 @@ function audioInputs(DIR) {
 
 // frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC), plus the extra format asked for in "output". Shared with the other renderers.
 export function encode(DIR, P, FPS, pattern, start) {
-  const o = { ...P.output }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
+  const o = { ...P.output, ...outputFromEnv() }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
   if (!FORMATS.includes(fmt)) { console.error(`output format "${fmt}" is not one of ${FORMATS.join(", ")}`); process.exit(1); }
   const outFile = path.join(DIR, P.out || "out/film.mp4");
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
@@ -219,8 +221,7 @@ export function encode(DIR, P, FPS, pattern, start) {
   if (!aud.has) console.log("no mix.wav — encoding silent video");
   const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status || 1); };
-  const crf = String(o.crf ?? 16);
-  ff(...frames, ...aud.args, "-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", "yuv420p", "-profile:v", "high",
+  ff(...frames, ...aud.args, ...x264Args(o),
     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
   if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);
@@ -233,7 +234,7 @@ function extra(fmt, o, base, frames, aud, ff) {
   const sound = (...c) => (aud.has ? [...c, "-shortest"] : []);
   const file = base + "." + fmt;
   if (fmt === "webm") {
-    ff(...frames, ...aud.args, ...vf(), "-c:v", "libvpx-vp9", "-crf", String(o.crf ?? 24), "-b:v", "0", "-row-mt", "1",
+    ff(...frames, ...aud.args, ...vf(), ...vp9Args(o),
       "-pix_fmt", alpha ? "yuva420p" : "yuv420p", ...(alpha ? ["-auto-alt-ref", "0"] : []), ...sound("-c:a", "libopus", "-b:a", "160k"), file);
   } else if (fmt === "mov") {
     const prof = String(o.prores ?? (alpha ? "4444" : "hq"));

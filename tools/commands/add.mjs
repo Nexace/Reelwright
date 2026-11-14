@@ -28,6 +28,16 @@ export default async function add({ proj, args, ROOT }) {
 
   const name = args[0];
   const b = name && blocks[name];
+  if (name && !b && !fs.existsSync(path.join(comps, name, "registry-item.json"))) {   // `add captions`: by tag (tools/catalog.mjs)
+    const { catalog, byTag } = await import("../catalog.mjs");
+    const hits = byTag(catalog(ROOT), name);
+    if (hits.length === 1 || (hits.length && args.includes("--all"))) { for (const h of hits) await add({ proj, args: [h.name], ROOT }); return; }
+    if (hits.length) {
+      console.log(`${hits.length} items tagged "${name}":`);
+      for (const h of hits) console.log(`  ${h.name.padEnd(34)} ${h.type.padEnd(9)} ${h.title}`);
+      console.log(`add one by name, or all of them: reelwright add ${name} --all`); return;
+    }
+  }
   if (b) {
     if (b.status !== "supported") { console.log(`${name} is a HyperFrames block reelwright can't run: ${b.reason}`); process.exit(1); }
     const P = JSON.parse(fs.readFileSync(path.join(proj, "project.json"), "utf8"));

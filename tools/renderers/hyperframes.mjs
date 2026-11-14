@@ -17,6 +17,7 @@ import { pagesMedia, mediaMix } from "./media.mjs";
 import { encode, blurOf, TRANSPARENT } from "./pvk.mjs";
 import { copyKit } from "../kit_files.mjs";
 import { shaderPass } from "./shader_pass.mjs";
+import { autoWorkers } from "../render_opts.mjs";
 
 // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
 export function headlessShell() {
@@ -63,7 +64,8 @@ export default async function hyperframes(DIR, P, mode, [a3] = []) {
       await import("@hyperframes/producer");
     const hdr = film && HDR;
     const req = createRenderRequest({ projectDir: HF, outputPath: out,
-      options: { fps: { num: fps, den: 1 }, format: hdr ? "mp4" : "png-sequence", quality: "high", workers: Number(process.env.PAGES || 4),
+      options: { fps: { num: fps, den: 1 }, format: hdr ? "mp4" : "png-sequence", quality: "high", workers: Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY }),
+        ...(process.env.REELWRIGHT_RESOLUTION && { outputResolution: process.env.REELWRIGHT_RESOLUTION }),   // 4k | portrait-4k | square-4k, aspect must match
         ...(hdr && { hdrMode: "force-hdr" }),
         // not in the request schema, but it passes through to the job config (sub-frame seeks reach the KIT shim)
         ...(film && MB && { motionBlur: { shutterAngle: MB.shutter, samplesPerFrame: MB.samples } }) } });

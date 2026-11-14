@@ -140,16 +140,25 @@ for c in TL.get("cues", []):
     a = int((c["t"] - PEAK[kd]) * SR)
     if kd == "subdrop" or (kd in ("impact", "riser") and P.get("music", {}).get("duck_sfx")): duck_around(duck, max(0, a), int((c["t"] + .2) * SR))
     if a < 0: s = s[-a:]; a = 0
+    if c.get("fadeIn") or c.get("fadeOut"):   # per-cue fades, seconds (tools/mixfx.py)
+        import mixfx; s = s * mixfx.fade(len(s), SR, 0.0, None, c.get("fadeIn", 0), c.get("fadeOut", 0))
     b = min(N, a + len(s)); fx[a:b] += s[: b - a] * g
 
 music *= duck[:, None]
 if FX.get("sfx"): fx = audio_fx.process_f32(fx[:, None], SR, FX["sfx"])[:, 0]
+# project.json "automation": { "music" | "voice" | "sfx": { gain: [[t, dB], ...], cutoff: [[t, Hz], ...], fade_in, fade_out } }  (tools/mixfx.py; off by default)
+A = P.get("automation") or {}
+if A:
+    import mixfx
+    if A.get("music"): music = mixfx.automate(music, SR, A["music"])
+    if A.get("voice"): vo = mixfx.automate(vo, SR, A["voice"])
+    if A.get("sfx"): fx = mixfx.automate(fx, SR, A["sfx"])
 out = music * 0.85 + ((vo * 1.3) + fx * 0.45)[:, None]
 f = int(0.3 * SR); out[-f:] *= np.linspace(1, 0, f)[:, None]
 out = np.tanh(out * 1.05) / np.tanh(1.05)               # soft-clip guard
 tmp = os.path.join(proj, "mix.f32"); out.astype(np.float32).tofile(tmp)
 lufs = P.get("loudness", -14)
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", tmp,
-                "-af", f"loudnorm=I={lufs}:TP=-1.5:LRA=11", "-ar", str(SR), os.path.join(proj, "mix.wav")], check=True)
+                "-af", f"loudnorm=I={lufs}:TP=-1.5:LRA=11" + (("," + __import__("mixfx").limiter_filter(SR, **(P["limiter"] if isinstance(P["limiter"], dict) else {}))) if P.get("limiter") else ""), "-ar", str(SR), os.path.join(proj, "mix.wav")], check=True)
 os.remove(tmp)
 print(f"mix.wav: {DUR:.2f}s, {len(TL.get('VO') or {})} VO lines, {len(TL.get('cues', []))} SFX cues, {lufs} LUFS")

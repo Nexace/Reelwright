@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- tools/selfcheck/p12b-capture.mjs fixture: a tall local page with everything `capture` records: a web font (site-font.woff2 is
+     Inter 400, SIL OFL, see site-font-OFL.txt), CSS custom properties, a CSS animation and a transition, an <img> svg file,
+     an inline SVG, a <video>, a <lottie-player>, a WebGL2 canvas, text with a number, and a link to a private address. -->
+<html lang="en"><head><meta charset="utf-8"><title>Capture fixture</title>
+<style>
+  @font-face { font-family: "Fixture Sans"; src: url("site-font.woff2") format("woff2"); font-weight: 400; }
+  @keyframes pulse { from { opacity: .4 } to { opacity: 1 } }
+  :root { --brand: #e11d48; --ink: #111827; --radius: 14px; }
+  body { margin: 0; font-family: "Fixture Sans", sans-serif; color: var(--ink); background: #fff; }
+  section { min-height: 700px; padding: 60px 80px; }
+  section:nth-child(even) { background: #f3f4f6; }
+  h1 { font-size: 64px; margin: 0 0 20px; }
+  .cta { display: inline-block; background: var(--brand); color: #fff; padding: 14px 28px; border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,.2); text-decoration: none; transition: transform .3s ease; }
+  .pulse { animation: pulse 1.2s ease-in-out infinite alternate; }
+</style></head><body>
+<section id="s0"><h1>Ship films from code</h1><p>Used by 12,000 teams, up 40% this year.</p><a class="cta" href="#s1">Get started</a>
+  <p class="pulse">Live now</p></section>
+<section id="s1"><h2>Fast</h2><p>Everything renders in a headless browser.</p><img src="logo.svg" width="120" height="120" alt="logo">
+  <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#e11d48"/><path d="M20 60 L60 20 L100 60 L60 100 Z" fill="none" stroke="#111827" stroke-width="6"/></svg></section>
+<section id="s2"><h2>Rich</h2><video src="missing.mp4" poster="logo.svg" loop muted autoplay width="320" height="180"></video>
+  <lottie-player src="anim/hero-animation.json" style="display:block;width:200px;height:200px"></lottie-player>
+  <canvas id="gl" width="300" height="150"></canvas></section>
+<section id="s3"><h2>Careful</h2><img src="http://10.255.255.1/tracker.png" width="1" height="1" alt="">   <!-- a private address: the guard must refuse it -->
+<p>Last section. <a href="http://169.254.169.254/latest/meta-data/">metadata</a></p></section>
+<script>const c = document.getElementById("gl"); c.getContext("webgl2") || c.getContext("webgl");</script>
+</body></html>

@@ -1,0 +1,41 @@
+--- a/tools/mix.py	2026-11-14 15:53:29
++++ b/tools/mix.py	2026-11-14 15:53:29
+@@ -10,6 +10,8 @@
+ SR = 48000
+ DUR = TL["DUR"]; N = int(DUR * SR)
+ rng = np.random.default_rng(7)
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import audio_fx   # project.json "fx": {"vo", "music", "sfx", "lines": {id}}
++FX = P.get("fx", {})
+ 
+ 
+ def load(path, ch):
+@@ -26,6 +28,7 @@
+ vo = np.zeros(N)
+ for lid, v in (TL.get("VO") or {}).items():
+     x = load(os.path.join(proj, "vo", os.environ.get("REELWRIGHT_LANG", ""), f"{lid}.mp3"), 1)[:, 0]
++    if lid in FX.get("lines", {}): x = audio_fx.process_f32(x[:, None], SR, FX["lines"][lid], keep_length=False)[:, 0]   # keeps the reverb/echo tail
+     i = int(round(v["at"] * SR)); j = min(N, i + len(x))
+     if i < 0: x = x[-i:]; i = 0
+     vo[i:j] += x[: j - i]
+@@ -34,11 +37,13 @@
+ bed_path = os.path.join(proj, "music/bed.wav")
+ music = load(bed_path, 2)[:N] if os.path.exists(bed_path) else np.zeros((N, 2))
+ music = np.pad(music, ((0, N - len(music)), (0, 0)))
++if FX.get("music"): music = audio_fx.process_f32(music, SR, FX["music"])
+ speaking = (mavg(np.abs(vo), int(0.05 * SR)) > 0.004).astype(float)
+ speaking = (mavg(speaking, int(0.6 * SR)) > 0.01).astype(float)       # bridge gaps < 0.6 s
+ env = mavg(speaking, int(0.3 * SR))
+ duck = 10 ** (P.get("music", {}).get("duck_db", -10) / 20)
+ music *= (1 - env * (1 - duck))[:, None]
++if FX.get("vo"): vo = audio_fx.process_f32(vo[:, None], SR, FX["vo"])[:, 0]   # after the ducking envelope, which listens to the dry voice
+ 
+ # ── SFX library (all synthesised, no samples) ──
+ def lp(x, fc):  # one-pole low-pass with a moving cutoff
+@@ -138,6 +143,7 @@
+     b = min(N, a + len(s)); fx[a:b] += s[: b - a] * g
+ 
+ music *= duck[:, None]
++if FX.get("sfx"): fx = audio_fx.process_f32(fx[:, None], SR, FX["sfx"])[:, 0]
+ out = music * 0.85 + ((vo * 1.3) + fx * 0.45)[:, None]
+ f = int(0.3 * SR); out[-f:] *= np.linspace(1, 0, f)[:, None]
+ out = np.tanh(out * 1.05) / np.tanh(1.05)               # soft-clip guard

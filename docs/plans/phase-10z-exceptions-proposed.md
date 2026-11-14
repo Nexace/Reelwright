@@ -2,7 +2,7 @@
 
 Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 388; not 213 (grand total of the groups below: 213).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 390; not 211 (grand total of the groups below: 211).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 388; not 213 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 118 |
-| | **Grand total** | **213** |
+| 10 | Not done, no stated reason | 116 |
+| | **Grand total** | **211** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -384,15 +384,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (118) — 72 approved, 2 planned, 30 partial, 14 open
+## 10. Not done, no stated reason (116) — 72 approved, 2 planned, 28 partial, 14 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 118 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 116 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
+By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 26
 
-### HyperFrames (38)
+### HyperFrames (36)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -403,7 +403,7 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
 
-#### Native code to add in tools/ (or a flag/command) (26)
+#### Native code to add in tools/ (or a flag/command) (25)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -438,9 +438,6 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
 - `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion, `--tailwind`, writes AGENTS.md/CLAUDE.… — PARTIAL — partial, rest planned (open)
   - says: `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats` covers resolution presets. Missing: `--video/--audio` import, auto-transcribe (D10 not built), writing AGENTS.…
   - approach: add `new --video/--audio` once A7/D10 exist
-- `hyperframes:G3` — `capture <url>`: scroll screenshots (default 21, full-page plate), HTML/CSS, visible text, design tokens, fonts downloaded to `assets/fonts… — PARTIAL — partial, rest planned (open)
-  - says: tools/capture_site.mjs (`from-url`, `theme-from`): scroll-to-load, hero + per-heading shots, sections, full page, images, text, headings, colours, font names; read-only (writes faked, workers/sockets blocked); `file://`…
-  - approach: native: add font download, SVG, animation metadata, loopback `--local-file`, SSRF policy (reject private IPs)
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6, composition contract 27, CSS/scripts 2… — PARTIAL — partial, rest planned (open)
   - says: `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE; fixture `qa-broken-lint`; tools/selfcheck/hf-lint.mjs) plus qa.py/qa_page.mjs gates (loudness, captions, flash…
   - approach: ~~wire `lintProject()` into `qa` for hf projects (S)~~ done in 10m; vendor the four in-page audit scripts for layout/occlusion/contrast into `qa_page.mjs` (M)
@@ -484,11 +481,8 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: Render needs no transcode: `KIT.video` frames are extracted by ffmpeg, so HEVC/ProRes work (tools/renderers/media.mjs; docs/playbook/video-audio.md). No import-time H.264 conversion (`new --video` does not exist) and no…
   - approach: ffmpeg transcode on import
 
-#### Points at another row (3)
+#### Points at another row (2)
 
-- `hyperframes:E8` — Caption-style components (16, tag `caption-style`) + 1 caption block; fed by a transcript — PARTIAL — partial, rest planned (open)
-  - says: All 17 caption-* components are vendored and installable with `reelwright add` (vendor/hyperframes/registry/components/caption-*). Reelwright's own karaoke captions come from VO words (KIT.subtitles). Missing: a transcr…
-  - approach: link to D10; add a `captions` adapter that writes `transcript.json` from `timeline.json` words
 - `hyperframes:G11` — `preview` (hot reload, background/foreground/status/list, port) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-checked; `studio` adds a port flag. Missing: background/foreground/status/list sub-commands. Not built: one local…
   - approach: see H

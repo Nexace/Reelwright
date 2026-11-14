@@ -10,21 +10,21 @@ Compiled 2026-11-14 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 52 | 5 | 0 | 31 | 18 | 6 | 0 | 0 | 112 |
+| HyperFrames | 54 | 5 | 0 | 29 | 18 | 6 | 0 | 0 | 112 |
 | Remotion + its skills | 33 | 4 | 3 | 38 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 206 | 5 | 0 | 14 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **353** | **29** | **6** | **113** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **355** | **29** | **6** | **111** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 388 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 390 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 388 |
+| EQUAL, BETTER or EQUAL/BETTER | 390 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
 | Planned (Phase 11), not claimed | 2 |
-| Partial: some shipped, the rest planned (open) | 31 |
+| Partial: some shipped, the rest planned (open) | 29 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 22 |
 | **Total** | **601** |
@@ -89,7 +89,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | E5 | 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph,… | PARTIAL — exception (owner-approved 2026-11-12) | `themes/hf-{bold,editorial,neutral}.css` Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only exam… |
 | E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | EQUAL | `tools/commands/catalog.mjs` |
 | E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL — exception (owner-approved 2026-11-12) | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
-| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | PARTIAL — partial, rest planned (open) | `vendor/hyperframes/registry/components/caption-*` All 17 caption-* components are vendored and installable with `reelwright add` (vendor/hyperframes/registry/c… |
+| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | EQUAL | `tools/caption_transcript.mjs` |
 | E9 | Registry item schema (`registry-item.json`: params, variables, contro… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/blocks.mjs` `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in too… |
 | E10 | 13 frame presets (`FRAME.md` spec + `caption-skin.html` + showcase ea… | BETTER | `themes/hf-*.css` |
 | F1 | Word-timed captions on screen, karaoke/word highlight, SRT/VTT export | EQUAL | `tools/renderers/pvk.mjs` |
@@ -98,7 +98,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | F4 | `caption-zone` and `frame-check` gates | EQUAL | `tools/checks/layout.audit.mjs` |
 | G1 | `init` (examples, `--resolution` presets, `--video/--audio` with auto… | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs` `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats`… |
 | G2 | `add`, `catalog` | EQUAL | `tools/commands/catalog.mjs` |
-| G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | PARTIAL — partial, rest planned (open) | `tools/capture_site.mjs` tools/capture_site.mjs (`from-url`, `theme-from`): scroll-to-load, hero + per-heading shots, sections, full p… |
+| G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | EQUAL | `tools/capture_url.mjs` |
 | G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/selfcheck/hf-lint.mjs` `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE;… |
 | G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | EQUAL | `tools/commands/stills2.mjs` |
 | G6 | `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG o… | MISSING — exception (owner-approved 2026-11-12) | No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. N… |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 388 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 31 partial, 0 proposed, 22 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 390 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 29 partial, 0 proposed, 22 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -860,18 +860,16 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — plan: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
 - `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — plan: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 
-### Partial (31)
+### Partial (29)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
-#### HyperFrames (13)
+#### HyperFrames (11)
 
 - `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL
 - `hyperframes:E2` — Asset-bearing components (9) — PARTIAL
 - `hyperframes:E4` — Block categories to cover: transitions (33 tagged), overlays (31), backgrounds (30), carousels (26… — PARTIAL
-- `hyperframes:E8` — Caption-style components (16, tag `caption-style`) + 1 caption block; fed by a transcript — PARTIAL
 - `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion… — PARTIAL
-- `hyperframes:G3` — `capture <url>`: scroll screenshots (default 21, full-page plate), HTML/CSS, visible text, design t… — PARTIAL
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
 - `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL
 - `hyperframes:H3` — Timeline: tracks, move/trim/split/ripple/linked selection/snapping/beat markers/range select; wavef… — PARTIAL

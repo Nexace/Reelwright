@@ -39,6 +39,22 @@
   .box.sel { background: rgba(245,158,11,.3) !important; border-color: var(--warn) !important; color: #fff !important; }
   .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: #2c2e34; } .tick.bar { background: #666; width: 2px; }
   .tick.cue { background: var(--warn); top: 6px; bottom: 6px; width: 2px; } .tick.drop { background: var(--bad); width: 2px; }
+  .box.linked { background: rgba(245,158,11,.18) !important; border-color: var(--warn) !important; }
+  .box.cap { background: rgba(120,160,255,.18); border: 1px solid #5c7ad6; color: #aebfee; font-size: 10px; padding: 0 2px; }
+  #tl-nested .box { background: rgba(200,120,255,.2); border: 1px solid #a05cd6; color: #d7b3f0; }
+  .tick.cue.linked { background: #fff; } .lane.off, #labs div.off { display: none; } #labs div[data-lane] { cursor: pointer; } #labs div.off-label { opacity: .4; }
+  #wavecv { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  #range { position: absolute; top: 0; bottom: 0; background: rgba(94,234,212,.14); border-left: 1px solid var(--accent); border-right: 1px solid var(--accent); pointer-events: none; display: none; }
+  #snapline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--bad); pointer-events: none; display: none; }
+  #tl-scenes .box { cursor: ew-resize; } .dragging { z-index: 3; outline: 1px dashed var(--warn); }
+  #meter { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 150px; display: inline-block; } #meterbar { display: inline-block; width: 60px; height: 8px; background: #101114; border: 1px solid var(--line); vertical-align: middle; } #meterbar i { display: block; height: 100%; background: var(--accent); width: 0; }
+  #crumb, #rangeinfo { color: var(--muted); font-size: 12px; } #crumb a { color: var(--accent); cursor: pointer; }
+  label.inl { display: inline-flex; gap: 3px; align-items: center; margin: 0; color: var(--muted); }
+  #tabs { display: flex; flex-wrap: wrap; gap: 3px; margin: 8px 0; position: sticky; top: 0; background: var(--panel); padding: 4px 0; z-index: 4; } #tabs button { padding: 2px 7px; font-size: 12px; } #tabs button.on { border-color: var(--accent); color: var(--accent); }
+  .tab[hidden] { display: none; } .tab table { width: 100%; border-collapse: collapse; font-size: 12px; } .tab td, .tab th { padding: 2px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .tab .item { border-bottom: 1px solid var(--line); padding: 4px 0; } .tab .item small { color: var(--muted); display: block; } .tab .ok { color: var(--accent); } .tab .bad { color: var(--bad); } .tab .warn { color: var(--warn); }
+  .tab pre { margin: 4px 0; white-space: pre-wrap; font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; max-height: 240px; overflow: auto; background: #101114; padding: 4px; border: 1px solid var(--line); }
+  .tab input[type=text], .tab select { width: 100%; }
   .tick span { position: absolute; top: 1px; left: 3px; font-size: 10px; color: var(--muted); }
   #playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
   #log { margin: 0; background: #101114; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; height: 120px; overflow: auto; font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
@@ -63,19 +79,29 @@
     <button id="btn-taste">Taste</button>
     <button id="btn-embed">Embed</button>
     <span id="links"></span>
+    <span id="meter" title="level of mix.wav at the playhead (peak / rms)">no mix.wav</span><span id="meterbar"><i></i></span>
+  </div>
+  <div id="bar2" class="row" style="flex-wrap:wrap">
+    <button id="btn-undo" title="undo the last write the studio made (project.json, brand.json, captions, source)">Undo</button><button id="btn-redo">Redo</button>
+    <button id="btn-split" title="split the selected line at the word under the playhead (a new line; Save, then re-voice)">Split at playhead</button>
+    <button id="btn-trim-head" title="drop the words before the playhead from the selected line">Trim head</button><button id="btn-trim-tail" title="drop the words after the playhead">Trim tail</button>
+    <label class="inl"><input type="checkbox" id="snap" checked> snap</label><label class="inl"><input type="checkbox" id="linked" checked> linked selection</label>
+    <span id="crumb"></span><span id="rangeinfo"></span>
   </div>
   <div id="tl">
-    <div id="labs"><div>time</div><div>scenes</div><div>VO</div><div>beats</div><div>SFX</div></div>
+    <div id="labs"><div data-lane="ruler">time</div><div data-lane="scenes">scenes</div><div data-lane="vo">VO</div><div data-lane="caps" title="click to show or hide a track">captions</div><div data-lane="wave">wave</div><div data-lane="beats">beats</div><div data-lane="sfx">SFX</div><div data-lane="nested">nested</div></div>
     <div id="lanes">
-      <div class="lane" id="tl-ruler"></div><div class="lane" id="tl-scenes"></div><div class="lane" id="tl-vo"></div>
-      <div class="lane" id="tl-beats"></div><div class="lane" id="tl-sfx"></div>
-      <div id="playhead"></div>
+      <div class="lane" id="tl-ruler"></div><div class="lane" id="tl-scenes"></div><div class="lane" id="tl-vo"></div><div class="lane" id="tl-caps"></div>
+      <div class="lane" id="tl-wave"><canvas id="wavecv"></canvas></div><div class="lane" id="tl-beats"></div><div class="lane" id="tl-sfx"></div><div class="lane" id="tl-nested"></div>
+      <div id="range"></div><div id="snapline"></div><div id="playhead"></div>
     </div>
   </div>
-  <div id="legend">click or drag the timeline to seek · space play/pause · ←/→ one frame · shift ±1 s · click a VO box or scene to edit it</div>
+  <div id="legend">click or drag the timeline to seek · space play/pause · ←/→ one frame · shift ±1 s · click a VO box or scene to edit it · drag a scene sideways to change its gap (snaps to beats, cues and edges; alt = no snap; the lines after it ripple) · shift-drag selects a range · double-click a scene or nested composition to zoom in · click a track name to hide it</div>
   <pre id="log">(job output appears here)</pre>
 </main>
 <aside>
+  <div id="tabs"></div>
+  <div id="tab-inspector" class="tab">
   <h2>Selected line</h2>
   <div id="line-none" style="color:var(--muted)">click a VO box or scene on the timeline</div>
   <div id="line-form" hidden>
@@ -99,6 +125,7 @@
   <h2>brand.json</h2>
   <textarea id="raw-brand" rows="6" spellcheck="false"></textarea>
   <button id="save-raw-brand">Save brand.json</button>
+  </div>
 </aside>
 <script src="/vendor/hf-player/hyperframes-player.global.js"></script>
 <script type="module" src="/tools/studio/studio.js"></script>

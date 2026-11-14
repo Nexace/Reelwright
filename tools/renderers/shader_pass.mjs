@@ -13,21 +13,22 @@ import { SHADERS, vertSrc, accentOf } from "./shader_glsl.mjs";
 const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--disable-lcd-text", "--font-render-hinting=none"];
 
 // page: the film's index.html; frames: [{ t, file }] (.jpg written as jpeg 94 like the renderers, else png)
-export async function shaderPass(page, width, height, frames) {
+export async function shaderPass(page, width, height, frames, scale = 1) {   // scale: --resolution (frames are scale x the layout size)
   if (!/shaders\.js/.test(fs.readFileSync(page, "utf8"))) return;
   // shortcut: hf captures come from plain Chromium, not the producer, so glyph edges can differ by ~1px at the cut
   // into and out of a window; capture through the producer if that ever shows
   const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files", ...GL_ARGS]);
   try {
-    const film = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+    const film = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale });
     film.on("pageerror", (e) => console.error("PAGE ERROR:", e.message));
     await film.goto(pathToFileURL(page).href);
     if (!(await film.evaluate(async () => await window.READY))) throw new Error("shader transitions: the film page didn't load");
     const T = await film.evaluate(() => (window.KIT_MEDIA && window.KIT_MEDIA.transitions) || []);
     const todo = frames.map((f) => ({ ...f, i: T.findIndex((x) => f.t >= x.t && f.t < x.t + x.dur) })).filter((f) => f.i >= 0);
     if (!todo.length) return;
-    const gl = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
-    await gl.setContent(`<body style="margin:0"><canvas width="${width}" height="${height}" style="display:block"></canvas></body>`);
+    const [fw, fh] = [Math.round(width * scale), Math.round(height * scale)];   // the frame's own pixels
+    const gl = await browser.newPage({ viewport: { width: fw, height: fh }, deviceScaleFactor: 1 });
+    await gl.setContent(`<body style="margin:0"><canvas width="${fw}" height="${fh}" style="display:block"></canvas></body>`);
     const err = await gl.evaluate(setup, { vert: vertSrc, frags: Object.fromEntries(T.map((x) => [x.shader, SHADERS[x.shader]?.frag])) });
     if (err) throw new Error("shader transitions: " + err);
     const capture = async (i, side, t) => {
@@ -38,7 +39,7 @@ export async function shaderPass(page, width, height, frames) {
     for (const f of todo) {
       const x = T[f.i], from = await capture(f.i, "from", f.t), to = await capture(f.i, "to", f.t);
       const p = await film.evaluate(([i, t]) => window.KIT.shaderProgress(i, t), [f.i, f.t]);
-      await gl.evaluate(draw, { shader: x.shader, from, to, p, accent: accentOf(x.accent), width, height });
+      await gl.evaluate(draw, { shader: x.shader, from, to, p, accent: accentOf(x.accent), width: fw, height: fh });
       fs.writeFileSync(f.file, await gl.screenshot(/\.jpe?g$/i.test(f.file) ? { type: "jpeg", quality: 94 } : { type: "png" }));
     }
     console.log(`shader transitions: ${todo.length} frame${todo.length === 1 ? "" : "s"} in ${T.length} transition${T.length === 1 ? "" : "s"}`);

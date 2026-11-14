@@ -28,7 +28,7 @@ export const blurOf = (P) => blurSpec(P);   // project.json motionBlur or --blur
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
 // What a frame shows, in the page after render(t): the DOM (render(t) sets inline styles) minus what can't paint,
 // video times, scroll offsets and canvas pixels. null (never cached) when a canvas can't be read.
-function fingerprint() {
+export function fingerprint() {
   const d = document, out = [d.head.outerHTML, ...[...d.documentElement.attributes].map((a) => a.name + "=" + a.value), scrollX, scrollY];
   const shown = (e) => getComputedStyle(e).visibility !== "hidden";
   const walk = (n) => {
@@ -60,6 +60,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
   const N = Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY });   // PAGES wins; else min(cores/2, RAM/512 MB)
   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
   const SCALE = process.env.REELWRIGHT_RESOLUTION ? resolution(P, process.env.REELWRIGHT_RESOLUTION).scale : 1;   // --resolution 4k: layout size stays, pixels x SCALE
+  const BEST_EFFORT = !!process.env.REELWRIGHT_BEST_EFFORT, READY_MS = Number(process.env.REELWRIGHT_PLAYER_READY_TIMEOUT) || 0;   // I13 flags, off = as before
   const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
   if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
   const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
@@ -73,9 +74,12 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       p.on("request", (r) => loaded.add(r.url()));
       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
-      await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href);
-      const ok = await p.evaluate(() => window.READY).catch((e) => { console.error(e.message); return false; });
-      if (!ok || errors) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
+      await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href, READY_MS ? { timeout: READY_MS } : undefined);
+      const ready = p.evaluate(() => window.READY);   // --player-ready-timeout ms bounds the wait; --best-effort carries on past page errors
+      const ok = await (READY_MS ? Promise.race([ready, new Promise((_, no) => setTimeout(() => no(new Error(`the film page was not ready after ${READY_MS} ms`)), READY_MS))]) : ready)
+        .catch((e) => { console.error(e.message); return false; });
+      if (!ok || (errors && !BEST_EFFORT)) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
+      if (errors) console.error(`best-effort: carrying on past ${errors} page error${errors > 1 ? "s" : ""}`);
       if (alpha) await p.addStyleTag({ content: TRANSPARENT });
       await pagesMedia(DIR, p, FPS, path.join(DIR, "film"), { frames: mode !== "info" });   // KIT.video / KIT.audio (tools/media.js)
       pages.push(p);
@@ -136,7 +140,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     fs.mkdirSync(out, { recursive: true });
     try { for (const t of ts) await shot(pages[0], t, path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg")); }
     finally { await browser.close(); }
-    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })));
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })), SCALE);
     console.log("stills →", out, ts.join(", "));
   } else if (mode === "frames") {
     const { browser, pages, loaded } = await openPages(N, ALPHA);
@@ -182,7 +186,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       }
     } finally { await browser.close(); }
     // KIT.shader windows: always recomposited after the cache step (the cache holds the crossfade)
-    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })));
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })), SCALE);
     const shots = [];   // runs of consecutive re-rendered frames
     for (const f of todo) { const s = shots[shots.length - 1]; if (s && s[1] === f - 1) s[1] = f; else shots.push([f, f]); }
     const list = shots.slice(0, 8).map(([a, b]) => `${a}–${b} (${(a / FPS).toFixed(2)}–${((b + 1) / FPS).toFixed(2)} s)`).join(", ");

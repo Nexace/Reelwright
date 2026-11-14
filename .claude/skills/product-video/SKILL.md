@@ -50,4 +50,8 @@ Build films with the `pvk` wrapper (`bin/pvk`). It runs `video.sh` from any fold
 
 Craft beyond the layouts is in `docs/PLAYBOOK.md`: `KIT.shot.*` camera moves, `KIT.doodle.*` hand-drawn marks (theme `doodle`), `KIT.math.*` charts, curves and equations, and `KIT.easing` / `KIT.spring` / `KIT.keys` for motion. Output and formats: docs/playbook/output-formats.md.
 
+## References (load the one you need)
+
+docs/playbook/skill-references.md maps each topic (film, captions, overlays, motion, look, sound, story, storyboard, review, format, runtimes) to its page and commands. Prompts for data and maps, recreating a reference and editing existing footage: docs/playbook/prompting-*.md. Extra recipes: docs/recipes/pr-to-video.md, lyric-video.md, faceless-explainer.md. New commands: `catalog`, `captions`, `check`, `doctor`, `browser`, `compositions`, `docs`, `audio-report`, `json` (skills `reelwright-cli` and `reelwright-registry`).
+
 Read `README.md` and `docs/PLAYBOOK.md` before a real film.

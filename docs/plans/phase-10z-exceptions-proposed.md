@@ -2,7 +2,7 @@
 
 Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 353; not 248 (grand total of the groups below: 248).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 368; not 233 (grand total of the groups below: 233).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 353; not 248 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 153 |
-| | **Grand total** | **248** |
+| 10 | Not done, no stated reason | 138 |
+| | **Grand total** | **233** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -384,17 +384,17 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (153) — 72 approved, 4 planned, 60 partial, 17 open
+## 10. Not done, no stated reason (138) — 72 approved, 4 planned, 45 partial, 17 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 153 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 138 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
+By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
 
-### HyperFrames (53)
+### HyperFrames (38)
 
-#### Docs / PLAYBOOK note only (5)
+#### Docs / PLAYBOOK note only (2)
 
 - `hyperframes:A1` — Root contract: `data-composition-id`, `data-width/height/duration/fps`, `window.__timelines[id]` registry, `data-no-timeline` — PARTIAL — exception (owner-approved 2026-11-12)
   - says: hf/index.html carries the root contract and tools/engine.js:435 registers one `main` shim whose seek(t) calls render(t). HF-native composition files (own root + __timelines entry) are mounted by KIT.mount (docs/playbook…
@@ -402,42 +402,21 @@ By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
 - `hyperframes:A20` — Tailwind browser runtime `init --tailwind` (`__tailwindReady`) — MISSING — exception (owner-approved 2026-11-12)
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
-- `hyperframes:L1` — 9 agent skills (`hyperframes`, `hyperframes-cli`, `hyperframes-registry`, `media-use` core; `figma slideshow remotion-to-hyperframes revers… — PARTIAL — partial, rest planned (open)
-  - says: One skill, `.claude/skills/product-video/SKILL.md` (52 lines: commands, workflow, rules), plus AGENTS.md, docs/PLAYBOOK.md, docs/playbook/*.md (incl. claude-workflow.md) and docs/recipes/. No split into per-topic skill…
-  - approach: docs: split the product-video skill into references; add registry/CLI skills when the new commands land
-- `hyperframes:L2` — Workflow guides: product launch, faceless explainer, PR to video, music/lyric video, captions and recuts, avatar presenter (HeyGen: OUT), p… — PARTIAL — partial, rest planned (open)
-  - says: Workflow docs: AGENTS.md workflow, docs/playbook/claude-workflow.md, 8 scene recipes (docs/recipes/), `from-url`. No PR-to-video, lyric-video, faceless-explainer, podcast or captions/recut recipe (no mention in docs). N…
-  - approach: docs: add 3 recipes (PR to video via `gh api`, lyric video, faceless explainer)
-- `hyperframes:L4` — `prompting/` cookbook (color grading, data and maps, design systems, motion, recreating references, editing existing videos) — PARTIAL — partial, rest planned (open)
-  - says: Topic notes cover colour grading (docs/playbook/grading-effects.md), motion (motion.md), design systems (themes.md, theme-brief.md) and editing existing clips (video-audio.md); they document the API rather than give pro…
-  - approach: docs only
 
-#### Native code to add in tools/ (or a flag/command) (34)
+#### Native code to add in tools/ (or a flag/command) (26)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
   - approach: native: `KIT.clip(el,{start,end})` that stamps `data-start/duration` from `W()/V()/snap()` at load, so HF tooling and blocks see real attributes
-- `hyperframes:A19` — Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (no reflow) — PARTIAL — partial, rest planned (open)
-  - says: tools/layouts.js:28 has a private binary-search `fit(el,w,h,max)` (clone, scrollWidth/Height, re-run after fonts) used by the title/number layouts; QA flags caption overflow (tools/qa_page.mjs). Missing: a public `KIT.f…
-  - approach: native `KIT.fit(text,{font,maxWidth})` using canvas `measureText`
-- `hyperframes:D3` — Automation lanes (`data-automation`: volume, FX params, sample-accurate), clip fades, volume above 1 — PARTIAL — partial, rest planned (open)
-  - says: tools/mix.py has a −6 dB music duck under subdrop (and impact/riser with music.duck_sfx), per-cue `gain` and a 0.3 s end fade. Missing: automation lanes, per-clip fades, FX-parameter automation, gain above unity per cli…
-  - approach: native on D1/A8
 - `hyperframes:D4` — Voiceover carve (`data-fx-carve`): EQ-notch the music under named voice tracks — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Music is ducked (gain) under the voice and under SFX (tools/mix.py); no EQ carve or sidechaincompress. Both reach the goal. Not built: carve. Suggest: except.
   - approach: native: ffmpeg `sidechaincompress` + speech-band `equalizer` on the bed
 - `hyperframes:D5` — Groups, mute, master bus FX on the root (`data-audio-group`) — MISSING — exception (owner-approved 2026-11-12)
   - says: mix.py is a fixed voice/music/SFX mix with one master loudnorm; no groups, mute or buses. Not built: only matters once D1 exists. Suggest: except.
   - approach: native `buses` in project.json
-- `hyperframes:D6` — Beat detection `beats` (writes `.hyperframes/beats`, BPM, beat times) and `audio` analysis (onsets, sections, rhythm, `--place-at`, `--at`,… — PARTIAL — partial, rest planned (open)
-  - says: tools/beatgrid.py (`reelwright beatgrid`) fits tempo and phase from sample-accurate kick/transient onsets (residual_ms), bar loudness and the drop → music/grid.json, used via KIT.snap; no selfcheck. Missing: an onset/se…
-  - approach: native: `reelwright audio <file>` printing onsets/sections from the same numpy code
 - `hyperframes:D7` — `normalize-audio` (EBU R128 match to a reference clip) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match to a reference clip; there is no clip-level audio. Suggest: except unless A8 audio clips are built.
   - approach: native flag on A8 clips
-- `hyperframes:D8` — True-peak limiter (4x oversample, lookahead) — PARTIAL — partial, rest planned (open)
-  - says: tools/mix.py applies loudnorm TP=−1.5 plus a tanh soft clip; no lookahead oversampling limiter (ffmpeg alimiter is not used). Suggest: build (one ffmpeg filter after loudnorm).
-  - approach: ffmpeg `alimiter` after loudnorm
 - `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL — partial, rest planned (open)
   - says: tools/vo.py uses edge-tts (online, gives word times). No Kokoro/ONNX provider; the core voiceover stays online. Not built: needs word times from D10 alignment. Suggest: build (opt-in install, like `manim install`).
   - approach: native: `vo` provider `kokoro` (model downloaded once, opt-in), word times from D10 alignment
@@ -450,9 +429,6 @@ By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
 - `hyperframes:E5` — 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph, play-mode, product-promo, swiss-grid, vignelli, warm-grain) + `init --… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only example, example-hf and remotion starters (bin/reelwright.mjs); none of the 8 upstream examples is ported. Not bui…
   - approach: port the 8 as `reelwright new --example` starters
-- `hyperframes:E6` — `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `add` by tag (`add captions`) — PARTIAL — partial, rest planned (open)
-  - says: `add --list [tag]` lists supported blocks and components, filtered by tag (tools/commands/add.mjs, vendor/hyperframes/registry/blocks/CATALOG.md). Missing: a `catalog` command with `--type`/`--json`, a picker, and `add`…
-  - approach: native: `reelwright catalog [--tag]` over registry.json; `add` accepts tags
 - `hyperframes:E9` — Registry item schema (`registry-item.json`: params, variables, controls, preview, license, stability), `registry.json` — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in tools/ or .github/workflows/ci.yml. Not built: items are upstream's unmodified files, so schema checks add little…
   - approach: validate with the schema in CI
@@ -480,9 +456,6 @@ By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
 - `hyperframes:G10` — `render` (see section I) and `benchmark` (tries fps/quality/workers, reports time and size) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS` env and `output.crf` tune it; no `benchmark` command trying fps/quality/workers. Not built: timings depend on…
   - approach: native `benchmark` loops `frames` for a sample range
-- `hyperframes:G13` — `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `browser ensure/path/clear`, `clean`, `info`, `compositions`, `docs <topi… — PARTIAL — partial, rest planned (open)
-  - says: `setup`/`setup.mjs` installs and checks node, ffmpeg, Python libs and Playwright Chromium (setup.mjs:53-60), `clean` deletes frames/stills/cache, `manim doctor` checks Manim only; `info` is the timeline.json build step,…
-  - approach: native `reelwright doctor` that prints the same checks plus codecs available
 - `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL — partial, rest planned (open)
   - says: Exit codes: 0, and 1 on a FAIL gate or error (qa.py, bin/reelwright.mjs `run`); machine-readable files exist (timeline.json, .manifest.json, stills/). No global `--json` envelope, no version/update `_meta`, no exit code…
   - approach: native: `--json` for `stills`, `qa`, `info`, `sched` first
@@ -498,15 +471,9 @@ By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
 - `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Renders panel (format/resolution/fps/quality/G… — PARTIAL — partial, rest planned (open)
   - says: Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playhead, contact sheet, taste and embed jobs, job log (tools/studio/studio.js; job allow-list sched/audio/stills/taste/em…
   - approach: native panels, in priority order: renders queue, QA/lint, script/VO lines, stills sheet
-- `hyperframes:I4` — Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `--crf`, `--video-bitrate`, `--max-bitrate`, `--buffer-size`, `--keyfram… — PARTIAL — partial, rest planned (open)
-  - says: mp4 is x264 slow, high profile, AAC 256k; `output.crf` sets mp4 (default 16) and webm (24) quality (tools/renderers/pvk.mjs encode, docs/playbook/output-formats.md). No draft/standard/high presets, no bitrate/maxrate/bu…
-  - approach: native flags mapping to ffmpeg args
 - `hyperframes:I5` — Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k/square-4k` via `deviceScaleFactor`, aspect must match) — PARTIAL — partial, rest planned (open)
   - says: Size comes from project.json width/height or `--formats` (re-layout, 5 formats). `output.scale` only resizes the extra output format (webm/mov/gif/apng/png), not the mp4, and pages use deviceScaleFactor 1 (pvk.mjs:70, s…
   - approach: native: `--scale 2` sets Playwright `deviceScaleFactor` (pvk) / `resolution` option (hf)
-- `hyperframes:I8` — Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory-mode`, Chrome per worker ~256 MB — PARTIAL — partial, rest planned (open)
-  - says: `PAGES=N` sets render tabs (pvk) or producer workers (hf), default 4 (pvk.mjs:59, hyperframes.mjs:66); no auto-tuning from cores/RAM and no low-memory mode. Not built: auto default. Suggest: build (S: min(cores/2, RAM/5…
-  - approach: native: default = min(cores/2, RAM/512 MB)
 - `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` render — PARTIAL — partial, rest planned (open)
   - says: pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER for iteration); hyperframes ignores the range ('renders the whole film', hyperframes.mjs:119) and has no frame…
   - approach: native: let hf reuse `.cache/frames` by content hash; `frames <from>-<to>`
@@ -517,26 +484,11 @@ By source: hyperframes 53, remotion 38, manim 18, doodle-shots-motion 44
   - says: Render needs no transcode: `KIT.video` frames are extracted by ffmpeg, so HEVC/ProRes work (tools/renderers/media.mjs; docs/playbook/video-audio.md). No import-time H.264 conversion (`new --video` does not exist) and no…
   - approach: ffmpeg transcode on import
 
-#### Vendor a library (2)
-
-- `hyperframes:B5` — Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) — PARTIAL — partial, rest planned (open)
-  - says: lottie-web 5.13.0 in vendor/lottie/; `KIT.lottie` (tools/runtimes.js) seek-driven, svg + canvas; tools/selfcheck/runtimes.mjs checks a shape animation under shuffled seeks on pvk and hyperframes; docs/playbook/runtimes.…
-  - approach: vendor lib: `lottie-web` (+ `@lottiefiles/dotlottie-web`) bundled; seek test for masks/text/images; `K.lottie(anim)`
-- `hyperframes:B8` — d3 transitions readiness (`__hfD3`) — PARTIAL — partial, rest planned (open)
-  - says: d3 7.9.2 UMD (includes d3-delaunay) is vendored (vendor/d3/) and copied to hf/kit/d3/ by tools/kit_files.mjs; the map blocks load it and pass tools/selfcheck/blocks.mjs. No KIT helper, pvk loading or playbook recipe for…
-  - approach: vendor lib `d3` (ISC) + `d3-delaunay`; call `.tick`/pure scales from `render(t)`, no transitions
-
-#### Points at another row (5)
+#### Points at another row (3)
 
 - `hyperframes:E8` — Caption-style components (16, tag `caption-style`) + 1 caption block; fed by a transcript — PARTIAL — partial, rest planned (open)
   - says: All 17 caption-* components are vendored and installable with `reelwright add` (vendor/hyperframes/registry/components/caption-*). Reelwright's own karaoke captions come from VO words (KIT.subtitles). Missing: a transcr…
   - approach: link to D10; add a `captions` adapter that writes `transcript.json` from `timeline.json` words
-- `hyperframes:F4` — `caption-zone` and `frame-check` gates — PARTIAL — partial, rest planned (open)
-  - says: Safe area is enforced two ways: `KIT.safe` and the qa.py `captions` gate (caption row inside the safe box, tools/qa_page.mjs:69); the taste plug-in adds cramped/empty/balance WARNs. There is no `--caption-zone` / `--fra…
-  - approach: see G4
-- `hyperframes:G2` — `add`, `catalog` — PARTIAL — partial, rest planned (open)
-  - says: `add <name>` installs a component or block and `add --list [tag]` lists supported blocks and components, filtered by tag (tools/commands/add.mjs). Missing: a `catalog` command with `--type`/`--json`, a picker, and `add`…
-  - approach: see E6
 - `hyperframes:G11` — `preview` (hot reload, background/foreground/status/list, port) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-checked; `studio` adds a port flag. Missing: background/foreground/status/list sub-commands. Not built: one local…
   - approach: see H

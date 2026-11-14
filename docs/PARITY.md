@@ -10,21 +10,21 @@ Compiled 2026-11-14 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 37 | 5 | 0 | 46 | 18 | 6 | 0 | 0 | 112 |
+| HyperFrames | 52 | 5 | 0 | 31 | 18 | 6 | 0 | 0 | 112 |
 | Remotion + its skills | 31 | 4 | 3 | 38 | 21 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 188 | 5 | 0 | 32 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **318** | **29** | **6** | **146** | **74** | **6** | **20** | **2** | **601** |
+| **All** | **333** | **29** | **6** | **131** | **74** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 353 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 368 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 353 |
+| EQUAL, BETTER or EQUAL/BETTER | 368 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
 | Planned (Phase 11), not claimed | 4 |
-| Partial: some shipped, the rest planned (open) | 61 |
+| Partial: some shipped, the rest planned (open) | 46 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 25 |
 | **Total** | **601** |
@@ -53,7 +53,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | A16 | Frame sources `registerFrameSource({element,ready,render(t,signal),di… | EQUAL | `tools/engine.js` |
 | A17 | Determinism rules (no Date.now, rAF, unseeded random; fonts ready; fi… | BETTER | `tools/qa.py` |
 | A18 | Font handling: Google Fonts fetched at compile time into `~/.cache/hy… | BETTER | 19 bundled OFL families in `fonts/`, no network. Blocks use Google Fonts in 47 blocks + 18 components (rewrit… |
-| A19 | Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (… | PARTIAL — partial, rest planned (open) | `tools/layouts.js` tools/layouts.js:28 has a private binary-search `fit(el,w,h,max)` (clone, scrollWidth/Height, re-run after fo… |
+| A19 | Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (… | EQUAL | `tools/fit.js` |
 | A20 | Tailwind browser runtime `init --tailwind` (`__tailwindReady`) | MISSING — exception (owner-approved 2026-11-12) | `hf/.` No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN… |
 | A21 | Interactive slideshow (manifest, fragments, branches, hotspots, prese… | MISSING — exception (owner-approved 2026-11-12) | Output is a live deck, not an MP4 |
 | A22 | Readiness gating (fonts, media, timelines, 45 s player-ready timeout,… | EQUAL | `tools/engine.js` |
@@ -61,10 +61,10 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | B2 | CSS `@keyframes` / transitions found and seeked automatically | EQUAL | `tools/runtimes.js` |
 | B3 | WAAPI (`element.animate`) hooked and paused | EQUAL | `tools/runtimes.js` |
 | B4 | anime.js v4 (`window.__hfAnime`, `anim.seek(ms)`, seeded random) | EQUAL | `vendor/anime/,` |
-| B5 | Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) | PARTIAL — partial, rest planned (open) | `vendor/lottie/` lottie-web 5.13.0 in vendor/lottie/; `KIT.lottie` (tools/runtimes.js) seek-driven, svg + canvas; tools/selfch… |
+| B5 | Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) | EQUAL | `tools/dotlottie.mjs` |
 | B6 | Three.js (loading-manager readiness, `window.__hfThreeTime`, `hf-seek… | EQUAL | `vendor/three/` |
 | B7 | TypeGPU / raw WebGPU (`__hfTypegpuTime`, `data-requires-webgpu`, hard… | MISSING — exception (owner-approved 2026-11-12) | (eng). 37 blocks need it; not byte-reproducible across GPUs |
-| B8 | d3 transitions readiness (`__hfD3`) | PARTIAL — partial, rest planned (open) | `vendor/d3/` d3 7.9.2 UMD (includes d3-delaunay) is vendored (vendor/d3/) and copied to hf/kit/d3/ by tools/kit_files.mjs;… |
+| B8 | d3 transitions readiness (`__hfD3`) | EQUAL | `docs/playbook/d3.md,` |
 | B9 | Map readiness: Leaflet, MapLibre, Mapbox GL, Google Maps (wait for lo… | MISSING — exception (owner-approved 2026-11-12) | Tiles need network, Mapbox/Google need keys: conflicts with offline core |
 | B10 | Video textures into WebGL/WebGPU in render mode (`video-texture-compa… | MISSING — exception (owner-approved 2026-11-12) | (needs A7) |
 | B11 | p5 / canvas / generative via `hf-seek` event (`e.detail.time`) | EQUAL | `render(t)` draws canvas directly |
@@ -73,12 +73,12 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | C2 | Transition catalog: 14 `transitions-*` showcase blocks (3d, blur, cov… | EQUAL | `vendor/hyperframes/registry/blocks/CATALOG.md,` |
 | D1 | Audio FX rack per clip: 16 effects (highpass lowpass peaking lowshelf… | EQUAL | `tools/audio_fx.py` |
 | D2 | 22 presets (voice-clean, voice-broadcast, voice-warm, rumble-cut, roo… | EQUAL | `tools/audio_fx.py` |
-| D3 | Automation lanes (`data-automation`: volume, FX params, sample-accura… | PARTIAL — partial, rest planned (open) | `tools/mix.py` tools/mix.py has a −6 dB music duck under subdrop (and impact/riser with music.duck_sfx), per-cue `gain` and… |
+| D3 | Automation lanes (`data-automation`: volume, FX params, sample-accura… | EQUAL | `tools/mixfx.py` |
 | D4 | Voiceover carve (`data-fx-carve`): EQ-notch the music under named voi… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/mix.py` Music is ducked (gain) under the voice and under SFX (tools/mix.py); no EQ carve or sidechaincompress. Both r… |
 | D5 | Groups, mute, master bus FX on the root (`data-audio-group`) | MISSING — exception (owner-approved 2026-11-12) | mix.py is a fixed voice/music/SFX mix with one master loudnorm; no groups, mute or buses. Not built: only mat… |
-| D6 | Beat detection `beats` (writes `.hyperframes/beats`, BPM, beat times)… | PARTIAL — partial, rest planned (open) | `tools/beatgrid.py` tools/beatgrid.py (`reelwright beatgrid`) fits tempo and phase from sample-accurate kick/transient onsets (re… |
+| D6 | Beat detection `beats` (writes `.hyperframes/beats`, BPM, beat times)… | EQUAL | `tools/audio_report.py` |
 | D7 | `normalize-audio` (EBU R128 match to a reference clip) | PARTIAL — exception (owner-approved 2026-11-12) | `tools/mix.py.` The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match… |
-| D8 | True-peak limiter (4x oversample, lookahead) | PARTIAL — partial, rest planned (open) | `tools/mix.py` tools/mix.py applies loudnorm TP=−1.5 plus a tanh soft clip; no lookahead oversampling limiter (ffmpeg alimit… |
+| D8 | True-peak limiter (4x oversample, lookahead) | EQUAL | `tools/mixfx.py` |
 | D9 | Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) | PARTIAL — partial, rest planned (open) | `tools/vo.py` tools/vo.py uses edge-tts (online, gives word times). No Kokoro/ONNX provider; the core voiceover stays onlin… |
 | D10 | `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (s… | MISSING — planned (Phase 11) | `bin/reelwright.mjs` No transcribe command in bin/reelwright.mjs or tools/commands/; word times come only from edge-tts for its ow… |
 | D11 | `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/mix.py,` Synth SFX/music (tools/mix.py, tools/music.py) and the paid opt-in `gen` connector with an assets/.gen/ promp… |
@@ -87,7 +87,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | E3 | 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-c… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/blocks.mjs` (10f). 136 of 210 vendored, converted to `KIT.mount` templates by `tools/blocks.mjs import` and each verified… |
 | E4 | Block categories to cover: transitions (33 tagged), overlays (31), ba… | PARTIAL — partial, rest planned (open) | (10f). 136 of 210 upstream blocks are supported; all 33 transition, 26 carousel and 11 lt-* are in, maps 3 of… |
 | E5 | 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph,… | PARTIAL — exception (owner-approved 2026-11-12) | `themes/hf-{bold,editorial,neutral}.css` Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only exam… |
-| E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | PARTIAL — partial, rest planned (open) | `tools/commands/add.mjs,` `add --list [tag]` lists supported blocks and components, filtered by tag (tools/commands/add.mjs, vendor/hyp… |
+| E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | EQUAL | `tools/commands/catalog.mjs` |
 | E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL — exception (owner-approved 2026-11-12) | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
 | E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | PARTIAL — partial, rest planned (open) | `vendor/hyperframes/registry/components/caption-*` All 17 caption-* components are vendored and installable with `reelwright add` (vendor/hyperframes/registry/c… |
 | E9 | Registry item schema (`registry-item.json`: params, variables, contro… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/blocks.mjs` `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in too… |
@@ -95,9 +95,9 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | F1 | Word-timed captions on screen, karaoke/word highlight, SRT/VTT export | EQUAL | `tools/renderers/pvk.mjs` |
 | F2 | Caption lint: overflow, container-relative position, fit-text scale,… | EQUAL | `tools/checks/caption-lint.page.mjs` |
 | F3 | Caption editing in Studio (click a word, restyle, retime) | MISSING — exception (owner-approved 2026-11-12) | `tools/studio/studio.js` tools/studio/studio.js has no caption panel; captions are drawn by the engine from the VO line text and edge-… |
-| F4 | `caption-zone` and `frame-check` gates | PARTIAL — partial, rest planned (open) | `tools/qa_page.mjs` Safe area is enforced two ways: `KIT.safe` and the qa.py `captions` gate (caption row inside the safe box, to… |
+| F4 | `caption-zone` and `frame-check` gates | EQUAL | `tools/checks/layout.audit.mjs` |
 | G1 | `init` (examples, `--resolution` presets, `--video/--audio` with auto… | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs` `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats`… |
-| G2 | `add`, `catalog` | PARTIAL — partial, rest planned (open) | `tools/commands/add.mjs` `add <name>` installs a component or block and `add --list [tag]` lists supported blocks and components, filt… |
+| G2 | `add`, `catalog` | EQUAL | `tools/commands/catalog.mjs` |
 | G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | PARTIAL — partial, rest planned (open) | `tools/capture_site.mjs` tools/capture_site.mjs (`from-url`, `theme-from`): scroll-to-load, hero + per-heading shots, sections, full p… |
 | G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/selfcheck/hf-lint.mjs` `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE;… |
 | G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | EQUAL | `tools/commands/stills2.mjs` |
@@ -107,7 +107,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G9 | `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per… | MISSING — planned (Phase 11) | `bin/reelwright.mjs,` No `measure`, `diff` or `reverse` command (bin/reelwright.mjs, tools/commands/); `verify` only compares Reelw… |
 | G10 | `render` (see section I) and `benchmark` (tries fps/quality/workers,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/renderers/pvk.mjs` `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS`… |
 | G11 | `preview` (hot reload, background/foreground/status/list, port) | PARTIAL — exception (owner-approved 2026-11-12) | `tools/preview.mjs` `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-chec… |
-| G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | PARTIAL — partial, rest planned (open) | `setup`/`setup.mjs` installs and checks node, ffmpeg, Python libs and Playwright Chromium (setup.mjs:53-60),… |
+| G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | EQUAL | `tools/selfcheck/p8-doctor.mjs` |
 | G14 | `skills` / `update` / `upgrade` / `figma` / `events` / `templates` /… | OUT — exception (owner-approved 2026-11-12) | for `auth billing cloud lambda cloudrun publish open catch-up usage telemetry feedback templates` (HeyGen acc… |
 | G15 | `--json` envelope on every command, `_meta` version/update notice, ex… | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs` Exit codes: 0, and 1 on a FAIL gate or error (qa.py, bin/reelwright.mjs `run`); machine-readable files exist… |
 | G16 | `figma asset/tokens/component` (REST: SVG/PNG/JPG/PDF assets frozen u… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/figma_export.py` tools/figma_export.py exports a file's or node's top-level frames as PNG at `--scale` (default 2) with frames… |
@@ -122,11 +122,11 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I1 | Formats: `mp4` (H.264 + AAC), `webm` (VP9 + alpha, Opus), `mov` (ProR… | EQUAL | `tools/renderers/pvk.mjs` |
 | I2 | Alpha / transparent output (webm, mov, png-sequence; transparent root… | EQUAL | (10a). `"output": {"alpha": true}`: pvk takes PNG screenshots with a transparent page, hf keeps the producer'… |
 | I3 | fps: 1-240 or rational (`30000/1001`); root `data-fps` | PARTIAL — exception (owner-approved 2026-11-12) | `tools/render.mjs` fps comes from `FPS` env or project.json `fps` (integer, default 60; tools/render.mjs:33, hyperframes.mjs:36,… |
-| I4 | Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `-… | PARTIAL — partial, rest planned (open) | `tools/renderers/pvk.mjs` mp4 is x264 slow, high profile, AAC 256k; `output.crf` sets mp4 (default 16) and webm (24) quality (tools/ren… |
+| I4 | Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `-… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
 | I5 | Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k… | PARTIAL — partial, rest planned (open) | Size comes from project.json width/height or `--formats` (re-layout, 5 formats). `output.scale` only resizes… |
 | I6 | Multi-format outputs from one project | BETTER | `--formats 16x9,9x16,1x1,4x5,16x10` (4:5 and 16:10 added in 10a) re-layouts with `KIT.safe` and builds audio… |
 | I7 | HDR: BT.2020 PQ/HLG sources auto-detected, 10-bit H.265, `--hdr/--sdr` | EQUAL | on the hyperframes renderer (10a). `"output": {"hdr": true}` renders through the producer's mp4 path: HDR (PQ… |
-| I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | PARTIAL — partial, rest planned (open) | `PAGES=N` sets render tabs (pvk) or producer workers (hf), default 4 (pvk.mjs:59, hyperframes.mjs:66); no aut… |
+| I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
 | I9 | GPU: `--gpu` hardware ffmpeg (NVENC, VideoToolbox, AMF, VAAPI, QSV),… | MISSING — exception (owner-approved 2026-11-12) | `docs/REPRODUCIBLE.md` Software GL is forced (`PRODUCER_BROWSER_GPU_MODE` default software) and the encode is libx264/libvpx; no har… |
 | I10 | Streaming encode (no raw frames on disk), segmented capture + `--resu… | PARTIAL — partial, rest planned (open) | pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER f… |
 | I11 | Docker deterministic render (`--docker`) | MISSING — exception (owner-approved 2026-11-12) | `docs/REPRODUCIBLE.md.` No Dockerfile or `--docker` (repo has cloud/ Colab files and .github/workflows only). Determinism is software… |
@@ -143,10 +143,10 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | K4 | `SDK` (`openComposition`, `find`, text/style/timing/asset/variable/an… | MISSING — exception (owner-approved 2026-11-12) | only useful for HF-native HTML |
 | K5 | `parsers`: HTML parse/serialise, GSAP AST read/write (acorn, recast),… | PARTIAL — exception (owner-approved 2026-11-12) | (vendored, unused). Reelwright has its own `KIT.spring` |
 | K6 | `inspector` package (source maps, CSS/JS scope analysis for the studi… | MISSING — exception (owner-approved 2026-11-12) | not needed without H2 |
-| L1 | 9 agent skills (`hyperframes`, `hyperframes-cli`, `hyperframes-regist… | PARTIAL — partial, rest planned (open) | `docs/PLAYBOOK.md,` One skill, `.claude/skills/product-video/SKILL.md` (52 lines: commands, workflow, rules), plus AGENTS.md, doc… |
-| L2 | Workflow guides: product launch, faceless explainer, PR to video, mus… | PARTIAL — partial, rest planned (open) | `docs/playbook/claude-workflow.md,` Workflow docs: AGENTS.md workflow, docs/playbook/claude-workflow.md, 8 scene recipes (docs/recipes/), `from-u… |
+| L1 | 9 agent skills (`hyperframes`, `hyperframes-cli`, `hyperframes-regist… | EQUAL | `docs/playbook/skill-references.md,` |
+| L2 | Workflow guides: product launch, faceless explainer, PR to video, mus… | EQUAL | `docs/recipes/pr-to-video.md,` |
 | L3 | Claude/Codex/Cursor plugin packaging and marketplace | OUT — exception (owner-approved 2026-11-12) | (repo rule: standalone, no plugin/MCP) |
-| L4 | `prompting/` cookbook (color grading, data and maps, design systems,… | PARTIAL — partial, rest planned (open) | `docs/playbook/grading-effects.md` Topic notes cover colour grading (docs/playbook/grading-effects.md), motion (motion.md), design systems (them… |
+| L4 | `prompting/` cookbook (color grading, data and maps, design systems,… | EQUAL | `docs/playbook/prompting-*.md` |
 
 ## Remotion + its skills
 
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 353 EQUAL/BETTER, 158 accepted exceptions, 4 planned, 61 partial, 0 proposed, 25 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 368 EQUAL/BETTER, 158 accepted exceptions, 4 planned, 46 partial, 0 proposed, 25 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -865,40 +865,25 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `remotion:2.1.3` — `output:'perceptual-scale'` — MISSING — plan: [N] area-space lerp, 1 line (Phase 9 item 3)
 - `remotion:2.4.13` — Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`, `loopBehavior` loop/pause-af… — MISSING — plan: [N] decode GIF/APNG to PNG frames with ffmpeg at build, show frame by index from `render(t)`; honour loop behaviours. [R] free
 
-### Partial (61)
+### Partial (46)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
-#### HyperFrames (28)
+#### HyperFrames (13)
 
-- `hyperframes:A19` — Text-fit helpers `__hyperframes.fitTextFontSize`, `pretext` measure (no reflow) — PARTIAL
-- `hyperframes:B5` — Lottie / dotLottie (`window.__hfLottie`, `goToAndStop`) — PARTIAL
-- `hyperframes:B8` — d3 transitions readiness (`__hfD3`) — PARTIAL
-- `hyperframes:D3` — Automation lanes (`data-automation`: volume, FX params, sample-accurate), clip fades, volume above 1 — PARTIAL
-- `hyperframes:D6` — Beat detection `beats` (writes `.hyperframes/beats`, BPM, beat times) and `audio` analysis (onsets,… — PARTIAL
-- `hyperframes:D8` — True-peak limiter (4x oversample, lookahead) — PARTIAL
 - `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL
 - `hyperframes:E2` — Asset-bearing components (9) — PARTIAL
 - `hyperframes:E4` — Block categories to cover: transitions (33 tagged), overlays (31), backgrounds (30), carousels (26… — PARTIAL
-- `hyperframes:E6` — `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `add` by tag (`add captions`) — PARTIAL
 - `hyperframes:E8` — Caption-style components (16, tag `caption-style`) + 1 caption block; fed by a transcript — PARTIAL
-- `hyperframes:F4` — `caption-zone` and `frame-check` gates — PARTIAL
 - `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion… — PARTIAL
-- `hyperframes:G2` — `add`, `catalog` — PARTIAL
 - `hyperframes:G3` — `capture <url>`: scroll screenshots (default 21, full-page plate), HTML/CSS, visible text, design t… — PARTIAL
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
-- `hyperframes:G13` — `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `browser ensure/path/clear`, `cle… — PARTIAL
 - `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL
 - `hyperframes:H3` — Timeline: tracks, move/trim/split/ripple/linked selection/snapping/beat markers/range select; wavef… — PARTIAL
 - `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Render… — PARTIAL
-- `hyperframes:I4` — Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `--crf`, `--video-bitrate`, `--m… — PARTIAL
 - `hyperframes:I5` — Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k/square-4k` via `deviceScaleFa… — PARTIAL
-- `hyperframes:I8` — Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory-mode`, Chrome per worker ~256… — PARTIAL
 - `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` r… — PARTIAL
 - `hyperframes:I13` — Timeouts and safety: browser/player-ready/protocol timeouts, `--strict`, `--best-effort`, render lo… — PARTIAL
-- `hyperframes:L1` — 9 agent skills (`hyperframes`, `hyperframes-cli`, `hyperframes-registry`, `media-use` core; `figma… — PARTIAL
-- `hyperframes:L2` — Workflow guides: product launch, faceless explainer, PR to video, music/lyric video, captions and r… — PARTIAL
-- `hyperframes:L4` — `prompting/` cookbook (color grading, data and maps, design systems, motion, recreating references,… — PARTIAL
 
 #### Remotion + its skills (9)
 

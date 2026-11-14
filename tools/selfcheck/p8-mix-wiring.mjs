@@ -17,8 +17,10 @@ const sh = (cmd, args, o = {}) => { const r = spawnSync(cmd, args, { encoding: "
 try {
   const orig = path.join(tmp, "orig"), patched = path.join(tmp, "patched");
   for (const d of [orig, patched]) { fs.mkdirSync(path.join(d, "tools"), { recursive: true }); fs.copyFileSync(path.join(ROOT, "tools", "mix.py"), path.join(d, "tools", "mix.py")); }
-  fs.copyFileSync(path.join(ROOT, "tools", "mixfx.py"), path.join(patched, "tools", "mixfx.py"));
-  applyPatch(patched, path.join(ROOT, "docs", "plans", "p8-patches", "mix.patch"));
+  for (const d of [orig, patched]) for (const f of ["audio_fx.py", "mixfx.py"]) fs.copyFileSync(path.join(ROOT, "tools", f), path.join(d, "tools", f));
+  const patch = path.join(ROOT, "docs", "plans", "p8-patches", "mix.patch");
+  if (applyPatch(patched, patch) === "already")   // patch is in the real mix.py: the baseline is the file with it taken out
+    sh("git", ["apply", "-R", "-p1", "--unsafe-paths", patch], { cwd: orig });
 
   const proj = (name, extra) => {   // 6 s project: a loud 220 Hz + 3 kHz bed, no voice, one whoosh cue
     const d = path.join(tmp, name); fs.mkdirSync(path.join(d, "music"), { recursive: true });

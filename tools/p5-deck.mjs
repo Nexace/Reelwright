@@ -1,7 +1,7 @@
 // The motion deck: 46 named moves in 8 groups (open, seam, cam, reveal, type, act, emph, close), each mapped to the KIT call that makes it
 // and the numbers that make it that move. Reelwright's own deck, written from what the kit ships (names and tuned numbers are the kit's, from
 // tools/shots.js, shots2.js, transitions.js, layouts.js, doodle*.js, motion.js and the p5-*.js modules); nothing here is a port of anyone's file.
-// `kit` is a path under window.KIT that tools/selfcheck/p5-deck.mjs resolves in a real page, so a rename that breaks the deck fails CI;
+// `kit` is a path under window.KIT that tools/selfcheck/p5-tools.mjs resolves in a real page, so a rename that breaks the deck fails CI;
 // `type` is a KIT.transition type name (also checked against KIT.transition.names).
 //   DECK                       [{ n, cat, name, kit, type?, call, numbers, load }]    load = the script(s) the call needs after engine.js
 //   find(query)                moves whose name, group, call or numbers contain every word of the query

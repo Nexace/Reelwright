@@ -1,7 +1,7 @@
 // tools/p5-doodle.js: D.callout (dot, drawn leader, written label, follows the camera), D.steps (one score: still, timelapse, step sheet),
 // Note: the film moves its scene with a plain 2D transform. KIT.shoot (tools/shots.js camCSS) always writes rotateY(0) rotateX(0), a 3D
 // transform, and with overlays above that layer Chromium's raster of the overlays then depends on the frames drawn before (found here, reported
-// in docs/playbook/p5-camera.md); the projection itself is checked against the real KIT.shoot below.
+// in docs/playbook/p5-motion.md); the projection itself is checked against the real KIT.shoot below.
 // KIT.layout.kinetic({ style: 'drawn' }) (every word written by the pen on its spoken start).
 const text = "Make films fast", ts = [2.2, 2.7, 3.2];
 export default {

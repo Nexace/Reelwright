@@ -29,7 +29,7 @@ export default async ({ proj, args }) => {
     if (!(await p.evaluate(() => window.READY).catch(() => false))) { console.log(`ship: ${file} failed to load`); process.exit(1); }
     for (const n of CHECKS) if (P.qa?.[n] !== false) checks[n] = (await (await import(`../checks/${n}.page.mjs`)).default(p, { DIR, P, W, H })).slice();
   } finally { await b.close(); }
-  const py = spawnSync("python3", ["-c", "import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps(m.check({'mp4':sys.argv[2],'proj':sys.argv[3]})))",
+  const py = spawnSync(process.platform === "win32" ? "python" : "python3", ["-c", "import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps(m.check({'mp4':sys.argv[2],'proj':sys.argv[3]})))",
     path.join(ROOT, "tools", "checks", "p5-av-sync.py"), mp4, DIR], { encoding: "utf8" });
   checks["p5-av-sync"] = py.status === 0 ? JSON.parse(py.stdout) : [`av-sync skipped: ${py.stderr.trim().split("\n").pop()}`];
   // sign-offs stay valid only for the same bytes

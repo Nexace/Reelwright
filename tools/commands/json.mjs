@@ -11,7 +11,7 @@ const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) =>
 
 export function commandNames(ROOT) {
   const src = fs.readFileSync(path.join(ROOT, "bin", "reelwright.mjs"), "utf8");
-  const builtin = [...src.matchAll(/^  (\w+)\(\) *\{/gm)].map((m) => m[1]);
+  const builtin = [...src.matchAll(/^  (?:async )?"?([\w-]+)"?\(\) *\{/gm)].map((m) => m[1]);
   const plug = fs.readdirSync(path.join(ROOT, "tools", "commands")).filter((f) => f.endsWith(".mjs")).map((f) => f.slice(0, -4));
   return [...new Set([...builtin, ...plug])].sort();
 }

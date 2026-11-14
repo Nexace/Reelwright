@@ -26,7 +26,7 @@ export default async function check({ proj, args, ROOT }) {
     const errs = []; p.on("pageerror", (e) => errs.push(e.message));
     await p.goto(pathToFileURL(file).href);
     if (!(await p.evaluate(() => window.READY).catch(() => false))) { console.log(`${file} failed to load: ${errs.join("; ") || "READY never resolved"}`); process.exit(1); }
-    lines = await audit(p, { at: (at?.[0] || "").split(",").map(Number).filter(Number.isFinite), range: range ? range.map(Number) : null, transitions: trans });
+    lines = await audit(p, { at: at ? at[0].split(",").map(Number).filter(Number.isFinite) : [], range: range ? range.map(Number) : null, transitions: trans });
   } finally { await b.close(); }
   if (zone || frame) lines = lines.filter((l) => (zone && /caption zone/.test(l)) || (frame && / runs outside the frame/.test(l)));
   console.log(json ? JSON.stringify({ ok: !lines.length, problems: lines }) : lines.length ? lines.map((l) => "  WARN  layout: " + l).join("\n") : "layout: no problems");

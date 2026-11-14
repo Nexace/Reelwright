@@ -4,6 +4,8 @@
 import assert from "node:assert/strict";
 import { launch } from "../browser.mjs";
 import { audit } from "../checks/layout.audit.mjs";
+import { fileURLToPath } from "node:url";
+const BIN = fileURLToPath(new URL("../../bin/reelwright.mjs", import.meta.url));
 
 const HTML = `<!doctype html><body style="margin:0;width:800px;height:450px;position:relative;font:20px Arial">
 <div id=out style="position:absolute;left:700px;top:20px;white-space:nowrap">Running off the right edge</div>
@@ -39,5 +41,18 @@ try {
   assert.deepEqual(await audit(p, { range: [0, 0.9] }), [], "--range before the problems");
   const tr = await audit(p, { range: [0, 0], transitions: true });
   assert.ok(tr.length >= 4 && tr.every((l) => parseFloat(l) >= 1.9), "transitions sample around the whoosh at 2 s: " + tr[0]);
+  // the command, on a throwaway project holding the same page
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path"), { spawnSync } = await import("node:child_process");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "p8-layout-"));
+  try {
+    fs.mkdirSync(path.join(dir, "film")); fs.writeFileSync(path.join(dir, "project.json"), JSON.stringify({ width: 800, height: 450 }));
+    fs.writeFileSync(path.join(dir, "film", "index.html"), HTML);
+    const rw = (...a) => spawnSync(process.execPath, [BIN, "check", dir, ...a], { encoding: "utf8" });
+    const r = rw("--frame-check");
+    assert.equal(r.status, 1, r.stdout + r.stderr); assert.match(r.stdout, /runs outside the frame/); assert.doesNotMatch(r.stdout, /covered by/, "--frame-check keeps only frame lines");
+    assert.match(rw("--caption-zone").stdout, /caption zone/);
+    const clean = rw("--at", "0.2,0.5"); assert.equal(clean.status, 0, clean.stdout); assert.match(clean.stdout, /no problems/);
+    assert.equal(JSON.parse(rw("--json", "--at", "2").stdout).ok, false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   console.log(`p8-layout self-check: frame, clip, occlusion and caption-zone found (${all.length} lines), clean frames silent, --at/--range/transitions honoured`);
 } finally { await b.close(); }

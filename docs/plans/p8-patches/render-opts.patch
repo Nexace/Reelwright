@@ -1,0 +1,107 @@
+--- a/tools/renderers/pvk.mjs	2026-11-14 15:59:31
++++ b/tools/renderers/pvk.mjs	2026-11-14 15:59:31
+@@ -15,6 +15,7 @@
+ import { launch } from "../browser.mjs";
+ import { pagesMedia, mediaMix } from "./media.mjs";
+ import { shaderPass } from "./shader_pass.mjs";
++import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
+ 
+ const SHOT = { type: "jpeg", quality: 94 };
+ const SHOT_ALPHA = { type: "png", omitBackground: true };
+@@ -56,18 +57,19 @@
+ 
+ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
+   const FPS = Number(process.env.FPS || P.fps || 60);
+-  const N = Number(process.env.PAGES || 4);
++  const N = Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY });   // PAGES wins; else min(cores/2, RAM/512 MB)
+   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
++  const SCALE = process.env.REELWRIGHT_RESOLUTION ? resolution(P, process.env.REELWRIGHT_RESOLUTION).scale : 1;   // --resolution 4k: layout size stays, pixels x SCALE
+   const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
+   if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
+   const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
+ 
+   async function openPages(n, alpha = false) {
+-    const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files"]);
++    const browser = await launch([`--force-device-scale-factor=${SCALE}`, "--allow-file-access-from-files"]);
+     const pages = [], loaded = new Set();   // every file a page requested (frame cache key)
+     let errors = 0;
+     for (let i = 0; i < n; i++) {
+-      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
++      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
+       p.on("request", (r) => loaded.add(r.url()));
+       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
+       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
+@@ -95,7 +97,7 @@
+     const css = await page.evaluate(() => [...document.styleSheets].map((s) => {
+       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
+     }).join("\n"));
+-    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], platform: `${process.platform}-${process.arch}`,
++    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT, SCALE], platform: `${process.platform}-${process.arch}`,
+       browser: process.env.BROWSER || "", version: browser.version(), shot: SHOTOPT }));
+   }
+   async function shot(p, t, file) {
+@@ -209,7 +211,7 @@
+ 
+ // frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC), plus the extra format asked for in "output". Shared with the other renderers.
+ export function encode(DIR, P, FPS, pattern, start) {
+-  const o = { ...P.output }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
++  const o = { ...P.output, ...outputFromEnv() }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
+   if (!FORMATS.includes(fmt)) { console.error(`output format "${fmt}" is not one of ${FORMATS.join(", ")}`); process.exit(1); }
+   const outFile = path.join(DIR, P.out || "out/film.mp4");
+   fs.mkdirSync(path.dirname(outFile), { recursive: true });
+@@ -219,8 +221,7 @@
+   if (!aud.has) console.log("no mix.wav — encoding silent video");
+   const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
+     if (r.status !== 0) process.exit(r.status || 1); };
+-  const crf = String(o.crf ?? 16);
+-  ff(...frames, ...aud.args, "-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", "yuv420p", "-profile:v", "high",
++  ff(...frames, ...aud.args, ...x264Args(o),
+     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
+   console.log("→", outFile);
+   if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);
+@@ -233,7 +234,7 @@
+   const sound = (...c) => (aud.has ? [...c, "-shortest"] : []);
+   const file = base + "." + fmt;
+   if (fmt === "webm") {
+-    ff(...frames, ...aud.args, ...vf(), "-c:v", "libvpx-vp9", "-crf", String(o.crf ?? 24), "-b:v", "0", "-row-mt", "1",
++    ff(...frames, ...aud.args, ...vf(), ...vp9Args(o),
+       "-pix_fmt", alpha ? "yuva420p" : "yuv420p", ...(alpha ? ["-auto-alt-ref", "0"] : []), ...sound("-c:a", "libopus", "-b:a", "160k"), file);
+   } else if (fmt === "mov") {
+     const prof = String(o.prores ?? (alpha ? "4444" : "hq"));
+--- a/tools/renderers/hyperframes.mjs	2026-11-14 15:59:31
++++ b/tools/renderers/hyperframes.mjs	2026-11-14 15:59:38
+@@ -17,6 +17,7 @@
+ import { encode, blurOf, TRANSPARENT } from "./pvk.mjs";
+ import { copyKit } from "../kit_files.mjs";
+ import { shaderPass } from "./shader_pass.mjs";
++import { autoWorkers } from "../render_opts.mjs";
+ 
+ // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
+ export function headlessShell() {
+@@ -63,7 +64,8 @@
+       await import("@hyperframes/producer");
+     const hdr = film && HDR;
+     const req = createRenderRequest({ projectDir: HF, outputPath: out,
+-      options: { fps: { num: fps, den: 1 }, format: hdr ? "mp4" : "png-sequence", quality: "high", workers: Number(process.env.PAGES || 4),
++      options: { fps: { num: fps, den: 1 }, format: hdr ? "mp4" : "png-sequence", quality: "high", workers: Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY }),
++        ...(process.env.REELWRIGHT_RESOLUTION && { outputResolution: process.env.REELWRIGHT_RESOLUTION }),   // 4k | portrait-4k | square-4k, aspect must match
+         ...(hdr && { hdrMode: "force-hdr" }),
+         // not in the request schema, but it passes through to the job config (sub-frame seeks reach the KIT shim)
+         ...(film && MB && { motionBlur: { shutterAngle: MB.shutter, samplesPerFrame: MB.samples } }) } });
+--- a/bin/reelwright.mjs	2026-11-14 15:59:31
++++ b/bin/reelwright.mjs	2026-11-14 15:59:38
+@@ -68,6 +68,14 @@
+ if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
+ const as = args.indexOf("--as");   // encode: also write this format beside the mp4 (tools/renderers/pvk.mjs encode)
+ if (as >= 0) process.env.REELWRIGHT_OUT_FORMAT = args.splice(as, 2)[1] || "";
++// render options → env (tools/render_opts.mjs): --quality draft|looks|standard|high|delivery, --crf N, --video-bitrate 8M, --max-bitrate 10M,
++// --buffer-size 20M, --keyframe-interval N, --vp9-cpu-used 0-8, --resolution 4k|portrait-4k|square-4k|2x, --workers N, --low-memory
++for (const [flag, env] of [["--quality", "QUALITY"], ["--crf", "CRF"], ["--video-bitrate", "VIDEO_BITRATE"], ["--max-bitrate", "MAX_BITRATE"], ["--buffer-size", "BUFFER_SIZE"],
++  ["--keyframe-interval", "KEYFRAME_INTERVAL"], ["--vp9-cpu-used", "VP9_CPU_USED"], ["--resolution", "RESOLUTION"]]) {
++  const i = args.indexOf(flag); if (i >= 0) process.env["REELWRIGHT_" + env] = args.splice(i, 2)[1] || "";
++}
++const wk = args.indexOf("--workers"); if (wk >= 0) process.env.PAGES = args.splice(wk, 2)[1] || "";
++const lm = args.indexOf("--low-memory"); if (lm >= 0) { args.splice(lm, 1); process.env.REELWRIGHT_LOW_MEMORY = "1"; }
+ const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080", "4x5": "1080x1350", "16x10": "1920x1200" };
+ const fo = args.indexOf("--formats");
+ const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;

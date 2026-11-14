@@ -58,3 +58,13 @@ export function autoWorkers({ cores = os.cpus().length, freeMem = os.freemem(), 
   const n = Math.min(Math.floor(cores / 2), Math.floor(freeMem / per), frames, lowMemory ? 2 : 24);
   return Math.max(1, Math.min(24, n));
 }
+
+// REELWRIGHT_QUALITY / _CRF / _VIDEO_BITRATE / _MAX_BITRATE / _BUFFER_SIZE / _KEYFRAME_INTERVAL / _VP9_CPU_USED (set by bin/reelwright.mjs from
+// --quality, --crf, --video-bitrate, --max-bitrate, --buffer-size, --keyframe-interval, --vp9-cpu-used) → output option overrides
+export function outputFromEnv(env = process.env) {
+  const o = {}, n = (k) => (env[k] != null && env[k] !== "" ? Number(env[k]) : undefined);
+  if (env.REELWRIGHT_QUALITY) o.quality = env.REELWRIGHT_QUALITY;
+  for (const [k, e] of [["crf", "CRF"], ["keyframeInterval", "KEYFRAME_INTERVAL"], ["vp9CpuUsed", "VP9_CPU_USED"]]) if (n("REELWRIGHT_" + e) !== undefined) o[k] = n("REELWRIGHT_" + e);
+  for (const [k, e] of [["videoBitrate", "VIDEO_BITRATE"], ["maxBitrate", "MAX_BITRATE"], ["bufferSize", "BUFFER_SIZE"]]) if (env["REELWRIGHT_" + e]) o[k] = env["REELWRIGHT_" + e];
+  return o;
+}

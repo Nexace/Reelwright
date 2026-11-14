@@ -1,4 +1,4 @@
-// node tools/selfcheck/p8-audio.mjs — `reelwright audio` (tools/audio_report.py) on a synthetic 8 s track: clicks every 0.5 s
+// node tools/selfcheck/p8-audio-report.mjs — `reelwright audio-report` (tools/audio_report.py) on a synthetic 8 s track: clicks every 0.5 s
 // (120 BPM), 6 dB louder from 4 s. It must find about 120 BPM, onsets within 30 ms of the clicks, a loudness step near 4 s,
 // and answer --at / --place-at / --range. Offline; writes one wav to the OS temp folder.
 import fs from "node:fs";
@@ -34,5 +34,5 @@ try {
   assert.ok(Math.abs(r.place_at.onset - 3.5) < 0.05, JSON.stringify(r.place_at));
   const g = run("--range", "4", "6");
   assert.ok(g.onsets.every((t) => t >= 4 && t <= 6) && g.onsets.length >= 3);
-  console.log(`p8-audio self-check: ${r.rhythm.bpm} BPM, ${hit.length}/16 onsets, ${r.sections.length} sections, --at/--place-at/--range answer`);
+  console.log(`p8-audio-report self-check: ${r.rhythm.bpm} BPM, ${hit.length}/16 onsets, ${r.sections.length} sections, --at/--place-at/--range answer`);
 } finally { fs.rmSync(dir, { recursive: true, force: true }); }

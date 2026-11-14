@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Ink Press promo template: 10 shots on the energy arc, music only (no voiceover). Copy, logo letter and screenshots: content.js.
+     Timing: hf/kit-data.js (tools/sched.py) gives the music grid; film.js starts every shot on a bar. Preview: open hf/index.html#4.2 or #play. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">   <!-- tools/theme.mjs: project.json "style" + brand.json -->
+<style>
+  body { background: var(--kit-bg); }
+  .scene, .cam { position: absolute; inset: 0; }
+  .bleed { position: absolute; inset: -40%; background: var(--kit-bg); background-image: var(--kit-bg-image); background-size: calc(64 * var(--kit-u)) calc(64 * var(--kit-u)); }
+  .at { position: absolute; transform: translate(-50%, -50%); text-align: center; }
+  .at.left { text-align: left; }
+  .kick { font-family: var(--kit-label-font); font-size: calc(34 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-accent); }
+  .big { font-family: var(--kit-font-display); font-weight: var(--kit-display-weight); letter-spacing: var(--kit-display-tracking); color: var(--kit-ink); line-height: 1.04; }
+  .big.accent { color: var(--kit-accent); white-space: nowrap; }
+  .body { font-family: var(--kit-font-text); font-size: calc(40 * var(--kit-u)); color: var(--kit-muted); line-height: 1.3; }
+  .card { background: var(--kit-surface); border: var(--kit-border); border-radius: var(--kit-radius); box-shadow: var(--kit-shadow); overflow: hidden; display: block; }
+  .mock { display: flex; }
+  .mock-side { width: 22%; padding: calc(28 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(18 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 5%, transparent); }
+  .mock-side i, .mock-h, .mock-p { display: block; border-radius: calc(8 * var(--kit-u)); background: color-mix(in srgb, var(--kit-ink) 14%, transparent); }
+  .mock-side i { height: calc(16 * var(--kit-u)); }
+  .mock-side i:first-child { background: var(--kit-accent); width: 60%; }
+  .mock-main { flex: 1; padding: calc(36 * var(--kit-u)); display: flex; flex-direction: column; gap: calc(22 * var(--kit-u)); text-align: left; }
+  .mock-h { height: calc(34 * var(--kit-u)); width: 46%; background: color-mix(in srgb, var(--kit-ink) 70%, transparent); margin-bottom: calc(12 * var(--kit-u)); }
+  .mock-p { height: calc(18 * var(--kit-u)); width: 100%; }
+  .note { position: absolute; left: var(--kit-safe-x); bottom: var(--kit-safe-y); font-family: var(--kit-label-font); font-size: calc(34 * var(--kit-u)); letter-spacing: .14em; text-transform: uppercase; color: var(--kit-muted); }
+  .av { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6 * var(--kit-u)); border-radius: 50%; background: var(--kit-accent); color: var(--kit-on-accent); box-shadow: var(--kit-shadow); }
+  .av:nth-child(even) { background: var(--kit-accent-2, var(--kit-ink)); }
+  .av b { color: inherit; line-height: 1; }
+  .av span { font-family: var(--kit-label-font); font-size: calc(34 * var(--kit-u)); }
+  .logo { display: flex; align-items: center; justify-content: center; gap: calc(36 * var(--kit-u)); white-space: nowrap; }
+  .logo i { width: calc(150 * var(--kit-u)); height: calc(150 * var(--kit-u)); border-radius: calc(34 * var(--kit-u)); background: var(--kit-accent); color: var(--kit-on-accent);
+    font-style: normal; font-size: calc(80 * var(--kit-u)); display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script src="kit-data.js"></script>     <!-- tools/sched.py: PROJECT, VO, MUSIC -->
+<script src="kit/engine.js"></script>   <!-- copied from tools/ by the renderer -->
+<script src="kit/shots.js"></script>    <!-- KIT.shot.*, KIT.shoot -->
+<script src="kit/p10-sharp.js"></script>  <!-- KIT.shoot(el, state, { sharp: true }) -->
+<script src="content.js"></script>      <!-- the copy, the logo letter, the screenshots, the arc -->
+<script src="film.js"></script>
+</body>
+</html>

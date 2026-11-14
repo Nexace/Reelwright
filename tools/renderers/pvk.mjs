@@ -13,6 +13,7 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
+import { blurSpec, linearBlurFilter } from "../p5-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
 import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
@@ -23,8 +24,7 @@ const SHOT_ALPHA = { type: "png", omitBackground: true };
 // after load so the film's own CSS stays untouched; anything else the film paints stays in the frame
 export const TRANSPARENT = "html, body, #stage { background: transparent !important; background-image: none !important; }";
 // project.json "motionBlur": true | {shutter (deg, default 180), samples (default 8)} → null when off
-export const blurOf = (P) => { const m = P.motionBlur; if (!m) return null;
-  return { shutter: Number(m.shutter ?? 180), samples: Math.max(2, Math.round(Number(m.samples ?? 8))) }; };
+export const blurOf = (P) => blurSpec(P);   // project.json motionBlur or --blur auto|N; linear light unless { linear: false }
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
 // What a frame shows, in the page after render(t): the DOM (render(t) sets inline styles) minus what can't paint,
 // video times, scroll offsets and canvas pixels. null (never cached) when a canvas can't be read.
@@ -115,7 +115,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
         fs.writeFileSync(path.join(tmp, `s${String(i).padStart(2, "0")}.${EXT}`), await p.screenshot(SHOTOPT));
       }
       const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-framerate", "1", "-i", path.join(tmp, `s%02d.${EXT}`),
-        "-vf", `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
+        "-vf", MB.linear ? linearBlurFilter(MB.samples, { alpha: ALPHA }) : `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
         ...(ALPHA ? [] : ["-q:v", "2"]), file], { stdio: "inherit" });
       if (r.status !== 0) { console.error("motion blur: ffmpeg failed"); process.exit(r.status || 1); }
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }

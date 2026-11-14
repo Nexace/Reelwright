@@ -58,3 +58,5 @@ The build output (`vo/`, `hf/kit/`, `stills/`, `out/`, …) is git-ignored; only
 - [Shotcards A](shotcards/README.md) and [Shotcards B](shotcards/b-index.md): recipes for the video-shotcraft cards (KIT.shotcards).
 
 - More recipes: [pr-to-video](pr-to-video.md), [lyric-video](lyric-video.md), [faceless-explainer](faceless-explainer.md).
+
+- [one-world](one-world.md): one canvas, one camera (`KIT.world`).

@@ -47,6 +47,7 @@
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
 //
 // Plug-in commands (tools/commands/<name>.mjs; each file's header comment is its help, listed below):
+import { sizeOf } from "../tools/p5-formats.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -66,6 +67,8 @@ const st = args.indexOf("--style");   // any command: build with themes/<name>.c
 if (st >= 0) process.env.REELWRIGHT_STYLE = args.splice(st, 2)[1];
 const lg = args.indexOf("--lang");     // any command: voice project.json langs.<code>, output <out>-<code>.mp4
 if (lg >= 0) process.env.REELWRIGHT_LANG = args.splice(lg, 2)[1];
+const bl = args.indexOf("--blur");   // frames: motion blur averaged in linear light (tools/p5-blur.mjs): auto or a sample count
+if (bl >= 0) process.env.REELWRIGHT_BLUR = args.splice(bl, 2)[1] || "auto";
 const nc = args.indexOf("--no-cache");   // frames: render every frame (tools/renderers/pvk.mjs frame cache off)
 if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
 const as = args.indexOf("--as");   // encode: also write this format beside the mp4 (tools/renderers/pvk.mjs encode)
@@ -81,8 +84,9 @@ const lm = args.indexOf("--low-memory"); if (lm >= 0) { args.splice(lm, 1); proc
 const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080", "4x5": "1080x1350", "16x10": "1920x1200" };
 const fo = args.indexOf("--formats");
 const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
-if (formats && (!formats.length || formats.some((f) => !SIZES[f]))) {
-  console.log(`--formats takes a comma list of ${Object.keys(SIZES).join(", ")}`); process.exit(1);
+if (formats) {   // the named shapes or any WxH with even sides (tools/p5-formats.mjs)
+  try { if (!formats.length) throw new Error(`it takes a comma list of ${Object.keys(SIZES).join(", ")} or WxH sizes`); for (const f of formats) SIZES[f] ??= sizeOf(f); }
+  catch (e) { console.log(`--formats: ${e.message}`); process.exit(1); }
 }
 let proj = "projects/example";
 if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {

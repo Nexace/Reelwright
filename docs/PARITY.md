@@ -11,22 +11,22 @@ Compiled 2026-11-14 from the five per-source checklists in [docs/parity/](parity
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | HyperFrames | 52 | 5 | 0 | 31 | 18 | 6 | 0 | 0 | 112 |
-| Remotion + its skills | 31 | 4 | 3 | 38 | 21 | 0 | 12 | 1 | 110 |
+| Remotion + its skills | 33 | 4 | 3 | 38 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
-| anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 188 | 5 | 0 | 32 | 23 | 0 | 4 | 0 | 252 |
+| anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 206 | 5 | 0 | 14 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **333** | **29** | **6** | **131** | **74** | **6** | **20** | **2** | **601** |
+| **All** | **353** | **29** | **6** | **113** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 368 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 388 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 368 |
+| EQUAL, BETTER or EQUAL/BETTER | 388 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
-| Planned (Phase 11), not claimed | 4 |
-| Partial: some shipped, the rest planned (open) | 46 |
+| Planned (Phase 11), not claimed | 2 |
+| Partial: some shipped, the rest planned (open) | 31 |
 | Proposed exceptions waiting for the owner | 0 |
-| Open, no tag | 25 |
+| Open, no tag | 22 |
 | **Total** | **601** |
 
 ## HyperFrames
@@ -156,7 +156,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 |---|---|---|---|
 | 2.1.1 | `interpolate()` n keyframes, per-segment easing array (n-1) | EQUAL | `tools/engine.js` |
 | 2.1.2 | Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `e… | PARTIAL — open | `tools/engine.js,` (10z audit): `K.keys`, `K.seg`, `K.local`, `K.remap` clamp only (tools/engine.js, tools/shots.js); missing: `… |
-| 2.1.3 | `output:'perceptual-scale'` | MISSING — planned (Phase 11) | `tools/media.js` (no grep hit). Not built (10z audit): no perceptual-scale anywhere (a log-space lerp exists only inside the t… |
+| 2.1.3 | `output:'perceptual-scale'` | EQUAL | `tools/p5-media.js` |
 | 2.1.4 | `posterize` N (stepped look) | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t… |
 | 2.1.5 | `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin… | MISSING — exception (owner-approved 2026-11-12) | `tools/selfcheck/runtimes.mjs` Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpo… |
 | 2.1.6 | `interpolateColors()` (rgb, hsl, oklab, easing option) | PARTIAL — partial, rest planned (open) | `tools/selfcheck/runtimes.mjs,` (10b): colours tween under seek through `KIT.gsap` / `KIT.anime` (anime `backgroundColor` fixture in tools/se… |
@@ -212,7 +212,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.4.10 | `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/… | N/A — exception (owner-approved 2026-11-12) | (ffmpeg does this) |
 | 2.4.11 | FFmpeg shipped: `npx remotion ffmpeg/ffprobe`; trim re-encode rule | EQUAL | (system ffmpeg, setup checks it) |
 | 2.4.12 | Images: `<Img>`, `<CanvasImage fit crop>`, dynamic paths, image seque… | EQUAL | `K.img` + DOM |
-| 2.4.13 | Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`… | MISSING — planned (Phase 11) | (no GIF layer). Not built (10z audit): no animated-image layer; `KIT.video` may accept a .gif source (ffmpeg… |
+| 2.4.13 | Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`… | EQUAL | `tools/p5-media.js` |
 | 2.4.14 | Cropping `cropLeft/Right/Top/Bottom` ratios on any layer | PARTIAL — exception (owner-approved 2026-11-12) | `tools/transitions.js` (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it… |
 | 2.4.15 | Fonts: `@remotion/google-fonts` (typed loaders, blocks render until r… | BETTER | offline: 17 bundled OFL families, theme tokens (fonts/LICENSES.md) |
 | 2.4.16 | Arabic/RTL text rules (direction, animate by word, keep letters joine… | UNVERIFIED — exception (owner-approved 2026-11-12) | (not tested in Reelwright) |
@@ -383,28 +383,28 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.9 | Pencil grain: graphite skips paper valleys (destination-in tooth tile) | EQUAL | (10g): `D.grain(svg)` tooth mask baked in JS from `D.noise` (no feTurbulence) |
 | 1.10 | Cost-weighted stroke scheduling (len+9 px per lift, 38 cost/frame, 15… | EQUAL | `D.schedule(lengths,t0,t1,rest)`; snap via KIT.snap |
 | 1.11 | Underline / circle-the-number marks that draw on a spoken word | EQUAL | `D.underline`, `D.circle` + HF catalog hw-underline, hw-callout-circle, marker-highlight |
-| 1.12 | Callout: dot lands, leader line drawn, label written; anchor follows… | PARTIAL — partial, rest planned (open) | `docs/playbook/blocks.md` catalog vox-annotate, cursor-annotate, hw-box-label, hw-arrow (docs/playbook/blocks.md lists none as camera-a… |
-| 1.13 | Drawing score: parts, ids, dependencies, removable layers, teaching p… | PARTIAL — open | `tools/doodle2.js` (10g): `D.score` in tools/doodle2.js: ordered marks with ids, deps (cycle/unknown-dep errors), `layers` filte… |
+| 1.12 | Callout: dot lands, leader line drawn, label written; anchor follows… | EQUAL | `tools/p5-doodle.js` |
+| 1.13 | Drawing score: parts, ids, dependencies, removable layers, teaching p… | EQUAL | `tools/p5-doodle.js` |
 | 1.14 | Film of a picture drawing itself, last frame = still pixel for pixel | EQUAL | (10g): `D.drawSVG(svg,{t0,t1,order,style})`, original attributes restored at t1 |
 | 1.15 | Lessons: step sheet + captioned timelapse, drawn-stroke captions | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no draw… |
 | 1.16 | Pen-written lettering: authored centrelines, pointed-pen width from d… | EQUAL | (10g): `D.letters` on an authored single-stroke skeleton (A–Z 0–9 punctuation), pointed-nib width, constant n… |
-| 1.17 | Illustrated kinetic type: every word drawn stroke by stroke in a medi… | PARTIAL — partial, rest planned (open) | `tools/doodle2.js` (10g): `D.letters` (pen-written lettering, tools/doodle2.js) and `KIT.layout.kinetic` (font words landing on… |
+| 1.17 | Illustrated kinetic type: every word drawn stroke by stroke in a medi… | EQUAL | `tools/p5-doodle.js` |
 | 1.18 | 32 art styles (pencil, watercolour, woodcut, rubber hose, sumi-e, toy… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/doodle2.js,` (10g): 6 of the 32 in `D.styles` (pencil, riso, marker, ballpoint, chalk, blueprint; tools/doodle2.js, docs/p… |
-| 1.19 | Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/a… | PARTIAL — partial, rest planned (open) | `docs/playbook/motion.md` (10e): docs/playbook/motion.md covers paths, transitions (`KIT.transition.names`), camera shots (`KIT.shot`,… |
+| 1.19 | Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/a… | EQUAL | `tools/p5-deck.mjs` |
 | 1.20 | Six seam mechanisms (foreground-as-transition, persistent actor, sele… | EQUAL | `docs/playbook/doodle.md` |
-| 1.21 | Shape handoff: one outline travels, stretches, becomes the target; co… | PARTIAL — partial, rest planned (open) | `tools/path.js` (10e): `KIT.path` / `P.morph` / `P.morphMany` (flubber, tools/path.js; proof: tools/selfcheck/motion/path.mjs… |
+| 1.21 | Shape handoff: one outline travels, stretches, becomes the target; co… | EQUAL | `tools/p5-morph.js` |
 | 1.22 | Brush wipe, iris, flash-on-cut seams (pure, rng-seeded bristles) | EQUAL | `tools/transitions.js` |
 | 1.23 | Matched-move seam arithmetic (exit accelerates, cut at fastest frame,… | EQUAL | (10g): `D.matchedMove` (cubic exit/entry matched at the cut; selfcheck checks velocity) |
-| 1.24 | Camera: keys with per-segment ease, log2 zoom, monoZoom, authored pat… | PARTIAL — partial, rest planned (open) | `tools/shots2.js` (10e): `S.tour` (poses with per-pose ease, exact at each pose, tools/shots2.js) and any `t => state` function… |
+| 1.24 | Camera: keys with per-segment ease, log2 zoom, monoZoom, authored pat… | EQUAL | `tools/p5-camera.js` |
 | 1.25 | Camera: true depth parallax (plane z scales with one dolly), line-wei… | EQUAL | `tools/shots2.js` |
-| 1.26 | Lens zoom vs dolly vs dolly-zoom (solved per frame) | PARTIAL — partial, rest planned (open) | `tools/shots.js` (10e): `S.crashZoom` = lens zoom, `S.dollyZoom` = the fake (bg scales, tools/shots.js), `S.planes` gives real… |
-| 1.27 | Shake as gradient noise, attack ramp, squared decay, rot about centre | PARTIAL — partial, rest planned (open) | `tools/shots.js` (10e): `K.shake` (exponential-decay sinusoids at ~9/11 Hz) and `K.handheld` (sines), tools/shots.js; missing:… |
-| 1.28 | Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, fi… | PARTIAL — partial, rest planned (open) | `tools/shots.js,` (10e): `K.remap` piecewise-linear points and `S.bulletTime` (world clock that ramps to a freeze and back; too… |
-| 1.29 | Motion blur: sub-frame render averaged in linear light (`--blur auto`… | PARTIAL — open | `tools/renderers/pvk.mjs,` (10a): project.json `motionBlur` (shutter 180, 8 samples), pvk averages sub-frames with ffmpeg `tmix` on the… |
-| 1.30 | World: every beat a region on one canvas, one camera travels (anti sl… | PARTIAL — partial, rest planned (open) | `tools/shots2.js` (10e): `S.tour` flies one camera through poses (tools/shots2.js) and cam3 works over a frame-sized layer; mis… |
+| 1.26 | Lens zoom vs dolly vs dolly-zoom (solved per frame) | EQUAL | `tools/p5-camera.js` |
+| 1.27 | Shake as gradient noise, attack ramp, squared decay, rot about centre | EQUAL | `tools/p5-camera.js` |
+| 1.28 | Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, fi… | EQUAL | `tools/p5-morph.js` |
+| 1.29 | Motion blur: sub-frame render averaged in linear light (`--blur auto`… | EQUAL | `tools/p5-blur.mjs` |
+| 1.30 | World: every beat a region on one canvas, one camera travels (anti sl… | EQUAL | `docs/recipes/one-world.md` |
 | 1.31 | Motion kit: alternate(), entryFrom(i), temperament tokens, cubicBezie… | EQUAL | theme motion tokens (--kit-ease/tempo/stagger/settle), K.bezier; alternate/entryFrom trivial and absent |
-| 1.32 | Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() | PARTIAL — partial, rest planned (open) | `tools/checks/taste.page.mjs` (10d): qa WARN `wordy` and taste `pacing` (VO faster than 6.5 words/s, over 4 s with nothing moving; tools/ch… |
-| 1.33 | Subtitles: 2-6 word phrases landing on the first spoken word; caption… | PARTIAL — partial, rest planned (open) | `tools/engine.js` `K.captionCues(max=42)` splits by 42 characters and `K.subtitles` does karaoke highlight (tools/engine.js); m… |
+| 1.32 | Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() | EQUAL | `tools/p5-text.js` |
+| 1.33 | Subtitles: 2-6 word phrases landing on the first spoken word; caption… | EQUAL | `tools/p5-text.js` |
 | 1.34 | Product UI from data: before/after states, items spring to slots, mat… | MISSING — exception (owner-approved 2026-11-12) | `docs/recipes/before-after.md` Reelwright films a real recorded UI instead. Not built (10z audit): no id-keyed before/after list morph; docs… |
 | 1.35 | People placement by head size; pop-out on a disc | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): niche (people placement by head size), the Approach says not needed. Suggest: accept a… |
 | 1.36 | 3D with three.js (extruded type, puppets, camera through space) on th… | EQUAL | `tools/runtimes.js` |
@@ -412,17 +412,17 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.38 | Isometric / low-poly / halftone / stipple render styles | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): style plates, the Approach says skip (halftone/dither exist as HF catalog blocks). Sug… |
 | 1.39 | Photo -> marks (tone + direction fields from a user photo) | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): needs per-style mark engines, the Approach says skip. Suggest: accept as exception. |
 | 1.40 | Style adaptation from a reference image | EQUAL | `tools/theme_from.mjs,` |
-| 1.41 | Brand import (Figma sheet, logos, inventory, check) | PARTIAL — partial, rest planned (open) | `tools/look.mjs` brand.json (palette and fonts read by tools/look.mjs), tools/figma_export.py, `theme-from` (url or image); mi… |
+| 1.41 | Brand import (Figma sheet, logos, inventory, check) | EQUAL | `tools/p5-brand.mjs` |
 | 1.42 | Character consistency across shots/styles | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): needs character rigs, the Approach says skip. Suggest: accept as exception. |
 | 1.43 | Original score composed in code: 21 genre vocabularies, instruments,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/selfcheck/sound.mjs` (10g): 4 numpy beds, chill, drive, house (124 BPM), hiphop (90 BPM), with `drop_bar` / `end_bar` form; proof:… |
 | 1.44 | Optional recorded-instrument sound pack (piano, harp, marimba... 373… | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): 373 MB hash-pinned CC0 + CC BY 4.0 download, the Approach says do NOT bundle and at mo… |
 | 1.45 | SFX kit: 14 layered seeded effects (tick, press, pop, ink, scratch, p… | EQUAL | `tools/mix.py` |
 | 1.46 | SFX placement rules: cue by frame, score ducks under each cue, <=6 dB… | EQUAL | (10g): PEAK table lands peaks on cues, repeat variants + ×0.8 step, music ducks −6 dB under subdrop (impact/r… |
-| 1.47 | Narration: multiple providers (say, kokoro local; cloud gemini/openai… | PARTIAL — partial, rest planned (open) | `tools/vo.py` tools/vo.py edge-tts (free, word timings), takes cached by sha1 of voice+rate+pitch+text, per-language voices… |
+| 1.47 | Narration: multiple providers (say, kokoro local; cloud gemini/openai… | EQUAL | `tools/p5-narrate.mjs` |
 | 1.48 | Narration ducking numbers: -9 dB, 40 ms down, 450 ms up | EQUAL | mix.py sidechain-style duck + -14 LUFS |
-| 1.49 | Determinism gate: hash frames forward vs reverse, cold vs cached; dea… | PARTIAL — partial, rest planned (open) | `tools/qa.py` (10d): `verify` (hash re-render) and the qa `seekable` gate (tools/qa.py), taste `pacing` flags over 4 s with… |
-| 1.50 | Ship checks on the delivered file: framecheck (text whole, up long en… | PARTIAL — partial, rest planned (open) | `tools/selfcheck/taste.mjs` (10d): qa gates loudness incl. true peak, captions in safe area, flash, illustrative, seekable; WARNs overlap… |
-| 1.51 | Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-al… | PARTIAL — open | `bin/reelwright.mjs` (10a, 10d): `--formats` 16x9, 9x16, 1x1, 4x5 (1080x1350), 16x10 (SIZES in bin/reelwright.mjs), fps from proje… |
+| 1.49 | Determinism gate: hash frames forward vs reverse, cold vs cached; dea… | EQUAL | `tools/p5-gate.mjs` |
+| 1.50 | Ship checks on the delivered file: framecheck (text whole, up long en… | EQUAL | `tools/checks/p5-*` |
+| 1.51 | Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-al… | EQUAL | `tools/p5-formats.mjs` |
 | 1.52 | Launch-film kit: spec -> chat types itself, answers bloom, end card,… | BETTER | Reelwright films the real product (record.mjs), VO+captions+srt/vtt, 3 shapes; `from-url` drafts a film |
 | 1.53 | Interactive web art: <ani-doodle> mascots that follow the cursor, scr… | MISSING — exception (owner-approved 2026-11-12) | `tools/commands/embed.mjs` Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs an… |
 | 2.1 | basic-3d-scene [1 shot] | EQUAL | `tools/shots2.js` |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 368 EQUAL/BETTER, 158 accepted exceptions, 4 planned, 46 partial, 0 proposed, 25 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 388 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 31 partial, 0 proposed, 22 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -851,7 +851,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.
 
 
-### Planned (Phase 11) (4)
+### Planned (Phase 11) (2)
 
 Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.
 
@@ -860,12 +860,7 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — plan: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
 - `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — plan: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 
-#### Remotion + its skills (2)
-
-- `remotion:2.1.3` — `output:'perceptual-scale'` — MISSING — plan: [N] area-space lerp, 1 line (Phase 9 item 3)
-- `remotion:2.4.13` — Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`, `loopBehavior` loop/pause-af… — MISSING — plan: [N] decode GIF/APNG to PNG frames with ffmpeg at build, show frame by index from `render(t)`; honour loop behaviours. [R] free
-
-### Partial (46)
+### Partial (31)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
@@ -897,23 +892,8 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `remotion:2.7.10` — Parameterised renders: `--props file.json|'{...}'` -> `getInputProps()`/component props; `defaultPr… — PARTIAL
 - `remotion:2.7.14` — HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--metadata key=value` into the mp4… — PARTIAL
 
-#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (24)
+#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (9)
 
-- `doodle-shots-motion:1.12` — Callout: dot lands, leader line drawn, label written; anchor follows camera — PARTIAL
-- `doodle-shots-motion:1.17` — Illustrated kinetic type: every word drawn stroke by stroke in a medium, letters pop on landing — PARTIAL
-- `doodle-shots-motion:1.19` — Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/act/emph/close) + deal/find tool — PARTIAL
-- `doodle-shots-motion:1.21` — Shape handoff: one outline travels, stretches, becomes the target; coverShape grows to fill — PARTIAL
-- `doodle-shots-motion:1.24` — Camera: keys with per-segment ease, log2 zoom, monoZoom, authored path fn — PARTIAL
-- `doodle-shots-motion:1.26` — Lens zoom vs dolly vs dolly-zoom (solved per frame) — PARTIAL
-- `doodle-shots-motion:1.27` — Shake as gradient noise, attack ramp, squared decay, rot about centre — PARTIAL
-- `doodle-shots-motion:1.28` — Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, filmFrameOf for cues — PARTIAL
-- `doodle-shots-motion:1.30` — World: every beat a region on one canvas, one camera travels (anti slide-deck) — PARTIAL
-- `doodle-shots-motion:1.32` — Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() — PARTIAL
-- `doodle-shots-motion:1.33` — Subtitles: 2-6 word phrases landing on the first spoken word; caption rule checks — PARTIAL
-- `doodle-shots-motion:1.41` — Brand import (Figma sheet, logos, inventory, check) — PARTIAL
-- `doodle-shots-motion:1.47` — Narration: multiple providers (say, kokoro local; cloud gemini/openai/elevenlabs), takes cached by… — PARTIAL
-- `doodle-shots-motion:1.49` — Determinism gate: hash frames forward vs reverse, cold vs cached; dead-air gate (something changes… — PARTIAL
-- `doodle-shots-motion:1.50` — Ship checks on the delivered file: framecheck (text whole, up long enough, 9:16 phone zones), A/V s… — PARTIAL
 - `doodle-shots-motion:2b.1` — Camera layer: layout-scale `zoom` instead of scale so text stays sharp under 3D; native-size textur… — PARTIAL
 - `doodle-shots-motion:2b.3` — Velocity helpers: velocityAt, lagged, dampedSettle (state-free) — PARTIAL
 - `doodle-shots-motion:2b.7` — Ink Press: complete 36 s validated promo template (10 shots, replace screenshots/copy/logo) — PARTIAL
@@ -924,7 +904,7 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `doodle-shots-motion:2b.18` — Beat-synced cutting methodology: librosa grid fit, kick/snare/hat onset classes, grid validation by… — PARTIAL
 - `doodle-shots-motion:2b.19` — Output-audio offset compensation: AAC priming (~1.28 f) and per-file SFX peak lag (brush-write 2 f,… — PARTIAL
 
-### Open, no tag (25)
+### Open, no tag (22)
 
 Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 
@@ -952,12 +932,6 @@ Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 - `remotion:2.7.5` — Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30,60` gives `element-00/30/60`)… — PARTIAL
 - `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick s… — PARTIAL
 - `remotion:2.8.4` — `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/outFrame, playbackRate, fullscre… — PARTIAL
-
-#### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (3)
-
-- `doodle-shots-motion:1.13` — Drawing score: parts, ids, dependencies, removable layers, teaching phases; one score yields still,… — PARTIAL
-- `doodle-shots-motion:1.29` — Motion blur: sub-frame render averaged in linear light (`--blur auto`, shutter 180) — PARTIAL
-- `doodle-shots-motion:1.51` — Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-alpha / APNG / MP4 / one self-co… — PARTIAL
 
 ## Phase 11: decisions that need the owner
 

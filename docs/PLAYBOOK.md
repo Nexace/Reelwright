@@ -1343,3 +1343,7 @@ template, the pins, the licence text, `film.mjs`/`kit.js` in Node and the no-TTY
 - Not run on Windows (the code spawns `npx.cmd`/`npm.cmd` there). Remotion has no Windows arm64 build.
 - `--lang` works through the kit data. The cue words in `film.mjs` must exist in the translated line, because the
   base-language fallback (`VO[id].base`) is not in `kit.js`.
+
+## More topics (Phase 11)
+
+[p5-motion](playbook/p5-motion.md), [p5-text-media](playbook/p5-text-media.md), [p5-delivery](playbook/p5-delivery.md), [p5-deck](playbook/p5-deck.md); also [motion-rules](playbook/motion-rules.md), [lottie](playbook/lottie.md), [variables](playbook/variables.md), [audio-fx](playbook/audio-fx.md), [manim-native](playbook/manim-native.md), [skill-references](playbook/skill-references.md).

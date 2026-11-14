@@ -2,7 +2,7 @@
 
 Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 368; not 233 (grand total of the groups below: 233).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 388; not 213 (grand total of the groups below: 213).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 368; not 233 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 138 |
-| | **Grand total** | **233** |
+| 10 | Not done, no stated reason | 118 |
+| | **Grand total** | **213** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -384,13 +384,13 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (138) — 72 approved, 4 planned, 45 partial, 17 open
+## 10. Not done, no stated reason (118) — 72 approved, 2 planned, 30 partial, 14 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 138 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 118 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
+By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
 
 ### HyperFrames (38)
 
@@ -520,7 +520,7 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
   - says: `gen --provider higgsfield` is paid and opt-in, and `gen --import <file> --source firefly/express` registers a file made elsewhere, offline (tools/gen.mjs, tools/gen/). No local mflux or LTX provider. Not built: multi-G…
   - approach: out of scope; keep `gen`
 
-### Remotion + its skills (38)
+### Remotion + its skills (36)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -531,14 +531,11 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
   - says: (10z audit): `KIT.safe` title-safe box per format (6 % sides and 8 % top / bottom at 16x9, tools/engine.js) and the qa tiny-text WARN below 24 px * `KIT.u` (tools/qa_page.mjs); missing: the 84 px headline / 44 px suppor…
   - approach: [D] cite in PLAYBOOK as defaults (rewrite wording)
 
-#### Native code to add in tools/ (or a flag/command) (33)
+#### Native code to add in tools/ (or a flag/command) (31)
 
 - `remotion:2.1.2` — Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `extend`) — PARTIAL — open
   - says: (10z audit): `K.keys`, `K.seg`, `K.local`, `K.remap` clamp only (tools/engine.js, tools/shots.js); missing: `extend`, `identity`, `wrap` for numbers (a new module, engine.js is frozen). [N] gap; [R] core `interpolate()`…
   - approach: [N] add `{left,right}` modes to `K.keys`
-- `remotion:2.1.3` — `output:'perceptual-scale'` — MISSING — planned (Phase 11)
-  - says: (no grep hit). Not built (10z audit): no perceptual-scale anywhere (a log-space lerp exists only inside the tools/media.js speed ramps). [N] gap; [R] core `interpolate()` has it in React films only. Suggest: build
-  - approach: [N] area-space lerp, 1 line (Phase 9 item 3)
 - `remotion:2.1.4` — `posterize` N (stepped look) — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t * n) / n, pts)`), so a helper adds nothing. [R] core `interpolate()` has it in React films only. Suggest: acce…
   - approach: [N] `K.keys` option: sample every Nth frame (needs fps)
@@ -584,9 +581,6 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
 - `remotion:2.4.9` — Silence detection recipe (loudnorm `input_thresh` -> `silencedetect noise=..:d=0.5`; merge gaps <0.2 s); `getSilentParts()` in renderer — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no silence-detect step; VO is TTS (no dead air) and music is trimmed with `music.start`; only user-supplied recordings would need it, and `ffmpeg silencedetect` is one command by hand. Suggest: ac…
   - approach: [N] `tools/silence.py` or in mix.py to trim VO/takes (Phase 9 item 8)
-- `remotion:2.4.13` — Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`, `loopBehavior` loop/pause-after-finish/clear-after-finish, fit) and… — MISSING — planned (Phase 11)
-  - says: (no GIF layer). Not built (10z audit): no animated-image layer; `KIT.video` may accept a .gif source (ffmpeg extracts GIF frames) but that is untested here. [N] gap; [R] core `<AnimatedImage>` / `@remotion/gif` in React…
-  - approach: [N] decode GIF/APNG to PNG frames with ffmpeg at build, show frame by index from `render(t)`; honour loop behaviours. [R] free
 - `remotion:2.4.14` — Cropping `cropLeft/Right/Top/Bottom` ratios on any layer — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it is what tools/transitions.js uses for wipes). Suggest: accept as exception
   - approach: [N] `K.crop(el,{l,r,t,b})`
@@ -713,22 +707,13 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
   - says: (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js (`tools/manim.mjs`, `tools/selfcheck/manim.mjs`); `all`, `verify` and the manifest do not run Manim (shared files left alone by decision)…
   - approach: own code
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (44)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (26)
 
-#### Docs / PLAYBOOK note only (7)
+#### Docs / PLAYBOOK note only (4)
 
 - `doodle-shots-motion:1.15` — Lessons: step sheet + captioned timelapse, drawn-stroke captions — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no drawn-stroke captions. Suggest: accept as exception.
   - approach: docs recipe on top of D.score + captions; low priority (teaching niche)
-- `doodle-shots-motion:1.19` — Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/act/emph/close) + deal/find tool — PARTIAL — partial, rest planned (open)
-  - says: (10e): docs/playbook/motion.md covers paths, transitions (`KIT.transition.names`), camera shots (`KIT.shot`, `S.names`) and motion helpers; missing: the 46-name deck table mapped to KIT calls and a `shots` CLI listing (…
-  - approach: docs: 'Motion deck' table of the 46 names mapped to KIT calls; `reelwright shots` prints names (bin/reelwright.mjs has no `shots` command today)
-- `doodle-shots-motion:1.30` — World: every beat a region on one canvas, one camera travels (anti slide-deck) — PARTIAL — partial, rest planned (open)
-  - says: (10e): `S.tour` flies one camera through poses (tools/shots2.js) and cam3 works over a frame-sized layer; missing: `KIT.world(regions)` placing regions in world coordinates, and a 'One world' recipe in docs/playbook/mot…
-  - approach: docs 'One world' recipe + `KIT.world(regions)` placing regions in world coords (S)
-- `doodle-shots-motion:1.41` — Brand import (Figma sheet, logos, inventory, check) — PARTIAL — partial, rest planned (open)
-  - says: brand.json (palette and fonts read by tools/look.mjs), tools/figma_export.py, `theme-from` (url or image); missing: logo inventory and the brand check (nothing in tools/ or bin/ inventories logos). Suggest: build.
-  - approach: docs; S additions: logo inventory check
 - `doodle-shots-motion:2b.7` — Ink Press: complete 36 s validated promo template (10 shots, replace screenshots/copy/logo) — PARTIAL — partial, rest planned (open)
   - says: (10z): docs/recipes/film is one 8-scene HF film built from the 8 recipes (docs/recipes/*.md, stills); projects/example, teaser, website, dashboard; `from-url`; missing: a validated 10-shot promo template (`new --templat…
   - approach: docs: 'promo-energy-arc' project template (`reelwright new --template promo`) assembled from KIT.recipe.* (M). Do not copy template screenshots
@@ -763,47 +748,11 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
   - says: 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-card-assemble and KIT.stagger with no kit gap. Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
 
-#### Native code to add in tools/ (or a flag/command) (19)
+#### Native code to add in tools/ (or a flag/command) (7)
 
-- `doodle-shots-motion:1.12` — Callout: dot lands, leader line drawn, label written; anchor follows camera — PARTIAL — partial, rest planned (open)
-  - says: catalog vox-annotate, cursor-annotate, hw-box-label, hw-arrow (docs/playbook/blocks.md lists none as camera-anchored); missing: `D.callout` with dot landing, drawn leader, written label and an anchor that follows the ca…
-  - approach: native `D.callout({anchor:(t)=>[x,y], label, in})` (S)
-- `doodle-shots-motion:1.13` — Drawing score: parts, ids, dependencies, removable layers, teaching phases; one score yields still, timelapse, step sheet — PARTIAL — open
-  - says: (10g): `D.score` in tools/doodle2.js: ordered marks with ids, deps (cycle/unknown-dep errors), `layers` filter, cost timing, last frame = still; proof: tools/selfcheck/doodle2.mjs (ran, passes); missing: step sheet (one…
-  - approach: native `D.score` (ordered marks with ids/deps/layers) built from SVG groups; `drawSVG(svgEl)` auto-orders strokes by DOM order
-- `doodle-shots-motion:1.21` — Shape handoff: one outline travels, stretches, becomes the target; coverShape grows to fill — PARTIAL — partial, rest planned (open)
-  - says: (10e): `KIT.path` / `P.morph` / `P.morphMany` (flubber, tools/path.js; proof: tools/selfcheck/motion/path.mjs); missing: `handoff` (one outline travels, stretches and lands exactly on the target) and `coverShape` growth…
-  - approach: native `KIT.morph.handoff({from,to,t0,t1})` (travel + stretch + land exactly) S
-- `doodle-shots-motion:1.24` — Camera: keys with per-segment ease, log2 zoom, monoZoom, authored path fn — PARTIAL — partial, rest planned (open)
-  - says: (10e): `S.tour` (poses with per-pose ease, exact at each pose, tools/shots2.js) and any `t => state` function is an authored path; `K.camAt` still lerps z linearly with one inOut ease; missing: log2 zoom interpolation,…
-  - approach: native: interpolate z in log2 inside cam3/keys option `log:true`; `KIT.shot.path(fn)` already is t=>state
-- `doodle-shots-motion:1.26` — Lens zoom vs dolly vs dolly-zoom (solved per frame) — PARTIAL — partial, rest planned (open)
-  - says: (10e): `S.crashZoom` = lens zoom, `S.dollyZoom` = the fake (bg scales, tools/shots.js), `S.planes` gives real depth (tools/shots2.js); missing: a real dolly-zoom solved per frame on top of `S.planes` (no `dollyZoomReal`…
-  - approach: native `dollyZoomReal` needs >=2 planes; builds on `shot.planes`
-- `doodle-shots-motion:1.27` — Shake as gradient noise, attack ramp, squared decay, rot about centre — PARTIAL — partial, rest planned (open)
-  - says: (10e): `K.shake` (exponential-decay sinusoids at ~9/11 Hz) and `K.handheld` (sines), tools/shots.js; missing: gradient-noise shake (`D.noise` exists in tools/doodle2.js but is not wired in), attack ramp, rotation about…
-  - approach: native: swap sines for seeded D.noise option `noise:true`
-- `doodle-shots-motion:1.28` — Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, filmFrameOf for cues — PARTIAL — partial, rest planned (open)
-  - says: (10e): `K.remap` piecewise-linear points and `S.bulletTime` (world clock that ramps to a freeze and back; tools/shots.js, shots2.js); missing: smoothstep speed ramps, inverse `filmOf(sceneT)` for cues, the speed<0.01 `k…
-  - approach: native `KIT.timeRemap(keys)` -> {at(t), filmOf(sceneT), freezes}; refuse speed<0.01 without keepsMoving (their dead-air rule)
-- `doodle-shots-motion:1.32` — Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() — PARTIAL — partial, rest planned (open)
-  - says: (10d): qa WARN `wordy` and taste `pacing` (VO faster than 6.5 words/s, over 4 s with nothing moving; tools/checks/taste.page.mjs); missing: the readS = max(0.7 s, 0.3 s/word) 'up long enough to read' check on each text,…
-  - approach: native QA WARN `readtime` in qa_page.mjs (visible window of each text vs readS)
-- `doodle-shots-motion:1.33` — Subtitles: 2-6 word phrases landing on the first spoken word; caption rule checks — PARTIAL — partial, rest planned (open)
-  - says: `K.captionCues(max=42)` splits by 42 characters and `K.subtitles` does karaoke highlight (tools/engine.js); missing: a 2-6 word phrase splitter landing on the first spoken word, and the TOO TIGHT caption check in tools/…
-  - approach: native: phrase splitter min/max words + TOO TIGHT check in sched.py
 - `doodle-shots-motion:1.37` — Mechanism explainers: exploded axonometric machine, free-angle camera, depth-sorted parts, drafted lettering, figure card — MISSING — exception (owner-approved 2026-11-12)
   - says: pieces only: `S.explode` (layers separate in z while the stack turns axonometric, tools/shots2.js) and `KIT.math3d` (Three.js scenes, tools/math3d.js). Not built (10z audit): no `KIT.axo` projection with depth-sorted pa…
   - approach: native only as docs + `KIT.axo` SVG projection helper (project mm coords with azimuth/elevation, depth-sort) or three.js for real 3D; L, defer
-- `doodle-shots-motion:1.49` — Determinism gate: hash frames forward vs reverse, cold vs cached; dead-air gate (something changes every second) — PARTIAL — partial, rest planned (open)
-  - says: (10d): `verify` (hash re-render) and the qa `seekable` gate (tools/qa.py), taste `pacing` flags over 4 s with nothing moving (tools/checks/taste.page.mjs); missing: a forward-vs-reverse / cold-vs-cached frame-hash gate…
-  - approach: native qa WARN `dead-air`: per-second frame diff in qa_page.mjs (S)
-- `doodle-shots-motion:1.50` — Ship checks on the delivered file: framecheck (text whole, up long enough, 9:16 phone zones), A/V sync, true peak, motionscan (slide cuts,… — PARTIAL — partial, rest planned (open)
-  - says: (10d): qa gates loudness incl. true peak, captions in safe area, flash, illustrative, seekable; WARNs overlap, tiny-text, wordy, dark, ai-label, taste (motion, balance, empty, contrast, pacing; proof: tools/selfcheck/ta…
-  - approach: native: WARN `safe-zone` (9:16 UI overlap zones), `facts` (numbers need a Source: credit; partly exists in README 'Source:' credit)
-- `doodle-shots-motion:1.51` — Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-alpha / APNG / MP4 / one self-contained HTML player — PARTIAL — open
-  - says: (10a, 10d): `--formats` 16x9, 9x16, 1x1, 4x5 (1080x1350), 16x10 (SIZES in bin/reelwright.mjs), fps from project.json (default 60), mp4 / webm / mov / gif / apng / png / hls via `output` or `encode --as` (docs/playbook/o…
-  - approach: add 4x5 to SIZES + K.fmt; GIF/WebM/APNG via ffmpeg flags; HTML player = the embeddable-player work (other audit)
 - `doodle-shots-motion:2b.1` — Camera layer: layout-scale `zoom` instead of scale so text stays sharp under 3D; native-size texture rasterised then scaled (Q2) — PARTIAL — partial, rest planned (open)
   - says: KIT.camCSS/shoot still use transform scale() (tools/shots.js); shots2 planes set --kit-line for stroke weight only; missing: `sharp:true` layout-zoom option and a 9x16 stills check [10z: build]
   - approach: native: camCSS option `sharp:true` (CSS zoom on the filmed layer; same Chromium in both renderers) + docs; verify with stills at 9x16
@@ -823,23 +772,14 @@ By source: hyperframes 38, remotion 38, manim 18, doodle-shots-motion 44
   - says: (10g): per-kind PEAK table in tools/mix.py (cue start = t − peak), proved ±10 ms by tools/selfcheck/sound.mjs; missing: AAC priming measurement / `verify-av` cross-correlation on the rendered mp4 [10z: build]
   - approach: native: per-kind PEAK table in mix.py for synthesised SFX (known by construction) + `verify-av` cross-correlation check on the rendered mp4 (S)
 
-#### Other (read the approach text) (11)
+#### Other (read the approach text) (8)
 
-- `doodle-shots-motion:1.17` — Illustrated kinetic type: every word drawn stroke by stroke in a medium, letters pop on landing — PARTIAL — partial, rest planned (open)
-  - says: (10g): `D.letters` (pen-written lettering, tools/doodle2.js) and `KIT.layout.kinetic` (font words landing on spoken words, tools/layouts.js) both exist; missing: `layout.kinetic({style:'drawn'})` joining them (no `style…
-  - approach: after lettering lands: `layout.kinetic({style:'drawn'})`
-- `doodle-shots-motion:1.29` — Motion blur: sub-frame render averaged in linear light (`--blur auto`, shutter 180) — PARTIAL — open
-  - says: (10a): project.json `motionBlur` (shutter 180, 8 samples), pvk averages sub-frames with ffmpeg `tmix` on the encoded frames, hyperframes uses the producer's blur (tools/renderers/pvk.mjs, hyperframes.mjs; docs/playbook/…
-  - approach: optional renderer flag `--motion-blur N`: render N sub-frames per frame in tools/renderers/pvk.mjs and average with ffmpeg tmix/numpy; opt-in, multiplies render time
 - `doodle-shots-motion:1.34` — Product UI from data: before/after states, items spring to slots, matched by id — MISSING — exception (owner-approved 2026-11-12)
   - says: Reelwright films a real recorded UI instead. Not built (10z audit): no id-keyed before/after list morph; docs/recipes/before-after.md is a static two-pane split. Suggest: accept as exception (low priority, the Approach…
   - approach: optional: `KIT.layout.compare`/ list-morph keyed by id (FLIP-style). Low priority
 - `doodle-shots-motion:1.35` — People placement by head size; pop-out on a disc — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): niche (people placement by head size), the Approach says not needed. Suggest: accept as exception.
   - approach: not needed (niche); docs note
-- `doodle-shots-motion:1.47` — Narration: multiple providers (say, kokoro local; cloud gemini/openai/elevenlabs), takes cached by hash, `check` hears every word back (WER… — PARTIAL — partial, rest planned (open)
-  - says: tools/vo.py edge-tts (free, word timings), takes cached by sha1 of voice+rate+pitch+text, per-language voices; missing: a local provider (kokoro/piper) and the ASR round-trip check (nothing in tools/ or bin/ mentions wh…
-  - approach: optional: local kokoro/piper provider + ASR round-trip check (whisper.cpp) as opt-in setup extras; keep edge-tts default
 - `doodle-shots-motion:1.53` — Interactive web art: <ani-doodle> mascots that follow the cursor, scroll-drawn hero, form companion — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs and the studio exist, neither is cursor-reactive web art). Suggest: accept as exception.
   - approach: out of scope (not a video; belongs to the embeddable-player/studio work)

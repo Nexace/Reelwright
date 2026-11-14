@@ -2,6 +2,8 @@
 // reelwright <command> [project]   (project defaults to projects/example)
 //
 //   new <name> [--renderer hyperframes|remotion]   copy the example (or example-hf, or templates/remotion) into projects/<name>
+//   new <name> --video <file> [--audio <file>]   a HyperFrames project that plays your media (non-H.264 video is converted; transcript.json from its audio only
+//                    if whisper-cli and $WHISPER_MODEL are set up: nothing is downloaded)
 //   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)
 //   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
 //   vo               voiceover from project.json lines (edge-tts) → vo/
@@ -155,6 +157,12 @@ function hasTrack() { const f = project().music?.file; return !!f && fs.existsSy
 
 const C = {
   new() {
+    const take = (f) => { const i = args.indexOf(f); return i >= 0 ? args.splice(i, 2)[1] : undefined; }, video = take("--video"), audio = take("--audio");
+    if (video || audio) {   // G1: a HyperFrames project that plays your media (H.264 conversion; transcript only through the existing whisper-cli path)
+      import("../tools/new_media.mjs").then((m) => { const r = m.scaffold({ ROOT, name: args[0], video, audio }); console.log(`created ${path.relative(ROOT, r.dest)} (${r.width}x${r.height}, ${r.fps} fps, ${r.dur} s) — edit hf/film.js, then: reelwright all ${args[0]}`); })
+        .catch((e) => { console.error(e.message); process.exit(1); });
+      return;
+    }
     const r = args.indexOf("--renderer"), rend = r >= 0 ? args.splice(r, 2)[1] : "pvk";
     const hf = rend === "hyperframes";
     const name = args[0];

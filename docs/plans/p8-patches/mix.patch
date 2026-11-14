@@ -1,6 +1,8 @@
---- a/tools/mix.py	2026-11-14 15:58:15
-+++ b/tools/mix.py	2026-11-14 15:58:15
-@@ -135,15 +135,24 @@
+diff --git a/tools/mix.py b/tools/mix.py
+index ce46f2b..3194894 100644
+--- a/tools/mix.py
++++ b/tools/mix.py
+@@ -140,16 +140,25 @@ for c in TL.get("cues", []):
      a = int((c["t"] - PEAK[kd]) * SR)
      if kd == "subdrop" or (kd in ("impact", "riser") and P.get("music", {}).get("duck_sfx")): duck_around(duck, max(0, a), int((c["t"] + .2) * SR))
      if a < 0: s = s[-a:]; a = 0
@@ -9,6 +11,7 @@
      b = min(N, a + len(s)); fx[a:b] += s[: b - a] * g
  
  music *= duck[:, None]
+ if FX.get("sfx"): fx = audio_fx.process_f32(fx[:, None], SR, FX["sfx"])[:, 0]
 +# project.json "automation": { "music" | "voice" | "sfx": { gain: [[t, dB], ...], cutoff: [[t, Hz], ...], fade_in, fade_out } }  (tools/mixfx.py; off by default)
 +A = P.get("automation") or {}
 +if A:

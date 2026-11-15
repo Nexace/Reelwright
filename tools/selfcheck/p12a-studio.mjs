@@ -257,6 +257,10 @@ try {
   // render-from-UI with props: the queued render takes --props-file from props.json (title in the h1 changes), and the option is checked on the server
   await tab("Props"); await reloads(() => page.locator("#tab-props button", { hasText: "Render with these props" }).click().catch(() => {})).catch(() => {});
   await tab("Renders"); await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].some((x) => /props/.test(x.textContent) && /done|failed/.test(x.textContent)), null, { timeout: 240000 });
+  if (![...(await state())].some((t) => /props.*done/.test(t))) {   // diagnostic for a runner we cannot reach: run the same command directly and show its output
+    const d = spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "film", dir, "--props-file", path.join(dir, "props.json")], { encoding: "utf8", cwd: ROOT, timeout: 300000 });
+    console.error("props render, run directly: exit " + d.status + "\n" + String(d.stdout).slice(-1500) + "\n" + String(d.stderr).slice(-2500));
+  }
   assert.ok([...(await state())].some((t) => /props.*done/.test(t)), "the props render finished: " + (await state()).join(" | "));
   const withProps = path.join(dir, "out", "fx.mp4"); assert.ok(fs.existsSync(withProps), "out/fx.mp4 from the props render");
   const h1px = (f) => spawnSync("ffmpeg", ["-v", "error", "-ss", "0.3", "-i", f, "-vf", "crop=140:40:10:5,format=gray", "-frames:v", "1", "-f", "rawvideo", "-"], { maxBuffer: 1 << 20 }).stdout.toString("hex");

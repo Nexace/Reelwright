@@ -8,7 +8,7 @@ import json, sys
 try:
     import cv2
 except ImportError:
-    sys.stderr.write("face detection needs OpenCV: pip install opencv-python-headless (it carries the Haar cascade; nothing is downloaded by reelwright)\n")
+    sys.stderr.write("face detection needs OpenCV: reelwright face install --yes (repo-local venv, used automatically) or pip install opencv-python-headless (it carries the Haar cascade; nothing is downloaded by reelwright)\n")
     sys.exit(3)
 
 casc = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")

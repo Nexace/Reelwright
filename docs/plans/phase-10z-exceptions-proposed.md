@@ -2,7 +2,7 @@
 
 Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 433; not 168 (grand total of the groups below: 168).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 436; not 165 (grand total of the groups below: 165).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 433; not 168 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 81 |
-| | **Grand total** | **168** |
+| 10 | Not done, no stated reason | 78 |
+| | **Grand total** | **165** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -360,15 +360,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: exclude
 
-## 10. Not done, no stated reason (81) — 76 approved, 4 partial, 1 open
+## 10. Not done, no stated reason (78) — 76 approved, 2 partial
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 81 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 78 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
+By source: hyperframes 29, remotion 14, manim 18, doodle-shots-motion 17
 
-### HyperFrames (32)
+### HyperFrames (29)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -379,7 +379,7 @@ By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
 
-#### Native code to add in tools/ (or a flag/command) (21)
+#### Native code to add in tools/ (or a flag/command) (18)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -411,11 +411,8 @@ By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
 - `hyperframes:F3` — Caption editing in Studio (click a word, restyle, retime) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: tools/studio/studio.js has no caption panel; captions are drawn by the engine from the VO line text and edge-tts word times, and the inspector edits the line text (re-voice to retime). Not built: hand-retiming or restyl…
   - approach: native studio panel (see H)
-- `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion, `--tailwind`, writes AGENTS.md/CLAUDE.… — PARTIAL — partial, rest planned (open)
-  - says: `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats` covers resolution presets. Missing: `--video/--audio` import, auto-transcribe (D10 not built), writing AGENTS.…
-  - approach: add `new --video/--audio` once A7/D10 exist
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6, composition contract 27, CSS/scripts 2… — PARTIAL — partial, rest planned (open)
-  - says: `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE; fixture `qa-broken-lint`; tools/selfcheck/hf-lint.mjs) plus qa.py/qa_page.mjs gates (loudness, captions, flash…
+  - says: (11): built: `reelwright lint [--components]` with 9 ported rules, drift and HDR checks (`tools/checks/native-lint.mjs`, `node tools/selfcheck/p13-lint.mjs`), layout and occlusion (`reelwright check`), contrast and moti…
   - approach: ~~wire `lintProject()` into `qa` for hf projects (S)~~ done in 10m; vendor the four in-page audit scripts for layout/occlusion/contrast into `qa_page.mjs` (M)
 - `hyperframes:G6` — `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG of one element) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. Not built: low value (the row itself says so), and `stills` at chosen times already shows motion. Suggest: exce…
@@ -435,12 +432,6 @@ By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
 - `hyperframes:H2` — Edits source-backed DOM: click element in preview, Design panel (Text, Layout, Style, Media, Motion, Effects, Grade, 3D transform), canvas… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: The studio never touches the frame DOM or film.js/hf (docs/playbook/studio.md 'What it never does'). Not built: Reelwright's DOM is created by `render(t)` every frame, so there is no source-backed element to patch from…
   - approach: native editor edits what Reelwright actually stores (script lines, gaps, theme, layout, format)
-- `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Renders panel (format/resolution/fps/quality/G… — PARTIAL — partial, rest planned (open)
-  - says: Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playhead, contact sheet, taste and embed jobs, job log (tools/studio/studio.js; job allow-list sched/audio/stills/taste/em…
-  - approach: native panels, in priority order: renders queue, QA/lint, script/VO lines, stills sheet
-- `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` render — PARTIAL — partial, rest planned (open)
-  - says: pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER for iteration); hyperframes ignores the range ('renders the whole film', hyperframes.mjs:119) and has no frame…
-  - approach: native: let hf reuse `.cache/frames` by content hash; `frames <from>-<to>`
 - `hyperframes:K2` — `init --video` converts non-web codecs to H.264, preview proxies for HEVC/ProRes — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Render needs no transcode: `KIT.video` frames are extracted by ffmpeg, so HEVC/ProRes work (tools/renderers/media.mjs; docs/playbook/video-audio.md). No import-time H.264 conversion (`new --video` does not exist) and no…
   - approach: ffmpeg transcode on import
@@ -527,8 +518,8 @@ By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
 - `remotion:2.6.9` — Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Turf, CesiumJS flyovers (Google 3D tiles needs billing key); render-stabi… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (10f): offline maps from the vendored d3 + topojson + world / US atlases as blocks `world-map`, `us-map-bubble`, `us-map-hex` (vendor/hyperframes/registry/blocks, tools/selfcheck/blocks.mjs samples the d3 + atlas path);…
   - approach: static map: [D] `<img>` already works. MapLibre route animation: optional [N] later (MapLibre BSD-3, but tiles need network/key: breaks offline-core, keep opt-in). Mapbox/Cesium/MapTiler/Google need…
-- `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick switcher, shortcuts, render-from-UI, WebM… — PARTIAL — open
-  - says: (10k): `reelwright studio` (tools/studio/, docs/playbook/studio.md): vendored player, timeline of scenes / VO / beats / SFX, inspector for line text, gap, style, title, fps, raw project.json / brand.json editors, stills…
+- `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick switcher, shortcuts, render-from-UI, WebM… — PARTIAL — partial, rest planned (open)
+  - says: (11): built: props sidebar, canvas zoom, quick switcher, render-from-UI, click-to-select, `--open` / `--no-open` / `--force-new` (`tools/studio/`, `node tools/selfcheck/p12a-studio.mjs`, `p13-studio-flags.mjs`). Open: t…
   - approach: owner wants a Reelwright studio editor: [N] build on preview.mjs (scrub + data panel + project.json edits); [R] gives Remotion Studio for free for `renderer: remotion` projects
 
 ### Manim CE + ManimGL + manim skills (18)

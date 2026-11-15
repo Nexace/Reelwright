@@ -10,23 +10,23 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 57 | 6 | 0 | 25 | 18 | 6 | 0 | 0 | 112 |
+| HyperFrames | 60 | 6 | 0 | 22 | 18 | 6 | 0 | 0 | 112 |
 | Remotion + its skills | 63 | 4 | 3 | 8 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **397** | **30** | **6** | **68** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **400** | **30** | **6** | **65** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 433 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 436 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 433 |
+| EQUAL, BETTER or EQUAL/BETTER | 436 |
 | Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 163 |
 | Planned (Phase 11), not claimed | 0 |
-| Partial: some shipped, the rest planned (open) | 4 |
+| Partial: some shipped, the rest planned (open) | 2 |
 | Proposed exceptions waiting for the owner | 0 |
-| Open, no tag | 1 |
+| Open, no tag | 0 |
 | **Total** | **601** |
 
 ## HyperFrames
@@ -96,10 +96,10 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | F2 | Caption lint: overflow, container-relative position, fit-text scale,… | EQUAL | `tools/checks/caption-lint.page.mjs` |
 | F3 | Caption editing in Studio (click a word, restyle, retime) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/studio/studio.js` tools/studio/studio.js has no caption panel; captions are drawn by the engine from the VO line text and edge-… |
 | F4 | `caption-zone` and `frame-check` gates | EQUAL | `tools/checks/layout.audit.mjs` |
-| G1 | `init` (examples, `--resolution` presets, `--video/--audio` with auto… | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs` `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats`… |
+| G1 | `init` (examples, `--resolution` presets, `--video/--audio` with auto… | EQUAL | `tools/new_media.mjs` |
 | G2 | `add`, `catalog` | EQUAL | `tools/commands/catalog.mjs` |
 | G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | EQUAL | `tools/capture_url.mjs` |
-| G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/selfcheck/hf-lint.mjs` `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE;… |
+| G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/checks/native-lint.mjs` (11): built: `reelwright lint [--components]` with 9 ported rules, drift and HDR checks (`tools/checks/native… |
 | G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | EQUAL | `tools/commands/stills2.mjs` |
 | G6 | `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG o… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. N… |
 | G7 | `compare` N variants into one labelled PNG; `grade-compare` | EQUAL | `tools/commands/compare.mjs` |
@@ -116,7 +116,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | H2 | Edits source-backed DOM: click element in preview, Design panel (Text… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/playbook/studio.md` The studio never touches the frame DOM or film.js/hf (docs/playbook/studio.md 'What it never does'). Not buil… |
 | H3 | Timeline: tracks, move/trim/split/ripple/linked selection/snapping/be… | EQUAL | `tools/studio/panels.js` |
 | H4 | Keyframe animation panel (auto-record manual edits as keyframes, GSAP… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/playbook/studio.md` No keyframe or GSAP authoring in the studio (docs/playbook/studio.md: never writes film.js or animation code)… |
-| H5 | Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab… | PARTIAL — partial, rest planned (open) | `tools/studio/studio.js` Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playhead, co… |
+| H5 | Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab… | EQUAL | `tools/studio/panels.js` |
 | H6 | WebMCP tools (`studio_look/select/inspect/set_style/frame`) for an in… | OUT — exception (owner-approved 2026-11-12 and 2026-11-15) | (repo rule: no MCP; browser origin trial only) |
 | H7 | Studio desktop app (agent beside preview, Make-something box, brand k… | OUT — exception (owner-approved 2026-11-12 and 2026-11-15) | (closed source, HeyGen sign-in, not in this repo) |
 | I1 | Formats: `mp4` (H.264 + AAC), `webm` (VP9 + alpha, Opus), `mov` (ProR… | EQUAL | `tools/renderers/pvk.mjs` |
@@ -128,7 +128,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I7 | HDR: BT.2020 PQ/HLG sources auto-detected, 10-bit H.265, `--hdr/--sdr` | EQUAL | on the hyperframes renderer (10a). `"output": {"hdr": true}` renders through the producer's mp4 path: HDR (PQ… |
 | I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
 | I9 | GPU: `--gpu` hardware ffmpeg (NVENC, VideoToolbox, AMF, VAAPI, QSV),… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/REPRODUCIBLE.md` Software GL is forced (`PRODUCER_BROWSER_GPU_MODE` default software) and the encode is libx264/libvpx; no har… |
-| I10 | Streaming encode (no raw frames on disk), segmented capture + `--resu… | PARTIAL — partial, rest planned (open) | pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER f… |
+| I10 | Streaming encode (no raw frames on disk), segmented capture + `--resu… | EQUAL | `tools/renderers/hyperframes.mjs` |
 | I11 | Docker deterministic render (`--docker`) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/REPRODUCIBLE.md.` No Dockerfile or `--docker` (repo has cloud/ Colab files and .github/workflows only). Determinism is software… |
 | I12 | Fast capture: BeginFrame screenshots, draw-element capture ~2x, page-… | EQUAL | for hf (producer defaults); pvk uses Playwright screenshots |
 | I13 | Timeouts and safety: browser/player-ready/protocol timeouts, `--stric… | EQUAL | `tools/render_lock.mjs` |
@@ -257,7 +257,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.18 | Optional renderer `"renderer": "remotion"` (React films rendered by R… | EQUAL | `tools/renderers/remotion.mjs` |
-| 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | PARTIAL — open | `tools/studio/,` (10k): `reelwright studio` (tools/studio/, docs/playbook/studio.md): vendored player, timeline of scenes / VO… |
+| 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | PARTIAL — partial, rest planned (open) | `tools/studio/` (11): built: props sidebar, canvas zoom, quick switcher, render-from-UI, click-to-select, `--open` / `--no-op… |
 | 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.8.3 | Connected compositions / pre-compose a scene with its own timeline | EQUAL | `tools/compose.js,` |
 | 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | EQUAL | `tools/p9-player.js` |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 433 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 4 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 436 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 2 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (163, owner-approved 2026-11-12 and 2026-11-15)
 
@@ -860,24 +860,21 @@ Moved here after the first ruling because the owner dropped checkpoint 10l (Higg
 
 Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.
 
-### Partial (4)
+### Partial (2)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
-#### HyperFrames (4)
+#### HyperFrames (1)
 
-- `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion… — PARTIAL
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
-- `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Render… — PARTIAL
-- `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` r… — PARTIAL
-
-### Open, no tag (1)
-
-Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 
 #### Remotion + its skills (1)
 
 - `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick s… — PARTIAL
+
+### Open, no tag (0)
+
+Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 
 ## Phase 11: decisions that need the owner
 

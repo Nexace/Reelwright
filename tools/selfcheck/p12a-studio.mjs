@@ -180,7 +180,9 @@ try {
   // H5: lint, assets, catalog
   await tab("Lint"); await page.waitForFunction(() => /Errors \(\d+\)/.test(document.getElementById("tab-lint").textContent));
   await tab("Assets"); await page.waitForFunction(() => /hf\/media\/logo\.png/.test(document.getElementById("tab-assets").textContent) && /global-click\.wav/.test(document.getElementById("tab-assets").textContent));
-  await tab("Catalog"); await page.fill("#tab-catalog input[type=text]", "caption-glitch-rgb");   // a single-file component: the first search hit for "caption" varies by platform and can be an asset component that installs elsewhere await page.waitForSelector("#tab-catalog .item button");
+  // a single-file component: the first hit for "caption" varies by platform and can be an asset component that installs elsewhere
+  await tab("Catalog"); await page.fill("#tab-catalog input[type=text]", "caption-glitch-rgb");
+  await page.waitForFunction(() => document.querySelector("#tab-catalog .item b")?.textContent === "caption-glitch-rgb");   // the unfiltered list renders first; wait for the search to apply
   const name = await page.locator("#tab-catalog .item b").first().textContent();
   await page.locator("#tab-catalog .item button", { hasText: "Add" }).first().click();
   await page.waitForFunction((n) => true, name); for (let i = 0; i < 100 && !fs.existsSync(path.join(dir, "hf", "blocks", name + ".html")); i++) await page.waitForTimeout(200);

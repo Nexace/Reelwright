@@ -130,7 +130,7 @@ if (RENDERING) {
   if (lk >= 0) { args.splice(lk, 1); LOCK = { timeoutMs: Number(lt || 0) * 1000 }; }
 }
 let proj = "projects/example";
-if (!["new", "from-url", "theme-from", "slideshow"].includes(cmd) && args.length) {
+if (!["new", "from-url", "theme-from", "slideshow", "make"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
   if (isDir(a)) { proj = a; args.shift(); }
   else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }

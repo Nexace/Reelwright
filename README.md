@@ -402,6 +402,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 
 | Command | What it does |
 |---|---|
+| `make "<brief>" [--name n] [--audience a] [--length s] [--voice\|--music-only] [--url u] [--folder f] [--yes]` | guided start, offline, no AI: routes the brief to `from-url`, `slideshow`, `promo`, `new` or `new --renderer hyperframes`, picks a theme with `theme-brief`, drafts the lines, prints the plan; `--yes` creates the project (never renders; [docs/playbook/make.md](docs/playbook/make.md)) |
 | `new <name> [--renderer hyperframes\|remotion]` | copy the example (or example-hf, or `templates/remotion`) into `projects/<name>` |
 | `new <name> --video <file> [--audio <file>]` | a HyperFrames project that plays your own media (a non-H.264 video is converted; `transcript.json` only when `whisper-cli` and `$WHISPER_MODEL` are set up, nothing is downloaded) |
 | `add [project] <name> [--font-dir <folder>] [--all-textures]` | a HyperFrames catalog component → `<project>/hf/blocks/<name>.html` (use with `KIT.block`), or a HyperFrames block → `<project>/hf/compositions/<name>.html` (use with `KIT.mount`; hyperframes films only); prints the title, duration, variables and usage line; a component with assets installs with them (`--font-dir` points at fonts the repo does not bundle, `--all-textures` generates every texture-mask-text texture) |
@@ -546,7 +547,7 @@ without it nothing needs a key, an account or a network beyond what the core alr
 Keys, costs, errors, terms and how to add a provider: [docs/CONNECTORS.md](docs/CONNECTORS.md).
 
 **Works without any connector:** `new`, `add`, `record`, `vo`, `beatgrid`, `sched`, `info`, `music`, `mix`, `stills`, `frames`,
-`encode`, `qa`, `verify`, `preview`, `embed`, `studio`, `remix`, `clean`, `themes`, `from-url`, `theme-from`, `theme-brief`, `beats`,
+`encode`, `qa`, `verify`, `preview`, `embed`, `studio`, `remix`, `clean`, `themes`, `make`, `from-url`, `theme-from`, `theme-brief`, `beats`,
 `all`, `audio` and `film`. Only `gen` is optional. (`vo` and `from-url` use the internet as before: edge-tts, and the page you point
 it at. `manim` and the Remotion renderer need their own opt-in installs, see [Renderers](#renderers).)
 

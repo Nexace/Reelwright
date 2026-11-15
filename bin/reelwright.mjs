@@ -4,6 +4,8 @@
 //   new <name> [--renderer hyperframes|remotion]   copy the example (or example-hf, or templates/remotion) into projects/<name>
 //   new <name> --video <file> [--audio <file>]   a HyperFrames project that plays your media (non-H.264 video is converted; transcript.json from its audio only
 //                    if whisper-cli and $WHISPER_MODEL are set up: nothing is downloaded)
+//                    --example <name|list> start from projects/<name>; --agents write AGENTS.md + CLAUDE.md into it;
+//                    --skills copy the repo's project skills into it; --tailwind is skipped (needs an install)
 //   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)
 //   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
 //   vo               voiceover from project.json lines (edge-tts) → vo/
@@ -122,12 +124,13 @@ if (RENDERING) {
   take("--max-render", "REELWRIGHT_MAX_RENDER"); take("--segment", "REELWRIGHT_SEGMENT");
   take("--browser-timeout", "PRODUCER_PUPPETEER_LAUNCH_TIMEOUT_MS"); take("--protocol-timeout", "PRODUCER_PUPPETEER_PROTOCOL_TIMEOUT_MS");
   take("--player-ready-timeout", ["PRODUCER_PLAYER_READY_TIMEOUT_MS", "REELWRIGHT_PLAYER_READY_TIMEOUT"]);
+  flag("--stream", "REELWRIGHT_STREAM");   // hyperframes: frames go to ffmpeg as they are captured, no frame files (tools/renderers/hyperframes.mjs)
   flag("--strict", "REELWRIGHT_STRICT"); flag("--best-effort", "REELWRIGHT_BEST_EFFORT"); flag("--cache", "REELWRIGHT_HF_CACHE"); flag("--resume", "REELWRIGHT_RESUME");
   const lt = take("--lock-timeout", []), lk = args.indexOf("--lock");
   if (lk >= 0) { args.splice(lk, 1); LOCK = { timeoutMs: Number(lt || 0) * 1000 }; }
 }
 let proj = "projects/example";
-if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
+if (!["new", "from-url", "theme-from", "slideshow"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
   if (isDir(a)) { proj = a; args.shift(); }
   else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }
@@ -159,7 +162,7 @@ const rm = (...ps) => ps.forEach((p) => fs.rmSync(path.join(proj, p), { recursiv
 function hasTrack() { const f = project().music?.file; return !!f && fs.existsSync(path.join(proj, f)); }
 
 const C = {
-  new() {
+  async new() {
     const take = (f) => { const i = args.indexOf(f); return i >= 0 ? args.splice(i, 2)[1] : undefined; }, video = take("--video"), audio = take("--audio");
     if (video || audio) {   // G1: a HyperFrames project that plays your media (H.264 conversion; transcript only through the existing whisper-cli path)
       import("../tools/new_media.mjs").then((m) => { const r = m.scaffold({ ROOT, name: args[0], video, audio }); console.log(`created ${path.relative(ROOT, r.dest)} (${r.width}x${r.height}, ${r.fps} fps, ${r.dur} s) — edit hf/film.js, then: reelwright all ${args[0]}`); })
@@ -168,11 +171,24 @@ const C = {
     }
     const r = args.indexOf("--renderer"), rend = r >= 0 ? args.splice(r, 2)[1] : "pvk";
     const hf = rend === "hyperframes";
+    const flag = (f) => { const i = args.indexOf(f); return i >= 0 && !!args.splice(i, 1); };
+    const ex = args.indexOf("--example"), example = ex >= 0 ? args.splice(ex, 2)[1] : undefined;   // tools/new_project.mjs
+    const agents = flag("--agents"), skills = flag("--skills"), tailwind = flag("--tailwind");
+    const np = await import("../tools/new_project.mjs");
+    if (example === "list") return console.log(np.examples(ROOT).join("\n"));
     const name = args[0];
-    if (!name) { console.log("usage: reelwright new <name> [--renderer hyperframes|remotion]"); process.exit(1); }
+    if (!name) { console.log("usage: reelwright new <name> [--renderer hyperframes|remotion] [--example <name>|list] [--agents] [--skills]"); process.exit(1); }
     const dest = path.join("projects", name);
     if (fs.existsSync(dest)) { console.log(`${dest} already exists`); process.exit(1); }
-    if (rend === "remotion") {   // optional, not open source: rm/ gets its own node_modules on the first build, after a yes
+    if (example !== undefined && !np.examples(ROOT).includes(example)) {
+      console.log(`--example ${example}: not a project to start from. Choose one of:\n  ${np.examples(ROOT).join("\n  ")}`); process.exit(1);
+    }
+    const extras = () => {   // opt-in: agent files, project skills; --tailwind is skipped (needs an npm install)
+      if (agents) { np.agentFiles(ROOT, dest, name); console.log(`wrote ${dest}/AGENTS.md and CLAUDE.md`); }
+      if (skills) console.log(`installed project skills (${np.installSkills(ROOT, dest).join(", ") || "none found"}) in ${dest}/.claude/skills`);
+      if (tailwind) console.log("--tailwind skipped: Tailwind needs an npm install, which `new` never runs (add it in the film's own package if you need it)");
+    };
+    if (rend === "remotion" && example === undefined) {   // optional, not open source: rm/ gets its own node_modules on the first build, after a yes
       const p = JSON.parse(fs.readFileSync(path.join("projects", "example-hf", "project.json"), "utf8"));
       fs.mkdirSync(dest, { recursive: true });
       fs.writeFileSync(path.join(dest, "project.json"), JSON.stringify({ ...p, title: name, renderer: "remotion", out: `out/${name}.mp4`, ci: undefined }, null, 2) + "\n");
@@ -183,15 +199,17 @@ const C = {
       console.log(`created ${dest} — edit project.json (script) and rm/src/Film.jsx (the edit; React, rendered by Remotion)`);
       console.log(`Remotion is not installed yet: the first \`reelwright all ${name}\` shows its licence (free only for individuals,`);
       console.log(`companies of up to 3 people and non-profits) and asks before installing ~250 MB into ${dest}/rm/node_modules.`);
-      return;
+      return extras();
     }
-    const src = path.join("projects", hf ? "example-hf" : "example");
+    const src = path.join("projects", example ?? (hf ? "example-hf" : "example"));
     const skip = new Set(["clips", "frames", "stills", "vo", "out", "mix.wav", "timeline.json",
       "music/bed.wav", "music/grid.json", "film/data.js", "film/clip.js", "hf/kit", "hf/kit-data.js"]);
-    fs.cpSync(src, dest, { recursive: true, filter: (s) => !skip.has(path.relative(src, s).split(path.sep).join("/")) });
+    fs.cpSync(src, dest, { recursive: true, filter: (s) => !skip.has(path.relative(src, s).split(path.sep).join("/")) &&
+      (example === undefined || !/(^|[\\/])(node_modules|\.cache|stills-[^\\/]*|frames-[^\\/]*)([\\/]|$)/.test(path.relative(src, s))) });
     console.log(hf ? `created ${dest} — edit project.json (script) and hf/film.js (the edit)`
       : `created ${dest} — edit project.json (script), record.mjs (the take), film/film.js (the edit)`);
     console.log(`then: reelwright all ${name}`);
+    extras();
   },
   add() {
     const name = args[0];

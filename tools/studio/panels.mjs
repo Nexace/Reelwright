@@ -12,9 +12,12 @@ import { loadVars } from "../commands/batch.mjs";
 import { hfLint } from "../checks/hf-lint.mjs";
 import { loadSchema } from "../commands/props.mjs";
 import { validate } from "../p9-schema.mjs";
+import { TRANSITIONS, IMAGE, CLIP } from "../slideshow.mjs";
 
 export const FORMATS = ["16x9", "9x16", "1x1", "4x5", "16x10"], RESOLUTIONS = ["4k", "portrait-4k", "square-4k"], QUALITIES = ["draft", "looks", "standard", "high", "delivery"];
 const SRC = /\.(js|mjs|html|css|json|md|txt|svg|csv)$/i, SKIP_DIR = /^(node_modules|frames|stills|out|vo|clips|\.cache)([-\w]*)$/, MAX_TEXT = 1 << 20;
+// slideshow source folders: one level inside the project, a plain name, never the film's own or build folders
+const SLIDE_FOLDER = /^[A-Za-z0-9_][\w .-]{0,60}$/, SLIDE_SKIP = /^(hf|film|out|frames|stills|vo|music|clips|slideshows|node_modules|rm)$/i;
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
 // checks for the fields the panels write (called from server.mjs checkProject): fx (audio rack), limiter, motionBlur (blur tab), variables
@@ -115,6 +118,15 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
         return true;
       }
       case "/__transcript": reply(res, 200, { text: read("transcript.json") }); return true;
+      case "/__slideshow": {   // the project's own folders that hold images or clips, and the slideshows already built
+        const folders = fs.readdirSync(DIR, { withFileTypes: true }).filter((e) => e.isDirectory() && SLIDE_FOLDER.test(e.name) && !SLIDE_SKIP.test(e.name)).map((e) => {
+          const f = fs.readdirSync(path.join(DIR, e.name)).filter((n) => !n.startsWith("."));
+          return { name: e.name, images: f.filter((n) => IMAGE.test(n)).length, clips: f.filter((n) => CLIP.test(n)).length };
+        }).filter((f) => f.images + f.clips > 0);
+        let built = []; try { built = fs.readdirSync(path.join(DIR, "slideshows"), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name); } catch { /* none yet */ }
+        const P = readProject();
+        reply(res, 200, { folders, built, transitions: TRANSITIONS, size: `${P.width || 1920}x${P.height || 1080}` }); return true;
+      }
       case "/__props": {   // the per-run props of the film: its schema (props.schema.json, or made from project.json "variables") and props.json
         let schema = null, error = null, props = {};
         try { schema = loadSchema(DIR); } catch (e) { error = `props.schema.json: ${e.message}`; }
@@ -152,6 +164,21 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
         if (jobs.busy()) return reply(res, 409, { error: "busy: a job is running" }), true;
         write("props.json", JSON.stringify(b.props, null, 2) + "\n"); reply(res, 200, { ok: true }); return true;
       }
+      case "/__slideshow": {   // → slideshows/<name>/ inside the project: one of its folders of images and clips becomes a film
+        const r2 = (v, lo, hi) => (num(v, lo, hi) ? +v.toFixed(2) : null);
+        const seconds = r2(b.seconds, 0.5, 60), tdur = r2(b.tdur, 0, 5), tr = String(b.transition || "fade").split(",");
+        if (typeof b.folder !== "string" || !SLIDE_FOLDER.test(b.folder) || SLIDE_SKIP.test(b.folder) || !inside(b.folder) || !fs.statSync(path.join(DIR, b.folder), { throwIfNoEntry: false })?.isDirectory())
+          return reply(res, 400, { error: "folder: one folder of this project (a plain name, not a dot-folder or build output)" }), true;
+        if (typeof b.name !== "string" || !/^[a-z0-9][a-z0-9-]{0,40}$/.test(b.name)) return reply(res, 400, { error: "name: lower-case letters, digits and dashes" }), true;
+        if (seconds === null || tdur === null || tdur >= seconds) return reply(res, 400, { error: "seconds is 0.5 to 60, tdur 0 to 5 and shorter than seconds" }), true;
+        if (tr.length > 8 || !tr.every((x) => TRANSITIONS.includes(x))) return reply(res, 400, { error: `transition: ${TRANSITIONS.join(", ")} (a comma list cycles)` }), true;
+        const out = path.join(DIR, "slideshows", b.name);
+        if (fs.existsSync(out)) return reply(res, 409, { error: `slideshows/${b.name} already exists` }), true;
+        const P = readProject();
+        jobs.job("slideshow", { src: path.join(DIR, b.folder), out, seconds, tdur, transition: tr.join(","), size: `${P.width || 1920}x${P.height || 1080}` })
+          ? reply(res, 202, { ok: true, out: `slideshows/${b.name}` }) : reply(res, 409, { error: "busy: a job is running" });
+        return true;
+      }
       case "/__cancel": jobs.cancel(b.id) ? reply(res, 200, { ok: true }) : reply(res, 404, { error: "no such render" }); return true;
       case "/__add": {
         if (typeof b.name !== "string" || !/^[\w-]+$/.test(b.name) || !catalog(ROOT).some((i) => i.name === b.name && i.status === "supported")) return reply(res, 400, { error: "not a catalog component reelwright can run" }), true;
@@ -172,7 +199,7 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
     }
     return false;
   }
-  const POSTS = new Set(["/__props", "/__undo", "/__redo", "/__render", "/__cancel", "/__add", "/__transcript", "/__source"]);
+  const POSTS = new Set(["/__slideshow", "/__props", "/__undo", "/__redo", "/__render", "/__cancel", "/__add", "/__transcript", "/__source"]);
   const propsScript = () => {   // <script> for the film page in the studio: window.PROPS from props.json (KIT.props() merges it over the declared defaults)
     try { const t = read("props.json"); if (t && isObj(JSON.parse(t))) return `<script>window.PROPS=${JSON.stringify(JSON.parse(t)).replace(/</g, "\\u003c")};</script>`; } catch { /* a bad file is shown in the Props tab */ }
     return "";

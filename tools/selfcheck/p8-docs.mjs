@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { commandNames } from "../commands/json.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const rd = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+const rd = (f) => fs.readFileSync(path.join(ROOT, f), "utf8").replace(/\r\n/g, "\n");   // a Windows checkout is CRLF
 const cmds = new Set(commandNames(ROOT));
 const kit = ["engine", "layouts", "shots", "math", "doodle", "compose", "media", "fit", "runtimes"].map((n) => rd(`tools/${n}.js`)).join("\n");
 

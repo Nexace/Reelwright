@@ -224,7 +224,7 @@ async function withPage(film, fn) {
   ff("-f", "lavfi", "-i", "color=c=red:s=100x50", "-frames:v", "1", "-pix_fmt", "rgb24", path.join(D, "assets", "logo-small.png"));
   ff("-f", "lavfi", "-i", "color=c=red:s=600x300", "-frames:v", "1", path.join(D, "assets", "logo-photo.jpg"));
   const bad = check(D).join("\n");
-  for (const re of [/ink on bg is contrast 1\.\d : 1/, /colors\.accent "#zzz"/, /wordmark\.svg: svg without a viewBox/, /logo-small\.png: 100px wide is too small/, /logo-small\.png: no transparency/, /logo-photo\.jpg: no transparency/, /lists assets\/gone-logo\.svg/]) assert.match(bad, re);
+  for (const re of [/ink on bg is contrast 1\.\d : 1/, /colors\.accent "#zzz"/, /wordmark\.svg: svg without a viewBox/, /logo-small\.png: 100px wide is too small/, /logo-small\.png: no transparency/, /logo-photo\.jpg: no transparency/, /lists assets[\\/]gone-logo\.svg/]) assert.match(bad, re);
   const inv = inventory(D), by = (f) => inv.find((x) => x.file.endsWith(f));
   assert.equal(by("logo-photo.jpg").w, 600); assert.equal(by("logo-photo.jpg").h, 300); assert.equal(by("logo-photo.jpg").role, "lockup"); assert.equal(by("wordmark.svg").role, "wordmark"); assert.equal(by("logo-small.png").alpha, false); assert.equal(by("wordmark.svg").w, 400);
   // a good brand passes

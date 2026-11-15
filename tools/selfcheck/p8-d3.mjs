@@ -16,7 +16,7 @@ const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p8-d3-"));
 // the playbook's snippet, between its ```js markers
-const md = fs.readFileSync(path.join(ROOT, "docs", "playbook", "d3.md"), "utf8");
+const md = fs.readFileSync(path.join(ROOT, "docs", "playbook", "d3.md"), "utf8").replace(/\r\n/g, "\n");   // CRLF on a Windows checkout
 const snippet = /```js\n([\s\S]*?)```/.exec(md)?.[1];
 assert.ok(snippet && /render\(t\)/.test(snippet), "docs/playbook/d3.md has a js snippet with render(t)");
 

@@ -25,9 +25,10 @@ export const facePython = () => (fs.existsSync(venvPython()) ? venvPython() : SY
 // faceInstall({ yes, log, run }) → { ok, planned? }: without yes only the plan is printed; `run` (default spawnSync, inherited stdio) is injectable for the self-check
 export function faceInstall({ yes = false, log = console.log, run = (c, a) => spawnSync(c, a, { stdio: "inherit" }) } = {}) {
   const venv = faceVenv();
-  const steps = [["uv", "venv", venv], ["uv", "pip", "install", "--python", venvPython(), "opencv-python-headless"]];
+  const steps = [["uv", "pip", "install", "--python", venvPython(), "opencv-python-headless<5"]];
+  if (!fs.existsSync(venvPython())) steps.unshift(["uv", "venv", venv]);   // an existing venv is reused, so a re-run only fixes the package
   const show = (s) => s.map((a) => (/[\s"]/.test(a) ? JSON.stringify(a) : a)).join(" ");
-  log(`face detector into ${path.relative(process.cwd(), venv) || venv} (opencv-python-headless, ~50 MB download from PyPI):`);
+  log(`face detector into ${path.relative(process.cwd(), venv) || venv} (opencv-python-headless<5, ~50 MB; OpenCV 5 has no CascadeClassifier; download from PyPI):`);
   for (const s of steps) log("  " + show(s));
   if (!yes) { log("nothing downloaded: re-run with --yes to install"); return { ok: true, planned: true }; }
   for (const s of steps) {

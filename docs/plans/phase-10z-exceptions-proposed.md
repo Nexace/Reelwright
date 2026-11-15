@@ -360,7 +360,7 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: exclude
 
-## 10. Not done, no stated reason (81) — 75 approved, 1 planned, 4 partial, 1 open
+## 10. Not done, no stated reason (81) — 76 approved, 4 partial, 1 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
@@ -423,8 +423,8 @@ By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
 - `hyperframes:G8` — `timeline` (list tracks/clips; move/trim/split/delete/set/duplicate/apply with `--plan` diff, receipts, `undo`) and `history` (who/label/fi… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Script edits exist as `beats import/export` (CSV <-> project.json) and the studio inspector (line text and gap, atomic save, sched re-run: tools/studio/server.mjs). No clip-level `timeline` verbs, `--plan` diffs, receip…
   - approach: native: `reelwright lines/beats` edit verbs with `--plan`, undo from a receipt; studio panel (H)
-- `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, missed/extra cuts, audio offset, non-zero exi… — MISSING — planned (Phase 11)
-  - says: No `measure`, `diff` or `reverse` command (bin/reelwright.mjs, tools/commands/); `verify` only compares Reelwright's own frames to its manifest (tools/manifest.mjs). Not built: ffmpeg scene-detect/ssim wrappers. Suggest…
+- `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, missed/extra cuts, audio offset, non-zero exi… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
+  - says: (11): owner ruling 2026-11-15: exception, final, for `reverse` (AI rebuild stays OUT, as the row says) and for `measure face`. Built: `measure` (probe, cuts, frames) and `diff` (`tools/videotools.mjs`, `node tools/selfc…
   - approach: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 - `hyperframes:G10` — `render` (see section I) and `benchmark` (tries fps/quality/workers, reports time and size) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS` env and `output.crf` tune it; no `benchmark` command trying fps/quality/workers. Not built: timings depend on…

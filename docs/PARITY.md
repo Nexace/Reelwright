@@ -22,8 +22,8 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 | State | Rows |
 |---|--:|
 | EQUAL, BETTER or EQUAL/BETTER | 433 |
-| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 162 |
-| Planned (Phase 11), not claimed | 1 |
+| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 163 |
+| Planned (Phase 11), not claimed | 0 |
 | Partial: some shipped, the rest planned (open) | 4 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 1 |
@@ -104,7 +104,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G6 | `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG o… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. N… |
 | G7 | `compare` N variants into one labelled PNG; `grade-compare` | EQUAL | `tools/commands/compare.mjs` |
 | G8 | `timeline` (list tracks/clips; move/trim/split/delete/set/duplicate/a… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/studio/server.mjs` Script edits exist as `beats import/export` (CSV <-> project.json) and the studio inspector (line text and ga… |
-| G9 | `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per… | MISSING — planned (Phase 11) | `bin/reelwright.mjs,` No `measure`, `diff` or `reverse` command (bin/reelwright.mjs, tools/commands/); `verify` only compares Reelw… |
+| G9 | `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/videotools.mjs` (11): owner ruling 2026-11-15: exception, final, for `reverse` (AI rebuild stays OUT, as the row says) and fo… |
 | G10 | `render` (see section I) and `benchmark` (tries fps/quality/workers,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/renderers/pvk.mjs` `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS`… |
 | G11 | `preview` (hot reload, background/foreground/status/list, port) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/preview.mjs` `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-chec… |
 | G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | EQUAL | `tools/selfcheck/p8-doctor.mjs` |
@@ -667,13 +667,13 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 433 EQUAL/BETTER, 162 accepted exceptions, 1 planned, 4 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 433 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 4 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
-### Accepted exceptions (162, owner-approved 2026-11-12 and 2026-11-15)
+### Accepted exceptions (163, owner-approved 2026-11-12 and 2026-11-15)
 
 Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and rows the re-audit tagged `[10z: except]` or "Suggest: accept as exception" (reason = the row's own note).
 
-#### HyperFrames (44)
+#### HyperFrames (45)
 
 - `hyperframes:A1` — Root contract: `data-composition-id`, `data-width/height/duration/fps`, `window.__timelines[id]` re… — PARTIAL — reason: hf/index.html carries the root contract and tools/engine.js:435 registers one `main` shim whose seek(t) calls render(t). HF-native composition files (own root + __timelines entry) are mounted by KIT.…
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed of… — PARTIAL — reason: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids time…
@@ -698,6 +698,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `hyperframes:F3` — Caption editing in Studio (click a word, restyle, retime) — MISSING — reason: tools/studio/studio.js has no caption panel; captions are drawn by the engine from the VO line text and edge-tts word times, and the inspector edits the line text (re-voice to retime). Not built: han…
 - `hyperframes:G6` — `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG of one element) — MISSING — reason: No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. Not built: low value (the row itself says so), and `stills` at chosen times already shows m…
 - `hyperframes:G8` — `timeline` (list tracks/clips; move/trim/split/delete/set/duplicate/apply with `--plan` diff, recei… — PARTIAL — reason: Script edits exist as `beats import/export` (CSV <-> project.json) and the studio inspector (line text and gap, atomic save, sched re-run: tools/studio/server.mjs). No clip-level `timeline` verbs, `-…
+- `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — reason: (11): owner ruling 2026-11-15: exception, final, for `reverse` (AI rebuild stays OUT, as the row says) and for `measure face`. Built: `measure` (probe, cuts, frames) and `diff` (`tools/videotools.mjs…
 - `hyperframes:G10` — `render` (see section I) and `benchmark` (tries fps/quality/workers, reports time and size) — PARTIAL — reason: `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS` env and `output.crf` tune it; no `benchmark` command trying fps/quality/workers. Not buil…
 - `hyperframes:G11` — `preview` (hot reload, background/foreground/status/list, port) — PARTIAL — reason: `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-checked; `studio` adds a port flag. Missing: background/foreground/status/list sub-commands. N…
 - `hyperframes:G14` — `skills` / `update` / `upgrade` / `figma` / `events` / `templates` / `usage` / `telemetry` / `feedb… — OUT — reason: Excluded by owner decision or repo rule
@@ -855,13 +856,9 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.
 
 
-### Planned (Phase 11) (1)
+### Planned (Phase 11) (0)
 
 Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.
-
-#### HyperFrames (1)
-
-- `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — plan: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 
 ### Partial (4)
 

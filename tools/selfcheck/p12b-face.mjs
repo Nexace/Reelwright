@@ -8,7 +8,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { measureFace, summarize } from "../measure_face.mjs";
+import { measureFace, summarize , facePython } from "../measure_face.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p12b-face-"));
@@ -44,7 +44,7 @@ try {
   assert.throws(() => measureFace(path.join(tmp, "a.wav")), /ffprobe could not read|no video stream/);
   // no detector: the real path. With OpenCV absent it must name the install; with it present it must run and find nothing in a test pattern
   delete process.env.REELWRIGHT_FACE_CMD;
-  const hasCv = spawnSync(process.env.PYTHON || "python3", ["-c", "import cv2"]).status === 0;
+  const hasCv = spawnSync(facePython(), ["-c", "import cv2; cv2.CascadeClassifier"]).status === 0;
   if (hasCv) assert.equal(measureFace(video, { every: 4 }).summary.present, 0, "testsrc has no faces");
   else assert.throws(() => measureFace(video, { every: 4 }), /pip install opencv-python-headless/);
   console.log(`real detector path: OpenCV ${hasCv ? "present, ran" : "absent, refused with the install line"}`);

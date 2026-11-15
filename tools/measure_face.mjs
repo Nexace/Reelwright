@@ -14,7 +14,30 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+const ROOT = path.resolve(HERE, "..");
+const SYS_PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+
+// opt-in install (`reelwright face install [--yes]`): one repo-local venv (<repo>/.venv-face, gitignored); when it exists the detector runs with its python
+export const faceVenv = () => process.env.REELWRIGHT_FACE_VENV || path.join(ROOT, ".venv-face");
+export const venvPython = () => path.join(faceVenv(), ...(process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"]));
+export const facePython = () => (fs.existsSync(venvPython()) ? venvPython() : SYS_PY);
+
+// faceInstall({ yes, log, run }) → { ok, planned? }: without yes only the plan is printed; `run` (default spawnSync, inherited stdio) is injectable for the self-check
+export function faceInstall({ yes = false, log = console.log, run = (c, a) => spawnSync(c, a, { stdio: "inherit" }) } = {}) {
+  const venv = faceVenv();
+  const steps = [["uv", "venv", venv], ["uv", "pip", "install", "--python", venvPython(), "opencv-python-headless"]];
+  const show = (s) => s.map((a) => (/[\s"]/.test(a) ? JSON.stringify(a) : a)).join(" ");
+  log(`face detector into ${path.relative(process.cwd(), venv) || venv} (opencv-python-headless, ~50 MB download from PyPI):`);
+  for (const s of steps) log("  " + show(s));
+  if (!yes) { log("nothing downloaded: re-run with --yes to install"); return { ok: true, planned: true }; }
+  for (const s of steps) {
+    log("> " + show(s));
+    const r = run(s[0], s.slice(1));
+    if (r.status !== 0) { log(`failed: ${show(s)}${r.error ? ` (${r.error.message}; is uv installed? https://docs.astral.sh/uv/)` : ""}`); return { ok: false }; }
+  }
+  log(`installed; \`reelwright face <video>\` now uses ${path.relative(process.cwd(), venvPython())}`);
+  return { ok: true };
+}
 
 export function probe(video) {
   const r = spawnSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height:format=duration", "-of", "json", video], { encoding: "utf8" });
@@ -26,7 +49,7 @@ export function probe(video) {
 
 export function defaultDetect(files) {
   const cmd = process.env.REELWRIGHT_FACE_CMD;
-  const r = cmd ? spawnSync(cmd, files, { encoding: "utf8", maxBuffer: 1 << 28, shell: false }) : spawnSync(PY, [path.join(HERE, "face_detect.py"), ...files], { encoding: "utf8", maxBuffer: 1 << 28 });
+  const r = cmd ? spawnSync(cmd, files, { encoding: "utf8", maxBuffer: 1 << 28, shell: false }) : spawnSync(facePython(), [path.join(HERE, "face_detect.py"), ...files], { encoding: "utf8", maxBuffer: 1 << 28 });
   if (r.status) throw new Error((r.stderr || `detector exited ${r.status}`).trim());
   return JSON.parse(r.stdout);
 }

@@ -1,9 +1,11 @@
 // face <video> [--every s] [--json]   where the faces are in a video (HyperFrames `measure face`): one frame per --every seconds (default 1), a local
 //                  detector (OpenCV Haar via tools/face_detect.py: `pip install opencv-python-headless`, nothing is downloaded by reelwright),
 //                  then the share of time a face is present, the segments, the biggest face, centre, head room and moments outside the 5% safe margin.
-import { measureFace } from "../measure_face.mjs";
+import { measureFace, faceInstall } from "../measure_face.mjs";
+// face install [--yes]: opt-in; prints the plan (opencv-python-headless into <repo>/.venv-face via uv), downloads only with --yes
 
 export default async function face({ args }) {
+  if (args[0] === "install") { const r = faceInstall({ yes: args.includes("--yes") }); process.exit(r.ok ? 0 : 1); }
   const i = args.indexOf("--every"), every = i >= 0 ? Number(args.splice(i, 2)[1]) : 1, j = args.indexOf("--json"), json = j >= 0 && args.splice(j, 1);
   const video = args[0];
   if (!video) { console.log("usage: reelwright face <video> [--every seconds] [--json]"); process.exit(1); }

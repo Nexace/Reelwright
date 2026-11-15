@@ -271,7 +271,7 @@ function extra(fmt, o, base, frames, aud, ff) {
 }
 
 // timeline.json captions (KIT.captionCues) → <out>.srt and <out>.vtt beside the mp4
-function subtitles(DIR, outFile) {
+export function subtitles(DIR, outFile) {
   const cues = JSON.parse(fs.readFileSync(path.join(DIR, "timeline.json"), "utf8")).captions || [];
   if (!cues.length) return;
   const ts = (s, sep) => new Date(Math.round(s * 1000)).toISOString().slice(11, 23).replace(".", sep);

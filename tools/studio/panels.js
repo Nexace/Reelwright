@@ -9,7 +9,7 @@ const copy = async (text) => { try { await navigator.clipboard.writeText(text); 
 export async function initPanels(c) {
   const { $, api, status, banner, info, proj, FILM, edited, pretty, save, store } = c;
   const aside = document.querySelector("aside"), mount = info.page.replace(/\/(hf|film)\/index\.html$/, "");
-  const TABS = [["inspector", "Inspector"], ["props", "Props"], ["audio", "Audio"], ["blur", "Blur"], ["vars", "Variables"], ["renders", "Renders"], ["lint", "Lint"], ["assets", "Assets"], ["catalog", "Catalog"], ["captions", "Captions"], ["source", "Source"]];
+  const TABS = [["inspector", "Inspector"], ["props", "Props"], ["audio", "Audio"], ["blur", "Blur"], ["vars", "Variables"], ["renders", "Renders"], ["lint", "Lint"], ["assets", "Assets"], ["catalog", "Catalog"], ["captions", "Captions"], ["slideshow", "Slideshow"], ["source", "Source"]];
   const tabs = $("tabs"), secs = { inspector: $("tab-inspector") }, loaders = {};
   for (const [id] of TABS) if (id !== "inspector") { secs[id] = h("section", { id: "tab-" + id, className: "tab", hidden: true }); aside.append(secs[id]); }
   function show(id) {
@@ -155,6 +155,23 @@ export async function initPanels(c) {
     s.append(tb, h("div", { style: "margin-top:8px" }, h("button", { className: "primary", textContent: "Save transcript.json", onclick: () => api("/__transcript", { words }).then(() => status("transcript.json saved")).catch((e) => status(e.message, true)) }), " ",
       h("button", { textContent: "From the voiceover", title: "runs `captions`: transcript.json from timeline.json", onclick: () => api("/__run", { cmd: "captions" }).catch((e) => banner(e.message)) })));
     if (words.length > 600) note(s, `Showing the first 600 of ${words.length} words; the rest are kept as they are.`, "warn");
+  };
+
+  // ── Slideshow: a folder of this project's images and clips → slideshows/<name>/, a film of its own (`reelwright slideshow`) ──
+  loaders.slideshow = async () => {
+    const s = secs.slideshow; s.replaceChildren(h("h2", { textContent: "Slideshow" }));
+    const j = await get("/__slideshow").catch((e) => ({ folders: [], built: [], transitions: [], error: e.message }));
+    if (!j.folders.length) return note(s, j.error || "No folder of this project holds images or clips. Put some in a folder next to project.json (for example photos/), then reopen this tab.");
+    const folder = h("select", {}, j.folders.map((f) => h("option", { value: f.name, textContent: `${f.name} (${f.images} images, ${f.clips} clips)` })));
+    const sec = h("input", { type: "number", min: 0.5, max: 60, step: 0.1, value: 3 }), td = h("input", { type: "number", min: 0, max: 5, step: 0.1, value: 0.6 });
+    const tr = h("select", {}, j.transitions.map((t) => h("option", { value: t, textContent: t, selected: t === "fade" })));
+    const name = h("input", { type: "text", value: "slideshow", pattern: "[a-z0-9][a-z0-9-]*" });
+    s.append(h("label", { textContent: "folder" }), folder, h("label", { textContent: "seconds per still (clips keep their own length, up to 8 s)" }), sec,
+      h("label", { textContent: "transition length (s)" }), td, h("label", { textContent: "transition" }), tr, h("label", { textContent: "name" }), name,
+      h("div", { style: "margin-top:8px" }, h("button", { id: "ss-build", className: "primary", textContent: "Build slideshow", onclick: () => api("/__slideshow", { folder: folder.value, seconds: +sec.value, tdur: +td.value, transition: tr.value, name: name.value })
+        .then((r) => status(`building ${r.out}…`)).catch((e) => banner(e.message)) })));
+    note(s, `Builds a separate film in slideshows/<name>/ (${j.size}, a music bed, no voiceover); this film is not touched. Open it with \`reelwright studio <project>/slideshows/<name>\`, render with \`reelwright all\` on that folder.`);
+    if (j.built.length) note(s, `already built: ${j.built.join(", ")}`);
   };
 
   // ── Source: the project's files; editing only with `studio --edit-source` ──

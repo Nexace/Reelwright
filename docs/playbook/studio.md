@@ -64,7 +64,7 @@ Tabs: *Inspector*, *Props*, *Audio* (the FX rack: a preset or job per bus, a per
 *Blur* (`motionBlur`), *Variables* (declared defaults), *Renders* (a queue of `film` runs from fixed option lists: format,
 resolution, quality, fps, GPU, props; one at a time, cancel while queued or running), *Lint* (static HyperFrames lint and the
 layout check), *Assets* (project media and `~/.media`), *Catalog* (search, Add, copy an agent prompt), *Captions* (edit
-`transcript.json`), *Source* (file tree; editing only with `studio --edit-source`).
+`transcript.json`), *Slideshow* (below), *Source* (file tree; editing only with `studio --edit-source`).
 - **Undo / Redo** (Ctrl/Cmd+Z) undo every write the studio made (project.json, brand.json, props.json, transcript.json, source files),
   byte for byte, for the session.
 - **Props** (Ctrl/Cmd+J): a form made from `props.schema.json` (or the declared `variables`), saved to `props.json`, checked with
@@ -78,4 +78,13 @@ files only inside the project (no dot-folders, no `hf/kit/`), source writes off 
 
 Check: `node tools/selfcheck/p12a-studio.mjs` (real renders, about 90 s).
 
-Not here: a Slideshow panel, Remotion Studio's WebMCP tools, a global `--no-open` / `--force-new` (the studio never opens a browser).
+**Slideshow** (hyperframes:H5): a folder of your project holding images or clips (for example `photos/`) becomes a film of its own in
+`slideshows/<name>/` (seconds per still, transition and its length; the project's size; a music bed, no voiceover) through the
+`slideshow` command, run as a job. The film you are editing is not touched. Open it with `reelwright studio <project>/slideshows/<name>`.
+The same thing from the shell: `reelwright slideshow <folder> [name] [--seconds 3] [--transition fade|slide,iris,…] [--tdur 0.6] [--zoom 0.05]`
+(clips keep their own length up to `--clip-max 8` s; `hf/slides.js` holds the order and the seconds per slide). Check:
+`node tools/selfcheck/p13-slideshow.mjs` (a real render) and `p13-slideshow-panel.mjs` (the tab, the job, the trust boundary).
+
+**Launch flags** (remotion:2.8.1): `--open` opens the page in your browser (the OS's own opener, no shell); `--no-open` is Remotion
+Studio's flag and is what happens without either; `--force-new` starts this studio on the next free port when the port is busy (without it a
+busy port stops with the old message). Check: `node tools/selfcheck/p13-studio-flags.mjs`. Remotion Studio's WebMCP tools are not built (repo rule).

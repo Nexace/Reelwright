@@ -48,3 +48,33 @@ In `project.json`:
 
 Fix the cause first: `css_transition_used`, `non_deterministic_code` and the GSAP rules point at frames that would
 differ between a preview and a render.
+
+## Native lint, drift and HDR (`reelwright lint`, opt-in in `qa`)
+`reelwright lint <project>` runs the vendored lint (every finding that applies) plus `tools/checks/native-lint.mjs`: native versions of
+nine of the 44 skipped rules, written for `hf/film.js` + `render(t)`, and two new audits. All are WARN. In `qa` they are off unless
+`"qa": {"native-lint": true}` in project.json (plug-in `native-lint.page.mjs`), so existing films' output is unchanged.
+
+| Rule (upstream id) | Native check |
+|---|---|
+| `missing_timeline_registry` | film.js never calls `KIT.start` |
+| `root_composition_missing_duration_source` | `window.FILM.DUR` is not a positive number |
+| `composition_file_too_large` | hf/index.html or hf/film.js over 300 lines (upstream's limit) |
+| `composition_heavy_overlay_count_high` | 25+ elements with blur / radial-gradient / clip-path on stage at once |
+| `duplicate_audio_track` | two `KIT.audio` of one file overlapping in time |
+| `audio_file_without_element` | an audio file in assets/, hf/ or clips/ that no film code or project.json mentions |
+| `imperative_media_control` | film code calls `.play()` / `.pause()` or sets `.currentTime` |
+| `multiple_caption_tracks` | more than one caption row on stage |
+| `hevc_preview_codec` | a `KIT.video` source is HEVC (info) |
+| `coordinate_drift` (new) | a box differs after seeking away and back: `render(t)` is not pure |
+| `hdr_check` (new) | `output.hdr` without an HDR source, an HDR source with `output.hdr` off, HDR with alpha / non-mp4 / pvk, an mp4 that is not PQ/HLG |
+
+The other 35 skipped rules stay skipped; each reason is in `SKIP` (hf-lint.mjs): their premise is HyperFrames' own clip model
+(`data-start` clips, tracks, audio groups and lanes, linked clips, caption tracks as timeline rows, Studio editing, inspection
+limits, `system_font_will_alias`, which only reports on distributed renders), and Reelwright has no such element to check.
+`reelwright lint --components [name… | --all]` lints catalog components (the installed `hf/blocks/*.html`, or the named / all vendored ones)
+one by one as fragments, leaving out the four rules only a host page can satisfy. Check: `node tools/selfcheck/p13-lint.mjs`.
+
+## `new` options
+`new <name> --example <name|list>` starts from `projects/<name>`; `--agents` writes `AGENTS.md` (project guide + the repo's rules) and
+`CLAUDE.md` (`@AGENTS.md`) into the new project; `--skills` copies the repo's project skills into `.claude/skills/`; `--tailwind` is
+accepted and skipped (it needs an npm install, which `new` never runs). Check: `node tools/selfcheck/p13-new.mjs`.

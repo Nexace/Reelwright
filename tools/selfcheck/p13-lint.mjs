@@ -59,6 +59,12 @@ KIT.start({ dur: DUR, render: (t) => { render(t); __d.style.left = (5 + (++__n %
   for (const c of ["missing_timeline_registry", "root_composition_missing_duration_source", "composition_file_too_large", "composition_heavy_overlay_count_high",
     "duplicate_audio_track", "audio_file_without_element", "imperative_media_control", "hevc_preview_codec"]) assert.ok(Object.hasOwn(SKIP, c), `${c} is a skipped upstream rule`);
 
+  // the two page rules a working film cannot trip (a duration that is not positive, two caption rows) through a stubbed page
+  const stub = (r) => ({ evaluate: async () => ({ dur: 5, heavy: 0, subs: 1, drift: [], media: { videos: [], audio: [] }, ...r }) });
+  assert.deepEqual(codes(await pageChecks(stub({ dur: 0, subs: 2 }), { DIR: f.dir, P })), ["root_composition_missing_duration_source", "multiple_caption_tracks"]);
+  assert.deepEqual(await pageChecks(stub({}), { DIR: f.dir, P }), [], "the stub baseline is clean");
+  assert.ok(Object.hasOwn(SKIP, "multiple_caption_tracks"));
+
   // the plug-in is opt-in
   assert.deepEqual(await plug(page, { DIR: f.dir, P }), [], "off unless qa.native-lint is true");
   assert.ok((await plug(page, { DIR: f.dir, P: bad })).length >= 7, "on with qa.native-lint");

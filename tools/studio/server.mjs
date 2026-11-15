@@ -31,7 +31,7 @@ const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const num = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi;
 const ANSI = /\x1b\[[0-9;]*[A-Za-z]/g;
 // changes that are only a build writing its own output: never a reason to reload the page
-const SKIP = /^(frames|stills|out|\.cache)([-/]|$)|^hf\/kit\/|(^|\/)theme\.css$|^timeline\.json$|\.(mp4|tmp)$/;
+const SKIP = /^(frames|stills|out|slideshows|\.cache)([-/]|$)|^hf\/kit\/|(^|\/)theme\.css$|^timeline\.json$|\.(mp4|tmp)$/;
 // jobs that change what the film is made from (the page reloads when they end); the others only write stills/out/…
 const INPUT_JOBS = new Set(["sched", "audio"]);
 
@@ -118,7 +118,9 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
     mix: () => [bin, "mix", DIR],                                           // applies the audio rack (project.json "fx", "limiter"); offline
     check: () => [bin, "check", DIR],                                       // the layout audit (a lint pass in the browser)
     captions: () => [bin, "captions", DIR],                                 // transcript.json from the voiceover's word times
-    add: (name) => [bin, "add", DIR, name],                                 // name: validated against the catalog by panels.mjs
+    // a validated plain object from panels.mjs (/__slideshow): numbers rounded, transition names from a list, folder and name from strict patterns
+    slideshow: (a) => [bin, "slideshow", a.src, "--out", a.out, "--seconds", String(a.seconds), "--tdur", String(a.tdur), "--transition", a.transition, "--size", a.size],
+    add: (name) => [bin, "add", DIR, name],                                // name: validated against the catalog by panels.mjs
     film: (r) => [bin, "film", DIR, ...r.args],                             // a queued render: every flag value comes from a fixed list
   };
   const DIRECT = new Set(["sched", "audio", "mix", "stills", "taste", "embed", "check", "captions"]);   // what POST /__run may start by itself
@@ -195,7 +197,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   const afterWrite = (rel) => { if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
   const X = panels({ ROOT, DIR, PY: python, reply, inside, posix, num, readProject, isHf, afterWrite, editSource });
   const jobsApi = { busy: () => !!job && job.state === "running", enqueue, cancel, job: (kind, arg) => runJob(kind, arg) };
-  const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript", "/__props"]);
+  const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript", "/__props", "/__slideshow"]);
 
   // ── static files and the page ──
   function resolveStatic(pathname) {

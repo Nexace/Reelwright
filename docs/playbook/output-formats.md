@@ -43,3 +43,11 @@ H.264 (`bt709`). HDR cannot be combined with alpha or another format.
 ## 4:5 and 16:10
 `--formats 4x5` renders 1080×1350 (Instagram feed portrait), next to `16x9`, `9x16`, `1x1`. Films that lay out in the
 title-safe box (`KIT.safe`, `KIT.u`) already adapt. `--formats 16x10` renders 1920×1200 (laptop-screen ratio) the same way.
+
+## Streaming encode (`--stream`, hyperframes)
+`reelwright frames <p> --stream` (or `"output": {"stream": true}`) renders through the producer's streaming encoder: each captured frame goes
+to ffmpeg's stdin, so no frame file is ever written (`frames/stream.mp4` is the video). It runs one worker (the producer streams only then;
+`--workers` is ignored), so it is slower than the default on a machine with spare cores and lighter on disk. `encode` then muxes `mix.wav` into it
+(video copied, like HDR) and writes the `.srt`/`.vtt`; other output formats are ignored. Not with a frame range, `--cache`/`--resume` or
+`output.alpha` (they need frame files: refused), nor with `KIT.shader` transitions. `qa` still runs, but its frame gates (blank, blip, flash)
+see no frames. Default behaviour is unchanged. Check: `node tools/selfcheck/p13-stream.mjs` (a poller proves no image appears).

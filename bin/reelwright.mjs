@@ -124,12 +124,13 @@ if (RENDERING) {
   take("--max-render", "REELWRIGHT_MAX_RENDER"); take("--segment", "REELWRIGHT_SEGMENT");
   take("--browser-timeout", "PRODUCER_PUPPETEER_LAUNCH_TIMEOUT_MS"); take("--protocol-timeout", "PRODUCER_PUPPETEER_PROTOCOL_TIMEOUT_MS");
   take("--player-ready-timeout", ["PRODUCER_PLAYER_READY_TIMEOUT_MS", "REELWRIGHT_PLAYER_READY_TIMEOUT"]);
+  flag("--stream", "REELWRIGHT_STREAM");   // hyperframes: frames go to ffmpeg as they are captured, no frame files (tools/renderers/hyperframes.mjs)
   flag("--strict", "REELWRIGHT_STRICT"); flag("--best-effort", "REELWRIGHT_BEST_EFFORT"); flag("--cache", "REELWRIGHT_HF_CACHE"); flag("--resume", "REELWRIGHT_RESUME");
   const lt = take("--lock-timeout", []), lk = args.indexOf("--lock");
   if (lk >= 0) { args.splice(lk, 1); LOCK = { timeoutMs: Number(lt || 0) * 1000 }; }
 }
 let proj = "projects/example";
-if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
+if (!["new", "from-url", "theme-from", "slideshow"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
   if (isDir(a)) { proj = a; args.shift(); }
   else if (isDir(path.join("projects", a))) { proj = path.join("projects", a); args.shift(); }

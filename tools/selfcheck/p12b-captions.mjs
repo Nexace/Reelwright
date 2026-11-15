@@ -56,6 +56,7 @@ try {
     fs.writeFileSync(page, `<!doctype html><meta charset="utf-8"><script src="${gsap}"></script><body style="margin:0;background:#222"><div id="stage" style="position:relative;width:1920px;height:1080px;overflow:hidden"></div></body>`);
     const p = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
     const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource|cdn\./.test(m.text())) errs.push(m.text()); });
+    await p.route(/^https?:/, (r) => r.abort());   // offline: the components link Google Fonts, whose slowness must not decide a check
     await p.goto(pathToFileURL(page).href);
     await p.evaluate((h) => {
       const box = document.createElement("div"); box.className = "kit-block"; document.getElementById("stage").append(box); box.innerHTML = h;

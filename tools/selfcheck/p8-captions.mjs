@@ -33,6 +33,7 @@ try {
     fs.writeFileSync(f, html.replace("<head>", `<head><script src="${gsap}"></script>`));
     const p = await b.newPage({ viewport: { width: 1920, height: 1080 } }), errs = [];
     p.on("pageerror", (e) => errs.push(e.message));
+    await p.route(/^https?:/, (r) => r.abort());   // offline: the components link Google Fonts, whose slowness must not decide a check
     await p.goto(pathToFileURL(f).href);
     const r = await p.evaluate((ws) => {
       const tls = Object.values(window.__timelines || {}), tl = tls[0];

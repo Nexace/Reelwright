@@ -63,6 +63,7 @@ try {
     const errs = [], failed = [];
     p.on("pageerror", (e) => errs.push(e.message)); p.on("requestfailed", (q) => failed.push(q.url()));
     p.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
+    await p.route(/^https?:/, (r) => r.abort());   // offline: components link Google Fonts
     await p.goto(pathToFileURL(page).href);
     await p.evaluate((h) => {
       const box = document.createElement("div"); box.className = "kit-block"; document.getElementById("stage").append(box); box.innerHTML = h;
@@ -92,7 +93,7 @@ try {
       assert.ok(got.url.endsWith("assets/texture-mask-text/masks/lava.png") && got.w === 512, JSON.stringify(got));
     }
     assert.deepEqual(errs.filter((e) => !/cdn\.jsdelivr|ERR_INTERNET|Failed to load resource/.test(e)), [], `${name}: page errors`);
-    assert.deepEqual(failed.filter((u) => !/cdn\.jsdelivr/.test(u)), [], `${name}: failed requests`);
+    assert.deepEqual(failed.filter((u) => !/^https?:/.test(u)), [], `${name}: failed requests`);
     await p.close();
     console.log(`${name}: installed ${r.assets.length} asset(s), loads clean`);
   }

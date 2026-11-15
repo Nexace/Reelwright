@@ -1,10 +1,28 @@
 # python3 tools/vo.py <project> [line_id ...]
-# Voiceover with Microsoft Edge neural voices (edge-tts, free, no key): one mp3 per line in project.json
+# Voiceover with Microsoft Edge neural voices (edge-tts, free, no key; offline OS voice instead: "tts": "local" or REELWRIGHT_TTS=local, tools/tts_local.py): one mp3 per line in project.json
 # + word timings → <project>/vo/lines.json (vo/<lang>/ with --lang). Unchanged lines are reused; pass ids to force a redo.
 import asyncio, hashlib, json, os, subprocess, sys
-if len(sys.argv) > 1 and json.load(open(os.path.join(sys.argv[1], "project.json"))).get("tts") == "kokoro":   # P12b: opt-in local Kokoro (tools/tts_kokoro.py)
-    os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tts_kokoro.py"), *sys.argv[1:]])
-import edge_tts
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def hand_over(script):   # run another TTS adapter in this one's place: same arguments, same environment (not execv: on Windows it returns at once)
+    sys.exit(subprocess.run([sys.executable, os.path.join(HERE, script), *sys.argv[1:]]).returncode)
+
+
+TTS = json.load(open(os.path.join(sys.argv[1], "project.json"))).get("tts") if len(sys.argv) > 1 else None
+if TTS == "kokoro":   # P12b: opt-in local Kokoro (tools/tts_kokoro.py)
+    hand_over("tts_kokoro.py")
+if TTS == "local" or os.environ.get("REELWRIGHT_TTS") == "local":   # offline OS voice (tools/tts_local.py)
+    hand_over("tts_local.py")
+sys.path.insert(0, HERE)
+import tts_local
+try:
+    import edge_tts
+except ImportError:   # the online voice stays the default; with no edge-tts and an OS voice, the offline one
+    if not tts_local.engine():
+        raise
+    print("edge-tts is not installed: using the offline voice (tools/tts_local.py)", flush=True)
+    hand_over("tts_local.py")
 
 proj = sys.argv[1]
 force = set(sys.argv[2:])
@@ -44,13 +62,22 @@ async def one(lid, text):
     return {"text": text, "key": key(text), "dur": round(dur, 3), "words": words}
 
 
+DONE = 0   # lines edge-tts has spoken in this run
+
+
 async def retry(lid, text):
+    global DONE
     # edge-tts sometimes returns NoAudioReceived / 403 — wait and retry
     for k in range(12):
         try:
-            return await one(lid, text)
+            r = await one(lid, text)
+            DONE += 1
+            return r
         except Exception as e:
             print(f"  retry {lid} #{k + 1}: {e}", flush=True)
+            if k == 2 and not DONE and tts_local.engine():   # unreachable from the start: the whole film in the offline voice, never two voices
+                print("edge-tts is unreachable: using the offline voice (tools/tts_local.py)", flush=True)
+                hand_over("tts_local.py")
             await asyncio.sleep(2 + 2 * k)
     sys.exit(f"TTS failed for {lid}. If it keeps failing: pip3 install --user -U edge-tts")
 

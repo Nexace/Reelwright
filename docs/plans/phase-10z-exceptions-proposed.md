@@ -1,22 +1,22 @@
 # Phase 10z: non-EQUAL rows, grouped by reason
 
-Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
+Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 388; not 213 (grand total of the groups below: 213).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 429; not 172 (grand total of the groups below: 172).
 
 | # | Group | Rows |
 |--:|---|--:|
 | 1 | Excluded by owner decision or repo rule | 7 |
 | 2 | Needs WebGPU / specific hardware | 4 |
-| 3 | Licence-blocked or non-OSI (and what was done instead) | 11 |
+| 3 | Licence-blocked or non-OSI (and what was done instead) | 3 |
 | 4 | Not seekable / not deterministic, so kept out by the seekable gate | 4 |
 | 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 15 |
 | 6 | shotcraft audio, social publishing, JianYing and third-party tools skipped | 4 |
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 118 |
-| | **Grand total** | **213** |
+| 10 | Not done, no stated reason | 85 |
+| | **Grand total** | **172** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -71,11 +71,11 @@ By source: hyperframes 4
   - says: (10f). 136 of 210 upstream blocks are supported; all 33 transition, 26 carousel and 11 lt-* are in, maps 3 of 8, code-* 5 of 12. The 74 left out (UNSUPPORTED.md): 37 need WebGPU, 19 unknown-licence assets, 14 fail verif…
   - approach: follows E3
 
-## 3. Licence-blocked or non-OSI (and what was done instead) (11) — 3 approved, 8 open
+## 3. Licence-blocked or non-OSI (and what was done instead) (3) — 3 approved
 
 Rows whose status text or licence cell says the upstream is UNLICENSED, has no licence, is all-rights-reserved, not open source, or a paid licence. The row text says what was done instead (native rewrite, skip).
 
-By source: hyperframes 1, remotion 9, higgsfield-workflows 1
+By source: hyperframes 1, remotion 1, higgsfield-workflows 1
 
 ### HyperFrames (1)
 
@@ -83,35 +83,11 @@ By source: hyperframes 1, remotion 9, higgsfield-workflows 1
   - says: (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2.0.2 vendored); `us-map`, `us-map-flow`, `spain-map` (es-atlas data not vendored: its blocks failed the seek-o…
   - approach: make the 3 failing maps seekable
 
-### Remotion + its skills (9)
+### Remotion + its skills (1)
 
-- `remotion:2.2.1` — `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - overlaps; overlays do not shorten; `offset` — PARTIAL — open
-  - says: (10e): `KIT.transition` with chains; scenes overlap by the transition window, 18 types (`tools/transitions.js`); shuffled-seek fixture in `tools/selfcheck/motion/transitions.mjs`, docs/playbook/motion.md; missing: film-…
-  - approach: [N] `K.transition(t, cut, dur, kind, dir)` -> `{enter, exit}` + overlap arithmetic in sched/film total; [R] free
-- `remotion:2.2.2` — Timings `linearTiming`, `springTiming` (duration from spring settle; `getDurationInFrames({fps})`), custom timing — PARTIAL — open
-  - says: (10e): `dur` (linear) and `ease` (any `KIT.easing` name or function) on `KIT.transition`, plus `K.springDur` (settle time, tools/engine.js) to wire a spring by hand; missing: a spring timing preset that sets `dur` from…
-  - approach: [N] part of K.transition
 - `remotion:2.3.1` — `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `docs/effects/`); `effects={[...]}` on Img/CanvasImage/AnimatedImage/So… — MISSING — exception (owner-approved 2026-11-12)
   - says: (no effects stack; CSS filters only via themes)
   - approach: [R] free (needs `--gl=angle`, Remotion Chrome). [N] cherry-pick CSS/SVG-filter ones below
-- `remotion:2.3.2` — Colour and tone: brightness, contrast, saturation, hue, grayscale, invert, tint, duotone, vibrance, exposure, whiteBalance, shadowsHighligh… — PARTIAL — open
-  - says: (10a): `KIT.grade` (tools/compose.js, docs/playbook/grading-effects.md): 13 grade presets, `adjust` exposure / contrast / highlights / shadows / whites / blacks / temperature / tint / vibrance / saturation, wheels, curv…
-  - approach: [N] ffmpeg `curves`/`lut3d`/`eq` for footage in encode; CSS `filter` for DOM layers (Phase 9 item 11). [R] free GPU path
-- `remotion:2.3.3` — Blur family: blur, lightTrail, linearProgressiveBlur, radialProgressiveBlur, regionBlur, zoomBlur, lensBlur — PARTIAL — open
-  - says: (10a/10e): `KIT.grade` `effects.blur` animatable (hyperframes, tools/compose.js); `KIT.shot.rackFocus` / `dof` tilted-page focus band (tools/shots2.js, tools/selfcheck/motion/shots2.mjs); `K.speedBlur` (tools/shots.js);…
-  - approach: [N] CSS `filter: blur` + masks for the simple ones; rest [R]
-- `remotion:2.3.4` — Lighting: dropShadow, longShadows, glow, shine, vignette — PARTIAL — open
-  - says: (10a): `KIT.grade` `details.vignette` / `grain` and effect `bloom` (hyperframes only, pvk skips them with one warning; tools/compose.js), blocks `vfx-anamorphic-flare`, themes carry shadows; missing: a renderer-neutral…
-  - approach: [N] `KIT.fx.vignette/glow` as CSS
-- `remotion:2.3.5` — Distortion: barrelDistortion, chromaticAberration, cornerPin, fisheye, mirror, noiseDisplacement, wave, tile, skew, scale, translate, turbu… — PARTIAL — open
-  - says: (10a): `KIT.vfx` `wave-warp` and `displacement-map` (hyperframes only, tools/compose.js), `KIT.grade` `effects.chromaticAberration` / `crtCurvature` (hyperframes), shaders `chromatic-split`, `ripple-waves`, `gravitation…
-  - approach: [R]; [N] chromatic aberration + wave as SVG filters
-- `remotion:2.3.6` — Textures/patterns: burlap, checkerboard, contourLines, dotGrid, emboss, flannel, gridlines, halftone, lines, liquidContours, noise, fractal… — PARTIAL — open
-  - says: (10a/10f): `KIT.grade` `effects` scanlines / halftone / ascii / dither and `details` grain (hyperframes, tools/compose.js), `KIT.vfx` `fractal-noise` (hyperframes), blocks `halftone-field`, `vfx-liquid-background`, `sta…
-  - approach: [R]; [N] scanlines, grain, dotGrid, halftone, paper as CSS/SVG layers (theme-friendly)
-- `remotion:2.3.8` — Weather/reveal: snowFall, rainFall, irisWipe, radialWipe, evolve, pixelate, pixelDissolve, progressive pixelate, venetianBlinds — PARTIAL — open
-  - says: (10e/10f): reveals: `KIT.transition` `iris`, `clockWipe`, `blinds`, `barnDoor` (tools/transitions.js, tools/selfcheck/motion/transitions.mjs), shader `sdf-iris` (tools/shaders.js), blocks `transitions-radial`, `transiti…
-  - approach: [R]; [N] wipes/pixel dissolve through `K.transition` masks
 
 ### Higgsfield workflows (docusphere, cth9191) (1)
 
@@ -384,15 +360,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (118) — 72 approved, 2 planned, 30 partial, 14 open
+## 10. Not done, no stated reason (85) — 72 approved, 2 planned, 10 partial, 1 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 118 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 85 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
+By source: hyperframes 36, remotion 14, manim 18, doodle-shots-motion 17
 
-### HyperFrames (38)
+### HyperFrames (36)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -403,7 +379,7 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
 
-#### Native code to add in tools/ (or a flag/command) (26)
+#### Native code to add in tools/ (or a flag/command) (25)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -438,9 +414,6 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
 - `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion, `--tailwind`, writes AGENTS.md/CLAUDE.… — PARTIAL — partial, rest planned (open)
   - says: `new <name> [--renderer hyperframes/remotion]` copies the example/template (bin/reelwright.mjs); `--formats` covers resolution presets. Missing: `--video/--audio` import, auto-transcribe (D10 not built), writing AGENTS.…
   - approach: add `new --video/--audio` once A7/D10 exist
-- `hyperframes:G3` — `capture <url>`: scroll screenshots (default 21, full-page plate), HTML/CSS, visible text, design tokens, fonts downloaded to `assets/fonts… — PARTIAL — partial, rest planned (open)
-  - says: tools/capture_site.mjs (`from-url`, `theme-from`): scroll-to-load, hero + per-heading shots, sections, full page, images, text, headings, colours, font names; read-only (writes faked, workers/sockets blocked); `file://`…
-  - approach: native: add font download, SVG, animation metadata, loopback `--local-file`, SSRF policy (reject private IPs)
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6, composition contract 27, CSS/scripts 2… — PARTIAL — partial, rest planned (open)
   - says: `qa` runs the vendored `@hyperframes/lint` on hyperframes films (96 of 140 rule codes; 44 SKIP, 5 DOWNGRADE; fixture `qa-broken-lint`; tools/selfcheck/hf-lint.mjs) plus qa.py/qa_page.mjs gates (loudness, captions, flash…
   - approach: ~~wire `lintProject()` into `qa` for hf projects (S)~~ done in 10m; vendor the four in-page audit scripts for layout/occlusion/contrast into `qa_page.mjs` (M)
@@ -484,11 +457,8 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: Render needs no transcode: `KIT.video` frames are extracted by ffmpeg, so HEVC/ProRes work (tools/renderers/media.mjs; docs/playbook/video-audio.md). No import-time H.264 conversion (`new --video` does not exist) and no…
   - approach: ffmpeg transcode on import
 
-#### Points at another row (3)
+#### Points at another row (2)
 
-- `hyperframes:E8` — Caption-style components (16, tag `caption-style`) + 1 caption block; fed by a transcript — PARTIAL — partial, rest planned (open)
-  - says: All 17 caption-* components are vendored and installable with `reelwright add` (vendor/hyperframes/registry/components/caption-*). Reelwright's own karaoke captions come from VO words (KIT.subtitles). Missing: a transcr…
-  - approach: link to D10; add a `captions` adapter that writes `transcript.json` from `timeline.json` words
 - `hyperframes:G11` — `preview` (hot reload, background/foreground/status/list, port) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-checked; `studio` adds a port flag. Missing: background/foreground/status/list sub-commands. Not built: one local…
   - approach: see H
@@ -520,73 +490,37 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: `gen --provider higgsfield` is paid and opt-in, and `gen --import <file> --source firefly/express` registers a file made elsewhere, offline (tools/gen.mjs, tools/gen/). No local mflux or LTX provider. Not built: multi-G…
   - approach: out of scope; keep `gen`
 
-### Remotion + its skills (36)
+### Remotion + its skills (14)
 
-#### Docs / PLAYBOOK note only (2)
+#### Docs / PLAYBOOK note only (1)
 
 - `remotion:2.6.5` — Spline/Figma/After Effects import — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (tools/runtimes.js, CI demo projects/runtimes-hf); missing: the SVG-paste note for Figma in the docs, Spline. S…
   - approach: [D] mention SVG paste for Figma
-- `remotion:2.6.11` — Text rules in skills `video-layout.md`: 1080-wide minimums 84 px headline, 44 px supporting; safe area 80 px sides, 100 px top/bottom — PARTIAL — partial, rest planned (open)
-  - says: (10z audit): `KIT.safe` title-safe box per format (6 % sides and 8 % top / bottom at 16x9, tools/engine.js) and the qa tiny-text WARN below 24 px * `KIT.u` (tools/qa_page.mjs); missing: the 84 px headline / 44 px suppor…
-  - approach: [D] cite in PLAYBOOK as defaults (rewrite wording)
 
-#### Native code to add in tools/ (or a flag/command) (31)
+#### Native code to add in tools/ (or a flag/command) (11)
 
-- `remotion:2.1.2` — Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `extend`) — PARTIAL — open
-  - says: (10z audit): `K.keys`, `K.seg`, `K.local`, `K.remap` clamp only (tools/engine.js, tools/shots.js); missing: `extend`, `identity`, `wrap` for numbers (a new module, engine.js is frozen). [N] gap; [R] core `interpolate()`…
-  - approach: [N] add `{left,right}` modes to `K.keys`
 - `remotion:2.1.4` — `posterize` N (stepped look) — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t * n) / n, pts)`), so a helper adds nothing. [R] core `interpolate()` has it in React films only. Suggest: acce…
   - approach: [N] `K.keys` option: sample every Nth frame (needs fps)
 - `remotion:2.1.5` — `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin, font-weight) — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpolate units, colours and transforms natively and pass shuffled seeks (tools/selfcheck/runtimes.mjs). Suggest: a…
   - approach: [N] small `K.lerpStr` for CSS values with units; low priority
-- `remotion:2.1.6` — `interpolateColors()` (rgb, hsl, oklab, easing option) — PARTIAL — partial, rest planned (open)
-  - says: (10b): colours tween under seek through `KIT.gsap` / `KIT.anime` (anime `backgroundColor` fixture in tools/selfcheck/runtimes.mjs, which passed in the 10z audit); missing: a pure `K.color` rgb/hsl/oklab lerp callable fr…
-  - approach: [N] oklab/rgb lerp helper (also needed by theme tokens)
-- `remotion:2.1.9` — `random(seed)` deterministic PRNG (mulberry32 over string hash) — PARTIAL — open
-  - says: (10g): `D.rng(seed)` (mulberry32) + `D.hash(str)` (FNV-1a) in tools/doodle.js, proven by tools/selfcheck/doodle2.mjs; `KIT.transition`, `KIT.math3d` keep private copies; missing: a public `K.random(seed)` outside doodle…
-  - approach: [N] expose `K.random(seed)` (seeded) and lint hint
-- `remotion:2.1.10` — `<Sequence from trimBefore durationInFrames playbackRate loop freeze premountFor postmountFor layout name>` — PARTIAL — open
-  - says: (10a/10e): pieces exist: `K.local(t,from,dur,rate)` (tools/engine.js), `K.remap` time-remap points for trim/rate/freeze (tools/shots.js), `K.video` `in`/`rate`/`ramp` (tools/media.js), `KIT.mount` `playbackStart` (tools…
-  - approach: [N] add `K.seq({from,trim,dur,rate,loop,freeze})` returning local time or null (Phase 9 item 4); [R] gives components
 - `remotion:2.1.11` — `<Series>` / `Series.Sequence offset` — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): scene starts come from `V()` / `W()` and the script's `gap`s (tools/sched.py), which already sum the scene lengths and give `offset`. [R] core `<Series>` in React films only. Suggest: accept as ex…
   - approach: [N] `K.series([{dur,offset}])` returns start times; sums scene lengths
-- `remotion:2.1.12` — `<Loop times durationInFrames>` / `useLoop()`; `loop` prop — PARTIAL — partial, rest planned (open)
-  - says: (10b): `KIT.lottie(..., {loop})` loops a Lottie (tools/runtimes.js, tools/selfcheck/runtimes.mjs); everything else is modulo by hand; missing: a general loop helper (planned inside `K.seq`, not built). [R] core `<Loop>`…
-  - approach: [N] `K.seq` `loop` covers it
-- `remotion:2.1.13` — `<Freeze frame>` / `<Sequence freeze>` — PARTIAL — open
-  - says: (9b/10e): `K.remap` with slope 0 holds a source time (tools/shots.js); `KIT.shot.bulletTime` `world(t)` freezes the scene clock while the camera moves (tools/shots2.js, tools/selfcheck/motion/shots2.mjs); `K.keys` clamp…
-  - approach: [N] `K.seq` `freeze` (local time held)
 - `remotion:2.1.21` — `@remotion/animation-utils` `interpolateStyles`, `makeTransform` — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no style-object lerp (`K.styles`); GSAP tweens in `KIT.gsap` animate whole style sets with units natively (shuffled-seek proven, tools/selfcheck/runtimes.mjs) and `K.camCSS` builds transform strin…
   - approach: [N] `K.styles(t, keys)`: lerp whole style objects (needs unit parsing, see row above)
 - `remotion:2.2.10` — Starburst / `filmBurn` / `starburst()` effect, `@remotion/starburst` — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no starburst / filmBurn; `KIT.transition` `lightLeak` / `flash` and the vendored blocks `light-leak`, `editorial-flash-overlay`, `organic-light-leak-overlay` (vendor/hyperframes/registry/blocks) c…
   - approach: [N] optional CSS conic burst; low value
-- `remotion:2.3.11` — Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `<CameraMotionBlur samples=10>`; `<Trail layers lagInFrames trailOpacit… — PARTIAL — open
-  - says: (10a): the shutter model is built on both renderers: project.json `"motionBlur": {shutter, samples}` (pvk averages sub-frame `render(t)` with ffmpeg `tmix`, hyperframes passes the engine's sub-frame option; tools/render…
-  - approach: [N] shutter model (verified from `CameraMotionBlur.tsx`: samples k=1..n at offsets `shutterAngle/360 * k/n` frames behind, each at opacity 1/n, additively blended): render N sub-frame times and avera…
-- `remotion:2.4.1` — `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trimBefore, durationInFrames, playbackRate, loop, volume curve, muted, obj… — PARTIAL — open
-  - says: (10a): `KIT.video(src, {start, dur, in, rate, ramp, audio, volume})` (tools/media.js, docs/playbook/video-audio.md; rendered in CI demo projects/engine-hf): ffmpeg pre-extracts frames for pvk, a `<video>` for hyperframe…
-  - approach: [N] `K.video(src, {trim, dur, rate})` for imported mp4s: pre-extract frames with ffmpeg (deterministic), seek by `<img>` index (same idea as OffthreadVideo); [R] free
-- `remotion:2.4.4` — `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `volume` static or per-frame curve, `muted` toggle, `playbackRate` (no r… — PARTIAL — open
-  - says: (10a): `KIT.audio(src, {start, in, out, gain, fadeIn, fadeOut})` mixed over mix.wav at encode, plus `KIT.video` `audio` / `volume` and speed-ramped sound with pitch kept (tools/media.js, tools/renderers/media.mjs, docs/…
-  - approach: [N] `K.audio(src,{from,trim,dur,vol:[[t,v]...],rate,loop})` -> mix.py layer with an envelope; pitch via ffmpeg `asetrate/atempo` or `rubberband` if present. In [R] mode Reelwright still mixes (render…
-- `remotion:2.4.7` — Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bins, numberOfSamples power of 2, bass = left), `visualizeAudioWaveform`… — PARTIAL — partial, rest planned (open)
-  - says: `KIT.pulse` / beats only (beatgrid.py). Not built (10z audit): no continuous spectrum or level (`K.level(t)`, `K.spectrum(t,n)`); no FFT in the build besides music.py synthesis. [N] gap; [R] `@remotion/media-utils` hook…
-  - approach: [N] build-time numpy FFT -> per-frame `bands` array in kit data, `K.level(t)`, `K.spectrum(t,n)` (Phase 9 item 7). Pure lookup
 - `remotion:2.4.9` — Silence detection recipe (loudnorm `input_thresh` -> `silencedetect noise=..:d=0.5`; merge gaps <0.2 s); `getSilentParts()` in renderer — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no silence-detect step; VO is TTS (no dead air) and music is trimmed with `music.start`; only user-supplied recordings would need it, and `ffmpeg silencedetect` is one command by hand. Suggest: ac…
   - approach: [N] `tools/silence.py` or in mix.py to trim VO/takes (Phase 9 item 8)
 - `remotion:2.4.14` — Cropping `cropLeft/Right/Top/Bottom` ratios on any layer — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it is what tools/transitions.js uses for wipes). Suggest: accept as exception
   - approach: [N] `K.crop(el,{l,r,t,b})`
-- `remotion:2.4.17` — `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`, `fillTextBox` (overflow check); `measureDomNodes` — PARTIAL — partial, rest planned (open)
-  - says: qa gates caption fit / contrast and overlap / tiny-text WARNs (tools/qa_page.mjs). Not built (10z audit): no authoring-time `K.fit` / `fitText` / `measureText` helper. [R] `@remotion/layout-utils` in React films only. S…
-  - approach: [N] `K.fit(el, {w,h,maxLines})` binary search on font-size using DOM measure
 - `remotion:2.4.18` — `@remotion/rounded-text-box` (rounded highlight box behind multi-line text) — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no rounded text-highlight box; `KIT.math.surround` / `backgroundRect` (tools/math2.js) draw a rounded box around one element's rect. Suggest: accept as exception (low value)
   - approach: [N] optional SVG path builder; low value
@@ -596,42 +530,12 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
 - `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `install-whisper-cpp` (whisper.cpp), `openai… — MISSING — exception (owner-approved 2026-11-12)
   - says: (we only have TTS word times). Not built (10z audit): no speech-to-text; needs a model download and the owner's call on model size, and the VO is generated, not recorded. Suggest: accept as exception (revisit if films s…
   - approach: [N] optional `reelwright transcribe <audio>` via whisper.cpp or faster-whisper (local, offline after model download, opt-in); needs maintainers' call on model size
-- `remotion:2.5.7` — Text highlights `@remotion/rough-notation` (Highlight, Circle, Underline, StrikeThrough, CrossedOff, Box, Bracket; `progress` prop; roughjs) — PARTIAL — partial, rest planned (open)
-  - says: (10g/10h): `KIT.doodle` underline / circle / drawOn (tools/doodle.js), `D.stroke` pen-style freehand lines usable for any mark (tools/doodle2.js, tools/selfcheck/doodle2.mjs), `KIT.indicate.circumscribe` (tools/motion.j…
-  - approach: [N] extend `KIT.doodle` with highlight, strike, crossed, box, bracket (Phase 9 item 9)
-- `remotion:2.6.6` — `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star, Polygon, Pie, Heart, Arrow, Callout, Spark) + `makeX()` returning `{… — PARTIAL — open
-  - says: (10h): `KIT.math.shape.*` path builders (tools/math2.js, tools/selfcheck/motion/math2.mjs): circle, ellipse, rect, roundedRect, regularPolygon (triangle / polygon), star, sector (pie), arc, arrow; missing: heart, callou…
-  - approach: [N] port the `make*` functions into `tools/shapes.js` (`KIT.shape.*`); [R] free
-- `remotion:2.6.8` — `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1 + seed) — PARTIAL — open
-  - says: (10g): `D.noise(seed, x, y)` seeded 2-octave gradient noise in [0, 1] (tools/doodle2.js; determinism and smoothness proven in tools/selfcheck/doodle2.mjs, which passed in the 10z audit); missing: 3D / 4D, simplex, and a…
-  - approach: [N] add `KIT.noise2/3` by depending on `simplex-noise` (MIT, npm) or a 30-line seeded simplex
-- `remotion:2.7.1` — Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profiles proxy..4444 XQ), `gif`, audio-only `mp3/aac/wav`, image sequence `… — PARTIAL — open
-  - says: (10a): `encode()` (tools/renderers/pvk.mjs, docs/playbook/output-formats.md): H.264 + AAC mp4 always, plus `output.format` webm (VP9 + Opus, alpha), mov (ProRes proxy / lt / 422 / hq / 4444 / 4444xq), gif, apng, png fol…
-  - approach: [N] `--codec h265/vp9/av1/prores/gif` presets in `encode()` (ffmpeg flags; no Remotion needed) and `project.json` `"codec"`
-- `remotion:2.7.2` — Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-size`, `--x264-preset`, `--gop`, `--jpeg-quality`, `--pixel-format`, `--… — PARTIAL — partial, rest planned (open)
-  - says: (10a): `output.crf` (mp4 16, webm 24), `output.scale` and `gifFps` in `encode()` (tools/renderers/pvk.mjs); everything else stays fixed (`-preset slow`, yuv420p, high profile); missing: video-bitrate, max-rate, buffer-s…
-  - approach: [N] expose crf/preset/bitrate/pix_fmt/colorspace in project.json -> `encode()`
 - `remotion:2.7.3` — Hardware-accelerated encode (`--hardware-acceleration`, VideoToolbox / NVENC) — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): no hardware encode; it needs the machine's GPU encoder, differs per platform and would break byte-identical encodes. Suggest: accept as exception
   - approach: [N] optional `"hwaccel": true` -> `h264_videotoolbox`/`h264_nvenc` with fallback
-- `remotion:2.7.5` — Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30,60` gives `element-00/30/60`); `--every-nth-frame`; `--duration` — PARTIAL — open
-  - says: (10.0): pvk `stills t,t,...` and `frames [from] [to]` (tools/renderers/pvk.mjs); the hyperframes renderer ignores a frame range ("renders the whole film", tools/renderers/hyperframes.mjs); missing: `--every-nth-frame`,…
-  - approach: [N] nothing; pvk already has ranges; [R] used by stills
-- `remotion:2.7.10` — Parameterised renders: `--props file.json|'{...}'` -> `getInputProps()`/component props; `defaultProps`; Zod `schema` (all Zod types, `zCol… — PARTIAL — partial, rest planned (open)
-  - says: `project.json` + `--lang` / `--style` / `--formats` only. Not built (10z audit): no per-run props (`all --props data.json`, `KIT.props`, batch from a csv); the Remotion renderer passes only project / vo / music as props…
-  - approach: [N] `reelwright all --props data.json` -> merged into kit data `window.PROPS` and `KIT.props`; `batch <csv>` loops builds (S); schema validation = JSON Schema file `props.schema.json`. [R] free (Zod)
-- `remotion:2.7.14` — HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--metadata key=value` into the mp4, `--license-key`, `--is-production` — PARTIAL — partial, rest planned (open)
-  - says: (10a): HDR is built on hyperframes (`output.hdr`, HEVC Main 10 HLG / PQ when the page has HDR sources; docs/playbook/output-formats.md), which Remotion does not do; manifest.json carries the hashes (tools/manifest.mjs);…
-  - approach: [N] write title/comment metadata via ffmpeg `-metadata` in encode (S). HDR = not supported (document)
-- `remotion:2.8.4` — `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/outFrame, playbackRate, fullscreen, volume, poster, `renderCustomControl… — PARTIAL — open
-  - says: (10d): `reelwright embed` writes one self-contained page played by the vendored HyperFrames player (controls, loop, muted, autoplay, volume, playback-rate, poster attributes; mix.wav as audio; offline, `#12.5` opens at…
-  - approach: [N] our own tiny player over `render(t)` (no Remotion): timeline slider + audio element (mix.wav) + pure render; Remotion's Player needs a React app and, for companies, makes you an "Automator" (Term…
 
-#### Other (read the approach text) (3)
+#### Other (read the approach text) (2)
 
-- `remotion:2.4.2` — `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) — PARTIAL — open
-  - says: (10a): same mechanism natively: pvk pre-extracts exact frames with ffmpeg and shows them as `<img>` (tools/renderers/media.mjs, `KIT.video`); missing: `transparent` (alpha) source video, since the extracted frames are J…
-  - approach: same
 - `remotion:2.6.9` — Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Turf, CesiumJS flyovers (Google 3D tiles needs billing key); render-stabi… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10f): offline maps from the vendored d3 + topojson + world / US atlases as blocks `world-map`, `us-map-bubble`, `us-map-hex` (vendor/hyperframes/registry/blocks, tools/selfcheck/blocks.mjs samples the d3 + atlas path);…
   - approach: static map: [D] `<img>` already works. MapLibre route animation: optional [N] later (MapLibre BSD-3, but tiles need network/key: breaks offline-core, keep opt-in). Mapbox/Cesium/MapTiler/Google need…
@@ -707,22 +611,13 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js (`tools/manim.mjs`, `tools/selfcheck/manim.mjs`); `all`, `verify` and the manifest do not run Manim (shared files left alone by decision)…
   - approach: own code
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (26)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (17)
 
-#### Docs / PLAYBOOK note only (4)
+#### Docs / PLAYBOOK note only (1)
 
 - `doodle-shots-motion:1.15` — Lessons: step sheet + captioned timelapse, drawn-stroke captions — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no drawn-stroke captions. Suggest: accept as exception.
   - approach: docs recipe on top of D.score + captions; low priority (teaching niche)
-- `doodle-shots-motion:2b.7` — Ink Press: complete 36 s validated promo template (10 shots, replace screenshots/copy/logo) — PARTIAL — partial, rest planned (open)
-  - says: (10z): docs/recipes/film is one 8-scene HF film built from the 8 recipes (docs/recipes/*.md, stills); projects/example, teaser, website, dashboard; `from-url`; missing: a validated 10-shot promo template (`new --templat…
-  - approach: docs: 'promo-energy-arc' project template (`reelwright new --template promo`) assembled from KIT.recipe.* (M). Do not copy template screenshots
-- `doodle-shots-motion:2b.9` — Energy-arc sequence: low open -> single hero -> feature climb with breath cards -> peak group-photo outro; budget hold frames first — PARTIAL — partial, rest planned (open)
-  - says: (10z): PLAYBOOK 'Story before pixels' gives the hook → grind → reveal → features → payoff → end-card order; missing: energy-arc table and a `beats` arc validator (WARN if the close is not the loudest) [10z: build]
-  - approach: docs section + `reelwright beats` arc validator (WARN if closing is not the loudest) S
-- `doodle-shots-motion:2b.11` — Final independent review checklist (P/F/V/A/... items, clean-context reviewer) — PARTIAL — partial, rest planned (open)
-  - says: (10z): docs/playbook/claude-workflow.md loop (stills, taste WARNs, qa FAIL/WARN) + AGENTS.md step 3; missing: an itemised final-review checklist and a clean-context reviewer step [10z: build]
-  - approach: docs: PLAYBOOK 'Review' checklist
 
 #### Recipe or KIT helper to add (R-tier) (7)
 
@@ -748,31 +643,16 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
   - says: 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-card-assemble and KIT.stagger with no kit gap. Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
 
-#### Native code to add in tools/ (or a flag/command) (7)
+#### Native code to add in tools/ (or a flag/command) (2)
 
 - `doodle-shots-motion:1.37` — Mechanism explainers: exploded axonometric machine, free-angle camera, depth-sorted parts, drafted lettering, figure card — MISSING — exception (owner-approved 2026-11-12)
   - says: pieces only: `S.explode` (layers separate in z while the stack turns axonometric, tools/shots2.js) and `KIT.math3d` (Three.js scenes, tools/math3d.js). Not built (10z audit): no `KIT.axo` projection with depth-sorted pa…
   - approach: native only as docs + `KIT.axo` SVG projection helper (project mm coords with azimuth/elevation, depth-sort) or three.js for real 3D; L, defer
-- `doodle-shots-motion:2b.1` — Camera layer: layout-scale `zoom` instead of scale so text stays sharp under 3D; native-size texture rasterised then scaled (Q2) — PARTIAL — partial, rest planned (open)
-  - says: KIT.camCSS/shoot still use transform scale() (tools/shots.js); shots2 planes set --kit-line for stroke weight only; missing: `sharp:true` layout-zoom option and a 9x16 stills check [10z: build]
-  - approach: native: camCSS option `sharp:true` (CSS zoom on the filmed layer; same Chromium in both renderers) + docs; verify with stills at 9x16
-- `doodle-shots-motion:2b.3` — Velocity helpers: velocityAt, lagged, dampedSettle (state-free) — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.speedBlur central-difference velocity (tools/shots.js), steepTilt `ghosts` trailing copies (tools/shots2.js), KIT.sim seekable physics (tools/motion.js); missing: velocityAt / lagged / dampedSettle helpers [10z…
-  - approach: native 10 lines in shots.js
-- `doodle-shots-motion:2b.10` — Aesthetic rules as lints: R1 hold >=1 s on wordmark, R4 <=3 whole-frame beat hits, Q11 caption >=5% frame height / secondary 3%, Q3 no hand… — PARTIAL — partial, rest planned (open)
-  - says: (10z): qa WARN tiny-text (24 px × KIT.u, tools/qa_page.mjs), taste WARNs motion/balance/empty/contrast/pacing (tools/checks/taste.page.mjs), mix.py WARN on >1 riser/subdrop; missing: wordmark-hold, 5%/3% caption height,…
-  - approach: native qa WARN set: min-text-height 5%/3%, wordmark-hold, big-slam budget (count K.shake/crashZoom), sfx-repeat
 - `doodle-shots-motion:2b.17` — Gallery of 150 looping previews + library.json API + llms.txt — MISSING — exception (owner-approved 2026-11-12)
   - says: stills/sheet.jpg contact sheet only; 10z: no per-shot looping preview gallery: tools/theme-gallery.mjs renders themes, `blocks.mjs render` renders block stills, docs/recipes has stills; a 150-clip gallery + llms.txt is…
   - approach: native `reelwright shots --gallery`: renders each KIT.recipe/shot as a looping mp4/webp sheet into docs/ (also the proof medium for these rows)
-- `doodle-shots-motion:2b.18` — Beat-synced cutting methodology: librosa grid fit, kick/snare/hat onset classes, grid validation by transient coverage, post-render cut err… — PARTIAL — partial, rest planned (open)
-  - says: tools/beatgrid.py fits tempo/phase from two onset bands (kick <120 Hz, transients 2-10 kHz) + drop; tools/music.py beds have a known grid; KIT.snap / KIT.pulse; missing: post-render cut-on-beat error report, snare/hat c…
-  - approach: native qa WARN `cut-on-beat`: extract audio from mp4 and measure cut-to-beat error (S); onset classes (low/mid/high band) S
-- `doodle-shots-motion:2b.19` — Output-audio offset compensation: AAC priming (~1.28 f) and per-file SFX peak lag (brush-write 2 f, paper-slide 10 f) — PARTIAL — partial, rest planned (open)
-  - says: (10g): per-kind PEAK table in tools/mix.py (cue start = t − peak), proved ±10 ms by tools/selfcheck/sound.mjs; missing: AAC priming measurement / `verify-av` cross-correlation on the rendered mp4 [10z: build]
-  - approach: native: per-kind PEAK table in mix.py for synthesised SFX (known by construction) + `verify-av` cross-correlation check on the rendered mp4 (S)
 
-#### Other (read the approach text) (8)
+#### Other (read the approach text) (7)
 
 - `doodle-shots-motion:1.34` — Product UI from data: before/after states, items spring to slots, matched by id — MISSING — exception (owner-approved 2026-11-12)
   - says: Reelwright films a real recorded UI instead. Not built (10z audit): no id-keyed before/after list morph; docs/recipes/before-after.md is a static two-pane split. Suggest: accept as exception (low priority, the Approach…
@@ -783,9 +663,6 @@ By source: hyperframes 38, remotion 36, manim 18, doodle-shots-motion 26
 - `doodle-shots-motion:1.53` — Interactive web art: <ani-doodle> mascots that follow the cursor, scroll-drawn hero, form companion — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs and the studio exist, neither is cursor-reactive web art). Suggest: accept as exception.
   - approach: out of scope (not a video; belongs to the embeddable-player/studio work)
-- `doodle-shots-motion:2b.13` — Page capture trio: 2x full-page PNG, per-element transparent cutouts, layout.json bbox table — PARTIAL — partial, rest planned (open)
-  - says: tools/capture_site.mjs saves 2x sections, full page, images, hero + per-heading shots and site.json (text, colours, fonts, heading y); missing: per-element transparent cutouts and a layout.json bbox table [10z: build]
-  - approach: extend capture_site: element cutouts (omitBackground) + layout.json boxes; needed for 3D 'floating chip' recipes
 - `doodle-shots-motion:2b.14` — Motion Workbench: CapCut-style browser editor (tracks, retime, swap shots, schema inspector, parity check, export) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10k): `reelwright studio` local editor (tools/studio, docs/playbook/studio.md): player, timeline of scenes/VO/beats/SFX cues, inspector for lines/gaps/style, stills/taste/embed jobs; missing: shot/transition/SFX track…
   - approach: belongs to the studio-editor audit; Remotion-Player-based, so not reusable. Reuse only the manifest idea (`workbench.ts`: shots/transitions/captions/sfx tracks)

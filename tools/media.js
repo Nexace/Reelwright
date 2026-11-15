@@ -55,8 +55,8 @@
   // ── KIT.video ───────────────────────────────────────────────────────────
   const clips = [], frames = {};
   // the pvk renderer calls this on every page after READY: frame i (0-based) of the clip at FPS is url/<i+1, 6 digits>.jpg
-  K.__videoFrames = (id, url, count, fps) => { frames[id] = { url, count, fps }; };
-  K.video = (src, { id, start, dur, in: mediaIn = 0, rate = 1, ramp, volume = 1, audio = false, parent = K.stage, cls } = {}) => {
+  K.__videoFrames = (id, url, count, fps, ext = 'jpg') => { frames[id] = { url, count, fps, ext }; };
+  K.video = (src, { id, start, dur, in: mediaIn = 0, rate = 1, ramp, volume = 1, audio = false, transparent = false, loop = false, vol, tone, stream, parent = K.stage, cls } = {}) => {
     if (!id || typeof id !== 'string') throw new Error(`KIT.video("${src}"): give it an id (the renderer keys frames on it)`);
     if (M.videos.some((v) => v.id === id)) throw new Error(`KIT.video: id "${id}" is used twice`);
     num(start, `KIT.video("${id}") start`); num(mediaIn, `KIT.video("${id}") in`);
@@ -75,12 +75,13 @@
     }
     const T = lane && tableOf(lane);
     const srcAt = (local) => (T ? sourceTimeAt(T, local) : local * rate);   // source seconds after `in`
-    M.videos.push({ id, src, start, dur, in: mediaIn, rate, ramp: lane, audio: !!audio, volume });
+    M.videos.push({ id, src, start, dur, in: mediaIn, rate, ramp: lane, audio: !!audio, volume, transparent: !!transparent, loop: !!loop });
     if (audio) {
       const a = { src, start, in: mediaIn, out: mediaIn + srcAt(dur), gain: volume, fadeIn: 0, fadeOut: 0, len: dur, video: id };
       if (T) { const n = Math.min(MAX_SLICES, Math.max(1, Math.ceil(dur / RAMP_SLICE))), step = dur / n;
         a.slices = Array.from({ length: n }, (_, i) => [srcAt(i * step), srcAt((i + 1) * step)]); a.step = step; }
       else if (rate !== 1) a.tempo = rate;
+      Object.assign(a, { ...(vol && { vol }), ...(tone != null && { tone }), ...(stream != null && { stream }) });   // volume curve [[t, v], …], toneFrequency, audioStreamIndex
       M.audio.push(a);
     }
     if (HF) {   // the producer finds video[data-start] with an id, extracts its frames and draws them in its place
@@ -95,7 +96,7 @@
     }
     const im = K.el('img', cls, parent);
     im.id = id;
-    clips.push({ id, im, start, dur, in: mediaIn, srcAt });
+    clips.push({ id, im, start, dur, in: mediaIn, srcAt, loop: !!loop });
     return im;
   };
   // pvk: show the frame for source time in + ∫rate, inside [start, start + dur); a pure function of t
@@ -106,17 +107,24 @@
       const f = frames[c.id];
       if (!on || !f) continue;
       // HyperFrames getFrameIndexAtTime: floor of the shown time (+1e-5 media lead); past the source end holds the last frame
-      const i = Math.min(f.count - 1, Math.max(0, Math.floor((c.in + c.srcAt(t - c.start) + 1e-5) * f.fps)));
-      K.img(c.im, f.url + '/' + String(i + 1).padStart(6, '0') + '.jpg');
+      let i = Math.max(0, Math.floor((c.in + c.srcAt(t - c.start) + 1e-5) * f.fps));
+      if (c.loop) { const n0 = Math.min(f.count - 1, Math.floor(c.in * f.fps)); i = n0 + (i - n0) % (f.count - n0); }   // loop: the source from `in` to its end, again and again
+      else i = Math.min(f.count - 1, i);
+      K.img(c.im, f.url + '/' + String(i + 1).padStart(6, '0') + '.' + (f.ext || 'jpg'));
     }
   };
 
   // ── KIT.audio ───────────────────────────────────────────────────────────
-  K.audio = (src, { start, in: mediaIn = 0, out, gain = 1, fadeIn = 0, fadeOut = 0 } = {}) => {
+  K.audio = (src, { start, in: mediaIn = 0, out, gain = 1, fadeIn = 0, fadeOut = 0, vol, rate = 1, tone, loop, loopVolume, stream, dur } = {}) => {
     num(start, `KIT.audio("${src}") start`); num(mediaIn, `KIT.audio("${src}") in`);
     if (out !== undefined && !(num(out, `KIT.audio("${src}") out`) > mediaIn)) throw new Error(`KIT.audio("${src}"): out must be after in`);
     if (!(gain >= 0) || !(fadeIn >= 0) || !(fadeOut >= 0)) throw new Error(`KIT.audio("${src}"): gain, fadeIn and fadeOut are >= 0`);
-    M.audio.push({ src, start, in: mediaIn, ...(out !== undefined && { out, len: out - mediaIn }), gain, fadeIn, fadeOut });
+    if (vol && !Array.isArray(vol)) throw new Error(`KIT.audio("${src}"): vol is [[t, v], …] (t seconds from the clip start)`);
+    if (!(rate >= 0.1 && rate <= 10)) throw new Error(`KIT.audio("${src}"): rate is 0.1 to 10`);
+    if (tone != null && !(tone >= 0.01 && tone <= 2)) throw new Error(`KIT.audio("${src}"): tone (toneFrequency) is 0.01 to 2`);
+    if (loop === true && !(dur > 0)) throw new Error(`KIT.audio("${src}"): an endless loop needs dur (seconds)`);
+    M.audio.push({ src, start, in: mediaIn, ...(out !== undefined && { out, len: out - mediaIn }), gain, fadeIn, fadeOut,
+      ...(vol && { vol }), ...(rate !== 1 && { tempo: rate }), ...(tone != null && { tone }), ...(loop && { loop }), ...(loopVolume && { loopVolume }), ...(stream != null && { stream }), ...(dur > 0 && { len: dur }) });
   };
 
   const s = K.start;

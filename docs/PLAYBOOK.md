@@ -1346,4 +1346,4 @@ template, the pins, the licence text, `film.mjs`/`kit.js` in Node and the no-TTY
 
 ## More topics (Phase 11)
 
-[p5-motion](playbook/p5-motion.md), [p5-text-media](playbook/p5-text-media.md), [p5-delivery](playbook/p5-delivery.md), [p5-deck](playbook/p5-deck.md); also [motion-rules](playbook/motion-rules.md), [lottie](playbook/lottie.md), [variables](playbook/variables.md), [audio-fx](playbook/audio-fx.md), [manim-native](playbook/manim-native.md), [skill-references](playbook/skill-references.md).
+[p5-motion](playbook/p5-motion.md), [p5-text-media](playbook/p5-text-media.md), [p5-delivery](playbook/p5-delivery.md), [p5-deck](playbook/p5-deck.md); also [motion-rules](playbook/motion-rules.md), [lottie](playbook/lottie.md), [variables](playbook/variables.md), [audio-fx](playbook/audio-fx.md), [manim-native](playbook/manim-native.md), [skill-references](playbook/skill-references.md); Remotion rows (P9): [p9-time](playbook/p9-time.md), [p9-effects](playbook/p9-effects.md), [p9-delivery](playbook/p9-delivery.md), [p9-text-rules](playbook/p9-text-rules.md).

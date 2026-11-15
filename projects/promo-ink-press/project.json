@@ -1,0 +1,25 @@
+{
+  "title": "Ink Press — 36 s promo template",
+  "renderer": "hyperframes",
+  "style": "editorial",
+  "out": "out/promo-ink-press.mp4",
+  "fps": 30,
+  "lead": 0,
+  "tail": 36,
+  "loudness": -14,
+  "music": { "bpm": 120, "duck_db": -10, "style": "drive", "drop_bar": 14 },
+  "lines": [],
+  "qa": { "aesthetic-rules": true, "sfx-repeat": true },
+  "arc": [
+    { "shot": "open",     "role": "open",    "bars": 2, "energy": 1, "hold": 1.0 },
+    { "shot": "hero",     "role": "hero",    "bars": 2, "energy": 3, "hold": 1.0 },
+    { "shot": "feature1", "role": "feature", "bars": 2, "energy": 3, "hold": 0.5 },
+    { "shot": "breath1",  "role": "breath",  "bars": 1, "energy": 1, "hold": 1.0 },
+    { "shot": "feature2", "role": "feature", "bars": 2, "energy": 4, "hold": 0.5 },
+    { "shot": "breath2",  "role": "breath",  "bars": 1, "energy": 1, "hold": 1.0 },
+    { "shot": "feature3", "role": "feature", "bars": 2, "energy": 5, "hold": 0.5 },
+    { "shot": "numbers",  "role": "feature", "bars": 2, "energy": 6, "hold": 0.5 },
+    { "shot": "group",    "role": "peak",    "bars": 3, "energy": 9, "hold": 0.5 },
+    { "shot": "end",      "role": "end",     "bars": 1, "energy": 3, "hold": 1.6 }
+  ]
+}

@@ -2,6 +2,8 @@
 # Voiceover with Microsoft Edge neural voices (edge-tts, free, no key): one mp3 per line in project.json
 # + word timings → <project>/vo/lines.json (vo/<lang>/ with --lang). Unchanged lines are reused; pass ids to force a redo.
 import asyncio, hashlib, json, os, subprocess, sys
+if len(sys.argv) > 1 and json.load(open(os.path.join(sys.argv[1], "project.json"))).get("tts") == "kokoro":   # P12b: opt-in local Kokoro (tools/tts_kokoro.py)
+    os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tts_kokoro.py"), *sys.argv[1:]])
 import edge_tts
 
 proj = sys.argv[1]

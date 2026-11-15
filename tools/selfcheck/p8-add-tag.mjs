@@ -24,7 +24,8 @@ try {
   r = add("pill"); assert.equal(r.status, 0, r.stdout + r.stderr); assert.ok(have("caption-pill-karaoke"), "the one item tagged `pill` is installed");
   r = add("caption-style"); assert.match(r.stdout, /\d+ items tagged "caption-style"/); assert.match(r.stdout, /add caption-style --all/); assert.ok(!have("caption-glitch-rgb"), "several matches are listed, not installed");
   r = add("caption-style", "--all"); assert.equal(r.status, 0, r.stdout + r.stderr); assert.ok(have("caption-glitch-rgb") && have("caption-weight-shift"), "--all installs them");
-  r = add("hw-arrow"); assert.ok(r.status !== 0 && /only single-file/.test(r.stdout), "exact name still goes the old way (asset components are refused)");
+  r = add("hw-arrow"); assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /assets:/, "asset components install with their assets (P12b)");
+  r = add("caret-swap"); assert.ok(r.status !== 0 && /can't be installed/.test(r.stdout), "an asset component whose fonts are not in the repo is refused with the reason");
   r = add("no-such-thing"); assert.equal(r.status, 1); assert.match(r.stdout, /usage: reelwright add/);
   console.log("p8-add-tag self-check: patch applies; add by tag installs one, lists many, --all installs all; names and errors unchanged");
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }

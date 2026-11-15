@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { transcriptFrom, retarget } from "../captions.mjs";
+import { adaptCaption } from "../caption_transcript.mjs";   // P12b: all 16 components; retarget (P8) is the fallback
 
 export default async function captions({ proj, args, ROOT }) {
   const tlf = path.join(proj, "timeline.json");
@@ -19,6 +20,6 @@ export default async function captions({ proj, args, ROOT }) {
   const dest = path.join(proj, "hf", "blocks", name + ".html");
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, `<!-- ${name} from the HyperFrames catalog (Apache-2.0, vendor/hyperframes/LICENSE), words from transcript.json -->\n` +
-    retarget(fs.readFileSync(src, "utf8"), words, tl.DUR));
+    (() => { const h = fs.readFileSync(src, "utf8"); try { return adaptCaption(h, words); } catch { return retarget(h, words, tl.DUR); } })());
   console.log(`${dest} — use KIT.block('${name}') and load vendor/gsap/dist/gsap.min.js`);
 }

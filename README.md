@@ -673,6 +673,12 @@ NOTICE, THIRD_PARTY.md      licenses of the vendored code, fonts and tools
 
 Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more engine components.
 
+**CI.** Each OS (Ubuntu, macOS, Windows) runs the self-checks in 3 parallel shards (`self-checks`) and everything else (syntax,
+parity, the example and demo films) in `build-example`; the `ci-ok` job is green only when all of them are, so it is the one
+check a PR gate needs. Locally: `node tools/selfcheck_run.mjs` runs every `tools/selfcheck/*.mjs` (`--only a,b`, `--shard 1/3`,
+`--list`, `--jobs 4` for the checks that are safe to overlap). The balance comes from `tools/selfcheck/timings.json`; after adding
+a slow check, refresh it with `node tools/selfcheck_run.mjs --record --only <name>`.
+
 ## Licence and credits
 
 Code: [MIT](LICENSE). The example app, script and sounds are original and covered by the same licence.

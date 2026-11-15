@@ -1,0 +1,53 @@
+{
+  "_note": "seconds per check on a dev machine (node tools/selfcheck_run.mjs --record); serial = writes to or scans the shared projects/ dir, or binds a port, so it runs alone",
+  "checks": {
+    "hf-lint": {
+      "serial": true
+    },
+    "p11-taste": {
+      "serial": true
+    },
+    "p6-lottie-lint": {
+      "serial": true
+    },
+    "p1-batch": {
+      "serial": true
+    },
+    "p12a-new-media": {
+      "serial": true
+    },
+    "p13-new": {
+      "serial": true
+    },
+    "p12a-hf-render": {
+      "serial": true
+    },
+    "p1-compare": {
+      "serial": true
+    },
+    "studio": {
+      "serial": true
+    },
+    "p12a-studio": {
+      "serial": true
+    },
+    "p13-slideshow-panel": {
+      "serial": true
+    },
+    "p13-slideshow": {
+      "serial": true
+    },
+    "p13-studio-flags": {
+      "serial": true
+    },
+    "p15-studio-agent": {
+      "serial": true
+    },
+    "p5-tools": {
+      "serial": true
+    },
+    "p10-template": {
+      "serial": true
+    }
+  }
+}

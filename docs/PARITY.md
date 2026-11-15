@@ -10,21 +10,21 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 54 | 5 | 0 | 29 | 18 | 6 | 0 | 0 | 112 |
+| HyperFrames | 57 | 6 | 0 | 25 | 18 | 6 | 0 | 0 | 112 |
 | Remotion + its skills | 63 | 4 | 3 | 8 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **394** | **29** | **6** | **72** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **397** | **30** | **6** | **68** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 429 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 433 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 429 |
+| EQUAL, BETTER or EQUAL/BETTER | 433 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
 | Planned (Phase 11), not claimed | 2 |
-| Partial: some shipped, the rest planned (open) | 11 |
+| Partial: some shipped, the rest planned (open) | 7 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 1 |
 | **Total** | **601** |
@@ -109,12 +109,12 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G11 | `preview` (hot reload, background/foreground/status/list, port) | PARTIAL — exception (owner-approved 2026-11-12) | `tools/preview.mjs` `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-chec… |
 | G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | EQUAL | `tools/selfcheck/p8-doctor.mjs` |
 | G14 | `skills` / `update` / `upgrade` / `figma` / `events` / `templates` /… | OUT — exception (owner-approved 2026-11-12) | for `auth billing cloud lambda cloudrun publish open catch-up usage telemetry feedback templates` (HeyGen acc… |
-| G15 | `--json` envelope on every command, `_meta` version/update notice, ex… | PARTIAL — partial, rest planned (open) | `bin/reelwright.mjs` Exit codes: 0, and 1 on a FAIL gate or error (qa.py, bin/reelwright.mjs `run`); machine-readable files exist… |
+| G15 | `--json` envelope on every command, `_meta` version/update notice, ex… | BETTER | `bin/reelwright.mjs` |
 | G16 | `figma asset/tokens/component` (REST: SVG/PNG/JPG/PDF assets frozen u… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/figma_export.py` tools/figma_export.py exports a file's or node's top-level frames as PNG at `--scale` (default 2) with frames… |
 | G17 | `catch-up`, `open` (desktop app) | OUT — exception (owner-approved 2026-11-12) | (desktop app is closed source, needs a HeyGen sign-in) |
 | H1 | What it is: `npx hyperframes preview` serves the React 19 app `@hyper… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/studio/server.mjs,` `reelwright studio` (tools/studio/server.mjs, studio.js, studio.html; ~630 lines plain JS, 127.0.0.1, Host/Or… |
 | H2 | Edits source-backed DOM: click element in preview, Design panel (Text… | MISSING — exception (owner-approved 2026-11-12) | `docs/playbook/studio.md` The studio never touches the frame DOM or film.js/hf (docs/playbook/studio.md 'What it never does'). Not buil… |
-| H3 | Timeline: tracks, move/trim/split/ripple/linked selection/snapping/be… | PARTIAL — partial, rest planned (open) | `tools/studio/studio.js` Studio timeline (tools/studio/studio.js): scenes with gaps, VO lines, beat/bar grid with the drop, SFX cues;… |
+| H3 | Timeline: tracks, move/trim/split/ripple/linked selection/snapping/be… | EQUAL | `tools/studio/panels.js` |
 | H4 | Keyframe animation panel (auto-record manual edits as keyframes, GSAP… | MISSING — exception (owner-approved 2026-11-12) | `docs/playbook/studio.md` No keyframe or GSAP authoring in the studio (docs/playbook/studio.md: never writes film.js or animation code)… |
 | H5 | Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab… | PARTIAL — partial, rest planned (open) | `tools/studio/studio.js` Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playhead, co… |
 | H6 | WebMCP tools (`studio_look/select/inspect/set_style/frame`) for an in… | OUT — exception (owner-approved 2026-11-12) | (repo rule: no MCP; browser origin trial only) |
@@ -123,7 +123,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I2 | Alpha / transparent output (webm, mov, png-sequence; transparent root… | EQUAL | (10a). `"output": {"alpha": true}`: pvk takes PNG screenshots with a transparent page, hf keeps the producer'… |
 | I3 | fps: 1-240 or rational (`30000/1001`); root `data-fps` | PARTIAL — exception (owner-approved 2026-11-12) | `tools/render.mjs` fps comes from `FPS` env or project.json `fps` (integer, default 60; tools/render.mjs:33, hyperframes.mjs:36,… |
 | I4 | Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `-… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
-| I5 | Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k… | PARTIAL — partial, rest planned (open) | Size comes from project.json width/height or `--formats` (re-layout, 5 formats). `output.scale` only resizes… |
+| I5 | Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k… | EQUAL | `tools/renderers/hyperframes.mjs` |
 | I6 | Multi-format outputs from one project | BETTER | `--formats 16x9,9x16,1x1,4x5,16x10` (4:5 and 16:10 added in 10a) re-layouts with `KIT.safe` and builds audio… |
 | I7 | HDR: BT.2020 PQ/HLG sources auto-detected, 10-bit H.265, `--hdr/--sdr` | EQUAL | on the hyperframes renderer (10a). `"output": {"hdr": true}` renders through the producer's mp4 path: HDR (PQ… |
 | I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
@@ -131,7 +131,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I10 | Streaming encode (no raw frames on disk), segmented capture + `--resu… | PARTIAL — partial, rest planned (open) | pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER f… |
 | I11 | Docker deterministic render (`--docker`) | MISSING — exception (owner-approved 2026-11-12) | `docs/REPRODUCIBLE.md.` No Dockerfile or `--docker` (repo has cloud/ Colab files and .github/workflows only). Determinism is software… |
 | I12 | Fast capture: BeginFrame screenshots, draw-element capture ~2x, page-… | EQUAL | for hf (producer defaults); pvk uses Playwright screenshots |
-| I13 | Timeouts and safety: browser/player-ready/protocol timeouts, `--stric… | PARTIAL — partial, rest planned (open) | `qa` exits 1 on a FAIL gate, WARN lines never fail; the hf path uses producer defaults; no `--strict`, `--bes… |
+| I13 | Timeouts and safety: browser/player-ready/protocol timeouts, `--stric… | EQUAL | `tools/render_lock.mjs` |
 | I14 | Distributed render plan/assemble (Lambda, Cloud Run, k8s jobs) | OUT — exception (owner-approved 2026-11-12) | (owner: no cloud). Colab render (`cloud/`) stays |
 | J1 | `<hyperframes-player>` web component (CDN or `import "@hyperframes/pl… | EQUAL | `vendor/hf-player/` |
 | J2 | Attributes: `src`, `type=video/mp4`, `srcdoc`, `width/height`, `contr… | EQUAL | (10d): the vendored component, so every attribute; `embed` uses `srcdoc`, `controls`, `autoplay`, `loop`, `mu… |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 429 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 11 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 433 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 7 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -860,23 +860,19 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — plan: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
 - `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — plan: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 
-### Partial (11)
+### Partial (7)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
-#### HyperFrames (11)
+#### HyperFrames (7)
 
 - `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL
 - `hyperframes:E2` — Asset-bearing components (9) — PARTIAL
 - `hyperframes:E4` — Block categories to cover: transitions (33 tagged), overlays (31), backgrounds (30), carousels (26… — PARTIAL
 - `hyperframes:G1` — `init` (examples, `--resolution` presets, `--video/--audio` with auto-transcribe + H.264 conversion… — PARTIAL
 - `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
-- `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL
-- `hyperframes:H3` — Timeline: tracks, move/trim/split/ripple/linked selection/snapping/beat markers/range select; wavef… — PARTIAL
 - `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Render… — PARTIAL
-- `hyperframes:I5` — Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k/square-4k` via `deviceScaleFa… — PARTIAL
 - `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` r… — PARTIAL
-- `hyperframes:I13` — Timeouts and safety: browser/player-ready/protocol timeouts, `--strict`, `--best-effort`, render lo… — PARTIAL
 
 ### Open, no tag (1)
 

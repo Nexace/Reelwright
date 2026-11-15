@@ -2,7 +2,7 @@
 
 Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 429; not 172 (grand total of the groups below: 172).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 433; not 168 (grand total of the groups below: 168).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 429; not 172 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 85 |
-| | **Grand total** | **172** |
+| 10 | Not done, no stated reason | 81 |
+| | **Grand total** | **168** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -360,15 +360,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (85) — 72 approved, 2 planned, 10 partial, 1 open
+## 10. Not done, no stated reason (81) — 72 approved, 2 planned, 6 partial, 1 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 85 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 81 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 36, remotion 14, manim 18, doodle-shots-motion 17
+By source: hyperframes 32, remotion 14, manim 18, doodle-shots-motion 17
 
-### HyperFrames (36)
+### HyperFrames (32)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -379,7 +379,7 @@ By source: hyperframes 36, remotion 14, manim 18, doodle-shots-motion 17
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
 
-#### Native code to add in tools/ (or a flag/command) (25)
+#### Native code to add in tools/ (or a flag/command) (21)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -429,30 +429,18 @@ By source: hyperframes 36, remotion 14, manim 18, doodle-shots-motion 17
 - `hyperframes:G10` — `render` (see section I) and `benchmark` (tries fps/quality/workers, reports time and size) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS` env and `output.crf` tune it; no `benchmark` command trying fps/quality/workers. Not built: timings depend on…
   - approach: native `benchmark` loops `frames` for a sample range
-- `hyperframes:G15` — `--json` envelope on every command, `_meta` version/update notice, exit codes 0/1/2, "did you mean" — PARTIAL — partial, rest planned (open)
-  - says: Exit codes: 0, and 1 on a FAIL gate or error (qa.py, bin/reelwright.mjs `run`); machine-readable files exist (timeline.json, .manifest.json, stills/). No global `--json` envelope, no version/update `_meta`, no exit code…
-  - approach: native: `--json` for `stills`, `qa`, `info`, `sched` first
 - `hyperframes:G16` — `figma asset/tokens/component` (REST: SVG/PNG/JPG/PDF assets frozen under `.media/`, variables to brand tokens, frame to editable HTML) + F… — PARTIAL — exception (owner-approved 2026-11-12)
   - says: tools/figma_export.py exports a file's or node's top-level frames as PNG at `--scale` (default 2) with frames.json, using FIGMA_TOKEN. No SVG/PDF export, no variables-to-brand.json, no frame-to-HTML, no Figma Motion. No…
   - approach: native: SVG/PDF export + variables to `brand.json`; component-to-HTML is a large step (L)
 - `hyperframes:H2` — Edits source-backed DOM: click element in preview, Design panel (Text, Layout, Style, Media, Motion, Effects, Grade, 3D transform), canvas… — MISSING — exception (owner-approved 2026-11-12)
   - says: The studio never touches the frame DOM or film.js/hf (docs/playbook/studio.md 'What it never does'). Not built: Reelwright's DOM is created by `render(t)` every frame, so there is no source-backed element to patch from…
   - approach: native editor edits what Reelwright actually stores (script lines, gaps, theme, layout, format)
-- `hyperframes:H3` — Timeline: tracks, move/trim/split/ripple/linked selection/snapping/beat markers/range select; waveform and meters; nested-composition drill… — PARTIAL — partial, rest planned (open)
-  - says: Studio timeline (tools/studio/studio.js): scenes with gaps, VO lines, beat/bar grid with the drop, SFX cues; click/drag seek, space/arrows/shift; inspector edits line text and gap. Missing: waveform and meters (only `pr…
-  - approach: native timeline of VO lines, SFX cues, music grid, drop, captions (read from `timeline.json`), drag a gap to edit `project.json`
 - `hyperframes:H5` — Right-panel tools: Audio FX rack with presets, Blur (motion blur) tab, Variables, Slideshow, Renders panel (format/resolution/fps/quality/G… — PARTIAL — partial, rest planned (open)
   - says: Inspector (text, gap, style, title, fps), raw project.json and brand.json editors, stills at the playhead, contact sheet, taste and embed jobs, job log (tools/studio/studio.js; job allow-list sched/audio/stills/taste/em…
   - approach: native panels, in priority order: renders queue, QA/lint, script/VO lines, stills sheet
-- `hyperframes:I5` — Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k/square-4k` via `deviceScaleFactor`, aspect must match) — PARTIAL — partial, rest planned (open)
-  - says: Size comes from project.json width/height or `--formats` (re-layout, 5 formats). `output.scale` only resizes the extra output format (webm/mov/gif/apng/png), not the mp4, and pages use deviceScaleFactor 1 (pvk.mjs:70, s…
-  - approach: native: `--scale 2` sets Playwright `deviceScaleFactor` (pvk) / `resolution` option (hf)
 - `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` render — PARTIAL — partial, rest planned (open)
   - says: pvk: `frames [from] [to]` and the `.cache/frames/` content-hash cache re-render only changed frames (BETTER for iteration); hyperframes ignores the range ('renders the whole film', hyperframes.mjs:119) and has no frame…
   - approach: native: let hf reuse `.cache/frames` by content hash; `frames <from>-<to>`
-- `hyperframes:I13` — Timeouts and safety: browser/player-ready/protocol timeouts, `--strict`, `--best-effort`, render lock queue, preflight disk estimate — PARTIAL — partial, rest planned (open)
-  - says: `qa` exits 1 on a FAIL gate, WARN lines never fail; the hf path uses producer defaults; no `--strict`, `--best-effort`, timeouts flags, render lock or disk estimate. Not built: `--strict`. Suggest: build (S: `qa --stric…
-  - approach: expose `--strict` = fail on lint/QA warnings
 - `hyperframes:K2` — `init --video` converts non-web codecs to H.264, preview proxies for HEVC/ProRes — PARTIAL — exception (owner-approved 2026-11-12)
   - says: Render needs no transcode: `KIT.video` frames are extracted by ffmpeg, so HEVC/ProRes work (tools/renderers/media.mjs; docs/playbook/video-audio.md). No import-time H.264 conversion (`new --video` does not exist) and no…
   - approach: ffmpeg transcode on import

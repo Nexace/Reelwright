@@ -163,7 +163,7 @@ async function withPage(film, fn) {
   await assert.rejects(() => N.synth("nope", "x", { dir }), /no provider/); await assert.rejects(() => N.synth("say", " ", { dir }), /no text/);
   const wavInfo = (f) => probe(f, "stream=sample_rate,channels,duration", "a:0").streams[0];
   let did = [];
-  if (N.providers.say.available()) {   // macOS: the real thing, nothing installed
+  if (N.providers.say.available() && !process.env.CI) {   // macOS: the real thing, nothing installed (a CI runner has no speech voice: `say` writes near-silence)
     const a = await N.synth("say", "Hello from Reelwright.", { dir, log: noop }), b = await N.synth("say", "Hello from Reelwright.", { dir, log: noop });
     assert.ok(!a.cached && b.cached && a.file === b.file, "the second take is the cached one");
     const i = wavInfo(a.file); assert.equal(i.sample_rate, "24000"); assert.equal(i.channels, 1); assert.ok(Number(i.duration) > 0.5);

@@ -110,7 +110,7 @@ export function pixel(file, x, y, t = 0) {
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const dir = makeProject(tmpdir("fixture"));
   assert.ok(fs.existsSync(path.join(dir, "hf", "film.js")));
-  const sched = spawnSync(process.env.PYTHON || "python3", [path.join(ROOT, "tools", "sched.py"), dir], { encoding: "utf8" });
+  const sched = spawnSync(process.env.PYTHON || "python3", [path.join(ROOT, "tools", "sched.py"), dir], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });   // bin sets it; cp1252 cannot print the arrow
   assert.equal(sched.status, 0, sched.stderr);
   console.log("p1 fixture: builds, sched places its voiceover line");
   fs.rmSync(dir, { recursive: true, force: true });

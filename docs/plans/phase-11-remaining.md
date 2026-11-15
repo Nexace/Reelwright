@@ -123,7 +123,7 @@ After all waves are done: run the final cleanup (the cleanup list), then release
 |---|---|---|
 | 1 | P1 P2 P3 P4 | merged, verified, 110 rows flipped (332/601) |
 | 2 | P5 P6 P7 P8 | P5 P6 P7 P8 merged (388/601); P8 left D9 E2 E4 E8 G1 G3 G4 H3 H5 I10 I13 G15 I5 open for a follow-up package |
-| 3 | P9 P10 P11 | not started |
+| 3 | P9 P10 P12a P12b merged; P11 P13 P14 running | 433/601 EQUAL; D10 D9 E2 E4 accepted as exceptions 2026-11-15 |
 | 0 | triage and assignments | done: docs/plans/phase-11-assignments.md (221 rows); owner rulings 2026-11-13: vendor dotLottie, polygon-clipping, shiki; Remotion transcribe = exception |
 | 4 | close-out, final release | not started |
 

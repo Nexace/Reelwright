@@ -4,6 +4,7 @@
 //   box + computed style + the script line; select by line / selector; set-style is an overlay that shows in look and inspect and in an open tab, is not saved,
 //   and is cleared by --reset; with --edit-source (studio and command) it appends one rule to the film's <style>, undoable; and the studio's trust boundary
 //   holds for the new route (Host, Origin, JSON, a fixed cmd list, values validated, no url() / braces, GET refused).
+process.on("uncaughtException", (e) => { if (e && e.code === "ECONNRESET") return; throw e; });   // a keep-alive socket reset during teardown (seen on CI) is not a failure
 import fs from "node:fs";
 import http from "node:http";
 import net from "node:net";
@@ -27,7 +28,7 @@ async function start(...extra) {
 const cli = (port, ...a) => spawnSync(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), "studio", f.dir, ...a, "--port", String(port)], { cwd: ROOT, encoding: "utf8" });
 const json = (r) => { assert.equal(r.status, 0, r.stdout + r.stderr); return JSON.parse(r.stdout); };
 const raw = (port, { method = "POST", headers = {}, body = "{}" } = {}) => new Promise((ok, no) => {
-  const r = http.request({ host: "127.0.0.1", port, method, path: "/__agent", headers: { host: `localhost:${port}`, ...headers } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => ok({ status: res.statusCode, body: b })); });
+  const r = http.request({ host: "127.0.0.1", port, method, path: "/__agent", agent: false, headers: { connection: "close", host: `localhost:${port}`, ...headers } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => ok({ status: res.statusCode, body: b })); });
   r.on("error", no); r.end(body);
 });
 let browser;

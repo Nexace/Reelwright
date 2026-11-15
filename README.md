@@ -74,6 +74,55 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 
 ---
 
+## What's new in 1.0
+
+Phase 11 finished the port. Of the 601 features audited in HyperFrames, Remotion, Manim, anidoodle, video-shotcraft,
+motion-design-skill, GSAP, Lottie and the Higgsfield workflows, **438 are EQUAL or BETTER, each proved by a file or a
+self-check, and the other 163 are exceptions you can read with their reasons** in [docs/PARITY.md](docs/PARITY.md). Nothing is
+left planned or half-built. Everything new is opt-in, so a film written for 0.3 builds the same way. Every command is in
+[Every command](#every-command); the craft notes are in [docs/playbook/](docs/playbook/README.md).
+
+- **Variables, batch and stills.** `--variables` on any command (typed composition variables), `batch` renders one film per
+  row of a CSV or JSON file, `stills` takes zoom, ranges and `--against` a reference, `compare` and `grade-compare` make
+  labelled sheets. [variables](docs/playbook/variables.md)
+- **Audio.** `audiofx` (17 effects, 22 presets, `project.json` `fx`), `automation` lanes, fades and a true-peak `limiter` in the
+  mix, `audio-report` (onsets, sections, tempo), `beatsync` and `verify-av`, plus `measure`, `diff` and `reverse` for video.
+  [audio-fx](docs/playbook/audio-fx.md)
+- **Shotcards.** 88 shot recipes as `KIT.shotcards.*` (camera, opening, outro, transition, rhythm, typography, UI entrance,
+  data, effects, interaction), each a pure function of time with a recipe page. [recipes](docs/recipes/shotcards/README.md)
+- **Motion rules.** `KIT.motionRules` (easing, spring and duration tables, material feels, ambient loops, stagger), a
+  `motion-rules` QA warning and `KIT.components` (info strip, digit roll, flash cut, vertical ticker, clip card).
+  [motion-rules](docs/playbook/motion-rules.md)
+- **Lottie and dotLottie.** `KIT.dotLottie` with a vendored player, `add-lottie`, expressions lint, text, masks and mattes.
+  [lottie](docs/playbook/lottie.md)
+- **Manim, natively.** `Create`, typing, tables, matrices, axes, number lines, bar charts, vector scenes, ZoomedScene, boolean
+  path ops (vendored `polygon-clipping`), code highlighting (vendored `shiki`, `reelwright code`), 3D lighting and OBJ
+  models, and `manim-lint`. [manim-native](docs/playbook/manim-native.md)
+- **Remotion-style helpers.** `KIT.interpolate`, `KIT.seq`, `KIT.tseries`, `KIT.timing`, a colour, blur, distortion, pattern and
+  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `props`. [p9-time](docs/playbook/p9-time.md)
+- **Doodle and camera craft.** Callouts, drawn kinetic type, shape handoff, camera keys, true dolly zoom, shake, time remap,
+  one-canvas `KIT.world`, reading-time and subtitle rules, `brand`, `narrate`, `gate` (determinism and dead-air), `ship`
+  (delivery checks), `deck` (46 named moves), `animimg`, linear-light motion blur (`--blur`) and any `--formats WxH`.
+- **Promo template and review.** `promo` starts the 36 s Ink Press film; `arc` checks its energy arc; `review` prints the
+  independent review brief; `capture-trio` writes the page capture set. [final-review](docs/playbook/final-review.md)
+- **Studio.** A timeline with waveform, caption lane and gap dragging, undo and redo, an Audio FX rack, Blur, Variables, a
+  render queue, Lint, Assets, Catalog and Slideshow tabs, and an MCP-free agent API (`reelwright studio look|inspect|select|set-style|frame`).
+  [studio](docs/playbook/studio.md)
+- **Rendering.** 4K on the HyperFrames path, a frame cache, ranges and `--resume`, `frames --stream` (no frames on disk),
+  quality presets, `--workers`, timeouts, `--best-effort` and a render lock; `--json` envelope on any command; `doctor`.
+- **Lint and capture.** `lint` (with `--components`) ports 31 of the 44 upstream rules the kit skips, `check` finds text outside
+  the frame or covered, `audit` checks contrast and `*.motion.json`, `capture <url>` takes a site (with an SSRF guard).
+- **Components and captions.** `catalog` lists and picks, `add <tag>` installs by tag, asset components install with their
+  fonts and textures, `captions` feeds all 16 caption styles from your script's word times, `slideshow` turns a folder into a film.
+- **Docs and skills.** Every command has a README row (checked by `tools/selfcheck/p11-docs.mjs`), the playbook has an index
+  of every page, and the skills know the new commands.
+
+**What is not here, by decision.** Cloud and hosted render, the HeyGen desktop app, MCP and plug-in packaging, WebGPU-only
+blocks, blocks with unlicensed assets, local speech models (`transcribe`, Kokoro TTS: the adapter is in, opt-in, the model is
+not) and `measure face` (the install is opt-in: `reelwright face install --yes`), and the Higgsfield paid depth.
+
+---
+
 ## What's new in 0.3
 
 Phase 10 brought the parts of the neighbouring video tools that fit this kit (HyperFrames, motion-design and camera
@@ -82,9 +131,7 @@ for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to
 passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
 source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
-**Parity, stated plainly.** 0.3.0 reaches parity on 222 of 601 audited features (EQUAL or BETTER); the rest are listed as
-planned or accepted exceptions in [docs/PARITY.md](docs/PARITY.md): 158 accepted exceptions (owner-approved 2026-11-12), 27
-planned for Phase 11, 168 partly built (the missing part planned) and 26 rows not yet tagged. Nothing planned is claimed as done.
+**Parity at 0.3.0** was 222 of 601 audited features; 1.0 is 438 of 601 plus 163 accepted exceptions (see above).
 
 - **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
   blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs

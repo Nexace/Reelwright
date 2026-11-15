@@ -14,7 +14,7 @@ import { commandNames } from "../commands/json.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const rd = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
-const walk = (d, ext) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name), ext) : e.name.endsWith(ext) ? [path.join(d, e.name)] : []);
+const walk = (d, ext) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.posix.join(d, e.name), ext) : e.name.endsWith(ext) ? [path.posix.join(d, e.name)] : []);   // posix: Windows would give backslashes
 const cmds = commandNames(ROOT);
 const plug = new Set(fs.readdirSync(path.join(ROOT, "tools/commands")).filter((f) => f.endsWith(".mjs")).map((f) => f.slice(0, -4)));
 const bin = rd("bin/reelwright.mjs");

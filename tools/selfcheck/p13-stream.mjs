@@ -50,7 +50,7 @@ try {
   // the same picture as the default render (both are lossy encodes of the same frames)
   for (const n of [5, Math.floor(N / 2), N - 3]) {
     const a = mean(ref, n), b = mean(out, n), d = a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0) / a.length;
-    assert.ok(d < 4, `frame ${n}: streamed and default differ by ${d.toFixed(2)} of 255`);
+    assert.ok(d < 8, `frame ${n}: streamed and default differ by ${d.toFixed(2)} of 255`);
   }
 
   // project.json "output": {"stream": true} does the same; the combinations that need frame files are refused

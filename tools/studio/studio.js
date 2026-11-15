@@ -41,7 +41,7 @@ const D = FILM.DUR, fps = FILM.FPS || info.fps;
 // Tracks (click a track name to hide it): scenes, VO lines, captions (the VO's words), the waveform and level of mix.wav, beats, SFX cues, nested compositions.
 // The visible window v0..v1 is zoomed by double-clicking a scene or a nested composition (drill-down).
 const lanes = $("lanes");
-let v0 = 0, v1 = D, rng = null, peaks = null, nested = [], onUp = null, selLane = null, snaps = [];
+let lastBox = null, v0 = 0, v1 = D, rng = null, peaks = null, nested = [], onUp = null, selLane = null, snaps = [];
 const pct = (t) => `${((t - v0) / (v1 - v0) * 100).toFixed(4)}%`;
 const tOf = (e) => { const r = lanes.getBoundingClientRect(); return v0 + (e.clientX - r.left) / r.width * (v1 - v0); };
 const num2 = (t) => +t.toFixed(2);
@@ -157,7 +157,7 @@ function drawRange() {
 }
 // drag a scene sideways = change its gap. The lines after it ripple (sched places them again after the save); snapping to beats, cues and edges.
 function gapDrag(e, box) {
-  const id = box.dataset.id, l = lineOf(id), v = FILM.VO[id], g0 = l?.gap ?? 0.6, x0 = e.clientX, wpx = lanes.getBoundingClientRect().width, own = box, w0 = box.getBoundingClientRect().width;
+  const id = box.dataset.id, l = lineOf(id), v = FILM.VO[id], g0 = l?.gap ?? 0.6, x0 = e.clientX, wpx = lanes.getBoundingClientRect().width, own = box, w0 = box.getBoundingClientRect().width, w0css = box.style.width;   // w0css: the percentage it was built with, put back when the drag ends
   let dx = 0, moved = false;
   select(id, "tl-scenes");
   lanes.setPointerCapture(e.pointerId);
@@ -180,7 +180,7 @@ function gapDrag(e, box) {
     own.title = `gap ${Math.max(0, Math.round((g0 + d) * 100) / 100)} s`;
   };
   onUp = () => {
-    for (const n of shifted) n.style.transform = ""; own.style.width = ""; $("snapline").style.display = "none";
+    for (const n of shifted) n.style.transform = ""; own.style.width = w0css; $("snapline").style.display = "none";
     if (!moved) return seek(tOf(e));
     const ng = Math.max(0, Math.min(60, Math.round((g0 + dx) * 100) / 100));
     if (l && ng !== g0) { l.gap = ng; select(id, "tl-scenes"); edited(); save("project", pretty(proj)); }
@@ -189,6 +189,7 @@ function gapDrag(e, box) {
 lanes.addEventListener("pointerdown", (e) => {
   if (e.button) return;
   const box = e.target.closest(".box"), laneId = e.target.closest(".lane")?.id;
+  lastBox = box;
   if (e.shiftKey) {
     rng = { a: tOf(e), b: tOf(e) }; lanes.setPointerCapture(e.pointerId);
     lanes.onpointermove = (m) => { rng.b = tOf(m); drawRange(); };
@@ -201,10 +202,10 @@ lanes.addEventListener("pointerdown", (e) => {
   seek(tOf(e)); lanes.setPointerCapture(e.pointerId); lanes.onpointermove = (m) => seek(tOf(m));
 });
 lanes.addEventListener("pointerup", () => { lanes.onpointermove = null; const f = onUp; onUp = null; f?.(); });
-lanes.addEventListener("dblclick", (e) => {
-  const box = e.target.closest(".box");
+lanes.addEventListener("dblclick", () => {
+  const box = lastBox;   // the pointer is captured by the lanes, so the event's target is not the box: use the box of the last pointerdown
   if (box?.dataset.nested) zoom(Number(box.dataset.start) - 0.1, Number(box.dataset.end) + 0.1, box.dataset.nested);
-  else if (box && e.target.closest("#tl-scenes")) zoom(Number(box.dataset.start) - 0.1, Number(box.dataset.end) + 0.1, box.dataset.id);
+  else if (box && box.parentElement.id === "tl-scenes") zoom(Number(box.dataset.start) - 0.1, Number(box.dataset.end) + 0.1, box.dataset.id);
 });
 addEventListener("keydown", (e) => {
   // not while typing; not on the player itself (its own controls take the space bar there)

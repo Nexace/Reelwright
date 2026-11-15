@@ -30,7 +30,7 @@ export async function initPanels(c) {
     if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z" || e.target.closest?.("input,textarea,select")) return;
     e.preventDefault(); $(e.shiftKey ? "btn-redo" : "btn-undo").click();
   });
-  hist();
+  await hist();
 
   // ── Audio FX rack: presets and jobs per bus (project.json "fx") and the limiter; Remix runs `mix` (offline) ──
   loaders.audio = async () => {

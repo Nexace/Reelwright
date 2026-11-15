@@ -102,7 +102,7 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
       }
       case "/__assets": {
         const project = walk("", 0, []).filter((f) => kind(f.path) !== "other" && /^(assets|media|hf\/media|hf\/assets|clips|music|fonts)\//.test(f.path)).map((f) => ({ ...f, kind: kind(f.path) }));
-        const g = path.join(os.homedir(), ".media");
+        const g = process.env.REELWRIGHT_MEDIA_DIR || path.join(os.homedir(), ".media");   // the override is for the self-check
         let global = null; try { global = fs.readdirSync(g, { withFileTypes: true }).filter((e) => e.isFile() && !e.name.startsWith(".") && kind(e.name) !== "other").slice(0, 200).map((e) => ({ name: e.name, kind: kind(e.name), size: fs.statSync(path.join(g, e.name)).size })); } catch { /* none */ }
         reply(res, 200, { project, global, globalDir: "~/.media" }); return true;
       }

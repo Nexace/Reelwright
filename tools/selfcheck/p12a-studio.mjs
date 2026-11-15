@@ -257,7 +257,8 @@ try {
   // render-from-UI with props: the queued render takes --props-file from props.json (title in the h1 changes), and the option is checked on the server
   await tab("Props"); await reloads(() => page.locator("#tab-props button", { hasText: "Render with these props" }).click().catch(() => {})).catch(() => {});
   await tab("Renders"); await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].some((x) => /props/.test(x.textContent) && /done|failed/.test(x.textContent)), null, { timeout: 240000 });
-  if (![...(await state())].some((t) => /props.*done/.test(t))) {   // diagnostic for a runner we cannot reach: run the same command directly and show its output
+  if (![...(await state())].some((t) => /props.*done/.test(t))) {   // diagnostic for a runner we cannot reach: the failed job's own log (the failure is intermittent), then the same command run directly
+    console.error("props render, studio job log:\n" + String(JSON.parse((await request(port, { p: "/__studio" })).body).job?.out).slice(-4000));
     const d = spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "film", dir, "--props-file", path.join(dir, "props.json")], { encoding: "utf8", cwd: ROOT, timeout: 300000 });
     console.error("props render, run directly: exit " + d.status + "\n" + String(d.stdout).slice(-1500) + "\n" + String(d.stderr).slice(-2500));
   }

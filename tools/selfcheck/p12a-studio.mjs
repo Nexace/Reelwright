@@ -18,6 +18,8 @@ import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
 import { ROOT, makeProject, rw } from "./p1-fixture.mjs";
+let passed = false;   // watchdog: if cleanup hangs after the check has passed (seen on Windows), leave with success; if the check itself hangs, fail
+setTimeout(() => { console.error(passed ? "p12a-studio: cleanup hung after a pass, leaving" : "p12a-studio: watchdog, the check hung"); process.exit(passed ? 0 : 1); }, 420000).unref();
 
 const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "p12a-studio-"))), dir = path.join(tmp, "fx"), pj = path.join(dir, "project.json"), home = path.join(tmp, "home");
 const servers = [], t0 = Date.now(), log = (m) => console.log(`[${((Date.now() - t0) / 1000).toFixed(1)}s] ${m}`);
@@ -266,7 +268,7 @@ try {
   await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].filter((x) => /16x9/.test(x.textContent) && /done|failed/.test(x.textContent)).length === 1, null, { timeout: 240000 });
   const plainOut = path.join(dir, "out", outsOf().find((f) => /16x9/.test(f))); assert.notEqual(h1px(plainOut), a1, "the h1 differs between the props render and the plain one");
   assert.deepEqual(errors, [], "page errors");
-  console.log("p12a-studio self-check: H3 waveform/meter, captions, gap drag + snap + ripple, range, linked, split/trim, nested drill-down; H5 undo/redo, audio rack, blur, variables, renders queue (2 real renders, 1 cancelled), lint, assets, catalog add, captions, source; trust boundary kept");
+  console.log("p12a-studio self-check: H3 waveform/meter, captions, gap drag + snap + ripple, range, linked, split/trim, nested drill-down; H5 undo/redo, audio rack, blur, variables, renders queue (2 real renders, 1 cancelled), lint, assets, catalog add, captions, source; trust boundary kept");  passed = true;
 } catch (e) { console.error("p12a-studio self-check FAILED:", e.stack || e.message); process.exitCode = 1; }
 finally {
   await Promise.race([browser?.close().catch(() => {}), new Promise((r) => setTimeout(r, 8000))]);   // never wait forever on cleanup (Windows hung here until the runner killed the check)

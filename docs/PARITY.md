@@ -11,22 +11,22 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | HyperFrames | 54 | 5 | 0 | 29 | 18 | 6 | 0 | 0 | 112 |
-| Remotion + its skills | 33 | 4 | 3 | 38 | 19 | 0 | 12 | 1 | 110 |
+| Remotion + its skills | 63 | 4 | 3 | 8 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **364** | **29** | **6** | **102** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **394** | **29** | **6** | **72** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 399 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 429 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 399 |
+| EQUAL, BETTER or EQUAL/BETTER | 429 |
 | Accepted exceptions (owner-approved 2026-11-12) | 158 |
 | Planned (Phase 11), not claimed | 2 |
-| Partial: some shipped, the rest planned (open) | 20 |
+| Partial: some shipped, the rest planned (open) | 11 |
 | Proposed exceptions waiting for the owner | 0 |
-| Open, no tag | 22 |
+| Open, no tag | 1 |
 | **Total** | **601** |
 
 ## HyperFrames
@@ -155,18 +155,18 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | ID | Feature | Status | Proof or note |
 |---|---|---|---|
 | 2.1.1 | `interpolate()` n keyframes, per-segment easing array (n-1) | EQUAL | `tools/engine.js` |
-| 2.1.2 | Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `e… | PARTIAL — open | `tools/engine.js,` (10z audit): `K.keys`, `K.seg`, `K.local`, `K.remap` clamp only (tools/engine.js, tools/shots.js); missing: `… |
+| 2.1.2 | Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `e… | EQUAL | `tools/p9-time.js` |
 | 2.1.3 | `output:'perceptual-scale'` | EQUAL | `tools/p5-media.js` |
 | 2.1.4 | `posterize` N (stepped look) | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t… |
 | 2.1.5 | `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin… | MISSING — exception (owner-approved 2026-11-12) | `tools/selfcheck/runtimes.mjs` Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpo… |
-| 2.1.6 | `interpolateColors()` (rgb, hsl, oklab, easing option) | PARTIAL — partial, rest planned (open) | `tools/selfcheck/runtimes.mjs,` (10b): colours tween under seek through `KIT.gsap` / `KIT.anime` (anime `backgroundColor` fixture in tools/se… |
+| 2.1.6 | `interpolateColors()` (rgb, hsl, oklab, easing option) | EQUAL | `tools/p9-time.js` |
 | 2.1.7 | `Easing.*` (step0/1, linear, ease, quad, cubic, poly, sin, circle, ex… | EQUAL/BETTER | `K.easing('power3.out')`, GSAP families, bezier (engine.js L13-90) |
 | 2.1.8 | `Easing.spring({damping...})` as easing; `spring()` (mass, damping, s… | EQUAL | `K.spring`, `K.springDur` (closed form; Phase 9 noted Remotion's critical-damped quirk for zeta>=1) |
-| 2.1.9 | `random(seed)` deterministic PRNG (mulberry32 over string hash) | PARTIAL — open | `tools/doodle.js,` (10g): `D.rng(seed)` (mulberry32) + `D.hash(str)` (FNV-1a) in tools/doodle.js, proven by tools/selfcheck/dood… |
-| 2.1.10 | `<Sequence from trimBefore durationInFrames playbackRate loop freeze… | PARTIAL — open | `tools/engine.js` (10a/10e): pieces exist: `K.local(t,from,dur,rate)` (tools/engine.js), `K.remap` time-remap points for trim/r… |
+| 2.1.9 | `random(seed)` deterministic PRNG (mulberry32 over string hash) | EQUAL | `tools/p9-time.js` |
+| 2.1.10 | `<Sequence from trimBefore durationInFrames playbackRate loop freeze… | EQUAL | `tools/p9-time.js` |
 | 2.1.11 | `<Series>` / `Series.Sequence offset` | MISSING — exception (owner-approved 2026-11-12) | `tools/sched.py` Not built (10z audit): scene starts come from `V()` / `W()` and the script's `gap`s (tools/sched.py), which a… |
-| 2.1.12 | `<Loop times durationInFrames>` / `useLoop()`; `loop` prop | PARTIAL — partial, rest planned (open) | `tools/runtimes.js,` (10b): `KIT.lottie(..., {loop})` loops a Lottie (tools/runtimes.js, tools/selfcheck/runtimes.mjs); everything… |
-| 2.1.13 | `<Freeze frame>` / `<Sequence freeze>` | PARTIAL — open | `tools/shots.js` (9b/10e): `K.remap` with slope 0 holds a source time (tools/shots.js); `KIT.shot.bulletTime` `world(t)` freez… |
+| 2.1.12 | `<Loop times durationInFrames>` / `useLoop()`; `loop` prop | EQUAL | `tools/p9-time.js` |
+| 2.1.13 | `<Freeze frame>` / `<Sequence freeze>` | EQUAL | `tools/p9-time.js` |
 | 2.1.14 | `<Track>` non-overlapping named timeline lanes; editable timeline gro… | MISSING — exception (owner-approved 2026-11-12) | (Studio-only concept) |
 | 2.1.15 | Premounting (`premountFor`), `SequenceActivityBudget` | N/A — exception (owner-approved 2026-11-12) | (pure `render(t)` has no mount cost) |
 | 2.1.16 | `delayRender()/continueRender()/cancelRender()`, `useDelayRender` | EQUAL | in effect: pvk waits for `window.READY`/fonts/images (README, pvk.mjs) |
@@ -176,8 +176,8 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.1.20 | `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selecti… | PARTIAL — exception (owner-approved 2026-11-12) | one film per project folder |
 | 2.1.21 | `@remotion/animation-utils` `interpolateStyles`, `makeTransform` | MISSING — exception (owner-approved 2026-11-12) | `tools/selfcheck/runtimes.mjs` Not built (10z audit): no style-object lerp (`K.styles`); GSAP tweens in `KIT.gsap` animate whole style sets… |
 | 2.1.22 | `@remotion/gsap` `useGsapTimeline` (paused timeline seeked to current… | EQUAL | `tools/runtimes.js` |
-| 2.2.1 | `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - o… | PARTIAL — open | `tools/transitions.js` (10e): `KIT.transition` with chains; scenes overlap by the transition window, 18 types (`tools/transitions.js… |
-| 2.2.2 | Timings `linearTiming`, `springTiming` (duration from spring settle;… | PARTIAL — open | `tools/engine.js` (10e): `dur` (linear) and `ease` (any `KIT.easing` name or function) on `KIT.transition`, plus `K.springDur`… |
+| 2.2.1 | `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - o… | EQUAL | `tools/p9-time.js` |
+| 2.2.2 | Timings `linearTiming`, `springTiming` (duration from spring settle;… | EQUAL | `tools/p9-time.js` |
 | 2.2.3 | Presentation `fade` | EQUAL | `tools/transitions.js` |
 | 2.2.4 | `slide` (from-left/right/top/bottom), `wipe` (4 dir, entering slides… | EQUAL | `tools/transitions.js` |
 | 2.2.5 | `pushCut` (punch-in + flash), `cube` (3D, added 4.0.540), `none` + `u… | EQUAL | `tools/transitions.js` |
@@ -189,24 +189,24 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.2.11 | `<AbsoluteFill>` | EQUAL | (stage is absolute) |
 | 2.2.12 | Layout scenes (split, bento, stat, quote...) | BETTER | `tools/layouts.js` |
 | 2.3.1 | `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `… | MISSING — exception (owner-approved 2026-11-12) | (no effects stack; CSS filters only via themes) |
-| 2.3.2 | Colour and tone: brightness, contrast, saturation, hue, grayscale, in… | PARTIAL — open | `tools/compose.js,` (10a): `KIT.grade` (tools/compose.js, docs/playbook/grading-effects.md): 13 grade presets, `adjust` exposure… |
-| 2.3.3 | Blur family: blur, lightTrail, linearProgressiveBlur, radialProgressi… | PARTIAL — open | `tools/compose.js` (10a/10e): `KIT.grade` `effects.blur` animatable (hyperframes, tools/compose.js); `KIT.shot.rackFocus` / `dof… |
-| 2.3.4 | Lighting: dropShadow, longShadows, glow, shine, vignette | PARTIAL — open | `tools/compose.js` (10a): `KIT.grade` `details.vignette` / `grain` and effect `bloom` (hyperframes only, pvk skips them with one… |
-| 2.3.5 | Distortion: barrelDistortion, chromaticAberration, cornerPin, fisheye… | PARTIAL — open | `tools/compose.js` (10a): `KIT.vfx` `wave-warp` and `displacement-map` (hyperframes only, tools/compose.js), `KIT.grade` `effect… |
-| 2.3.6 | Textures/patterns: burlap, checkerboard, contourLines, dotGrid, embos… | PARTIAL — open | `tools/compose.js` (10a/10f): `KIT.grade` `effects` scanlines / halftone / ascii / dither and `details` grain (hyperframes, tool… |
+| 2.3.2 | Colour and tone: brightness, contrast, saturation, hue, grayscale, in… | EQUAL | `tools/fx-color.js` |
+| 2.3.3 | Blur family: blur, lightTrail, linearProgressiveBlur, radialProgressi… | EQUAL | `tools/fx-blur.js` |
+| 2.3.4 | Lighting: dropShadow, longShadows, glow, shine, vignette | EQUAL | `tools/fx-color.js` |
+| 2.3.5 | Distortion: barrelDistortion, chromaticAberration, cornerPin, fisheye… | EQUAL | `tools/fx-distort.js` |
+| 2.3.6 | Textures/patterns: burlap, checkerboard, contourLines, dotGrid, embos… | EQUAL | `tools/fx-pattern.js` |
 | 2.3.7 | Edges and 3D: outline, roughenEdges, shrinkwrap, tear, bevelAlpha, cy… | MISSING — exception (owner-approved 2026-11-12) |  |
-| 2.3.8 | Weather/reveal: snowFall, rainFall, irisWipe, radialWipe, evolve, pix… | PARTIAL — open | `tools/transitions.js,` (10e/10f): reveals: `KIT.transition` `iris`, `clockWipe`, `blinds`, `barnDoor` (tools/transitions.js, tools/s… |
+| 2.3.8 | Weather/reveal: snowFall, rainFall, irisWipe, radialWipe, evolve, pix… | EQUAL | `tools/fx-reveal.js` |
 | 2.3.9 | `createEffect()` custom effect API (2d/webgl2/webgpu backends) | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.3.10 | `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chr… | MISSING — exception (owner-approved 2026-11-12) |  |
-| 2.3.11 | Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `… | PARTIAL — open | `tools/renderers/pvk.mjs,` (10a): the shutter model is built on both renderers: project.json `"motionBlur": {shutter, samples}` (pvk ave… |
+| 2.3.11 | Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `… | EQUAL | `tools/fx-blur.js` |
 | 2.3.12 | Greenscreen via `colorKey()`; video matting (`@remotion/video-matting… | MISSING — exception (owner-approved 2026-11-12) |  |
-| 2.4.1 | `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trim… | PARTIAL — open | `tools/media.js,` (10a): `KIT.video(src, {start, dur, in, rate, ramp, audio, volume})` (tools/media.js, docs/playbook/video-aud… |
-| 2.4.2 | `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) | PARTIAL — open | `tools/renderers/media.mjs,` (10a): same mechanism natively: pvk pre-extracts exact frames with ffmpeg and shows them as `<img>` (tools/re… |
+| 2.4.1 | `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trim… | EQUAL | `tools/p9-media.mjs` |
+| 2.4.2 | `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) | EQUAL | `tools/p9-media.mjs` |
 | 2.4.3 | `<Html5Video>`, `<Html5Audio>` | N/A — exception (owner-approved 2026-11-12) | (non-seekable, qa forbids) |
-| 2.4.4 | `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `v… | PARTIAL — open | `tools/media.js,` (10a): `KIT.audio(src, {start, in, out, gain, fadeIn, fadeOut})` mixed over mix.wav at encode, plus `KIT.vide… |
+| 2.4.4 | `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `v… | EQUAL | `tools/p9-media.mjs` |
 | 2.4.5 | Audio exports: `--separate-audio-to`, `--for-seamless-aac-concatenati… | EQUAL/BETTER | encode owns audio; loudnorm gate |
 | 2.4.6 | SFX library (`@remotion/sfx`: ~35 wav at remotion.media, peak -3 dB,… | BETTER | `tools/mix.py` |
-| 2.4.7 | Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bi… | PARTIAL — partial, rest planned (open) | `KIT.pulse` / beats only (beatgrid.py). Not built (10z audit): no continuous spectrum or level (`K.level(t)`,… |
+| 2.4.7 | Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bi… | EQUAL | `tools/p9-audio.js` |
 | 2.4.8 | `getAudioDuration`, `getVideoDuration`, `getVideoDimensions`, `getIma… | EQUAL | ffprobe in tools |
 | 2.4.9 | Silence detection recipe (loudnorm `input_thresh` -> `silencedetect n… | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): no silence-detect step; VO is TTS (no dead air) and music is trimmed with `music.start… |
 | 2.4.10 | `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/… | N/A — exception (owner-approved 2026-11-12) | (ffmpeg does this) |
@@ -216,7 +216,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.4.14 | Cropping `cropLeft/Right/Top/Bottom` ratios on any layer | PARTIAL — exception (owner-approved 2026-11-12) | `tools/transitions.js` (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it… |
 | 2.4.15 | Fonts: `@remotion/google-fonts` (typed loaders, blocks render until r… | BETTER | offline: 17 bundled OFL families, theme tokens (fonts/LICENSES.md) |
 | 2.4.16 | Arabic/RTL text rules (direction, animate by word, keep letters joine… | UNVERIFIED — exception (owner-approved 2026-11-12) | (not tested in Reelwright) |
-| 2.4.17 | `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`… | PARTIAL — partial, rest planned (open) | `tools/qa_page.mjs` qa gates caption fit / contrast and overlap / tiny-text WARNs (tools/qa_page.mjs). Not built (10z audit): no… |
+| 2.4.17 | `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`… | EQUAL | `tools/p9-text.js` |
 | 2.4.18 | `@remotion/rounded-text-box` (rounded highlight box behind multi-line… | MISSING — exception (owner-approved 2026-11-12) | `tools/math2.js` Not built (10z audit): no rounded text-highlight box; `KIT.math.surround` / `backgroundRect` (tools/math2.js)… |
 | 2.4.19 | `staticFile()`, `getStaticFiles`, `watchStaticFile`, `prefetch/preloa… | EQUAL | files in project dir; encode writes .srt/.vtt/manifest |
 | 2.5.1 | `Caption` JSON type `{text, startMs, endMs, timestampMs, confidence,… | PARTIAL — exception (owner-approved 2026-11-12) | `tools/renderers/pvk.mjs` our VO words `{w,t,d}` in seconds. Not built (10z audit): no `Caption` JSON adapter; captions leave as .srt /… |
@@ -225,7 +225,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.5.4 | Display captions: Basic Captions element (copied from remotion.dev/el… | EQUAL |  |
 | 2.5.5 | Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transfo… | MISSING — exception (owner-approved 2026-11-12) | (we only have TTS word times). Not built (10z audit): no speech-to-text; needs a model download and the owner… |
 | 2.5.6 | Voiceover: ElevenLabs per scene -> `calculateMetadata` duration | BETTER | for core (edge-tts free, word timings). Paid ElevenLabs = out of scope (connectors doc) |
-| 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | PARTIAL — partial, rest planned (open) | `tools/doodle.js` (10g/10h): `KIT.doodle` underline / circle / drawOn (tools/doodle.js), `D.stroke` pen-style freehand lines us… |
+| 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | EQUAL | `tools/p9-highlight.js` |
 | 2.5.8 | `@remotion/animated-emoji` (Noto animated emoji) | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.5.9 | `@remotion/mac-cursors` (macOS cursor set) | PARTIAL — exception (owner-approved 2026-11-12) | drawn `K.cursor` |
 | 2.6.1 | `@remotion/lottie` `<Lottie animationData>` driven by frame; `getLott… | EQUAL | `tools/runtimes.js` |
@@ -233,26 +233,26 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.6.4 | `@remotion/rive` `<RemotionRiveCanvas>` | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.6.5 | Spline/Figma/After Effects import | PARTIAL — exception (owner-approved 2026-11-12) | `tools/figma_export.py` (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (… |
-| 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | PARTIAL — open | `tools/math2.js,` (10h): `KIT.math.shape.*` path builders (tools/math2.js, tools/selfcheck/motion/math2.mjs): circle, ellipse,… |
+| 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | EQUAL | `tools/p9-shapes.js` |
 | 2.6.7 | `@remotion/paths`: `getLength`, `getPointAtLength`, `getTangentAtLeng… | EQUAL | `vendor/paths` |
-| 2.6.8 | `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1… | PARTIAL — open | `tools/doodle2.js` (10g): `D.noise(seed, x, y)` seeded 2-octave gradient noise in [0, 1] (tools/doodle2.js; determinism and smoo… |
+| 2.6.8 | `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1… | EQUAL | `tools/p9-time.js` |
 | 2.6.9 | Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Tur… | PARTIAL — exception (owner-approved 2026-11-12) | `vendor/hyperframes/registry/blocks,` (10f): offline maps from the vendored d3 + topojson + world / US atlases as blocks `world-map`, `us-map-bubbl… |
 | 2.6.10 | Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@rem… | N/A — exception (owner-approved 2026-11-12) |  |
-| 2.6.11 | Text rules in skills `video-layout.md`: 1080-wide minimums 84 px head… | PARTIAL — partial, rest planned (open) | `tools/engine.js` (10z audit): `KIT.safe` title-safe box per format (6 % sides and 8 % top / bottom at 16x9, tools/engine.js) a… |
-| 2.7.1 | Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profi… | PARTIAL — open | `tools/renderers/pvk.mjs,` (10a): `encode()` (tools/renderers/pvk.mjs, docs/playbook/output-formats.md): H.264 + AAC mp4 always, plus `o… |
-| 2.7.2 | Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-si… | PARTIAL — partial, rest planned (open) | `tools/renderers/pvk.mjs` (10a): `output.crf` (mp4 16, webm 24), `output.scale` and `gifFps` in `encode()` (tools/renderers/pvk.mjs); e… |
+| 2.6.11 | Text rules in skills `video-layout.md`: 1080-wide minimums 84 px head… | EQUAL | `docs/playbook/p9-text-rules.md` |
+| 2.7.1 | Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profi… | EQUAL | `tools/p9-encode.mjs` |
+| 2.7.2 | Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-si… | EQUAL | `tools/p9-encode.mjs` |
 | 2.7.3 | Hardware-accelerated encode (`--hardware-acceleration`, VideoToolbox… | MISSING — exception (owner-approved 2026-11-12) | Not built (10z audit): no hardware encode; it needs the machine's GPU encoder, differs per platform and would… |
 | 2.7.4 | Transparent video: ProRes 4444 (`--image-format=png --pixel-format=yu… | EQUAL | `tools/renderers/pvk.mjs,` |
-| 2.7.5 | Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30… | PARTIAL — open | `tools/renderers/pvk.mjs` (10.0): pvk `stills t,t,...` and `frames [from] [to]` (tools/renderers/pvk.mjs); the hyperframes renderer ign… |
+| 2.7.5 | Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30… | EQUAL | `tools/p9-encode.mjs` |
 | 2.7.6 | Still images `npx remotion still` (png, jpeg, webp, pdf) | EQUAL | `stills` |
 | 2.7.7 | Image sequence output + pattern (`--image-sequence-pattern 'frame_[fr… | EQUAL | (frames/ dir) |
 | 2.7.8 | Animated GIF render (`--codec=gif`, `--number-of-gif-loops`, `--every… | EQUAL | `tools/renderers/pvk.mjs,` |
 | 2.7.9 | Concurrency `--concurrency` (tabs; default from CPU), `--disallow-par… | EQUAL | `PAGES=` |
-| 2.7.10 | Parameterised renders: `--props file.json\|'{...}'` -> `getInputProps(… | PARTIAL — partial, rest planned (open) | `tools/renderers/remotion.mjs` `project.json` + `--lang` / `--style` / `--formats` only. Not built (10z audit): no per-run props (`all --pro… |
+| 2.7.10 | Parameterised renders: `--props file.json\|'{...}'` -> `getInputProps(… | EQUAL | `bin/reelwright.mjs` |
 | 2.7.11 | Env/config: `remotion.config.ts` (`Config.set*`), `--env-file`, `--lo… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.7.12 | Browser: Chrome Headless Shell auto-installed (mac arm64/x64, win x64… | EQUAL | (Playwright Chromium; HF uses its headless shell) |
 | 2.7.13 | Media cache sizes: `--media-cache-size-in-bytes`, `--offthreadvideo-c… | N/A — exception (owner-approved 2026-11-12) |  |
-| 2.7.14 | HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--me… | PARTIAL — partial, rest planned (open) | `docs/playbook/output-formats.md` (10a): HDR is built on hyperframes (`output.hdr`, HEVC Main 10 HLG / PQ when the page has HDR sources; docs/p… |
+| 2.7.14 | HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--me… | EQUAL | `tools/p9-encode.mjs` |
 | 2.7.15 | Cloud: Lambda, Cloud Run, Vercel Sandbox, Azure, Cloudflare, `@remoti… | N/A — exception (owner-approved 2026-11-12) | (owner: no cloud render to AWS/GCP; Colab/Actions exist) |
 | 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A — exception (owner-approved 2026-11-12) |  |
@@ -260,7 +260,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | PARTIAL — open | `tools/studio/,` (10k): `reelwright studio` (tools/studio/, docs/playbook/studio.md): vendored player, timeline of scenes / VO… |
 | 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING — exception (owner-approved 2026-11-12) |  |
 | 2.8.3 | Connected compositions / pre-compose a scene with its own timeline | EQUAL | `tools/compose.js,` |
-| 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | PARTIAL — open | `tools/commands/embed.mjs,` (10d): `reelwright embed` writes one self-contained page played by the vendored HyperFrames player (controls,… |
+| 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | EQUAL | `tools/p9-player.js` |
 | 2.8.5 | Studio export to OpenTimelineIO; Editor Starter ($600) and Timeline (… | N/A — exception (owner-approved 2026-11-12) |  |
 | 2.8.6 | AI helpers: Remotion Skills (this repo), plugins for Claude Code/Code… | EQUAL | `docs/playbook/claude-workflow.md,` |
 | 2.8.7 | `npx create-video`, `npx remotion add <pkg>` (installs the exact matc… | N/A — exception (owner-approved 2026-11-12) |  |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 399 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 20 partial, 0 proposed, 22 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 429 EQUAL/BETTER, 158 accepted exceptions, 2 planned, 11 partial, 0 proposed, 1 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (158, owner-approved 2026-11-12)
 
@@ -860,7 +860,7 @@ Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 
 - `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — plan: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
 - `hyperframes:G9` — `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per frame vs original video, misse… — MISSING — plan: native `measure cuts/probe` (ffmpeg scene detect + ffprobe) and `diff` (ffmpeg `ssim`), S each
 
-### Partial (20)
+### Partial (11)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
 
@@ -878,46 +878,13 @@ Some of the row is built (the row names the file that proves it); the missing pa
 - `hyperframes:I10` — Streaming encode (no raw frames on disk), segmented capture + `--resume`, partial `--start/--end` r… — PARTIAL
 - `hyperframes:I13` — Timeouts and safety: browser/player-ready/protocol timeouts, `--strict`, `--best-effort`, render lo… — PARTIAL
 
-#### Remotion + its skills (9)
-
-- `remotion:2.1.6` — `interpolateColors()` (rgb, hsl, oklab, easing option) — PARTIAL
-- `remotion:2.1.12` — `<Loop times durationInFrames>` / `useLoop()`; `loop` prop — PARTIAL
-- `remotion:2.4.7` — Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bins, numberOfSamples power of 2… — PARTIAL
-- `remotion:2.4.17` — `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`, `fillTextBox` (overflow chec… — PARTIAL
-- `remotion:2.5.7` — Text highlights `@remotion/rough-notation` (Highlight, Circle, Underline, StrikeThrough, CrossedOff… — PARTIAL
-- `remotion:2.6.11` — Text rules in skills `video-layout.md`: 1080-wide minimums 84 px headline, 44 px supporting; safe a… — PARTIAL
-- `remotion:2.7.2` — Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-size`, `--x264-preset`, `--gop`,… — PARTIAL
-- `remotion:2.7.10` — Parameterised renders: `--props file.json|'{...}'` -> `getInputProps()`/component props; `defaultPr… — PARTIAL
-- `remotion:2.7.14` — HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--metadata key=value` into the mp4… — PARTIAL
-
-### Open, no tag (22)
+### Open, no tag (1)
 
 Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 
-#### Remotion + its skills (22)
+#### Remotion + its skills (1)
 
-- `remotion:2.1.2` — Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `extend`) — PARTIAL
-- `remotion:2.1.9` — `random(seed)` deterministic PRNG (mulberry32 over string hash) — PARTIAL
-- `remotion:2.1.10` — `<Sequence from trimBefore durationInFrames playbackRate loop freeze premountFor postmountFor layou… — PARTIAL
-- `remotion:2.1.13` — `<Freeze frame>` / `<Sequence freeze>` — PARTIAL
-- `remotion:2.2.1` — `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - overlaps; overlays do not short… — PARTIAL
-- `remotion:2.2.2` — Timings `linearTiming`, `springTiming` (duration from spring settle; `getDurationInFrames({fps})`),… — PARTIAL
-- `remotion:2.3.2` — Colour and tone: brightness, contrast, saturation, hue, grayscale, invert, tint, duotone, vibrance,… — PARTIAL
-- `remotion:2.3.3` — Blur family: blur, lightTrail, linearProgressiveBlur, radialProgressiveBlur, regionBlur, zoomBlur,… — PARTIAL
-- `remotion:2.3.4` — Lighting: dropShadow, longShadows, glow, shine, vignette — PARTIAL
-- `remotion:2.3.5` — Distortion: barrelDistortion, chromaticAberration, cornerPin, fisheye, mirror, noiseDisplacement, w… — PARTIAL
-- `remotion:2.3.6` — Textures/patterns: burlap, checkerboard, contourLines, dotGrid, emboss, flannel, gridlines, halfton… — PARTIAL
-- `remotion:2.3.8` — Weather/reveal: snowFall, rainFall, irisWipe, radialWipe, evolve, pixelate, pixelDissolve, progress… — PARTIAL
-- `remotion:2.3.11` — Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `<CameraMotionBlur samples=10>`… — PARTIAL
-- `remotion:2.4.1` — `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trimBefore, durationInFrames, play… — PARTIAL
-- `remotion:2.4.2` — `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) — PARTIAL
-- `remotion:2.4.4` — `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `volume` static or per-frame cur… — PARTIAL
-- `remotion:2.6.6` — `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star, Polygon, Pie, Heart, Arrow,… — PARTIAL
-- `remotion:2.6.8` — `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1 + seed) — PARTIAL
-- `remotion:2.7.1` — Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profiles proxy..4444 XQ), `gif`, au… — PARTIAL
-- `remotion:2.7.5` — Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30,60` gives `element-00/30/60`)… — PARTIAL
 - `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick s… — PARTIAL
-- `remotion:2.8.4` — `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/outFrame, playbackRate, fullscre… — PARTIAL
 
 ## Phase 11: decisions that need the owner
 

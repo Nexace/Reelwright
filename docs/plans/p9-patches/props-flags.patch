@@ -1,0 +1,16 @@
+diff --git a/bin/reelwright.mjs b/bin/reelwright.mjs
+index 1e19c8a..8a82d73 100755
+--- a/bin/reelwright.mjs
++++ b/bin/reelwright.mjs
+@@ -98,8 +98,11 @@ if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
+ // --variables '<json>' | --variables-file <file> [--strict-variables]   any command: composition variables for this run
+ // (checked first, written to the page's kit-vars.js, put back on exit; tools/commands/batch.mjs, docs/playbook/variables.md)
+ {
++  // --props / --props-file are Remotion's names for the same thing (tools/commands/props.mjs; checked against props.schema.json when the project has one)
++  for (const [from, to] of [["--props", "--variables"], ["--props-file", "--variables-file"]]) { const i = args.indexOf(from); if (i >= 0) args[i] = to; }
+   const [vj, vf] = ["--variables", "--variables-file"].map((f) => { const i = args.indexOf(f); return i >= 0 ? args.splice(i, 2)[1] : undefined; });
+   const sv = args.indexOf("--strict-variables"); if (sv >= 0) args.splice(sv, 1);
++  if (vj || vf) (await import("../tools/commands/props.mjs")).checkProps(proj, { json: vj, file: vf });
+   if (vj || vf) (await import("../tools/commands/batch.mjs")).applyVariables(proj, { json: vj, file: vf, strict: sv >= 0 });
+ }
+ 

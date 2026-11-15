@@ -87,4 +87,30 @@ The same thing from the shell: `reelwright slideshow <folder> [name] [--seconds 
 
 **Launch flags** (remotion:2.8.1): `--open` opens the page in your browser (the OS's own opener, no shell); `--no-open` is Remotion
 Studio's flag and is what happens without either; `--force-new` starts this studio on the next free port when the port is busy (without it a
-busy port stops with the old message). Check: `node tools/selfcheck/p13-studio-flags.mjs`. Remotion Studio's WebMCP tools are not built (repo rule).
+busy port stops with the old message). Check: `node tools/selfcheck/p13-studio-flags.mjs`. Remotion Studio's WebMCP tools are not built as MCP (repo rule): the next section is the same tools as plain JSON routes and a CLI.
+
+## Agent tools without MCP (remotion:2.8.1)
+Remotion Studio hands an in-browser agent a few WebMCP tools (look, select, inspect, set style, frame). Reelwright does not speak MCP, so the same
+five things are one JSON route on the studio server, `POST /__agent { cmd, … }`, and a client for it: `reelwright studio [project] <command> [--port N]`
+(`--port` or `PORT=`, default 4175; start the studio first). Every command prints JSON; `look` writes the picture and prints where.
+
+| Command | Does |
+|---|---|
+| `frame --t S` or `--frame N` | moves the agent's playhead (0 to the film's length); open studio tabs seek to it |
+| `look [--t S] [--selector CSS] [--out f.png] [--format png\|jpeg]` | a screenshot of the film at t, or cropped to one element's box (default `studio-look-<t>.png` in the current folder) |
+| `inspect --selector CSS [--t S]` | how many elements match, and for the first: tag, id, classes, text, box, `visible`, 22 computed properties, inline style, and the script line it belongs to (the line whose words it holds, else the line spoken at t, as *Pick in frame*) |
+| `select --line ID` / `--selector CSS` / `--clear` | the agent's selection; open tabs select that line (a selector selects the line it belongs to) |
+| `set-style --selector CSS --set prop=value …` / `--reset` | an overlay, one rule per selector, `!important`, not saved: it shows in `look` and `inspect` and in open tabs, and goes away with `--reset` or when the studio stops |
+| `set-style … --edit-source` | the same rule appended to the film's own `<style>` (`hf/index.html` or `film/index.html`) through the source writer, so *Undo* puts the file back; refused unless the studio itself was started with `--edit-source` |
+| `state` | playhead, frame, fps, selection, overlay |
+
+The agent looks through its own headless page (the file the `stills` and `lint` commands open, with the project's size), so no tab has to be open; it opens
+again after a project file changes. Commands run one at a time. `look` and `inspect` at `--t` leave the agent's playhead there, and `state` shows it.
+Not covered: the film's `window.PROPS` (the Props tab) is not set in the agent's page, and `dur` in `state` is `null` until the first command that needs the
+film's length.
+
+The route keeps the trust boundary above: 127.0.0.1, the Host check, POST with the studio's Origin and `application/json`, a fixed `cmd` list (400 otherwise),
+`t` inside the film, one overlay of at most 30 rules and 20 properties, selectors and values of at most 200 characters with no braces, semicolons, `@`, `<`, `>`,
+backslashes or `url()`, so a rule can neither close itself nor load anything; GET is refused (405). It never runs a shell or a job and calls no paid service;
+the only write is the persisted rule. Check: `node tools/selfcheck/p15-studio-agent.mjs` (a real studio, headless browser and tab: playhead, overlay, selection,
+the persisted rule and its undo, and every refusal).

@@ -204,5 +204,5 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
     try { const t = read("props.json"); if (t && isObj(JSON.parse(t))) return `<script>window.PROPS=${JSON.stringify(JSON.parse(t)).replace(/</g, "\\u003c")};</script>`; } catch { /* a bad file is shown in the Props tab */ }
     return "";
   };
-  return { get, post, POSTS, record, propsScript, fxNames: () => { const f = fx(); return new Set([...f.presets, ...f.jobs]); } };
+  return { get, post, POSTS, record, propsScript, write, fxNames: () => { const f = fx(); return new Set([...f.presets, ...f.jobs]); } };
 }

@@ -37,7 +37,7 @@ export default async function lint({ proj, args, ROOT, step }) {
   const noBrowser = flag("--no-browser"), hf = P.renderer === "hyperframes";
   step("lint");
   const up = hf ? await hfLint(DIR, P) : { gate: [], warn: [] };
-  const native = hf ? N.staticChecks(DIR, P) : [];
+  const native = [...(hf ? N.staticChecks(DIR, P) : []), ...N.projectChecks(DIR, P)];
   if (!noBrowser) {
     const { launch } = await import("../browser.mjs");
     (await import("../theme.mjs")).writeTheme(DIR, P);   // what a render writes before it opens the page

@@ -19,6 +19,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { staticChecks2, pageChecks2, projectChecks } from "./native-lint2.mjs";   // P15: the other ports (rules and reasons: docs/playbook/qa-lint.md)
+
+export { projectChecks };
 
 const AUDIO = /\.(mp3|wav|m4a|aac|ogg|flac|opus)$/i;
 const HDR_TRANSFER = new Set(["smpte2084", "arib-std-b67"]);
@@ -47,7 +50,7 @@ export function staticChecks(DIR, P) {
   const mentioned = all + read(path.join(DIR, "project.json"));
   const unused = ["assets", "hf", "clips"].flatMap((d) => walk(path.join(DIR, d))).filter((f) => AUDIO.test(f) && !mentioned.includes(path.basename(f)));
   if (unused.length) out.push(ln("audio_file_without_element", `audio file(s) nothing uses: ${unused.slice(0, 3).map((f) => path.relative(DIR, f)).join(", ")}`, "play it with KIT.audio(src, { start }) or delete it"));
-  return out;
+  return [...out, ...staticChecks2(DIR, P)];
 }
 
 // ── page: needs the film page loaded (window.READY) and seekable with window.render(t) ──
@@ -88,6 +91,7 @@ export async function pageChecks(page, { DIR, P, hf = P.renderer === "hyperframe
   const hevc = info.filter(([, p]) => /^(hevc|h265)$/.test(p.codec)).map(([s]) => s);
   if (hevc.length) out.push(ln("hevc_preview_codec", `HEVC video source(s): ${hevc.slice(0, 3).join(", ")}. Renders correctly; a browser preview may not play them`, "transcode to H.264 for the preview only if it stays blank"));
   out.push(...hdrCheck(DIR, P, info.some(([, p]) => HDR_TRANSFER.has(p.transfer))));
+  out.push(...await pageChecks2(page, { DIR, P }));
   return out;
 }
 

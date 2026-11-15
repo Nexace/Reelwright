@@ -69,4 +69,6 @@ Whole films and the shot cards. These are not excerpts of the eight-scene film a
 | [Shotcards A](shotcards/README.md) | 31 shot cards (camera, opening, outro, transition, rhythm; `KIT.shotcards.*`), one recipe page each. |
 | [Shotcards B](shotcards/b-index.md) | 57 shot cards (typography, UI entrance, data, effects, interaction), one recipe page each. |
 
+[The gallery](../gallery/index.html) shows every shot card and every `fx-*` effect as a contact strip with its helper call and recipe link (`reelwright gallery`; `reelwright gallery --check` is a visual regression check against `docs/gallery/refs/`).
+
 A film that calls `KIT.shotcards.<helper>` gets that helper's advice from the taste plug-in (`tools/checks/taste-shotcards.page.mjs`, data in `tools/checks/taste-shotcards.json`), printed as a `WARN` line by `qa` and on its own with `node tools/checks/taste-shotcards.page.mjs projects/<name>`.

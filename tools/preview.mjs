@@ -90,4 +90,5 @@ function changed(rel) {
 }
 fs.watch(DIR, { recursive: true }, (_, f) => changed(f && posix(f)));
 fs.watch(path.join(ROOT, "tools"), (_, f) => kitFiles().includes(f) && changed("tools/" + f));
+fs.watch(path.join(ROOT, "tools", "shotcards"), (_, f) => f && !f.endsWith(".mjs") && changed("tools/shotcards/" + f));   // copyKit copies these into hf/kit/shotcards/
 fs.watch(path.join(ROOT, "themes"), (_, f) => f && f.endsWith(".css") && changed("themes/" + f));

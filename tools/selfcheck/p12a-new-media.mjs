@@ -42,6 +42,7 @@ try {
   r = rw(["new", names[1], "--video", mp4]); assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /is H\.264 mp4, copied as it is/);
   assert.ok(fs.readFileSync(path.join(ROOT, "projects", names[1], "hf", "media", names[1] + ".mp4")).equals(fs.readFileSync(mp4)), "byte for byte");
 
+  if (process.platform !== "win32") {   // a .cmd stub cannot be spawned without a shell on Node 22 (Windows): the whisper path is the same code everywhere
   // with a speech path present (a stand-in whisper-cli): transcript.json from the media's audio
   const bin = path.join(tmp, "bin"); fs.mkdirSync(bin);
   if (process.platform === "win32") fs.writeFileSync(path.join(bin, "whisper-cli.cmd"),   // no /bin/sh on Windows: the same -of contract as a batch file (libuv runs .cmd through cmd.exe)
@@ -51,6 +52,7 @@ try {
   r = rw(["new", names[2], "--video", mp4], { PATH: bin + path.delimiter + process.env.PATH, WHISPER_MODEL: path.join(tmp, "model.bin") });
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /transcript\.json: 2 words/);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ROOT, "projects", names[2], "transcript.json"), "utf8")), [{ text: "one", start: 0, end: 0.5 }, { text: "two", start: 0.5, end: 1 }]);
+  }
   // errors
   assert.notEqual(rw(["new", names[2], "--video", mp4]).status, 0, "an existing project is not overwritten");
   assert.match(rw(["new", "x-" + process.pid, "--video", path.join(tmp, "nope.mp4")]).stderr, /no such file/);

@@ -23,7 +23,7 @@ const fixtureVo = (name, lines) => {   // word times as the voiceover step would
   fs.writeFileSync(path.join(dir, "lines.json"), JSON.stringify(Object.fromEntries(lines.map((l) => [l.id,
     { words: l.text.split(/\s+/).map((w, i) => ({ w, t: +(i * 0.4).toFixed(2), d: 0.35 })) }]))));
 };
-const sched = (name) => spawnSync(PY, [path.join(ROOT, "tools/sched.py"), path.join("projects", name)], { cwd: ROOT, encoding: "utf8" });
+const sched = (name) => spawnSync(PY, [path.join(ROOT, "tools/sched.py"), path.join("projects", name)], { cwd: ROOT, encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
 const project = (name) => JSON.parse(fs.readFileSync(path.join(ROOT, "projects", name, "project.json"), "utf8").replace(/\r/g, ""));
 const refused = (args, re) => {
   const before = snap(), r = make(...args);

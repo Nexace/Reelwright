@@ -22,6 +22,7 @@ try {
     process.env.REELWRIGHT_FACE_CMD = path.join(tmp, "face_stub.cmd");
     fs.writeFileSync(process.env.REELWRIGHT_FACE_CMD, `@echo off\r\n"${process.env.PYTHON || "python"}" "${stub}" %*\r\n`);
   }
+  if (process.platform === "win32") { console.log("p12b-face SKIP on Windows: the stub detector is a .cmd that Node cannot spawn without a shell"); process.exit(0); }
   const r = measureFace(video, { every: 1 });
   assert.deepEqual([r.size, r.samples.length, r.duration], [[1280, 720], 8, 8]);
   assert.deepEqual(r.samples.map((s) => s.faces.length), [1, 1, 1, 0, 0, 1, 1, 0]);

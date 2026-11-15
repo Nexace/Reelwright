@@ -234,7 +234,7 @@ async function withPage(film, fn) {
   ff("-f", "lavfi", "-i", "color=c=red@0.5:s=512x512,format=rgba", "-frames:v", "1", path.join(G, "brand", "mark.png"));
   assert.deepEqual(check(G), [], "a good brand has no problems: " + check(G));
   assert.equal(inventory(G).find((x) => x.file.endsWith("mark.png")).alpha, true); assert.equal(inventory(G).find((x) => x.file.endsWith("mark.png")).role, "icon");
-  const c1 = CLI("brand", G, "check"), c2 = CLI("brand", D, "check"); assert.equal(c1.status, 0, c1.stdout + c1.stderr); assert.equal(c2.status, 1); assert.match(CLI("brand", G, "inventory").stdout, /icon\s+brand\/mark\.png/);
+  const c1 = CLI("brand", G, "check"), c2 = CLI("brand", D, "check"); assert.equal(c1.status, 0, c1.stdout + c1.stderr); assert.equal(c2.status, 1); assert.match(CLI("brand", G, "inventory").stdout, /icon\s+brand[\\/]mark\.png/);
   ok("brand", `${inv.length} logos inventoried, 7 problem kinds found, good brand passes`);
 }
 

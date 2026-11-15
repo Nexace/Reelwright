@@ -63,7 +63,7 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
   const clean = (rel) => typeof rel === "string" && rel && !rel.includes("\0") && inside(rel) && !posix(path.normalize(rel)).split("/").some((s) => s.startsWith(".") || s === ".." ) && !/^hf\/kit\//.test(posix(path.normalize(rel)));
   let fxCache = null;
   const fx = () => fxCache ||= (() => {
-    const r = spawnSync(PY, [path.join(ROOT, "tools", "audio_fx.py"), "--list"], { encoding: "utf8" }), out = { presets: [], jobs: [], profiles: [] };
+    const r = spawnSync(PY, [path.join(ROOT, "tools", "audio_fx.py"), "--list"], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }), out = { presets: [], jobs: [], profiles: [] };
     for (const l of (r.stdout || "").split("\n")) { const m = /^(presets|jobs): (.*)$/.exec(l); if (m) out[m[1]] = m[2].split(",").map((s) => s.trim()).filter(Boolean); }
     return out;
   })();

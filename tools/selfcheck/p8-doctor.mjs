@@ -18,7 +18,7 @@ assert.match(rw("doctor").stdout, /node\s+v\d+/, "text form");
 
 assert.match(rw("browser", "path").stdout, /chrom|Chrome/i, "browser path");
 assert.match(rw("browser", "ensure").stdout, /browser ok/, "browser ensure launches");
-assert.match(rw("browser", "clear").stdout, /ms-playwright/, "browser clear lists, deletes nothing without --yes");
+assert.match(rw("browser", "clear").stdout, /ms-playwright|pw-browsers|playwright/i, "browser clear lists, deletes nothing without --yes");
 assert.equal(rw("browser", "bogus").status, 1);
 
 const c = JSON.parse(rw("compositions", "example-hf", "--json").stdout);

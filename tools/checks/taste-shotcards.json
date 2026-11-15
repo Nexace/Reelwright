@@ -1,0 +1,738 @@
+{
+ "_about": "Rule data for tools/checks/taste-shotcards.page.mjs: advice per shotcard category (tools/shotcards/<category>.js) and per helper. A film that calls KIT.shotcards.<helper> gets that helper's tips and, once, its category's advice. Edit the data, not the check.",
+ "categories": {
+  "camera": "Camera cards: one camera move at a time, eased at both ends (taste `motion` flags a dead stop or a jump), and hold the last pose for half a second so the viewer can read it.",
+  "opening": "Opening cards: the title must be readable (contrast 4.5:1, 3:1 for large text) before the first cut, and nothing else should compete with it in the first 2 to 3 seconds.",
+  "outro": "Outro cards: end on the logo or call to action and hold it still for at least 1 s (aesthetic rule R1); taste `pacing` only worries when nothing moves for more than 4 s.",
+  "transition": "Transition cards: one transition per cut, and one type for the whole film; start it on a beat (KIT.snap) so the cut lands with the music.",
+  "dissolve": "Dissolve cards: a texture dissolve is a cut that takes about a second; do not run two at once, and keep the incoming scene's first words clear of the dissolving edge.",
+  "rhythm": "Rhythm cards: cut on the beat with KIT.snap or W(), never with hard-coded seconds; keep the count of whole-frame hits (shake, crash zoom) at three or fewer (aesthetic rule R4).",
+  "typography": "Typography cards: no more than about 6 words per second of voice-over (taste `pacing`), contrast 4.5:1, and keep the text inside the title-safe box.",
+  "ui-entrance": "UI entrance cards: let the last item land and then hold 1 s; do not enter more things than the voice-over names, and keep the stack inside the title-safe box (taste `empty` flags a cramped frame).",
+  "data": "Data cards: made-up numbers need the \"Illustrative data\" label (the `illustrative` gate fails without it); animate the number on the word that names it.",
+  "effects": "Effect cards: use one hero effect per shot (taste `balance` and `empty` notice a frame it dominates), and treat glows, sheens and ripples as ambient, not as the point.",
+  "interaction": "Interaction cards: show one action at a time, leave a beat between the action and its result, and mock every write (never a real publish, pay or send)."
+ },
+ "helpers": {
+  "cursorFlyover": {
+   "category": "camera",
+   "tips": [
+    "Taking pose times from fixed seconds: use `V()`, `W()` or `KIT.snap()` so the flyover follows the script.",
+    "Putting the cursor outside the filmed layer: it is a child of `layer`, in layer px, and tilts with it."
+   ]
+  },
+  "pullBackIsolation": {
+   "category": "camera",
+   "tips": [
+    "Zooming a focus near the edge: the start frame then crops the layer; give the layer a bleed floor (recipes/push-in.md).",
+    "Dimming siblings with your own code as well: the helper owns their `opacity`."
+   ]
+  },
+  "terminal3d": {
+   "category": "camera",
+   "tips": [
+    "Making the terminal a different size from the frame: put it in `layer` and let the layer be frame-sized, so the tour numbers stay meaningful.",
+    "Wrapping long lines: `white-space: pre`, and size the box for the longest line."
+   ]
+  },
+  "scrollBrake": {
+   "category": "data",
+   "tips": [
+    "Making `dur` shorter than about 1.6 s: the cruise part vanishes and it reads as one long ease.",
+    "Picking a `target` near the end of the list: the rows below it are missing, so the landing row sits low. Keep a few rows after the target."
+   ]
+  },
+  "beforeAfterSlider": {
+   "category": "data",
+   "tips": [
+    "Passing an image element that is already in the DOM elsewhere: it is moved into the layer.",
+    "Leaving the divider at 0 or 1 at the end: half the picture disappears. Rest it near the middle."
+   ]
+  },
+  "oscilloscopeStream": {
+   "category": "data",
+   "tips": [
+    "More than a few hundred dots: use bars instead.",
+    "Forgetting the \"Illustrative data\" label on made-up numbers (the `illustrative` QA gate fails the build)."
+   ]
+  },
+  "unitDotSwarmRegroup": {
+   "category": "data",
+   "tips": []
+  },
+  "axisRescaleShock": {
+   "category": "data",
+   "tips": []
+  },
+  "needleSweepSelftest": {
+   "category": "data",
+   "tips": [
+    "A `value` very close to `max`: the spring overshoot swings the needle past the end of the dial.",
+    "Using the tape for a range of thousands of ticks: raise `step`."
+   ]
+  },
+  "tapeScrollFixedPointer": {
+   "category": "data",
+   "tips": []
+  },
+  "timelineTravel": {
+   "category": "data",
+   "tips": [
+    "Even spacing for uneven dates: the strip is evenly spaced (`spacing`); put the real dates in the labels, not in the distances.",
+    "More than about 7 events: the dwell time per event gets too short to read."
+   ]
+  },
+  "gradientWipe": {
+   "category": "dissolve",
+   "tips": []
+  },
+  "types.grain": {
+   "category": "dissolve",
+   "tips": [
+    "Loading `shotcards/dissolve.js` before `transitions.js`: it throws (`KIT.transition` is missing).",
+    "A `to` layer with its own clip-path: the transition owns it."
+   ]
+  },
+  "types.halftone": {
+   "category": "dissolve",
+   "tips": [
+    "Different `seed` per transition in a film, or every wipe has the same edge.",
+    "A paper colour close to the scene colour: the lip disappears."
+   ]
+  },
+  "types.tornEdge": {
+   "category": "dissolve",
+   "tips": []
+  },
+  "types.inkBleed": {
+   "category": "dissolve",
+   "tips": []
+  },
+  "types.gradientWipe": {
+   "category": "dissolve",
+   "tips": [
+    "`feather: 0`: a hard wipe (`KIT.transition('wipe')`); the factory refuses it.",
+    "A glow colour on a light scene: screen blend vanishes on white; use a darker colour or `mix-blend-mode` on your own overlay."
+   ]
+  },
+  "types.tearStreak": {
+   "category": "dissolve",
+   "tips": [
+    "Colour streaks on a white scene: invisible. Use a dark `from` or a coloured `color`.",
+    "Adding `KIT.cue(at, 'glitch')` is not automatic: pass `cue: 'whoosh'` to `KIT.transition` if you want a sound."
+   ]
+  },
+  "assembleThenTypeFlyin": {
+   "category": "effects",
+   "tips": [
+    "Setting `text` longer than about 24 characters: the per-letter stagger makes it last over a second.",
+    "Putting other content in the same box: the headline sits above the panel."
+   ]
+  },
+  "risoPrintHits": {
+   "category": "effects",
+   "tips": [
+    "Three or more inks at full strength: multiply of all of them is near black. Two inks plus a pale third read better.",
+    "A dark film background: multiply needs a light ground, which the helper draws (`paper`); fade it in over your scene."
+   ]
+  },
+  "scanlineAssembleFlyin": {
+   "category": "effects",
+   "tips": [
+    "Fewer than 4 items: the scan has nothing to reveal.",
+    "Setting `dur` below about 1 s: the rows arrive in a blur."
+   ]
+  },
+  "auroraBloomBgFlip": {
+   "category": "effects",
+   "tips": [
+    "Palettes as `hsl()` or names: use hex strings (the mixer parses `#rrggbb`).",
+    "Text over the bloom's peak: it washes out for about half a second; keep the headline off the beat."
+   ]
+  },
+  "fuiHud": {
+   "category": "effects",
+   "tips": [
+    "Readouts that are real data: they are decoration. Label real numbers with a `Source:` credit elsewhere.",
+    "More than three readouts: the column crowds the top-left bracket."
+   ]
+  },
+  "glowOrbAmbient": {
+   "category": "effects",
+   "tips": [
+    "Orb colours as names: they go into a `radial-gradient`, hex or `var(--kit-…)` is fine.",
+    "Hopping faster than 0.5 s per arc: the ring on landing does not finish."
+   ]
+  },
+  "flylineArc": {
+   "category": "effects",
+   "tips": []
+  },
+  "orbFlylineRelay": {
+   "category": "effects",
+   "tips": []
+  },
+  "attentionBounce": {
+   "category": "effects",
+   "tips": [
+    "Setting `transform` on `el` yourself: the helper overwrites it every frame.",
+    "Morphing icons that are images: `a` and `b` take text or HTML glyphs; for images pass `<img>` HTML."
+   ]
+  },
+  "iconMorph": {
+   "category": "effects",
+   "tips": []
+  },
+  "hitCounter": {
+   "category": "effects",
+   "tips": [
+    "`shakeEl` set to the stage itself: shake a child scene wrapper, or the frame edges show.",
+    "Hits closer than 0.15 s: the pops merge and the count looks like one jump."
+   ]
+  },
+  "animeImpact": {
+   "category": "effects",
+   "tips": []
+  },
+  "spotlightSweep": {
+   "category": "effects",
+   "tips": [
+    "Putting the spotlight under the content: it is an overlay, so add it after the scene.",
+    "`dim` above 0.9: the rest of the frame disappears."
+   ]
+  },
+  "sheenSweep": {
+   "category": "effects",
+   "tips": []
+  },
+  "radialRipplePhoneChips": {
+   "category": "effects",
+   "tips": [
+    "More than about 10 chips: they overlap on the ring. Use two radii (`radialWave`).",
+    "Passing `phone` as an element that has its own `transform` animation: it is left alone, so it will not pulse with the ripple."
+   ]
+  },
+  "scanBracketSweep": {
+   "category": "effects",
+   "tips": [
+    "A `rect` that is tiny (under 100 px): the corner marks overlap.",
+    "Scanning something you also zoom with the camera: pass the rect in post-zoom pixels."
+   ]
+  },
+  "scanlineAnnotateFocus": {
+   "category": "effects",
+   "tips": [
+    "A callout target outside the safe box: it is clipped by social-app UI on 9:16.",
+    "Long labels: the pill grows right; keep it under 28 characters."
+   ]
+  },
+  "kanadaPerspectiveSnap": {
+   "category": "effects",
+   "tips": [
+    "Three slams in one scene: the second and third do nothing. One per scene.",
+    "`shakeEl` on the stage root: shake a child wrapper."
+   ]
+  },
+  "scoreSlam": {
+   "category": "effects",
+   "tips": []
+  },
+  "impactBurst": {
+   "category": "effects",
+   "tips": []
+  },
+  "glowWakeSleepPanel": {
+   "category": "effects",
+   "tips": [
+    "Passing image URLs that need the network: use local files (the `no-network` QA gate).",
+    "A `corner` outside 0..1: the light starts outside the box and the reveal looks late."
+   ]
+  },
+  "slideSpotlightPan": {
+   "category": "effects",
+   "tips": []
+  },
+  "cornerSpotlightReveal": {
+   "category": "effects",
+   "tips": []
+  },
+  "panelToCanvas": {
+   "category": "interaction",
+   "tips": [
+    "A cyclic graph with unreachable nodes: a node with no path from node 0 never appears (its arrival is `Infinity`). Connect everything to node 0.",
+    "Dozens of nodes: the cascade takes depth × `hop`."
+   ]
+  },
+  "diagramCascade": {
+   "category": "interaction",
+   "tips": []
+  },
+  "themeSwitch": {
+   "category": "interaction",
+   "tips": [
+    "Hard-coded colours in the scene: only `var(--kit-*)` colours change in the second copy.",
+    "Building the scene with ids: the copy duplicates them; use classes."
+   ]
+  },
+  "voiceWaveform": {
+   "category": "interaction",
+   "tips": [
+    "Running envelope.mjs on the final mix: use the voice file, or the bars follow the music too.",
+    "Forgetting `at`: the envelope starts at t = `at`; give it the line's start time."
+   ]
+  },
+  "collabCursors": {
+   "category": "interaction",
+   "tips": [
+    "Cursor paths that cross text you need to read: cursors are drawn on top.",
+    "Real people's names for fictional users: use first names that are plainly examples."
+   ]
+  },
+  "pickerCarousel": {
+   "category": "interaction",
+   "tips": [
+    "`every` shorter than 1 s with long body text: the card changes before it is read.",
+    "Different content heights: the cards are all the same size; keep body text to two lines."
+   ]
+  },
+  "segmentedThumb": {
+   "category": "interaction",
+   "tips": [
+    "A selection list that is not in time order: it is read in order and later times win.",
+    "Very long segment labels: they are clipped to the segment width."
+   ]
+  },
+  "typeAndFilter": {
+   "category": "interaction",
+   "tips": [
+    "A query that matches nothing: the list ends empty. Keep at least one row matching the full query.",
+    "`cps` above 10: the rows collapse faster than the eye follows."
+   ]
+  },
+  "datavizLandscapeOpen": {
+   "category": "opening",
+   "tips": [
+    "Colours as CSS names or variables: `#rrggbb` only (they are blended in JS).",
+    "Real data: pass your own heights by editing the module's `bars`; the recipe's heights are decoration."
+   ]
+  },
+  "fracture": {
+   "category": "opening",
+   "tips": [
+    "An animated `source`: the clones are snapshots. Shatter a still title card, or hold the animation first.",
+    "Creating the helper before the card is laid out: clone after fonts and layout are in place."
+   ]
+  },
+  "inkBloom": {
+   "category": "opening",
+   "tips": [
+    "Putting the mark inside the goo group: it would melt. Draw it above.",
+    "Using it for more than about 14 blobs: it turns into a cloud; raise `r` instead."
+   ]
+  },
+  "craneRise": {
+   "category": "opening",
+   "tips": [
+    "Rows with their own transform animation: the helper owns their `transform`.",
+    "Calling before fonts load: the heights are measured at the first `set`; build the helper after layout."
+   ]
+  },
+  "iconField": {
+   "category": "opening",
+   "tips": [
+    "Icons that are already gray: grayscale does nothing visible; use coloured SVG.",
+    "`t1 - t0` shorter than `dur`: the helper throws (no room to stagger)."
+   ]
+  },
+  "letterspace": {
+   "category": "opening",
+   "tips": [
+    "A tween in CSS `transition`: not seekable; this is a function of t.",
+    "Setting `letter-spacing` elsewhere on the element: the helper owns it, with `padding-left`, opacity, transform and filter."
+   ]
+  },
+  "orbitRingTitle": {
+   "category": "opening",
+   "tips": [
+    "Putting satellites inside the nucleus element: they are positioned in the stage, not in the nucleus.",
+    "`drift` > 0 means the film never holds still after `t1`; set 0 for a still end."
+   ]
+  },
+  "heroPush": {
+   "category": "opening",
+   "tips": [
+    "A hero off the focal point: the spotlight stays at the screen centre, so the disc would miss the card.",
+    "Going past z 2.6 on bitmap art: it softens."
+   ]
+  },
+  "spotlightHero": {
+   "category": "opening",
+   "tips": []
+  },
+  "textMask": {
+   "category": "opening",
+   "tips": [
+    "A video as the media: `background-clip: text` takes images and gradients, not `<video>`; use a poster frame.",
+    "Text longer than the box: it is `white-space: nowrap`; size `w` for it."
+   ]
+  },
+  "logoLockup": {
+   "category": "outro",
+   "tips": [
+    "Sizing logo and word with transforms: `offsetWidth` ignores them, so size with width/height or font-size.",
+    "Leaving the wordmark visible before `t0`: the helper hides it until its clip opens."
+   ]
+  },
+  "neonMarquee": {
+   "category": "outro",
+   "tips": [
+    "`reps` too small for a long gap or a small font: the row runs out before the frame edge; raise it (default 16).",
+    "A CSS `@keyframes` marquee: not seekable."
+   ]
+  },
+  "groupLaunch": {
+   "category": "outro",
+   "tips": [
+    "More than about 12 reps on a 16:9 frame: they overlap; use two rings (two helper calls).",
+    "Using real user avatars: they are the user's media; do not fetch them at render time."
+   ]
+  },
+  "uiStripAway": {
+   "category": "outro",
+   "tips": [
+    "Items nested in transformed parents: `offsetLeft` is then not stage px; pass `{ el, dx, dy }`.",
+    "Running it on the real UI recording: it moves elements, so use it on the mock UI layer."
+   ]
+  },
+  "iconFlipBloom": {
+   "category": "outro",
+   "tips": [
+    "A logo with no `parts` and no `logo`: the morph ends on an empty disc; pass at least one.",
+    "Doing both on one element: they own the same transforms."
+   ]
+  },
+  "inputMorphAssemble": {
+   "category": "outro",
+   "tips": []
+  },
+  "stepList": {
+   "category": "rhythm",
+   "tips": [
+    "Beat times from `Math.random` or a clock: derive them from `KIT.snap` / `KIT.beat` / `V()`.",
+    "Fewer beats than items: the helper throws."
+   ]
+  },
+  "comicPanels": {
+   "category": "rhythm",
+   "tips": [
+    "Content wider than its panel: panels clip (`overflow: hidden`); fit the media with `object-fit: cover`.",
+    "A panel border from the theme: the default is a 3 px x K.u ink border; override on `panels[i].el`."
+   ]
+  },
+  "quadSplit": {
+   "category": "rhythm",
+   "tips": [
+    "Sub-scene text at a quarter of the frame is small: use big type in the sub-scenes (the PLAYBOOK size floor applies after scaling).",
+    "Sharing one `KIT.stage`-parented helper between cells: pass `parent: quad.cells[i].inner`."
+   ]
+  },
+  "jumpCut": {
+   "category": "rhythm",
+   "tips": [
+    "Easing between the framings: that makes it a camera move, not a jump cut.",
+    "More than three cuts a second: it stops reading as rhythm."
+   ]
+  },
+  "steppedTime": {
+   "category": "rhythm",
+   "tips": [
+    "Stepping the camera too: it looks like dropped frames, not style.",
+    "`KIT.easing('steps(n)')` quantises progress inside a tween; this quantises time across the shot. Use whichever matches the intent."
+   ]
+  },
+  "sakugaTime": {
+   "category": "rhythm",
+   "tips": []
+  },
+  "trailerBumper": {
+   "category": "rhythm",
+   "tips": [
+    "More than one slam in a bumper: the second one is a repeat, not an escalation.",
+    "Text sizes are set for 16:9; override per step with CSS on `.kit-bumper-text` for 9:16."
+   ]
+  },
+  "letterformZoom": {
+   "category": "transition",
+   "tips": [
+    "A glyph with no counter (an L): aim at the middle of a stroke and let `r` be the stroke's half-height.",
+    "Wrong (x, y): the circle opens beside the glyph; measure the counter from the real layout."
+   ]
+  },
+  "cardFlock": {
+   "category": "transition",
+   "tips": [
+    "Calling `cardFlock` per frame: the sim is built at creation; build it once.",
+    "A `t1 - t0` under about 0.8 s: the cards do not settle before the blend."
+   ]
+  },
+  "types.pageTurn": {
+   "category": "transition",
+   "tips": [
+    "Expecting two-sided paper: past 90 degrees the back face is hidden, not drawn.",
+    "A `from` with its own 3D transform: the transition owns it."
+   ]
+  },
+  "types.versusSlam": {
+   "category": "transition",
+   "tips": []
+  },
+  "types.invisibleCut": {
+   "category": "transition",
+   "tips": [
+    "Using `versusSlam` on scenes with important text near the seam: it crosses the middle.",
+    "Photosensitivity: the burn and the slam flash are strong; keep them to one per film and short."
+   ]
+  },
+  "types.lightLeakBurn": {
+   "category": "transition",
+   "tips": []
+  },
+  "types.letterformZoom": {
+   "category": "transition",
+   "tips": []
+  },
+  "textColumnConverge": {
+   "category": "typography",
+   "tips": [
+    "More than 3 columns on 9:16: they get too narrow; the width is `min(0.9·W/n, 420)` px.",
+    "Uneven column lengths: shorter columns end higher; pad or split."
+   ]
+  },
+  "titleDemoteToLabel": {
+   "category": "typography",
+   "tips": [
+    "Animating `font-size` on a long paragraph: it relays out every frame. Use it for one line.",
+    "Colours as names: the mixer reads `#rrggbb` or `[r, g, b]`."
+   ]
+  },
+  "countdownArcScatter": {
+   "category": "typography",
+   "tips": [
+    "More than 5 steps: the ring repeats and bores. Count from 3.",
+    "An exit word longer than 8 letters: the pieces scatter off screen before it is read."
+   ]
+  },
+  "flyingWords": {
+   "category": "typography",
+   "tips": [
+    "A `gap` longer than `travel`: only one word is ever on screen. Overlap them.",
+    "Text the viewer must read: it flies for under two seconds. Use a kinetic layout for sentences."
+   ]
+  },
+  "gradientWordSweep": {
+   "category": "typography",
+   "tips": [
+    "Setting `color` on the words yourself: they use `background-clip: text`; the text colour is transparent.",
+    "Colours as `hsl()` with spaces: they go into a gradient string; hex and `var()` are safe."
+   ]
+  },
+  "leadWordZoomAssemble": {
+   "category": "typography",
+   "tips": [
+    "Building before the font is ready: the lead lands in the wrong place. Wait for `document.fonts.ready` or build in the film's load step.",
+    "A lead word wider than the frame at 3.2×: lower `zoom`."
+   ]
+  },
+  "outlineWordFill": {
+   "category": "typography",
+   "tips": [
+    "Very thin fonts: the 3 % outline vanishes. Raise `strokeW`.",
+    "Needs a stroke colour that differs from the background (`stroke`)."
+   ]
+  },
+  "pillSlotCycle": {
+   "category": "typography",
+   "tips": [
+    "Building before fonts load: the pill is sized for the fallback font.",
+    "`every` below 0.5 s: the roll never rests."
+   ]
+  },
+  "chipRail": {
+   "category": "typography",
+   "tips": [
+    "Chips with one word: they have nothing to roll; use two or more.",
+    "Setting a fixed `width` too narrow for the longest word."
+   ]
+  },
+  "splitTextStagger": {
+   "category": "typography",
+   "tips": [
+    "Long text on a short path: the end is clipped. Measure with `path.getTotalLength()` if unsure.",
+    "`by: 'word'` on a single word: nothing to stagger."
+   ]
+  },
+  "driftAssembly": {
+   "category": "typography",
+   "tips": []
+  },
+  "textOnPath": {
+   "category": "typography",
+   "tips": []
+  },
+  "letterDrop": {
+   "category": "typography",
+   "tips": [
+    "`fall` under 0.5 s: the bounces are too fast to read.",
+    "`drop` larger than the frame: the letters start off screen and the first part is dead time."
+   ]
+  },
+  "fontWeightPump": {
+   "category": "typography",
+   "tips": [
+    "A static font family: weights snap between 300/400/700/900. Use a variable font for the smooth pump.",
+    "Karaoke `times` where word i+1 starts before word i ends: the fills overlap; that is fine for fast speech."
+   ]
+  },
+  "karaokeFill": {
+   "category": "typography",
+   "tips": []
+  },
+  "verticalWordRoll": {
+   "category": "typography",
+   "tips": [
+    "Two words of very different width in the same slot: the line jumps. Centre it and give the sentence room.",
+    "Roll faster than 0.8 s per word: nobody reads it."
+   ]
+  },
+  "wordRelayFilmstrip": {
+   "category": "typography",
+   "tips": [
+    "Fewer than 4 words: the ring looks sparse; add blanks.",
+    "Reading speed: each word is the centre word for `every − move` seconds."
+   ]
+  },
+  "avatarBracketCarousel": {
+   "category": "ui-entrance",
+   "tips": [
+    "Real photos from the network: use local images in the avatars' `label` HTML (the `no-network` gate).",
+    "Fewer than 5 avatars: the ring shows the same face twice."
+   ]
+  },
+  "bezierConverge": {
+   "category": "ui-entrance",
+   "tips": [
+    "Sources with no space to curve: set `curve` to 0.15.",
+    "Drawing straight lines between far-apart points: keep the default curve for the \"flow\" feel."
+   ]
+  },
+  "cardStack": {
+   "category": "ui-entrance",
+   "tips": [
+    "One long card text: cards are fixed-size; keep it to a few words.",
+    "Six or more cards: deep slots fade out (between slots 3 and 5)."
+   ]
+  },
+  "clonerDepthEcho": {
+   "category": "ui-entrance",
+   "tips": [
+    "The element has an id: clones drop it, but anything that looks it up by id still finds only the lead.",
+    "`pose` that uses clocks or `Math.random`: it must be a pure function of t."
+   ]
+  },
+  "deckDealFlyin": {
+   "category": "ui-entrance",
+   "tips": [
+    "Over 12 cards: the grid cells shrink and the ring crowds.",
+    "No `at` from `W()`: the first card falls before the word."
+   ]
+  },
+  "contactShadowLift": {
+   "category": "ui-entrance",
+   "tips": [
+    "A shadow on a light film: it is black at 55 %; lower the opacity in CSS if needed.",
+    "Passing `el` that is not absolutely positioned: the translate has no effect on layout."
+   ]
+  },
+  "integrationHubMap": {
+   "category": "ui-entrance",
+   "tips": [
+    "Brand logos you may not use: tiles take text; put your own SVG in `label` HTML.",
+    "More than 8 nodes: the ring gets crowded."
+   ]
+  },
+  "listStackPress": {
+   "category": "ui-entrance",
+   "tips": [
+    "Pressing the first or last row without checking: the squash is one-sided; that is correct but check the look.",
+    "Too many rows: neighbours beyond two barely move."
+   ]
+  },
+  "neonFrameForerun": {
+   "category": "ui-entrance",
+   "tips": [
+    "A colour as a name with `drop-shadow`: it works, but a hex lets you tune the glow.",
+    "Two neon frames at once with different colours: filter stacks; keep one."
+   ]
+  },
+  "neonFrameOrbitDrop": {
+   "category": "ui-entrance",
+   "tips": [
+    "More than 3 laps: the tail wraps over itself.",
+    "A drop of less than 0.4 s: the bounce is invisible."
+   ]
+  },
+  "pageWaterfallWall": {
+   "category": "ui-entrance",
+   "tips": [
+    "Real screenshots from the network: put local images in the cards.",
+    "A wall behind small text: it is busy; dim it with a scrim."
+   ]
+  },
+  "productCardProgressive": {
+   "category": "ui-entrance",
+   "tips": [
+    "Real prices or product names: label them \"Illustrative data\".",
+    "Skipping the skeleton: without it the first frame is an empty card."
+   ]
+  },
+  "radialWave": {
+   "category": "ui-entrance",
+   "tips": [
+    "`speed` too slow: the last chips arrive after the voice moved on. Compute it from the voice: `farthest / (spokenDuration)`.",
+    "Chips over 90 px on 9:16: they collide on the inner ring."
+   ]
+  },
+  "researchCardStackScroll": {
+   "category": "ui-entrance",
+   "tips": [
+    "Too few cards (under 4): the scroll ends at once.",
+    "Dense body text: the cards are small; two lines at most."
+   ]
+  },
+  "rowEmbed": {
+   "category": "ui-entrance",
+   "tips": [
+    "A long embed text: the card has a fixed height (`embedH`).",
+    "Setting the row's `height` yourself: the helper owns it."
+   ]
+  },
+  "valueStaggerGradient": {
+   "category": "ui-entrance",
+   "tips": [
+    "Made-up values without the \"Illustrative data\" label.",
+    "A `max` smaller than a value: the bar passes the tile top."
+   ]
+  },
+  "bentoLightUp": {
+   "category": "ui-entrance",
+   "tips": [
+    "Cells passed as `cells: [{ c, r, cs, rs }]` that overlap: the helper does not check.",
+    "A wireframe over a busy photo: the outlines vanish."
+   ]
+  },
+  "wireframeDrawOn": {
+   "category": "ui-entrance",
+   "tips": []
+  }
+ }
+}

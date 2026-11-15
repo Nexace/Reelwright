@@ -49,7 +49,7 @@ try {
   // the d3-clock check
   const proj = path.join(tmp, "proj"); fs.mkdirSync(path.join(proj, "film"), { recursive: true });
   const check = (code) => { fs.writeFileSync(path.join(proj, "film", "film.js"), code);
-    const r = spawnSync(PY, ["-c", `import importlib.util,json,sys\nspec=importlib.util.spec_from_file_location('c',${JSON.stringify(path.join(ROOT, "tools", "checks", "d3-clock.py"))});m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nprint(json.dumps(m.check({'proj':${JSON.stringify(proj)},'P':{}})))`], { encoding: "utf8" });
+    const r = spawnSync(PY, ["-c", `import importlib.util,json,sys\nspec=importlib.util.spec_from_file_location('c',${JSON.stringify(path.join(ROOT, "tools", "checks", "d3-clock.py"))});m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nprint(json.dumps(m.check({'proj':${JSON.stringify(proj)},'P':{}})))`], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
     assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); };
   assert.equal(check(snippet + "\nKIT.transition('iris', { from: a, to: b });\n").length, 0, "the playbook snippet and KIT.transition pass");
   assert.equal(check("d3.select('#a').transition().duration(500).attr('x', 3);\n").length, 1);

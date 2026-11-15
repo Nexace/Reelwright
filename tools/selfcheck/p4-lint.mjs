@@ -10,6 +10,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { lintTexts, lintPace, darkStretches, darkFindings, lumaOfVideo, sceneTexts, formatFindings } from "../checks/manim-lint.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
+const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const rule = (f, r) => f.filter((x) => x.rule === r);
 const box = (text, x, y, w, h, size = 60) => ({ text, kind: "Text", x, y, w, h, size_px: size });
 const doc = (...texts) => ({ version: 1, width: 1920, height: 1080, snapshots: [{ t: 3.5, label: "s", texts }] });
@@ -70,19 +71,19 @@ if (!ff.error && ff.status === 0) {
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p4lint-"));
 const proj = path.join(tmp, "film"), sdir = path.join(proj, ".cache", "manim", "s1-0123456789ab");
 fs.mkdirSync(path.join(proj, "film"), { recursive: true }); fs.mkdirSync(sdir, { recursive: true });
-const py = spawnSync("python3", ["-c", [
+const py = spawnSync(PY, ["-c", [
   "import sys, os; sys.path.insert(0, 'python')",
   "from reelwright_manim import texts",
   "from reelwright_manim.tests.test_texts import Text, Scene, RW",
   `rw = RW(${JSON.stringify(path.join(sdir, ".rw-state.json"))})`,
   "s = Scene(Text('good', 0, 0, 4, 1), Text('wide title that leaves', 7, 3, 4, 1), Text('tiny', 0, -3, 1, 0.1, font_size=10), Text('over', 0.5, 0.2, 4, 1))",
-  "texts.snapshot(s, rw, 'end'); print(texts.write(rw))"].join("\n")], { cwd: ROOT, encoding: "utf8" });
-if (py.error) videoNote += "; python3 missing: exporter not run";
+  "texts.snapshot(s, rw, 'end'); print(texts.write(rw))"].join("\n")], { cwd: ROOT, encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+if (py.error) videoNote += "; python missing: exporter not run";
 else {
   assert.equal(py.status, 0, py.stderr);
   const written = JSON.parse(fs.readFileSync(path.join(sdir, "texts.json"), "utf8")), got = lintTexts(written).map((x) => x.rule).sort();
   assert.deepEqual(got, ["OFF-FRAME", "TEXT-OVERLAP", "TINY-TEXT"], `Python wrote ${JSON.stringify(written.snapshots[0].texts.map((t) => [t.x, t.y, t.w, t.h, t.size_px]))}`);
-  const ut = spawnSync("python3", ["-m", "unittest", "reelwright_manim.tests.test_texts"], { cwd: path.join(ROOT, "python"), encoding: "utf8" });
+  const ut = spawnSync(PY, ["-m", "unittest", "reelwright_manim.tests.test_texts"], { cwd: path.join(ROOT, "python"), encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
   assert.equal(ut.status, 0, "python unittest test_texts: " + ut.stderr);
 }
 

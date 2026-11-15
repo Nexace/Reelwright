@@ -44,7 +44,9 @@ try {
 
   // with a speech path present (a stand-in whisper-cli): transcript.json from the media's audio
   const bin = path.join(tmp, "bin"); fs.mkdirSync(bin);
-  fs.writeFileSync(path.join(bin, "whisper-cli"), `#!/bin/sh\nwhile [ $# -gt 0 ]; do case "$1" in -of) OF="$2";; esac; shift; done\necho '{"transcription":[{"offsets":{"from":0,"to":500},"text":" one"},{"offsets":{"from":500,"to":1000},"text":" two"}]}' > "$OF.json"\n`, { mode: 0o755 });
+  if (process.platform === "win32") fs.writeFileSync(path.join(bin, "whisper-cli.cmd"),   // no /bin/sh on Windows: the same -of contract as a batch file (libuv runs .cmd through cmd.exe)
+    `@echo off\r\nsetlocal\r\nset "OF="\r\n:loop\r\nif "%~1"=="" goto done\r\nif "%~1"=="-of" set "OF=%~2"\r\nshift\r\ngoto loop\r\n:done\r\necho {"transcription":[{"offsets":{"from":0,"to":500},"text":" one"},{"offsets":{"from":500,"to":1000},"text":" two"}]} > "%OF%.json"\r\n`);
+  else fs.writeFileSync(path.join(bin, "whisper-cli"), `#!/bin/sh\nwhile [ $# -gt 0 ]; do case "$1" in -of) OF="$2";; esac; shift; done\necho '{"transcription":[{"offsets":{"from":0,"to":500},"text":" one"},{"offsets":{"from":500,"to":1000},"text":" two"}]}' > "$OF.json"\n`, { mode: 0o755 });
   fs.writeFileSync(path.join(tmp, "model.bin"), "x");
   r = rw(["new", names[2], "--video", mp4], { PATH: bin + path.delimiter + process.env.PATH, WHISPER_MODEL: path.join(tmp, "model.bin") });
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /transcript\.json: 2 words/);

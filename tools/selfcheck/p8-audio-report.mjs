@@ -24,7 +24,7 @@ h.writeUInt32LE(SR, 24); h.writeUInt32LE(SR * 2, 28); h.writeUInt16LE(2, 32); h.
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "p8-audio-")), wav = path.join(dir, "clicks.wav");
 fs.writeFileSync(wav, Buffer.concat([h, pcm]));
 try {
-  const run = (...a) => { const r = spawnSync(PY, [path.join(ROOT, "tools", "audio_report.py"), wav, ...a, "--json"], { encoding: "utf8" }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); };
+  const run = (...a) => { const r = spawnSync(PY, [path.join(ROOT, "tools", "audio_report.py"), wav, ...a, "--json"], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); };
   const r = run("--at", "2.1", "--place-at", "3.4");
   assert.ok(Math.abs(r.rhythm.bpm - 120) < 3, `bpm ${r.rhythm.bpm}`);
   const hit = r.onsets.filter((t) => [...Array(16).keys()].some((k) => Math.abs(t - k * 0.5) < 0.03));

@@ -16,6 +16,7 @@ import { validateArc } from "../arc.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const url = (rel) => pathToFileURL(path.join(ROOT, rel)).href;
+const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p10-lints-"));
 const check = (await import(url("tools/checks/aesthetic-rules.page.mjs"))).default;
 const W = 640, H = 360;
@@ -66,10 +67,10 @@ try {
 
   // ── sfx-repeat ──
   const proj = path.join(tmp, "sfx"); fs.mkdirSync(proj);
-  const sfx = (cues, qa = true) => JSON.parse(spawnSync(process.platform === "win32" ? "python" : "python3", ["-c", `import sys, json, importlib.util
+  const sfx = (cues, qa = true) => JSON.parse(spawnSync(PY, ["-c", `import sys, json, importlib.util
 open(${JSON.stringify(path.join(proj, "timeline.json"))}, "w").write(json.dumps({"cues": json.loads(${JSON.stringify(JSON.stringify(cues))})}))
 s = importlib.util.spec_from_file_location("sfx", "tools/checks/sfx-repeat.py"); m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
-print(json.dumps(m.check(dict(proj=${JSON.stringify(proj)}, P=json.loads(${JSON.stringify(JSON.stringify(qa ? { qa: { "sfx-repeat": true } } : {}))})))))`], { cwd: ROOT, encoding: "utf8" }).stdout);
+print(json.dumps(m.check(dict(proj=${JSON.stringify(proj)}, P=json.loads(${JSON.stringify(JSON.stringify(qa ? { qa: { "sfx-repeat": true } } : {}))})))))`], { cwd: ROOT, encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }).stdout);
   const c = (kind, ...ts) => ts.map((t) => ({ t, kind, gain: 1 }));
   assert.equal(sfx(c("click", 1, 1.3, 1.6)).length, 1, "three clicks in 0.6 s");
   assert.equal(sfx(c("tick", 1, 1.3, 1.6)).length, 0, "ticks alternate in mix.py");

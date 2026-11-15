@@ -13,7 +13,7 @@ import { applyPatch } from "../patch_util.mjs";
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p8-mix-"));
-const sh = (cmd, args, o = {}) => { const r = spawnSync(cmd, args, { encoding: "utf8", ...o }); assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stderr}`); return r; };
+const sh = (cmd, args, o = {}) => { const r = spawnSync(cmd, args, { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" }, ...o }); assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stderr}`); return r; };
 try {
   const orig = path.join(tmp, "orig"), patched = path.join(tmp, "patched");
   for (const d of [orig, patched]) { fs.mkdirSync(path.join(d, "tools"), { recursive: true }); fs.copyFileSync(path.join(ROOT, "tools", "mix.py"), path.join(d, "tools", "mix.py")); }

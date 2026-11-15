@@ -17,6 +17,7 @@ import { launch } from "../browser.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p5-tools-"));
+const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const url = (rel) => pathToFileURL(path.join(ROOT, rel)).href;
 const imp = (rel) => import(url(rel));
 const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { encoding: "utf8" }); assert.equal(r.status, 0, "ffmpeg: " + r.stderr); };
@@ -144,7 +145,7 @@ async function withPage(film, fn) {
   ff("-f", "lavfi", "-i", "testsrc=d=3:s=64x48:r=10", "-f", "lavfi", "-i", "sine=d=1", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", path.join(A, "short.mp4"));
   ff("-f", "lavfi", "-i", "testsrc=d=1:s=64x48:r=10", "-c:v", "libx264", "-pix_fmt", "yuv420p", path.join(A, "silent.mp4"));
   fs.writeFileSync(path.join(A, "mix.wav"), "x");
-  const av = (f) => JSON.parse(spawnSync(process.platform === "win32" ? "python" : "python3", ["-I", "-c", "import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps(m.check({'mp4':sys.argv[2],'proj':sys.argv[3]})))", path.join(ROOT, "tools/checks/p5-av-sync.py"), path.join(A, f), A], { encoding: "utf8" }).stdout);
+  const av = (f) => JSON.parse(spawnSync(PY, ["-I", "-c", "import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps(m.check({'mp4':sys.argv[2],'proj':sys.argv[3]})))", path.join(ROOT, "tools/checks/p5-av-sync.py"), path.join(A, f), A], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }).stdout);
   assert.deepEqual(av("good.mp4"), [], "in-sync file: no findings");
   assert.ok(av("late.mp4").some((l) => /audio starts at 0\.5\d/.test(l)), "late audio start: " + av("late.mp4"));
   assert.ok(av("short.mp4").some((l) => /differ by/.test(l)), "audio short of the picture: " + av("short.mp4"));

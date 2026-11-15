@@ -18,6 +18,10 @@ try {
   const stub = path.join(ROOT, "tools/selfcheck/p12b/face_stub.py");
   fs.chmodSync(stub, 0o755);
   process.env.REELWRIGHT_FACE_CMD = stub;
+  if (process.platform === "win32") {   // Windows cannot exec a .py: a .cmd on the same contract (image paths in, JSON out)
+    process.env.REELWRIGHT_FACE_CMD = path.join(tmp, "face_stub.cmd");
+    fs.writeFileSync(process.env.REELWRIGHT_FACE_CMD, `@echo off\r\n"${process.env.PYTHON || "python"}" "${stub}" %*\r\n`);
+  }
   const r = measureFace(video, { every: 1 });
   assert.deepEqual([r.size, r.samples.length, r.duration], [[1280, 720], 8, 8]);
   assert.deepEqual(r.samples.map((s) => s.faces.length), [1, 1, 1, 0, 0, 1, 1, 0]);

@@ -10,6 +10,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { ROOT, tmpdir, makeProject, rw } from "./p1-fixture.mjs";
 import { acquire, queue } from "../render_lock.mjs";
 
@@ -98,7 +99,7 @@ try {
     r = rw("frames", pv, "--no-cache", "--best-effort", "--player-ready-timeout", "1"); assert.notEqual(r.status, 0, "a 1 ms player-ready timeout fails a pvk render");
   } finally { fs.rmSync(pv, { recursive: true, force: true }); }
   const lock = path.join(tmp, "lock"); process.env.REELWRIGHT_LOCK_DIR = lock;
-  const holder = spawn(process.execPath, ["-e", `const {acquire}=await import(${JSON.stringify(path.join(ROOT, "tools", "render_lock.mjs"))});acquire({dir:${JSON.stringify(lock)}});console.log("held");setTimeout(()=>process.exit(0),2500)`, "--input-type=module"], { stdio: ["ignore", "pipe", "inherit"] });
+  const holder = spawn(process.execPath, ["-e", `const {acquire}=await import(${JSON.stringify(pathToFileURL(path.join(ROOT, "tools", "render_lock.mjs")).href)});acquire({dir:${JSON.stringify(lock)}});console.log("held");setTimeout(()=>process.exit(0),2500)`, "--input-type=module"], { stdio: ["ignore", "pipe", "inherit"] });
   await new Promise((go) => holder.stdout.once("data", go));
   assert.equal(queue(lock).length, 1);
   assert.throws(() => acquire({ dir: lock, timeoutMs: 400 }), /gave up waiting for the render lock/, "a second render waits, then gives up");

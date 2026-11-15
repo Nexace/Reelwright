@@ -68,7 +68,7 @@ let nPaths = 0, nCmds = 0, nKit = 0;
 const mentioned = new Set();
 for (const f of SKILLS) {
   const s = rd(f);
-  assert.match(s, /^---\nname: [\w-]+\ndescription: .{40,}\n---/, `${f} front matter`);
+  assert.match(s, /^---\r?\nname: [\w-]+\r?\ndescription: .{40,}\r?\n---/, `${f} front matter`);
   for (const m of s.matchAll(/`?((?:docs|tools|vendor)\/[\w./<>-]+\.(?:md|js|mjs|py|json|jpg))`?/g)) { if (/[<>]/.test(m[1])) continue; assert.ok(fs.existsSync(path.join(ROOT, m[1])), `${f}: ${m[1]} does not exist`); nPaths++; }
   for (const m of s.matchAll(/(?:\.\/video\.sh|node bin\/reelwright\.mjs|reelwright|pvk) ([a-z][\w-]*)/g)) {
     if (known.has(m[1])) { mentioned.add(m[1]); nCmds++; } else assert.ok(STOP.has(m[1]), `${f}: "${m[0]}" is not a command (known: ${[...known].join(" ")})`);

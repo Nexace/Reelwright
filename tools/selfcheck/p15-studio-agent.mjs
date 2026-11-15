@@ -111,7 +111,8 @@ try {
   const after = fs.readFileSync(idx, "utf8");
   assert.ok(after.includes("/* reelwright studio set-style */\n.pulse { opacity: 0.4 }"), "the rule is in the film's <style>"); assert.equal(after.length > before.length, true);
   assert.equal((await raw(e.port, { headers: { origin: `http://localhost:${e.port}`, "content-type": "application/json" }, body: "{}" , method: "POST" })).status, 400);
-  const undo = await new Promise((ok2) => { const r = http.request({ host: "127.0.0.1", port: e.port, method: "POST", path: "/__undo", headers: { host: `localhost:${e.port}`, origin: `http://localhost:${e.port}`, "content-type": "application/json" } }, (res) => { res.resume(); res.on("end", () => ok2(res.statusCode)); }); r.end("{}"); });
+  const postUndo = () => new Promise((ok2, no2) => { const r = http.request({ host: "127.0.0.1", port: e.port, method: "POST", path: "/__undo", agent: false, headers: { host: `localhost:${e.port}`, origin: `http://localhost:${e.port}`, "content-type": "application/json", connection: "close" } }, (res) => { res.resume(); res.on("end", () => ok2(res.statusCode)); }); r.on("error", no2); r.end("{}"); });
+  let undo; for (let k = 0; ; k++) { try { undo = await postUndo(); break; } catch (err) { if (k >= 2 || err.code !== "ECONNRESET") throw err; await new Promise((r) => setTimeout(r, 300)); } }   // a CI runner can reset the first connection
   assert.equal(undo, 200); assert.equal(fs.readFileSync(idx, "utf8"), before, "undo restores the source byte for byte");
   console.log("p15-studio-agent: ok");
 } finally { await browser?.close(); for (const c of servers) c.kill(); await new Promise((r) => setTimeout(r, 300)); f.rm(); }

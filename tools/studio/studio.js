@@ -335,6 +335,6 @@ const t0 = Number(store.get("studio:t"));
 seek(t0 > 0 && t0 <= D ? t0 : 0);
 // the right-panel tools (tools/studio/panels.js): undo, audio rack, blur, variables, renders queue, lint, assets, catalog, captions, source
 const { initPanels } = await import("./panels.js");
-await initPanels({ $, el, api, banner, status, info, proj, FILM, D, fps, win, player, seek, now, save, pretty, edited, lineOf, store, sel: () => sel });
+await initPanels({ $, el, api, banner, status, info, proj, FILM, D, fps, win, player, seek, now, save, pretty, edited, lineOf, store, sel: () => sel, select, now });
 await scanNested().catch((e) => console.warn("nested compositions:", e.message));
 window.studioReady = true;   // for tools/selfcheck/studio.mjs

@@ -99,6 +99,13 @@ for (const [flag, env] of [["--quality", "QUALITY"], ["--crf", "CRF"], ["--video
 }
 const wk = args.indexOf("--workers"); if (wk >= 0) process.env.PAGES = args.splice(wk, 2)[1] || "";
 const lm = args.indexOf("--low-memory"); if (lm >= 0) { args.splice(lm, 1); process.env.REELWRIGHT_LOW_MEMORY = "1"; }
+const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080", "4x5": "1080x1350", "16x10": "1920x1200" };
+const fo = args.indexOf("--formats");
+const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
+if (formats) {   // the named shapes or any WxH with even sides (tools/p5-formats.mjs)
+  try { if (!formats.length) throw new Error(`it takes a comma list of ${Object.keys(SIZES).join(", ")} or WxH sizes`); for (const f of formats) SIZES[f] ??= sizeOf(f); }
+  catch (e) { console.log(`--formats: ${e.message}`); process.exit(1); }
+}
 // safety and resume flags (tools/renderers/hyperframes.mjs, pvk.mjs, tools/render_lock.mjs), only on the commands that render, so `batch --strict` keeps its own
 const RENDERING = ["frames", "film", "all", "stills", "encode"].includes(cmd);
 let TIMEOUT_MS = 0, LOCK = null;
@@ -118,13 +125,6 @@ if (RENDERING) {
   flag("--strict", "REELWRIGHT_STRICT"); flag("--best-effort", "REELWRIGHT_BEST_EFFORT"); flag("--cache", "REELWRIGHT_HF_CACHE"); flag("--resume", "REELWRIGHT_RESUME");
   const lt = take("--lock-timeout", []), lk = args.indexOf("--lock");
   if (lk >= 0) { args.splice(lk, 1); LOCK = { timeoutMs: Number(lt || 0) * 1000 }; }
-}
-const SIZES = { "16x9": "1920x1080", "9x16": "1080x1920", "1x1": "1080x1080", "4x5": "1080x1350", "16x10": "1920x1200" };
-const fo = args.indexOf("--formats");
-const formats = fo >= 0 ? (args.splice(fo, 2)[1] || "").split(",").filter(Boolean) : null;
-if (formats) {   // the named shapes or any WxH with even sides (tools/p5-formats.mjs)
-  try { if (!formats.length) throw new Error(`it takes a comma list of ${Object.keys(SIZES).join(", ")} or WxH sizes`); for (const f of formats) SIZES[f] ??= sizeOf(f); }
-  catch (e) { console.log(`--formats: ${e.message}`); process.exit(1); }
 }
 let proj = "projects/example";
 if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {

@@ -7,6 +7,8 @@
 //       Blur; Variables; a renders queue that runs two real `film` renders one at a time, with cancel; lint; assets (project + a fake ~/.media); catalog search + Add;
 //       caption word editor; file tree and source editor (only with --edit-source: without it 403 and read only) — and every new route keeps the trust boundary
 //       (no Origin 403, bad values 400, paths outside the project refused). Not built here: the Slideshow panel.
+//   remotion:2.8.1  props sidebar (Ctrl/Cmd+J; form from props.schema.json or the declared variables, props.json = window.PROPS in the player, checked on save),
+//       canvas zoom, quick switcher (Ctrl/Cmd+K), shortcut list, render-from-UI with --props-file (two real renders, the h1 differs), click-to-select in the frame.
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -43,7 +45,7 @@ try {
   fs.copyFileSync(path.join(dir, "vo", "a.mp3"), path.join(dir, "vo", "b.mp3"));
   fs.mkdirSync(path.join(dir, "hf", "compositions")); fs.copyFileSync(path.join(ROOT, "projects", "engine-hf", "hf", "compositions", "tag.html"), path.join(dir, "hf", "compositions", "tag.html"));
   const idx = path.join(dir, "hf", "index.html"); fs.writeFileSync(idx, fs.readFileSync(idx, "utf8").replace('<script src="kit/engine.js"></script>', '<script src="kit/engine.js"></script>\n<script src="kit/compose.js"></script>'));
-  const fj = path.join(dir, "hf", "film.js"); fs.writeFileSync(fj, fs.readFileSync(fj, "utf8").replace("KIT.V('a').end + 0.4", "KIT.V('b').end + 0.4").replace("KIT.start(", "KIT.mount('tag', { start: KIT.V('b').start, dur: 0.9 });\nKIT.start("));
+  const fj = path.join(dir, "hf", "film.js"); fs.writeFileSync(fj, fs.readFileSync(fj, "utf8").replace("KIT.V('a').end + 0.4", "KIT.V('b').end + 0.4").replace("KIT.start(", "document.getElementById('stage').insertAdjacentHTML('beforeend', '<div id=\"subline\" style=\"position:absolute;left:10px;top:150px;font:600 14px Arial\">this is the second line</div>');\nKIT.mount('tag', { start: KIT.V('b').start, dur: 0.9 });\nKIT.start("));
   fs.mkdirSync(path.join(dir, "hf", "media")); assert.equal(spawnSync("ffmpeg", ["-y", "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=16x16:d=0.1", "-frames:v", "1", path.join(dir, "hf", "media", "logo.png")]).status, 0);
   fs.mkdirSync(path.join(home, ".media"), { recursive: true }); fs.writeFileSync(path.join(home, ".media", "global-click.wav"), "RIFF");
   for (const c of ["sched", "info", "mix"]) { const r = rw(c, dir); assert.equal(r.status, 0, c + ": " + r.out.slice(-500)); }
@@ -203,6 +205,39 @@ try {
   await tab("Source"); await page.waitForSelector("#tab-source div[style*=cursor]");
   assert.ok(await page.locator("#tab-source div[style*=cursor]", { hasText: "hf/film.js" }).count() >= 1, "file tree");
 
+  // remotion:2.8.1 — props sidebar, zoom, quick switcher, shortcuts, click in the frame
+  const PR = JSON.parse((await request(port, { p: "/__props" })).body); assert.ok(PR.schema.properties.title && PR.schema.properties.bars, "the schema comes from the declared variables"); assert.equal(PR.hasFile, false);
+  assert.equal((await post(srv, "/__props", { props: { bars: "many" } })).status, 400, "props are checked against the schema"); assert.equal((await post(srv, "/__props", { props: [1] })).status, 400);
+  assert.match(JSON.parse((await post(srv, "/__props", { props: { tone: "mid" } })).body).error, /tone/, "the error names the property");
+  await page.keyboard.press("Control+j"); assert.equal(await page.locator("#tab-props").isVisible(), true, "Ctrl+J opens the props sidebar");
+  await page.waitForSelector("#tab-props input[type=text]");
+  await page.locator("#tab-props input[type=text]").first().fill("Props title");
+  await reloads(() => page.locator("#tab-props button.primary").click());
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "props.json"), "utf8")), { title: "Props title" }, "props.json holds what the form changed");
+  assert.equal(await page.evaluate(() => document.getElementById("film").iframeElement.contentWindow.PROPS?.title), "Props title", "the player's page sees window.PROPS");
+  await page.keyboard.press("Control+j"); assert.equal(await page.locator("#tab-props").isVisible(), false, "Ctrl+J toggles back");
+  // zoom
+  await page.click("button[title^='zoom the frame in']"); assert.equal(await page.locator("#zoomlabel").textContent(), "125%");
+  assert.match(await page.locator("#film").evaluate((e) => e.style.width), /calc\(.*1\.25.*\)/); assert.equal(await page.locator("#playerbox").evaluate((e) => e.classList.contains("zoomed")), true);
+  const w1 = (await page.locator("#film").boundingBox()).width; await page.click("button[title^='zoom the frame out']"); await page.click("button[title^='zoom the frame out']");
+  assert.ok((await page.locator("#film").boundingBox()).width < w1, "zoom out makes the frame smaller"); await page.keyboard.press("0"); assert.equal(await page.locator("#zoomlabel").textContent(), "100%", "0 resets");
+  // quick switcher
+  await page.keyboard.press("Control+k"); assert.equal(await page.locator("#qs").evaluate((e) => e.classList.contains("on")), true);
+  await page.keyboard.type("line b"); assert.match(await page.locator("#qs li.on").textContent(), /line b/); await page.keyboard.press("Enter");
+  assert.equal(await val("#sel-id"), "b", "the quick switcher jumped to line b"); assert.ok(Math.abs((await page.evaluate(() => document.getElementById("film").currentTime)) - (await startB())) < 0.2, "and moved the playhead there");
+  await page.keyboard.press("Control+k"); await page.keyboard.type("open Renders"); await page.keyboard.press("Enter"); assert.equal(await page.locator("#tab-renders").isVisible(), true, "panels open from the switcher");
+  await page.keyboard.press("?"); assert.equal(await page.locator("#help").evaluate((e) => e.classList.contains("on")), true, "? shows the shortcuts"); await page.keyboard.press("Escape");
+  // click-to-select in the frame
+  await page.locator("#tabs button", { hasText: /^Inspector$/ }).click(); await page.locator('#tl-vo .box[data-id="a"]').click(); assert.equal(await val("#sel-id"), "a");
+  await page.click("button:has-text('Pick in frame')");
+  const where = async (css) => page.evaluate((css) => { const f = document.getElementById("film").iframeElement, r = f.getBoundingClientRect(), w = f.contentWindow, t = w.document.querySelector(css).getBoundingClientRect(), sc = r.width / w.innerWidth; return [r.left + (t.left + t.width / 2) * sc, r.top + (t.top + t.height / 2) * sc]; }, css);
+  await page.mouse.click(...(await where("#subline")));
+  assert.match(await page.locator("#pickinfo").textContent(), /<div#subline> "this is the second line" → line b \(its words\)/); assert.equal(await val("#sel-id"), "b", "clicking a line's words selects that line");
+  assert.equal(await page.locator("#pickbox").evaluate((e) => getComputedStyle(e).display), "block", "the picked element is outlined");
+  await page.mouse.click(...(await where("h1"))); assert.match(await page.locator("#pickinfo").textContent(), /<h1> "Default title"|<h1> "Props title"/); assert.match(await page.locator("#pickinfo").textContent(), /\(spoken here\)/, "other elements belong to the line spoken at the playhead");
+  await page.keyboard.press("Escape"); assert.equal(await page.locator("#pick").evaluate((e) => e.classList.contains("on")), false);
+  log("2.8.1 props sidebar, zoom, quick switcher, shortcuts, pick in frame: ok");
+
   // H5: the renders queue: two real renders, one at a time; a third is cancelled while it waits
   await tab("Renders");
   const q = async (b) => (await post(srv, "/__render", b)).status;
@@ -213,8 +248,21 @@ try {
   await page.locator("#rq .item", { hasText: "4k" }).locator("button", { hasText: "cancel" }).click();
   await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].filter((x) => /done|failed|cancelled/.test(x.textContent)).length === 3, null, { timeout: 240000 });
   const fin = await state(); assert.ok(fin.filter((t) => /done/.test(t)).length === 2 && fin.some((t) => /cancelled/.test(t)), "two renders done, one cancelled: " + fin.join(" | "));
-  const outs = fs.readdirSync(path.join(dir, "out")).filter((f) => f.endsWith(".mp4")); assert.ok(outs.some((f) => /1x1/.test(f)) && outs.some((f) => /9x16/.test(f)), "both queued renders wrote their mp4: " + outs);
+  const outsOf = () => fs.readdirSync(path.join(dir, "out")).filter((f) => f.endsWith(".mp4")), outs = outsOf(); assert.ok(outs.some((f) => /1x1/.test(f)) && outs.some((f) => /9x16/.test(f)), "both queued renders wrote their mp4: " + outs);
   assert.equal(spawnSync("ffprobe", ["-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", path.join(dir, "out", outs.find((f) => /1x1/.test(f)))], { encoding: "utf8" }).stdout.trim().replace(/x$/, ""), "1080x1080", "the 1x1 render is 1080x1080");
+  // render-from-UI with props: the queued render takes --props-file from props.json (title in the h1 changes), and the option is checked on the server
+  await tab("Props"); await reloads(() => page.locator("#tab-props button", { hasText: "Render with these props" }).click().catch(() => {})).catch(() => {});
+  await tab("Renders"); await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].some((x) => /props/.test(x.textContent) && /done|failed/.test(x.textContent)), null, { timeout: 240000 });
+  assert.ok([...(await state())].some((t) => /props.*done/.test(t)), "the props render finished: " + (await state()).join(" | "));
+  const withProps = path.join(dir, "out", "fx.mp4"); assert.ok(fs.existsSync(withProps), "out/fx.mp4 from the props render");
+  const h1px = (f) => spawnSync("ffmpeg", ["-v", "error", "-ss", "0.3", "-i", f, "-vf", "crop=140:40:10:5,format=gray", "-frames:v", "1", "-f", "rawvideo", "-"], { maxBuffer: 1 << 20 }).stdout.toString("hex");
+  const a1 = h1px(withProps); fs.copyFileSync(withProps, path.join(tmp, "props.mp4"));
+  for (let i = 0; i < 3 && fs.existsSync(path.join(dir, "props.json")); i++) assert.equal((await post(srv, "/__undo", {})).status, 200);
+  assert.ok(!fs.existsSync(path.join(dir, "props.json")), "undo walks back to no props.json (it did not exist before)");
+  assert.equal((await post(srv, "/__render", { props: true })).status, 400, "no props.json: no props render");
+  assert.equal((await post(srv, "/__render", { quality: "draft", format: "16x9" })).status, 202);
+  await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].filter((x) => /16x9/.test(x.textContent) && /done|failed/.test(x.textContent)).length === 1, null, { timeout: 240000 });
+  const plainOut = path.join(dir, "out", outsOf().find((f) => /16x9/.test(f))); assert.notEqual(h1px(plainOut), a1, "the h1 differs between the props render and the plain one");
   assert.deepEqual(errors, [], "page errors");
   console.log("p12a-studio self-check: H3 waveform/meter, captions, gap drag + snap + ripple, range, linked, split/trim, nested drill-down; H5 undo/redo, audio rack, blur, variables, renders queue (2 real renders, 1 cancelled), lint, assets, catalog add, captions, source; trust boundary kept");
 } catch (e) { console.error("p12a-studio self-check FAILED:", e.stack || e.message); process.exitCode = 1; }

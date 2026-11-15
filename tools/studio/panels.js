@@ -9,7 +9,7 @@ const copy = async (text) => { try { await navigator.clipboard.writeText(text); 
 export async function initPanels(c) {
   const { $, api, status, banner, info, proj, FILM, edited, pretty, save, store } = c;
   const aside = document.querySelector("aside"), mount = info.page.replace(/\/(hf|film)\/index\.html$/, "");
-  const TABS = [["inspector", "Inspector"], ["audio", "Audio"], ["blur", "Blur"], ["vars", "Variables"], ["renders", "Renders"], ["lint", "Lint"], ["assets", "Assets"], ["catalog", "Catalog"], ["captions", "Captions"], ["source", "Source"]];
+  const TABS = [["inspector", "Inspector"], ["props", "Props"], ["audio", "Audio"], ["blur", "Blur"], ["vars", "Variables"], ["renders", "Renders"], ["lint", "Lint"], ["assets", "Assets"], ["catalog", "Catalog"], ["captions", "Captions"], ["source", "Source"]];
   const tabs = $("tabs"), secs = { inspector: $("tab-inspector") }, loaders = {};
   for (const [id] of TABS) if (id !== "inspector") { secs[id] = h("section", { id: "tab-" + id, className: "tab", hidden: true }); aside.append(secs[id]); }
   function show(id) {
@@ -168,6 +168,94 @@ export async function initPanels(c) {
     s.append(h("div", { style: "max-height:160px;overflow:auto;border:1px solid var(--line)" }, j.files.filter((f) => /\.(js|mjs|html|css|json|md|txt|svg|csv)$/i.test(f.path)).map((f) => h("div", { style: "cursor:pointer;padding:1px 4px", textContent: `${f.path}  ${kb(f.size)}`, onclick: () => open(f.path) }))), name, box, sv);
     note(s, j.editSource ? "Source editing is on (--edit-source): saves are undoable. The studio never edits files outside this project." : "Read only. Start the studio with --edit-source to edit film.js, hf/*.html and the like here.");
   };
+
+  // ── Props sidebar (Ctrl/Cmd+J): the film's per-run data, from props.schema.json or the declared variables; props.json is what the page sees as window.PROPS
+  // (KIT.props(), tools/p9-props.js) and what "Render with these props" passes as --props-file ──
+  loaders.props = async () => {
+    const s = secs.props; s.replaceChildren(h("h2", { textContent: "Props" }));
+    const j = await get("/__props").catch((e) => ({ schema: null, props: {}, error: e.message })), props = { ...j.props };
+    if (j.error) note(s, j.error, "bad");
+    const sch = j.schema, ps = sch?.properties || {};
+    if (!sch) note(s, "No props.schema.json and no declared variables: write props as JSON below (docs/playbook/p9-delivery.md).");
+    const errs = h("div", { className: "bad" }), set = (k, v) => { if (v === undefined) delete props[k]; else props[k] = v; };
+    for (const [k, d] of Object.entries(ps)) {
+      const cur = k in props ? props[k] : d.default, req = (sch.required || []).includes(k);
+      const lab = h("label", { textContent: `${k}${req ? " *" : ""}${d.description ? ` — ${d.description}` : ""} (${[].concat(d.type || "any").join("|")})` });
+      let inp;
+      if (d.enum) inp = h("select", { onchange: (e) => set(k, d.enum.find((x) => String(x) === e.target.value)) }, d.enum.map((x) => h("option", { value: String(x), textContent: String(x), selected: x === cur })));
+      else if (d.type === "boolean") inp = h("input", { type: "checkbox", checked: !!cur, onchange: (e) => set(k, e.target.checked) });
+      else if (d.type === "number" || d.type === "integer") inp = h("input", { type: "number", value: cur ?? "", min: d.minimum, max: d.maximum, step: d.type === "integer" ? 1 : "any", oninput: (e) => set(k, e.target.value === "" ? undefined : Number(e.target.value)) });
+      else if (d.type === "string") inp = h("input", { type: "text", value: cur ?? "", oninput: (e) => set(k, e.target.value) });
+      else inp = h("textarea", { rows: 3, value: cur === undefined ? "" : JSON.stringify(cur, null, 1), oninput: (e) => { try { set(k, JSON.parse(e.target.value)); errs.textContent = ""; } catch { errs.textContent = `${k}: not valid JSON yet`; } } });
+      s.append(lab, inp);
+    }
+    const raw = h("textarea", { rows: 6, spellcheck: false, value: JSON.stringify(props, null, 2), style: "margin-top:6px" });
+    const sv = async () => { errs.textContent = ""; try { await api("/__props", { props: raw.dataset.dirty ? JSON.parse(raw.value) : props }); status("props.json saved: the page reloads with them"); return true; } catch (e) { errs.textContent = e.message; return false; } };
+    raw.addEventListener("input", () => { raw.dataset.dirty = "1"; });
+    s.append(errs, h("h2", { textContent: "props.json" }), raw, h("div", { style: "margin-top:8px" }, h("button", { className: "primary", textContent: "Save props", onclick: sv }), " ",
+      h("button", { textContent: "Render with these props", title: "saves props.json, then queues a film render with --props-file", onclick: async () => { if (await sv()) api("/__render", { props: true }).then(() => { status("render queued with props"); show("renders"); }).catch((e) => banner(e.message)); } })));
+    note(s, "The player shows the film with these props (window.PROPS); checked against the schema on save, as `--props` is. Renders from the UI use the server's fixed render options only.");
+  };
+
+  // ── canvas zoom, the frame picker, the quick switcher and the shortcuts (Ctrl/Cmd+K, Ctrl/Cmd+J, + - 0, ?) ──
+  const box = $("playerbox"), bar2 = $("bar2"), W = info.width, H = info.height, base = c.player.style.width;
+  let z = 1; const zl = h("span", { id: "zoomlabel", textContent: "100%", style: "color:var(--muted);min-width:42px;text-align:center" });
+  const setZoom = (v) => { z = Math.max(0.25, Math.min(4, Math.round(v * 100) / 100)); c.player.style.width = z === 1 ? base : `calc(${base} * ${z})`; box.classList.toggle("zoomed", z !== 1); zl.textContent = `${Math.round(z * 100)}%`; };
+  bar2.append(h("button", { textContent: "−", title: "zoom the frame out (-)", onclick: () => setZoom(z / 1.25) }), zl, h("button", { textContent: "+", title: "zoom the frame in (+)", onclick: () => setZoom(z * 1.25) }), h("button", { textContent: "Fit", title: "100% (0)", onclick: () => setZoom(1) }));
+  box.addEventListener("wheel", (e) => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); setZoom(z * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
+  // click-to-select in the frame: with Pick on, a click on the frame finds the element under it in the film page and selects the line it belongs to
+  const pick = h("div", { id: "pick" }), pickbox = h("div", { id: "pickbox" }), pinfo = h("span", { id: "pickinfo", style: "color:var(--muted);font-size:12px" });
+  box.append(pick, pickbox);
+  const place = () => { const r = c.player.iframeElement.getBoundingClientRect(), b = box.getBoundingClientRect(); Object.assign(pick.style, { left: r.left - b.left + box.scrollLeft + "px", top: r.top - b.top + box.scrollTop + "px", width: r.width + "px", height: r.height + "px" }); };
+  const pickBtn = h("button", { textContent: "Pick in frame", title: "click an element in the frame to select its line (P)", onclick: () => setPick(!pick.classList.contains("on")) });
+  const setPick = (on) => { pick.classList.toggle("on", on); pickBtn.classList.toggle("primary", on); if (on) place(); else pickbox.style.display = "none"; };
+  bar2.append(pickBtn, pinfo);
+  pick.addEventListener("click", (e) => {
+    const r = c.player.iframeElement.getBoundingClientRect(), win = c.win, sc = r.width / win.innerWidth;
+    let t = win.document.elementFromPoint((e.clientX - r.left) / sc, (e.clientY - r.top) / sc);
+    while (t && ["HTML", "BODY"].includes(t.tagName)) t = null;
+    if (t && /^(root|stage)$/.test(t.id)) t = null;
+    if (!t) { pinfo.textContent = "nothing there but the background"; pickbox.style.display = "none"; return; }
+    const tr = t.getBoundingClientRect(), b = box.getBoundingClientRect(), text = (t.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80), norm = (x) => x.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").trim();
+    Object.assign(pickbox.style, { display: "block", left: r.left - b.left + box.scrollLeft + tr.left * sc + "px", top: r.top - b.top + box.scrollTop + tr.top * sc + "px", width: tr.width * sc + "px", height: tr.height * sc + "px" });
+    // a text element that holds (a part of) a line's words belongs to that line; anything else belongs to the line being spoken at the playhead
+    const hit = norm(text).length >= 3 && proj.lines.find((l) => norm(l.text).includes(norm(text)) || norm(text).includes(norm(l.text)));
+    const at = c.now(), live = Object.entries(FILM.VO || {}).sort((a, b) => a[1].start - b[1].start).find(([, v]) => at <= v.end)?.[0];
+    const id = hit?.id || live;
+    pinfo.textContent = `<${t.tagName.toLowerCase()}${t.id ? "#" + t.id : ""}${t.className && typeof t.className === "string" ? "." + t.className.trim().split(/\s+/).join(".") : ""}> ${text ? `"${text}"` : ""} → ${id ? `line ${id}${hit ? " (its words)" : " (spoken here)"}` : "no line"}`;
+    if (id) c.select(id);
+  });
+  addEventListener("resize", () => pick.classList.contains("on") && place());
+  // quick switcher
+  const qs = h("div", { id: "qs" }), qin = h("input", { type: "text", placeholder: "jump to a line, a panel or an action…" }), qul = h("ul"); qs.append(h("div", {}, qin, qul)); document.body.append(qs);
+  const help = h("div", { id: "help" }, h("b", { textContent: "Shortcuts" }), ...[["space", "play / pause"], ["← →", "one frame (shift: one second)"], ["Ctrl/Cmd K", "quick switcher"], ["Ctrl/Cmd J", "props sidebar"], ["Ctrl/Cmd Z", "undo (shift: redo)"], ["+ − 0", "zoom the frame"], ["P", "pick in frame"], ["?", "this list"], ["Esc", "close, clear the range"]].map(([k, d]) => h("div", {}, h("kbd", { textContent: k }), " " + d)));
+  document.body.append(help);
+  const actions = () => [
+    ...proj.lines.map((l) => ({ label: `line ${l.id}`, hint: l.text.slice(0, 40), run: () => { c.select(l.id); if (FILM.VO?.[l.id]) c.seek(FILM.VO[l.id].start); } })),
+    ...TABS.map(([id, t]) => ({ label: `open ${t}`, hint: "panel", run: () => show(id) })),
+    { label: "zoom in", hint: "+", run: () => setZoom(z * 1.25) }, { label: "zoom out", hint: "-", run: () => setZoom(z / 1.25) }, { label: "zoom to fit", hint: "0", run: () => setZoom(1) },
+    { label: "pick in frame", hint: "P", run: () => setPick(true) }, { label: "undo", hint: "Ctrl Z", run: () => $("btn-undo").click() }, { label: "redo", hint: "Ctrl Shift Z", run: () => $("btn-redo").click() },
+    { label: "queue a render", hint: "default options", run: () => api("/__render", {}).then(() => show("renders")).catch((e) => banner(e.message)) },
+    { label: "contact sheet", hint: "stills", run: () => $("btn-sheet").click() }, { label: "keyboard shortcuts", hint: "?", run: () => help.classList.add("on") },
+  ];
+  let list = [], at = 0;
+  const draw = () => { qul.replaceChildren(...list.map((a, i) => h("li", { className: i === at ? "on" : "", onclick: () => run(a) }, a.label, h("small", { textContent: a.hint })))); };
+  const refilter = () => { const q = qin.value.toLowerCase().split(/\s+/).filter(Boolean); list = actions().filter((a) => q.every((w) => `${a.label} ${a.hint}`.toLowerCase().includes(w))).slice(0, 30); at = 0; draw(); };
+  const run = (a) => { qs.classList.remove("on"); qin.blur(); a.run(); };
+  const open = () => { qs.classList.add("on"); qin.value = ""; refilter(); qin.focus(); };
+  qin.addEventListener("input", refilter);
+  qin.addEventListener("keydown", (e) => { if (e.key === "ArrowDown") at = Math.min(list.length - 1, at + 1); else if (e.key === "ArrowUp") at = Math.max(0, at - 1); else if (e.key === "Enter" && list[at]) return run(list[at]); else if (e.key === "Escape") return qs.classList.remove("on"); else return; e.preventDefault(); draw(); });
+  qs.addEventListener("pointerdown", (e) => { if (e.target === qs) qs.classList.remove("on"); });
+  addEventListener("keydown", (e) => {
+    const typing = e.target.closest?.("input,textarea,select");
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); open(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") { e.preventDefault(); show(secs.props.hidden ? "props" : "inspector"); }
+    else if (e.key === "Escape") { qs.classList.remove("on"); help.classList.remove("on"); setPick(false); }
+    else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (e.key === "+" || e.key === "=") setZoom(z * 1.25); else if (e.key === "-") setZoom(z / 1.25); else if (e.key === "0") setZoom(1);
+      else if (e.key.toLowerCase() === "p") setPick(!pick.classList.contains("on")); else if (e.key === "?") help.classList.toggle("on");
+    }
+  });
 
   // live: the queue and finished writes arrive over SSE
   new EventSource("/__events").addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.queue) { queue = m.queue; drawQueue(); } if (m.job) hist(); });

@@ -20,11 +20,11 @@ import { spawnSync } from "node:child_process";
 import { chromium } from "playwright";
 import { launch } from "../browser.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
+import { producerResolution, rangeShim, runsOf, frameKeys } from "./hf_range.mjs";
 import { encode, blurOf, TRANSPARENT } from "./pvk.mjs";
 import { copyKit } from "../kit_files.mjs";
 import { shaderPass } from "./shader_pass.mjs";
 import { autoWorkers } from "../render_opts.mjs";
-import { producerResolution, rangeShim, runsOf, frameKeys } from "./hf_range.mjs";
 
 // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
 export function headlessShell() {
@@ -77,7 +77,8 @@ export default async function hyperframes(DIR, P, mode, [a3, a4] = []) {
     const hdr = film && HDR;
     const req = createRenderRequest({ projectDir: HF, outputPath: out,
       options: { fps: { num: fps, den: 1 }, format: hdr ? "mp4" : "png-sequence", quality: "high", workers: Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY }),
-        ...(RES && { outputResolution: RES.preset }),   // 4k | portrait-4k | square-4k → the producer's canvas preset, aspect must match
+        ...(process.env.REELWRIGHT_RESOLUTION && { outputResolution: process.env.REELWRIGHT_RESOLUTION }),   // 4k | portrait-4k | square-4k, aspect must match
+        ...(RES && { outputResolution: RES.preset }),   // the producer's canvas preset for it (landscape-4k …): wins over the raw flag above
         ...(STRICTNESS && { strictness: STRICTNESS }),
         ...(Number(E.REELWRIGHT_MAX_RENDER) > 0 && { maxRenderMs: Math.round(Number(E.REELWRIGHT_MAX_RENDER) * 1000) }),
         ...(hdr && { hdrMode: "force-hdr" }),

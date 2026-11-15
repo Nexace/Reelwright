@@ -177,9 +177,10 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   }
   function enqueue(o) {
     if (renders.filter((r) => r.state === "queued").length >= 20) throw new Error("the render queue is full (20 waiting)");
-    const label = [o.format, o.resolution, o.quality, o.fps && `${o.fps}fps`, o.gpu && "gpu"].filter(Boolean).join(" ") || "default";
+    const label = [o.format, o.resolution, o.quality, o.fps && `${o.fps}fps`, o.gpu && "gpu", o.props && "props"].filter(Boolean).join(" ") || "default";
     const r = { id: ++rseq, label, state: "queued", code: null, cancel: false, env: { ...(o.fps && { FPS: String(o.fps) }), ...(o.gpu && { PRODUCER_BROWSER_GPU_MODE: "hardware" }) },
-      args: [...(o.format ? ["--formats", o.format] : []), ...(o.resolution ? ["--resolution", o.resolution] : []), ...(o.quality ? ["--quality", o.quality] : [])] };
+      args: [...(o.format ? ["--formats", o.format] : []), ...(o.resolution ? ["--resolution", o.resolution] : []), ...(o.quality ? ["--quality", o.quality] : []),
+        ...(o.props ? ["--props-file", path.join(DIR, "props.json")] : [])] };   // the file the Props tab wrote: the only path that reaches the command line
     renders.push(r); if (renders.length > 50) renders.splice(0, renders.length - 50);
     send({ queue: queueView() }); pump(); return r;
   }
@@ -194,7 +195,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   const afterWrite = (rel) => { if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
   const X = panels({ ROOT, DIR, PY: python, reply, inside, posix, num, readProject, isHf, afterWrite, editSource });
   const jobsApi = { busy: () => !!job && job.state === "running", enqueue, cancel, job: (kind, arg) => runJob(kind, arg) };
-  const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript"]);
+  const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript", "/__props"]);
 
   // ── static files and the page ──
   function resolveStatic(pathname) {
@@ -221,7 +222,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   }
   function serve(req, res) {
     const u = new URL(req.url, "http://localhost");
-    if (u.pathname === "/__save" || u.pathname === "/__run" || X.POSTS.has(u.pathname)) return reply(res, 405, { error: "POST only" });
+    if (u.pathname === "/__save" || u.pathname === "/__run" || (X.POSTS.has(u.pathname) && !GETS.has(u.pathname))) return reply(res, 405, { error: "POST only" });
     if (req.method !== "GET") return reply(res, 405, { error: "GET only" });
     if (u.pathname === "/") { res.writeHead(302, { location: "/tools/studio/studio.html" }); return res.end(); }
     if (u.pathname === "/__studio") return reply(res, 200, info());
@@ -237,7 +238,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
     if (P && f === path.join(DIR, isHf(P) ? "hf" : "film", "index.html") && fs.existsSync(f)) {
       // the film page gets the player shims (tools/studio/shims.mjs); for HyperFrames also the producer's text rule
       res.writeHead(200, { "content-type": TYPES[".html"], "cache-control": "no-store" });
-      return res.end(fs.readFileSync(f, "utf8").replace(/<head[^>]*>/i, (h) => h + (isHf(P) ? TEXT_RULE : "") + HIDE)
+      return res.end(fs.readFileSync(f, "utf8").replace(/<head[^>]*>/i, (h) => h + (isHf(P) ? TEXT_RULE : "") + HIDE + X.propsScript())
         .replace(/<\/body>/i, () => CLOCK + "</body>"));
     }
     fs.stat(f, (err, st) => {

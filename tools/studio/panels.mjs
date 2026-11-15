@@ -10,6 +10,8 @@ import { spawnSync } from "node:child_process";
 import { catalog, search } from "../catalog.mjs";
 import { loadVars } from "../commands/batch.mjs";
 import { hfLint } from "../checks/hf-lint.mjs";
+import { loadSchema } from "../commands/props.mjs";
+import { validate } from "../p9-schema.mjs";
 
 export const FORMATS = ["16x9", "9x16", "1x1", "4x5", "16x10"], RESOLUTIONS = ["4k", "portrait-4k", "square-4k"], QUALITIES = ["draft", "looks", "standard", "high", "delivery"];
 const SRC = /\.(js|mjs|html|css|json|md|txt|svg|csv)$/i, SKIP_DIR = /^(node_modules|frames|stills|out|vo|clips|\.cache)([-\w]*)$/, MAX_TEXT = 1 << 20;
@@ -113,6 +115,12 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
         return true;
       }
       case "/__transcript": reply(res, 200, { text: read("transcript.json") }); return true;
+      case "/__props": {   // the per-run props of the film: its schema (props.schema.json, or made from project.json "variables") and props.json
+        let schema = null, error = null, props = {};
+        try { schema = loadSchema(DIR); } catch (e) { error = `props.schema.json: ${e.message}`; }
+        try { const t = read("props.json"); if (t) props = JSON.parse(t); } catch (e) { error = `props.json: ${e.message}`; }
+        reply(res, 200, { schema, props, hasFile: read("props.json") !== null, error }); return true;
+      }
     }
     return false;
   }
@@ -130,10 +138,19 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
         try {
           const o = { format: pick(b.format, FORMATS, "format"), resolution: pick(b.resolution, RESOLUTIONS, "resolution"), quality: pick(b.quality, QUALITIES, "quality") };
           if (b.fps != null && b.fps !== "" && !(Number.isInteger(b.fps) && b.fps >= 1 && b.fps <= 240)) throw new Error("fps must be a whole number from 1 to 240");
-          const r = jobs.enqueue({ ...o, fps: b.fps || null, gpu: b.gpu === true });
+          if (b.props === true && read("props.json") === null) throw new Error("save props first: there is no props.json");
+          const r = jobs.enqueue({ ...o, fps: b.fps || null, gpu: b.gpu === true, props: b.props === true });
           reply(res, 202, { ok: true, id: r.id });
         } catch (e) { reply(res, 400, { error: e.message }); }
         return true;
+      }
+      case "/__props": {   // props.json, checked against the schema (the same checks `--props` makes); the film page gets it as window.PROPS, `--props-file` renders it
+        if (!isObj(b.props)) return reply(res, 400, { error: "props must be a JSON object" }), true;
+        let schema = null; try { schema = loadSchema(DIR); } catch (e) { return reply(res, 400, { error: `props.schema.json: ${e.message}` }), true; }
+        const bad = schema ? validate(schema, b.props) : [];
+        if (bad.length) return reply(res, 400, { error: `${bad[0].path} ${bad[0].message}`, errors: bad }), true;
+        if (jobs.busy()) return reply(res, 409, { error: "busy: a job is running" }), true;
+        write("props.json", JSON.stringify(b.props, null, 2) + "\n"); reply(res, 200, { ok: true }); return true;
       }
       case "/__cancel": jobs.cancel(b.id) ? reply(res, 200, { ok: true }) : reply(res, 404, { error: "no such render" }); return true;
       case "/__add": {
@@ -155,6 +172,10 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
     }
     return false;
   }
-  const POSTS = new Set(["/__undo", "/__redo", "/__render", "/__cancel", "/__add", "/__transcript", "/__source"]);
-  return { get, post, POSTS, record, fxNames: () => { const f = fx(); return new Set([...f.presets, ...f.jobs]); } };
+  const POSTS = new Set(["/__props", "/__undo", "/__redo", "/__render", "/__cancel", "/__add", "/__transcript", "/__source"]);
+  const propsScript = () => {   // <script> for the film page in the studio: window.PROPS from props.json (KIT.props() merges it over the declared defaults)
+    try { const t = read("props.json"); if (t && isObj(JSON.parse(t))) return `<script>window.PROPS=${JSON.stringify(JSON.parse(t)).replace(/</g, "\\u003c")};</script>`; } catch { /* a bad file is shown in the Props tab */ }
+    return "";
+  };
+  return { get, post, POSTS, record, propsScript, fxNames: () => { const f = fx(); return new Set([...f.presets, ...f.jobs]); } };
 }

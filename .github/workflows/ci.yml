@@ -39,7 +39,7 @@ jobs:
       - name: Install ffmpeg
         run: |
           case "$RUNNER_OS" in
-            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg ;;
+            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg espeak-ng ;;
             macOS) brew install ffmpeg ;;
             Windows) choco install -y --no-progress ffmpeg ;;
           esac
@@ -60,7 +60,7 @@ jobs:
           npx playwright install chromium   # a no-op when the cache above restored it
           if [ "$RUNNER_OS" = Linux ]; then npx playwright install-deps chromium; fi   # system libraries are never cached
       - name: "Self-checks: shard ${{ matrix.shard }} of 3"
-        run: node tools/selfcheck_run.mjs --shard ${{ matrix.shard }}/3
+        run: node tools/selfcheck_run.mjs --shard ${{ matrix.shard }}/3 --jobs 2
   build-example:
     # Everything except the self-checks (those run in `selfchecks` above): syntax, parity, connector, from-url, the films.
     strategy:
@@ -84,7 +84,7 @@ jobs:
       - name: Install ffmpeg
         run: |
           case "$RUNNER_OS" in
-            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg ;;
+            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg espeak-ng ;;
             macOS) brew install ffmpeg ;;
             Windows) choco install -y --no-progress ffmpeg ;;
           esac
@@ -140,6 +140,9 @@ jobs:
         with:
           name: example-film-${{ matrix.os }}
           path: projects/example/out/*.mp4
+      - name: "Offline voiced film: the example built with the OS voice (no network), qa, audio, duration and frame count"
+        env: { PAGES: 2, PYTHON: python }
+        run: node tools/ci_film.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build the HyperFrames example
         env: { PAGES: 2, PYTHON: python }
         run: node bin/reelwright.mjs all example-hf
@@ -190,7 +193,6 @@ jobs:
             node -e 'process.exit(require("./"+process.argv[1]).ci===true?0:1)' "$p" || continue
             d=$(dirname "$p"); echo "▶ $d" | tee -a "$GITHUB_STEP_SUMMARY"; node bin/reelwright.mjs all "$d" || exit 1
           done
-      # Q1 (film CI) goes here: add a step that runs `node tools/ci_film.mjs` (leave the steps above and below as they are).
       - uses: actions/upload-artifact@v4
         with:
           name: example-hf-film-${{ matrix.os }}

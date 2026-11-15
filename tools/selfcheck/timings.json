@@ -238,8 +238,14 @@
     "q1-offline-voice": {
       "s": 3.4
     },
+    "q2-gallery": {
+      "s": 3.4
+    },
     "q3-runner": {
       "s": 0.5
+    },
+    "q5-install": {
+      "s": 2.2
     },
     "q6-make": {
       "s": 6.5

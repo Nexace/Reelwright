@@ -12,7 +12,8 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
-export const PINS = { whisper: "faster-whisper>=1.1,<2", kokoro: "kokoro-onnx>=0.4,<1", python: "3.12" };
+export const PINS = { whisper: "faster-whisper>=1.1,<2", av: "av>=15,<18",   // PyAV 19 dropped the `metadata_errors` argument faster-whisper passes; 14 has no Mac wheel
+   kokoro: "kokoro-onnx>=0.4,<1", python: "3.12" };
 export const WHISPER_MB = { tiny: 75, base: 145, small: 484 };   // CTranslate2 weights on the Hugging Face hub (Systran/faster-whisper-<size>)
 export const KOKORO_FILES = [   // [file, url, MB]
   ["kokoro-v1.0.onnx", "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx", 310],
@@ -56,7 +57,7 @@ const venvSteps = () => (fs.existsSync(venvPython()) ? [] : [["uv", "venv", "--p
 
 export function transcribeInstall({ model = "base", yes = false, log = console.log, run = defaultRun } = {}) {
   if (!WHISPER_MB[model]) { log(`unknown --model "${model}" (tiny, base or small)`); return { ok: false }; }
-  const steps = [...venvSteps(), ["uv", "pip", "install", "--python", venvPython(), PINS.whisper]];
+  const steps = [...venvSteps(), ["uv", "pip", "install", "--python", venvPython(), PINS.whisper, PINS.av]];
   const dir = whisperDir(model);
   if (!fs.existsSync(path.join(dir, "model.bin")))
     steps.push([venvPython(), "-c", "import sys; from faster_whisper import download_model; download_model(sys.argv[1], output_dir=sys.argv[2])", model, dir]);

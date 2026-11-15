@@ -2,7 +2,7 @@
 
 Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 438; not 163 (grand total of the groups below: 163).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 441; not 160 (grand total of the groups below: 160).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 438; not 163 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 76 |
-| | **Grand total** | **163** |
+| 10 | Not done, no stated reason | 73 |
+| | **Grand total** | **160** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -360,15 +360,15 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: exclude
 
-## 10. Not done, no stated reason (76) — 76 approved
+## 10. Not done, no stated reason (73) — 73 approved
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 76 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 73 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
+By source: hyperframes 26, remotion 12, manim 18, doodle-shots-motion 17
 
-### HyperFrames (28)
+### HyperFrames (26)
 
 #### Docs / PLAYBOOK note only (2)
 
@@ -379,7 +379,7 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
   - says: No `init --tailwind` and no doc line on compiling Tailwind to CSS under hf/. Not built: the runtime is a CDN script, which the offline/deterministic rule (hf-lint, PLAYBOOK) forbids; a prebuilt CSS file in hf/ already w…
   - approach: docs only: "compile Tailwind to CSS"
 
-#### Native code to add in tools/ (or a flag/command) (17)
+#### Native code to add in tools/ (or a flag/command) (16)
 
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed off `data-start`; tracks are display only,… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids times in data-start. Mis…
@@ -393,9 +393,6 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
 - `hyperframes:D7` — `normalize-audio` (EBU R128 match to a reference clip) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match to a reference clip; there is no clip-level audio. Suggest: except unless A8 audio clips are built.
   - approach: native flag on A8 clips
-- `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: (11): owner ruling 2026-11-15: exception, final. Needs the Kokoro-82M model download and a pip install. The opt-in adapter is built (`tools/tts_kokoro.py`, project.json `tts: kokoro`) and proved against a stub engine by…
-  - approach: native: `vo` provider `kokoro` (model downloaded once, opt-in), word times from D10 alignment
 - `hyperframes:D11` — `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.media`), types bgm sfx image icon logo voice video brand grade lut; Op… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Synth SFX/music (tools/mix.py, tools/music.py) and the paid opt-in `gen` connector with an assets/.gen/ prompt-hash cache (tools/gen.mjs). No `asset` resolver, shared cache or Openverse/logo/LUT sources. Not built: need…
   - approach: native `reelwright asset` with a content-hash cache; offline SFX = keep synth; Openverse as opt-in HTTP; skip HeyGen types (OUT)
@@ -442,11 +439,8 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
   - says: `reelwright studio` (tools/studio/server.mjs, studio.js, studio.html; ~630 lines plain JS, 127.0.0.1, Host/Origin checked, writes only project.json/brand.json) around the vendored player; self-check `node tools/selfchec…
   - approach: see H-verdict below
 
-#### Other (read the approach text) (7)
+#### Other (read the approach text) (6)
 
-- `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports whisper JSON, OpenAI JSON, SRT, VTT; ex… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: (11): owner ruling 2026-11-15: exception, final. Needs a Whisper or Parakeet model download and install; the same ruling as remotion Transcribe (the voiceover is generated, not recorded). The caption transcript comes fr…
-  - approach: opt-in download: python `faster-whisper` (MIT, CTranslate2) or `whisper.cpp`; Parakeet model is CC-BY-4.0 (needs attribution), runtime Apache-2.0
 - `hyperframes:H4` — Keyframe animation panel (auto-record manual edits as keyframes, GSAP AST read/write via `@hyperframes/parsers`) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: No keyframe or GSAP authoring in the studio (docs/playbook/studio.md: never writes film.js or animation code). Not built: films are `render(t)` code, not keyframe data, and GSAP's licence argues against shipping an auth…
   - approach: only for hf-native comps (A2); not for `render(t)` films
@@ -466,7 +460,7 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
   - says: `gen --provider higgsfield` is paid and opt-in, and `gen --import <file> --source firefly/express` registers a file made elsewhere, offline (tools/gen.mjs, tools/gen/). No local mflux or LTX provider. Not built: multi-G…
   - approach: out of scope; keep `gen`
 
-### Remotion + its skills (13)
+### Remotion + its skills (12)
 
 #### Docs / PLAYBOOK note only (1)
 
@@ -474,7 +468,7 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
   - says: (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (tools/runtimes.js, CI demo projects/runtimes-hf); missing: the SVG-paste note for Figma in the docs, Spline. S…
   - approach: [D] mention SVG paste for Figma
 
-#### Native code to add in tools/ (or a flag/command) (11)
+#### Native code to add in tools/ (or a flag/command) (10)
 
 - `remotion:2.1.4` — `posterize` N (stepped look) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t * n) / n, pts)`), so a helper adds nothing. [R] core `interpolate()` has it in React films only. Suggest: acce…
@@ -503,9 +497,6 @@ By source: hyperframes 28, remotion 13, manim 18, doodle-shots-motion 17
 - `remotion:2.5.1` — `Caption` JSON type `{text, startMs, endMs, timestampMs, confidence, pageBreakAfter?}`; whitespace-sensitive (leading space per word) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: our VO words `{w,t,d}` in seconds. Not built (10z audit): no `Caption` JSON adapter; captions leave as .srt / .vtt beside the mp4 (tools/renderers/pvk.mjs `subtitles`), which is the interchange format. Suggest: accept a…
   - approach: [N] export/import adapter `toCaptions()/fromCaptions()` so tools can share data
-- `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `install-whisper-cpp` (whisper.cpp), `openai… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: (we only have TTS word times). Not built (10z audit): no speech-to-text; needs a model download and the owner's call on model size, and the VO is generated, not recorded. Suggest: accept as exception (revisit if films s…
-  - approach: [N] optional `reelwright transcribe <audio>` via whisper.cpp or faster-whisper (local, offline after model download, opt-in); needs maintainers' call on model size
 - `remotion:2.7.3` — Hardware-accelerated encode (`--hardware-acceleration`, VideoToolbox / NVENC) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: Not built (10z audit): no hardware encode; it needs the machine's GPU encoder, differs per platform and would break byte-identical encodes. Suggest: accept as exception
   - approach: [N] optional `"hwaccel": true` -> `h264_videotoolbox`/`h264_nvenc` with fallback

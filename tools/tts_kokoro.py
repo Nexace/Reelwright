@@ -150,6 +150,8 @@ def main(argv):
         P = {**P, **{k: Lg[k] for k in ("voice", "speed") if k in Lg}, "lines": [{**ln, "text": Lg["lines"][ln["id"]]} for ln in P["lines"]]}
         VD = f"vo/{LANG}"
     voice, speed = P.get("voice", "af_heart"), float(P.get("speed", 1.0))
+    if "Neural" in str(voice):   # an Edge voice name left in project.json from the online voiceover: use the default Kokoro voice
+        sys.stderr.write(f'kokoro: "{voice}" is an Edge voice; using af_heart (set "voice": "<kokoro id>" in project.json to choose)\n'); voice = "af_heart"
     if not 0.5 <= speed <= 2:
         sys.exit("speed is 0.5 to 2")
     lang = lang_of(voice)

@@ -10,19 +10,19 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 61 | 6 | 0 | 21 | 18 | 6 | 0 | 0 | 112 |
-| Remotion + its skills | 64 | 4 | 3 | 7 | 19 | 0 | 12 | 1 | 110 |
+| HyperFrames | 63 | 6 | 0 | 20 | 17 | 6 | 0 | 0 | 112 |
+| Remotion + its skills | 65 | 4 | 3 | 7 | 18 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **402** | **30** | **6** | **63** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **405** | **30** | **6** | **62** | **70** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 438 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 441 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 438 |
-| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 163 |
+| EQUAL, BETTER or EQUAL/BETTER | 441 |
+| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 160 |
 | Planned (Phase 11), not claimed | 0 |
 | Partial: some shipped, the rest planned (open) | 0 |
 | Proposed exceptions waiting for the owner | 0 |
@@ -79,8 +79,8 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | D6 | Beat detection `beats` (writes `.hyperframes/beats`, BPM, beat times)… | EQUAL | `tools/audio_report.py` |
 | D7 | `normalize-audio` (EBU R128 match to a reference clip) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/mix.py.` The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match… |
 | D8 | True-peak limiter (4x oversample, lookahead) | EQUAL | `tools/mixfx.py` |
-| D9 | Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/tts_kokoro.py` (11): owner ruling 2026-11-15: exception, final. Needs the Kokoro-82M model download and a pip install. The o… |
-| D10 | `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (s… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | (11): owner ruling 2026-11-15: exception, final. Needs a Whisper or Parakeet model download and install; the… |
+| D9 | Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) | EQUAL | `tools/tts_kokoro.py` |
+| D10 | `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (s… | EQUAL | `tools/local_speech.mjs` |
 | D11 | `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/mix.py,` Synth SFX/music (tools/mix.py, tools/music.py) and the paid opt-in `gen` connector with an assets/.gen/ promp… |
 | E1 | 238 components (`hyperframes:snippet`, 1 html each; 230 use GSAP, 155… | EQUAL | `vendor/hyperframes/registry/components` |
 | E2 | Asset-bearing components (9) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/component_assets.mjs` (11): owner ruling 2026-11-15: exception, final. 7 of 9 asset components install (`reelwright add`, `tools/co… |
@@ -223,7 +223,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.5.2 | `parseSrt`, `parseVtt`, `serializeSrt` | EQUAL/BETTER | encode writes .srt/.vtt; import path for srt/vtt exists per README (captionCues, srt/vtt) |
 | 2.5.3 | `createTikTokStyleCaptions({captions, combineTokensWithinMilliseconds… | EQUAL | karaoke word captions, one-word style in reel (`K.words`, `K.captionCues`) |
 | 2.5.4 | Display captions: Basic Captions element (copied from remotion.dev/el… | EQUAL |  |
-| 2.5.5 | Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transfo… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | (we only have TTS word times). Not built (10z audit): no speech-to-text; needs a model download and the owner… |
+| 2.5.5 | Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transfo… | EQUAL | `tools/transcribe_fw.py` |
 | 2.5.6 | Voiceover: ElevenLabs per scene -> `calculateMetadata` duration | BETTER | for core (edge-tts free, word timings). Paid ElevenLabs = out of scope (connectors doc) |
 | 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | EQUAL | `tools/p9-highlight.js` |
 | 2.5.8 | `@remotion/animated-emoji` (Noto animated emoji) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
@@ -667,13 +667,13 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 438 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 0 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 441 EQUAL/BETTER, 160 accepted exceptions, 0 planned, 0 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
-### Accepted exceptions (163, owner-approved 2026-11-12 and 2026-11-15)
+### Accepted exceptions (160, owner-approved 2026-11-12 and 2026-11-15)
 
 Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and rows the re-audit tagged `[10z: except]` or "Suggest: accept as exception" (reason = the row's own note).
 
-#### HyperFrames (45)
+#### HyperFrames (43)
 
 - `hyperframes:A1` — Root contract: `data-composition-id`, `data-width/height/duration/fps`, `window.__timelines[id]` re… — PARTIAL — reason: hf/index.html carries the root contract and tools/engine.js:435 registers one `main` shim whose seek(t) calls render(t). HF-native composition files (own root + __timelines entry) are mounted by KIT.…
 - `hyperframes:A2` — Timed clips: `data-start`, `data-duration`, `data-track-index`, `class="clip"`; visibility keyed of… — PARTIAL — reason: Block clips keep working: tools/blocks.mjs rewrites data-start/data-duration to data-block-* and applies them with the block's local time; films show elements from render(t) and PLAYBOOK forbids time…
@@ -686,8 +686,6 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `hyperframes:D4` — Voiceover carve (`data-fx-carve`): EQ-notch the music under named voice tracks — PARTIAL — reason: Music is ducked (gain) under the voice and under SFX (tools/mix.py); no EQ carve or sidechaincompress. Both reach the goal. Not built: carve. Suggest: except.
 - `hyperframes:D5` — Groups, mute, master bus FX on the root (`data-audio-group`) — MISSING — reason: mix.py is a fixed voice/music/SFX mix with one master loudnorm; no groups, mute or buses. Not built: only matters once D1 exists. Suggest: except.
 - `hyperframes:D7` — `normalize-audio` (EBU R128 match to a reference clip) — PARTIAL — reason: The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match to a reference clip; there is no clip-level audio. Suggest: except unless A8 audio clips…
-- `hyperframes:D9` — Local TTS `tts` (Kokoro-82M ONNX, 9 language groups, speed) — PARTIAL — reason: (11): owner ruling 2026-11-15: exception, final. Needs the Kokoro-82M model download and a pip install. The opt-in adapter is built (`tools/tts_kokoro.py`, project.json `tts: kokoro`) and proved agai…
-- `hyperframes:D10` — `transcribe`: Whisper.cpp (tiny..large-v3) or Parakeet TDT 0.6B v3 (sherpa-onnx, 25 langs); imports… — MISSING — reason: (11): owner ruling 2026-11-15: exception, final. Needs a Whisper or Parakeet model download and install; the same ruling as remotion Transcribe (the voiceover is generated, not recorded). The caption…
 - `hyperframes:D11` — `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.media`), types bgm sfx image i… — PARTIAL — reason: Synth SFX/music (tools/mix.py, tools/music.py) and the paid opt-in `gen` connector with an assets/.gen/ prompt-hash cache (tools/gen.mjs). No `asset` resolver, shared cache or Openverse/logo/LUT sour…
 - `hyperframes:E2` — Asset-bearing components (9) — PARTIAL — reason: (11): owner ruling 2026-11-15: exception, final. 7 of 9 asset components install (`reelwright add`, `tools/component_assets.mjs`, proved by `node tools/selfcheck/p12b-components.mjs`), 2 use procedur…
 - `hyperframes:E3` — 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-compositions at `compositions/<… — PARTIAL — reason: Needs WebGPU / specific hardware
@@ -721,7 +719,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `hyperframes:K6` — `inspector` package (source maps, CSS/JS scope analysis for the studio picker) — MISSING — reason: The audit's own approach column says skip / defer / not needed
 - `hyperframes:L3` — Claude/Codex/Cursor plugin packaging and marketplace — OUT — reason: Excluded by owner decision or repo rule
 
-#### Remotion + its skills (39)
+#### Remotion + its skills (38)
 
 - `remotion:2.1.4` — `posterize` N (stepped look) — MISSING — reason: Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t * n) / n, pts)`), so a helper adds nothing. [R] core `interpolate()` has it in React films…
 - `remotion:2.1.5` — `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin, font-weight) — MISSING — reason: Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpolate units, colours and transforms natively and pass shuffled seeks (tools/selfcheck/runti…
@@ -744,7 +742,6 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `remotion:2.4.16` — Arabic/RTL text rules (direction, animate by word, keep letters joined) — UNVERIFIED — reason: Not applicable by design (N/A, UNVERIFIED, DIFFERENT)
 - `remotion:2.4.18` — `@remotion/rounded-text-box` (rounded highlight box behind multi-line text) — MISSING — reason: Not built (10z audit): no rounded text-highlight box; `KIT.math.surround` / `backgroundRect` (tools/math2.js) draw a rounded box around one element's rect.
 - `remotion:2.5.1` — `Caption` JSON type `{text, startMs, endMs, timestampMs, confidence, pageBreakAfter?}`; whitespace-… — PARTIAL — reason: our VO words `{w,t,d}` in seconds. Not built (10z audit): no `Caption` JSON adapter; captions leave as .srt / .vtt beside the mp4 (tools/renderers/pvk.mjs `subtitles`), which is the interchange forma…
-- `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `ins… — MISSING — reason: (we only have TTS word times). Not built (10z audit): no speech-to-text; needs a model download and the owner's call on model size, and the VO is generated, not recorded.
 - `remotion:2.5.8` — `@remotion/animated-emoji` (Noto animated emoji) — MISSING — reason: The audit's own approach column says skip / defer / not needed
 - `remotion:2.5.9` — `@remotion/mac-cursors` (macOS cursor set) — PARTIAL — reason: The audit's own approach column says skip / defer / not needed
 - `remotion:2.6.2` — `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentFrame` (no `useFrame`), `<Seque… — PARTIAL — reason: Optional renderer / install not bundled (Remotion, Manim CE, ManimGL)
@@ -870,6 +867,6 @@ Not EQUAL/BETTER, no exception or build tag. Nothing claims them.
 
 ## Phase 11: decisions that need the owner
 
-- `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `ins… — MISSING: speech-to-text (whisper.cpp or faster-whisper, opt-in, local after a model download). Needs the owner's call on the model size. Today accepted as an exception (the voiceover is generated, not recorded); revisit if films start from supplied audio.
+- `remotion:2.5.5` — Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transformers.js), `whisper-web`, `ins… — EQUAL: speech-to-text (whisper.cpp or faster-whisper, opt-in, local after a model download). Needs the owner's call on the model size. Today accepted as an exception (the voiceover is generated, not recorded); revisit if films start from supplied audio.
 - `manim:m6.5` — Boolean ops `Union`, `Difference`, `Intersection`, `Exclusion` — EQUAL: path boolean ops need a new vendored library (polygon-clipping, MIT). Owner's call before anything is vendored.
 - `manim:m7.7` — `Code` (syntax highlighting), GL `Code` — EQUAL: syntax highlighting for native scenes needs a new vendored library (shiki, MIT; version unverified). Owner's call before anything is vendored.

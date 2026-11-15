@@ -77,8 +77,8 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 ## What's new in 1.0
 
 Phase 11 finished the port. Of the 601 features audited in HyperFrames, Remotion, Manim, anidoodle, video-shotcraft,
-motion-design-skill, GSAP, Lottie and the Higgsfield workflows, **438 are EQUAL or BETTER, each proved by a file or a
-self-check, and the other 163 are exceptions you can read with their reasons** in [docs/PARITY.md](docs/PARITY.md). Nothing is
+motion-design-skill, GSAP, Lottie and the Higgsfield workflows, **441 are EQUAL or BETTER, each proved by a file or a
+self-check, and the other 160 are exceptions you can read with their reasons** in [docs/PARITY.md](docs/PARITY.md). Nothing is
 left planned or half-built. Everything new is opt-in, so a film written for 0.3 builds the same way. Every command is in
 [Every command](#every-command); the craft notes are in [docs/playbook/](docs/playbook/README.md).
 
@@ -132,7 +132,7 @@ for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to
 passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
 source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
-**Parity at 0.3.0** was 222 of 601 audited features; 1.0 is 438 of 601 plus 163 accepted exceptions (see above).
+**Parity at 0.3.0** was 222 of 601 audited features; 1.0 is 441 of 601 plus 160 accepted exceptions (see above).
 
 - **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
   blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs

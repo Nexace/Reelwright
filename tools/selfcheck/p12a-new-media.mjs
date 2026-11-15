@@ -54,7 +54,7 @@ try {
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ROOT, "projects", names[2], "transcript.json"), "utf8")), [{ text: "one", start: 0, end: 0.5 }, { text: "two", start: 0.5, end: 1 }]);
   }
   // errors
-  assert.notEqual(rw(["new", names[2], "--video", mp4]).status, 0, "an existing project is not overwritten");
+  assert.notEqual(rw(["new", names[0], "--video", mp4]).status, 0, "an existing project is not overwritten");
   assert.match(rw(["new", "x-" + process.pid, "--video", path.join(tmp, "nope.mp4")]).stderr, /no such file/);
   console.log("p12a-new-media self-check: webm -> H.264 mp4, size/fps from the file, a real film plays it with its sound, H.264 copied untouched, transcript only via whisper-cli + $WHISPER_MODEL (skipped and said so without)");
 } finally {

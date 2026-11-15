@@ -64,7 +64,7 @@ export function panels({ ROOT, DIR, PY, reply, inside, posix, num, readProject, 
   let fxCache = null;
   const fx = () => fxCache ||= (() => {
     const r = spawnSync(PY, [path.join(ROOT, "tools", "audio_fx.py"), "--list"], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }), out = { presets: [], jobs: [], profiles: [] };
-    for (const l of (r.stdout || "").split("\n")) { const m = /^(presets|jobs): (.*)$/.exec(l); if (m) out[m[1]] = m[2].split(",").map((s) => s.trim()).filter(Boolean); }
+    for (const l of (r.stdout || "").split(/\r?\n/)) { const m = /^(presets|jobs): (.*)$/.exec(l); if (m) out[m[1]] = m[2].split(",").map((s) => s.trim()).filter(Boolean); }
     return out;
   })();
   const walk = (dir, depth, out) => {

@@ -249,7 +249,7 @@ function renderParity({ data, count }, date) {
   const good = tot.EQUAL + tot.BETTER + tot['EQUAL/BETTER'];
   const allRows = data.flatMap((d) => d.rows), nOf = (k) => allRows.filter((r) => stateOf(r) === k).length;
   const [nA, nP, nL, nQ, nO] = ['approved', 'proposed', 'planned', 'partial', 'open'].map(nOf);
-  L.push(`**0.3.0 reaches parity on ${good} of ${T_} rows; the rest are listed as planned or accepted exceptions.**`, '');
+  L.push(`**${JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version} reaches parity on ${good} of ${T_} rows; the rest are listed as planned or accepted exceptions.**`, '');
   L.push('| State | Rows |', '|---|--:|');
   L.push(`| EQUAL, BETTER or EQUAL/BETTER | ${good} |`, `| Accepted exceptions (owner-approved ${APPROVED_ON}) | ${nA} |`, `| Planned (Phase 11), not claimed | ${nL} |`,
     `| Partial: some shipped, the rest planned (open) | ${nQ} |`, `| Proposed exceptions waiting for the owner | ${nP} |`, `| Open, no tag | ${nO} |`, `| **Total** | **${T_}** |`, '');
@@ -282,7 +282,7 @@ function renderParity({ data, count }, date) {
   }
   L.push(`### Proposed exceptions waiting for the owner (${nP})`, '', 'Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.', '');
   for (const r of allRows.filter((r) => stateOf(r) === 'proposed')) L.push(`- ${ref(r)}`);
-  L.push('', `### Planned (Phase 11) (${nL})`, '', 'Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.', '');
+  L.push('', `### Planned (Phase 11) (${nL})`, '', 'Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in the release does. Not claimed.', '');
   for (const { x, rs } of bySrc(allRows.filter((r) => stateOf(r) === 'planned'))) {
     L.push(`#### ${x.title} (${rs.length})`, '');
     for (const r of rs) L.push(`- ${ref(r)}${r.approach ? ` — plan: ${trim(clean2(r.approach), 160)}` : ''}`);

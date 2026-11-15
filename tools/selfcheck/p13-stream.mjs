@@ -12,7 +12,7 @@ import { tinyFilm, ROOT } from "../p13_fixture.mjs";
 const f = tinyFilm(), tmpdir = path.join(f.dir, "..", path.basename(f.dir) + "-tmp");
 const IMG = /\.(png|jpe?g)$/i;
 const rw = (...a) => new Promise((ok) => {   // async, so the poller runs while it renders; TMPDIR is private so the producer's work folder is ours to watch
-  const c = spawn(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), ...a.map((x) => (x === "@" ? f.dir : x))], { cwd: ROOT, env: { ...process.env, TMPDIR: tmpdir, PAGES: "2" } });
+  const c = spawn(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), ...a.map((x) => (x === "@" ? f.dir : x))], { cwd: ROOT, env: { ...process.env, TMPDIR: tmpdir, TEMP: tmpdir, TMP: tmpdir, PAGES: "2" } });   // TEMP/TMP: what os.tmpdir() reads on Windows
   let out = ""; c.stdout.on("data", (d) => (out += d)); c.stderr.on("data", (d) => (out += d)); c.on("close", (code) => ok({ code, out }));
 });
 const images = new Set(), walk = (d) => { try { for (const e of fs.readdirSync(d, { recursive: true, withFileTypes: true })) if (e.isFile() && IMG.test(e.name) && !/[\\/](assets|hf[\\/]blocks|hf[\\/]kit)[\\/]/.test(e.parentPath + "/")) images.add(path.join(e.parentPath, e.name)); } catch { /* a folder came or went */ } };
@@ -36,7 +36,7 @@ try {
 
   // --stream: no image file at any moment, one mp4
   r = await watch(() => rw("frames", "@", "--stream"));
-  assert.equal(r.code, 0, r.out.slice(-800)); assert.match(r.out, /streamed to frames\/stream\.mp4/);
+  assert.equal(r.code, 0, r.out.slice(-800)); assert.match(r.out, /streamed to frames[\\/]stream\.mp4/);   // the message names a path: Windows prints a backslash
   assert.deepEqual([...images], [], `no frame file was written: ${[...images].slice(0, 3)}`);
   assert.ok(work, "the poller did see the producer's work folder (so an image written there would have been seen)");
   assert.deepEqual(fs.readdirSync(path.join(f.dir, "frames")), ["stream.mp4"], "frames/ holds only the streamed video");

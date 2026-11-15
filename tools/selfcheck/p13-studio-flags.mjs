@@ -16,6 +16,7 @@ assert.deepEqual(openCommand("http://localhost:1/", "linux"), ["xdg-open", ["htt
 assert.equal(openCommand("http://localhost:1/", "win32")[0], "cmd");
 
 const f = tinyFilm(), bin = path.join(f.dir, "fakebin"), log = path.join(f.dir, "opened.txt"), children = [];
+const fakeOpener = process.platform !== "win32";   // win32 opens with `cmd /c start`, which no PATH stub can stand in for
 const freePort = () => new Promise((ok) => { const s = net.createServer().listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); });
 const launch = (args) => new Promise((ok) => {   // → { out, exit(), code } once the studio printed its address or exited
   const c = spawn(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), "studio", f.dir, ...args], { cwd: ROOT, env: { ...process.env, PATH: bin + path.delimiter + process.env.PATH } });
@@ -28,7 +29,7 @@ const up = (port) => new Promise((ok) => http.get({ host: "127.0.0.1", port, pat
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 try {
   fs.mkdirSync(bin);
-  for (const n of process.platform === "darwin" ? ["open"] : ["xdg-open"]) { fs.writeFileSync(path.join(bin, n), `#!/bin/sh\necho "$@" >> "${log}"\n`); fs.chmodSync(path.join(bin, n), 0o755); }
+  if (fakeOpener) for (const n of process.platform === "darwin" ? ["open"] : ["xdg-open"]) { fs.writeFileSync(path.join(bin, n), `#!/bin/sh\necho "$@" >> "${log}"\n`); fs.chmodSync(path.join(bin, n), 0o755); }
   const port = await freePort();
   const a = await launch(["--port", String(port)]);   // the default: no browser
   assert.match(a.out, new RegExp(`http://localhost:${port}/`)); await wait(500);
@@ -46,8 +47,10 @@ try {
 
   const o = await launch(["--port", "0", "--open"]);
   const mo = /studio of .*(http:\/\/localhost:\d+\/)/.exec(o.out); assert.ok(mo, o.out);
-  for (let i = 0; i < 50 && !fs.existsSync(log); i++) await wait(100);
-  assert.equal(fs.readFileSync(log, "utf8").trim(), mo[1], "--open runs the OS opener with the studio's own address");
+  if (fakeOpener) {
+    for (let i = 0; i < 50 && !fs.existsSync(log); i++) await wait(100);
+    assert.equal(fs.readFileSync(log, "utf8").trim(), mo[1], "--open runs the OS opener with the studio's own address");
+  }
 
   const bad = await launch(["--open", "--no-open"]);
   for (let i = 0; i < 50 && bad.c.exitCode === null; i++) await wait(100);

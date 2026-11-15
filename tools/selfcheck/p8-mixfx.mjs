@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "p8-mixfx-"));
-const py = (code) => { const r = spawnSync(PY, ["-c", `import sys; sys.path.insert(0, ${JSON.stringify(path.join(ROOT, "tools"))})\nimport numpy as np, mixfx\n${code}`], { encoding: "utf8" }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
+const py = (code) => { const r = spawnSync(PY, ["-c", `import sys; sys.path.insert(0, ${JSON.stringify(path.join(ROOT, "tools"))})\nimport numpy as np, mixfx\n${code}`], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
 try {
   // lanes
   const lanes = JSON.parse(py(`

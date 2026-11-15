@@ -35,7 +35,7 @@ for (const f of ALL) {
 }
 for (const f of RECIPES) { const s = rd(f); assert.match(s, /^# /m); assert.match(s, /## When to use/); assert.match(s, /\[Back to the index\]\(README\.md\)/, f); }
 for (const f of PROMPTS) assert.ok((rd(f).match(/^> /gm) || []).length >= 4, `${f}: at least 4 ready-to-paste prompts`);
-for (const f of ALL.filter((x) => x.endsWith("SKILL.md"))) assert.match(rd(f), /^---\nname: [\w-]+\ndescription: .{40,}\n---/, `${f} front matter`);
+for (const f of ALL.filter((x) => x.endsWith("SKILL.md"))) assert.match(rd(f), /^---\r?\nname: [\w-]+\r?\ndescription: .{40,}\r?\n---/, `${f} front matter`);   // \r?: a Windows checkout is CRLF
 
 const ref = rd("docs/playbook/skill-references.md");
 for (const topic of ["film", "captions", "overlays", "motion", "look", "sound", "story", "storyboard", "review", "format", "runtimes"])

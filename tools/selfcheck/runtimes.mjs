@@ -179,7 +179,7 @@ async function offPixels(x, y) {
   fs.writeFileSync(path.join(P, "film", "film.js"), [...bad, "// tl.play() in a comment", ...Object.values(RT).map((r) => r.film)].join("\n"));
   const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
   const r = spawnSync(PY, ["-c", "import importlib.util as u,sys;s=u.spec_from_file_location('c',sys.argv[1]);m=u.module_from_spec(s);s.loader.exec_module(m);" +
-    "print('\\n'.join(m.check({'proj':sys.argv[2],'P':{}})))", path.join(ROOT, "tools/checks/seekable-runtimes.py"), P], { encoding: "utf8" });
+    "print('\\n'.join(m.check({'proj':sys.argv[2],'P':{}})))", path.join(ROOT, "tools/checks/seekable-runtimes.py"), P], { encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
   const lines = r.stdout.trim().split(/\r?\n/).filter(Boolean).map((l) => Number(l.split(":")[1]));
   assert.deepEqual([...new Set(lines)], bad.map((_, i) => i + 1), r.stdout + r.stderr);
   console.log(`PASS  seekable-runtimes gate: ${bad.length} banned paths flagged, comments and the fixtures above pass`);

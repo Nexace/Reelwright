@@ -15,7 +15,7 @@ const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p9-media-wiring-"));
 const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { encoding: "utf8" }); assert.equal(r.status, 0, r.stderr); };
 try {
-  for (const d of ["vendor", "node_modules", "fonts", "themes"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
+  for (const d of ["vendor", "node_modules", "fonts", "themes"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d), "junction");   // junction: Windows needs no symlink privilege for a directory
   fs.cpSync(path.join(ROOT, "tools"), path.join(tmp, "tools"), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
   const how = applyPatch(tmp, path.join(ROOT, "docs", "plans", "p9-patches", "media-wiring.patch"));
@@ -55,7 +55,7 @@ try {
     assert.match(await src(0.3), /000004\.png$/, "frame 3 at 0.3 s is a png");
     assert.match(await src(1.2), /000003\.png$/, "loop: t = 1.2 s of a 1 s clip is frame 2 again (not the held last frame 000010)");
     assert.match(await src(2.4), /000005\.png$/, "loop keeps wrapping");
-    const f = (await src(0.3)).replace("file://", ""), r = spawnSync("ffmpeg", ["-v", "error", "-i", decodeURIComponent(f), "-vf", "crop=1:1:30:30,format=rgba", "-frames:v", "1", "-f", "rawvideo", "-"], { encoding: "buffer" });
+    const f = fileURLToPath(await src(0.3)), r = spawnSync("ffmpeg", ["-v", "error", "-i", f, "-vf", "crop=1:1:30:30,format=rgba", "-frames:v", "1", "-f", "rawvideo", "-"], { encoding: "buffer" });
     assert.ok(r.stdout[3] > 100 && r.stdout[3] < 160, `the frame keeps its alpha (${r.stdout[3]} of 255)`);
   } finally { await browser.close(); }
   console.log("PASS  video: KIT.video { transparent, loop } extracts RGBA png frames, and the page wraps the frame index");

@@ -16,7 +16,7 @@ import { samples } from "./p6/lottie-samples.mjs";
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 const run = (name, proj) => {
   const code = `import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps([m.KIND,list(m.check({'proj':sys.argv[2]}))]))`;
-  const r = spawnSync(PY, ["-I", "-c", code, path.join(ROOT, "tools", "checks", name + ".py"), proj], { encoding: "utf8", cwd: ROOT });
+  const r = spawnSync(PY, ["-I", "-c", code, path.join(ROOT, "tools", "checks", name + ".py"), proj], { encoding: "utf8", cwd: ROOT, env: { ...process.env, PYTHONUTF8: "1" } });
   assert.equal(r.status, 0, r.stderr);
   return JSON.parse(r.stdout);
 };

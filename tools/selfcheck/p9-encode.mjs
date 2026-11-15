@@ -15,8 +15,8 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p9-enc-"));
 const T = (f) => path.join(tmp, f);
 const sh = (cmd, args, o = {}) => { const r = spawnSync(cmd, args, { encoding: "utf8", ...o }); assert.equal(r.status, 0, `${cmd} ${args.join(" ")}\n${r.stdout}\n${r.stderr}`); return r; };
 const cli = (...a) => sh(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), ...a], { cwd: ROOT });
-const probe = (f, entries, sel = "v:0") => Object.fromEntries(sh("ffprobe", ["-v", "error", "-select_streams", sel, "-show_entries", entries, "-of", "default=nw=1", f]).stdout.trim().split("\n").filter(Boolean).map((l) => l.split(/=(.*)/s).slice(0, 2)));
-const fmtTags = (f) => Object.fromEntries(sh("ffprobe", ["-v", "error", "-show_entries", "format_tags", "-of", "default=nw=1", f]).stdout.trim().split("\n").filter(Boolean).map((l) => l.replace(/^TAG:/, "").split(/=(.*)/s).slice(0, 2)));
+const probe = (f, entries, sel = "v:0") => Object.fromEntries(sh("ffprobe", ["-v", "error", "-select_streams", sel, "-show_entries", entries, "-of", "default=nw=1", f]).stdout.replace(/\r/g, "").trim().split("\n").filter(Boolean).map((l) => l.split(/=(.*)/s).slice(0, 2)));
+const fmtTags = (f) => Object.fromEntries(sh("ffprobe", ["-v", "error", "-show_entries", "format_tags", "-of", "default=nw=1", f]).stdout.replace(/\r/g, "").trim().split("\n").filter(Boolean).map((l) => l.replace(/^TAG:/, "").split(/=(.*)/s).slice(0, 2)));   // ffprobe ends lines with \r\n on Windows
 const frames = (f) => Number(sh("ffprobe", ["-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0", f]).stdout);
 const luma = (f) => { const r = spawnSync("ffmpeg", ["-v", "error", "-i", f, "-frames:v", "1", "-vf", "scale=8:8,format=gray", "-f", "rawvideo", "-"], { encoding: "buffer" }); return r.stdout.reduce((a, b) => a + b, 0) / r.stdout.length; };
 try {

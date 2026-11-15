@@ -13,7 +13,7 @@ const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p8-add-"));
 const run = (cmd, args, o = {}) => spawnSync(cmd, args, { encoding: "utf8", cwd: tmp, ...o });
 try {
-  for (const d of ["vendor", "fonts", "themes", "node_modules", "python"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
+  for (const d of ["vendor", "fonts", "themes", "node_modules", "python"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d), "junction");   // junction: Windows needs no symlink privilege for a directory
   for (const d of ["tools", "bin"]) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
   applyPatch(tmp, path.join(ROOT, "docs", "plans", "p8-patches", "add-tag.patch")); let r;

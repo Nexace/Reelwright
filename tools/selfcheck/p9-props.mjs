@@ -33,7 +33,7 @@ console.log("PASS  validator: type / enum / range / length / pattern / colour / 
 // 2 + 3. the command and the CLI flags, on a patched copy
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p9-props-"));
 try {
-  for (const d of ["vendor", "fonts", "themes", "node_modules", "python", "templates"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
+  for (const d of ["vendor", "fonts", "themes", "node_modules", "python", "templates"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d), "junction");   // junction: Windows needs no symlink privilege for a directory
   for (const d of ["tools", "bin"]) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
   const how = applyPatch(tmp, path.join(ROOT, "docs", "plans", "p9-patches", "props-flags.patch"));

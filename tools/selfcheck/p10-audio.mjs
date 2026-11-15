@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
-const run = (cmd, args, opt = {}) => { const r = spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", ...opt }); assert.equal(r.status, 0, `${cmd} ${args.slice(0, 3).join(" ")} exited ${r.status}\n${r.stdout}\n${r.stderr}`); return r.stdout; };
+const run = (cmd, args, opt = {}) => { const r = spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" }, ...opt }); assert.equal(r.status, 0, `${cmd} ${args.slice(0, 3).join(" ")} exited ${r.status}\n${r.stdout}\n${r.stderr}`); return r.stdout; };
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-p10-audio-"));
 const D = (f) => path.join(dir, f);
 

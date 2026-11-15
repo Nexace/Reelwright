@@ -273,3 +273,5 @@ finally {
   for (const s of servers) if (s.exitCode === null) { s.kill("SIGTERM"); await new Promise((r) => (s.exitCode !== null ? r() : s.once("exit", r))); }
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
+// the work is done and cleaned up: leave now even if a child process of a render job still holds a pipe open (Windows otherwise waits for it until the runner kills the check)
+process.exit(process.exitCode || 0);

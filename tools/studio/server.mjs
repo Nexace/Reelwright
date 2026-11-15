@@ -20,6 +20,7 @@ import { themes, writeTheme } from "../theme.mjs";
 import { copyKit, kitFiles } from "../kit_files.mjs";
 import { HIDE, CLOCK, TEXT_RULE } from "./shims.mjs";
 import { panels, checkPanelFields } from "./panels.mjs";   // H5 right-panel routes (undo, renders queue, lint, assets, catalog, captions, source…)
+import { agent } from "./agent.mjs";   // remotion:2.8.1: POST /__agent, the MCP-free look / inspect / select / set-style / frame (docs/playbook/studio.md)
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
   ".json": "application/json", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
@@ -196,6 +197,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   // a write by a panel (undo, redo, source, transcript) to project.json / brand.json is what a save is: theme and kit follow, the lines are placed again
   const afterWrite = (rel) => { if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
   const X = panels({ ROOT, DIR, PY: python, reply, inside, posix, num, readProject, isHf, afterWrite, editSource });
+  const A = agent({ DIR, readProject, isHf, send, editSource, writeSource: X.write, busy: () => !!job && job.state === "running" });
   const jobsApi = { busy: () => !!job && job.state === "running", enqueue, cancel, job: (kind, arg) => runJob(kind, arg) };
   const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript", "/__props", "/__slideshow"]);
 
@@ -220,11 +222,11 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
       mix: fs.existsSync(mix) ? url(mix) : null,
       // lines whose text differs from the one the voiceover was made from (vo/lines.json keeps it): need `audio`
       stale: (P.lines || []).filter((l) => !voiced || !voiced[l.id] || voiced[l.id].text !== l.text).map((l) => l.id),
-      job, results, queue: queueView(), editSource };
+      job, results, queue: queueView(), editSource, agent: { ...(A.view().t > 0 && { t: A.view().t }), ...(A.view().select?.line && { select: A.view().select.line }), css: A.css() } };
   }
   function serve(req, res) {
     const u = new URL(req.url, "http://localhost");
-    if (u.pathname === "/__save" || u.pathname === "/__run" || (X.POSTS.has(u.pathname) && !GETS.has(u.pathname))) return reply(res, 405, { error: "POST only" });
+    if (u.pathname === "/__save" || u.pathname === "/__run" || u.pathname === "/__agent" || (X.POSTS.has(u.pathname) && !GETS.has(u.pathname))) return reply(res, 405, { error: "POST only" });
     if (req.method !== "GET") return reply(res, 405, { error: "GET only" });
     if (u.pathname === "/") { res.writeHead(302, { location: "/tools/studio/studio.html" }); return res.end(); }
     if (u.pathname === "/__studio") return reply(res, 200, info());
@@ -281,7 +283,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
     reply(res, 202, { ok: true });
   }
   function post(req, res, u) {
-    if (u.pathname !== "/__save" && u.pathname !== "/__run" && !X.POSTS.has(u.pathname)) return reply(res, 404, { error: "not found" });
+    if (u.pathname !== "/__save" && u.pathname !== "/__run" && u.pathname !== "/__agent" && !X.POSTS.has(u.pathname)) return reply(res, 404, { error: "not found" });
     if (req.headers.origin !== `http://${req.headers.host}`) return reply(res, 403, { error: "bad Origin" });
     if (!/^application\/json\s*(;|$)/i.test(req.headers["content-type"] || "")) return reply(res, 415, { error: "content-type must be application/json" });
     let n = 0; const chunks = [];
@@ -292,6 +294,8 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
       let b;
       try { b = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { return reply(res, 400, { error: "body must be JSON" }); }
       if (!isObj(b)) return reply(res, 400, { error: "body must be a JSON object" });
+      if (u.pathname === "/__agent")   // look / inspect / select / set-style / frame: one command at a time, errors carry their HTTP status
+        return void A.handle(b).then((r) => reply(res, 200, r), (e) => reply(res, Number.isInteger(e.code) ? e.code : 500, { error: e.message }));
       try { if (X.POSTS.has(u.pathname)) X.post(u.pathname, b, res, jobsApi); else (u.pathname === "/__save" ? save : run)(res, b); } catch (e) { reply(res, 500, { error: e.message }); }
     });
   }
@@ -311,7 +315,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   function schedule(ms = 150) { clearTimeout(timer); timer = setTimeout(flush, ms); }
   function changed(rel) {
     if (!rel || SKIP.test(rel)) return;
-    pending.add(rel); schedule();
+    A.invalidate(); pending.add(rel); schedule();
   }
   const watchers = [
     fs.watch(DIR, { recursive: true }, (_, f) => changed(f && posix(f))),
@@ -345,7 +349,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
       HOSTS.add(`localhost:${p}`); HOSTS.add(`127.0.0.1:${p}`);
       resolve({ port: p, url: `http://localhost:${p}/`,
         close() {
-          clearTimeout(timer); watchers.forEach((w) => w.close()); killJob();
+          clearTimeout(timer); watchers.forEach((w) => w.close()); killJob(); A.close();
           for (const c of clients) c.end();
           server.closeAllConnections?.(); server.close();
         } });

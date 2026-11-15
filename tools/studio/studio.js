@@ -322,8 +322,16 @@ function renderResults(r) {
 renderJob(info.job); renderResults(info.results);
 
 // ── reload when the project changes (our own save, `audio`, or an edit in an editor), back at the same moment ──
+// what the agent did (reelwright studio look|select|set-style|frame, tools/studio/agent.mjs): its playhead, its selected line, its unsaved style overlay
+function agentApply(a) {
+  if (!a) return;
+  if (a.t != null) seek(a.t);
+  if ("select" in a) select(a.select || null);
+  if ("css" in a) { let s = win.document.getElementById("__agent-overlay"); if (!s) { s = win.document.createElement("style"); s.id = "__agent-overlay"; win.document.head.append(s); } s.textContent = a.css; }
+}
 new EventSource("/__events").onmessage = (e) => {
   const m = JSON.parse(e.data);
+  if (m.agent) agentApply(m.agent);
   if (m.job) renderJob(m.job);
   if (m.results) renderResults(m.results);
   if (m.changed) location.reload();
@@ -333,6 +341,7 @@ build();
 select(store.get("studio:sel") || null);
 const t0 = Number(store.get("studio:t"));
 seek(t0 > 0 && t0 <= D ? t0 : 0);
+agentApply(info.agent);
 // the right-panel tools (tools/studio/panels.js): undo, audio rack, blur, variables, renders queue, lint, assets, catalog, captions, source
 const { initPanels } = await import("./panels.js");
 await initPanels({ $, el, api, banner, status, info, proj, FILM, D, fps, win, player, seek, now, save, pretty, edited, lineOf, store, sel: () => sel, select, now });

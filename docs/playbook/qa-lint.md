@@ -51,7 +51,7 @@ differ between a preview and a render.
 
 ## Native lint, drift and HDR (`reelwright lint`, opt-in in `qa`)
 `reelwright lint <project>` runs the vendored lint (every finding that applies) plus `tools/checks/native-lint.mjs`: native versions of
-nine of the 44 skipped rules, written for `hf/film.js` + `render(t)`, and two new audits. All are WARN. In `qa` they are off unless
+31 of the 44 skipped rules (nine below, then 22 more), written for `hf/film.js` + `render(t)`, and two new audits. All are WARN. In `qa` they are off unless
 `"qa": {"native-lint": true}` in project.json (plug-in `native-lint.page.mjs`), so existing films' output is unchanged.
 
 | Rule (upstream id) | Native check |
@@ -68,9 +68,49 @@ nine of the 44 skipped rules, written for `hf/film.js` + `render(t)`, and two ne
 | `coordinate_drift` (new) | a box differs after seeking away and back: `render(t)` is not pure |
 | `hdr_check` (new) | `output.hdr` without an HDR source, an HDR source with `output.hdr` off, HDR with alpha / non-mp4 / pvk, an mp4 that is not PQ/HLG |
 
-The other 35 skipped rules stay skipped; each reason is in `SKIP` (hf-lint.mjs): their premise is HyperFrames' own clip model
-(`data-start` clips, tracks, audio groups and lanes, linked clips, caption tracks as timeline rows, Studio editing, inspection
-limits, `system_font_will_alias`, which only reports on distributed renders), and Reelwright has no such element to check.
+Every one of the other 35 skipped rules was checked against what a Reelwright film has (`hf/film.js` and `render(t)`, `KIT.*` calls, `hf/blocks` and
+`hf/compositions`, `KIT_MEDIA`, `project.json` lines, `vo/lines.json`, the `fx` buses, the Studio). 22 have a counterpart and are ported in
+`tools/checks/native-lint2.mjs`; 13 do not, and `NO_COUNTERPART` in that file holds the reason for each. All are WARN, and run with the same
+opt-in as the rest (`reelwright lint`, or `"qa": {"native-lint": true}`).
+
+| Upstream rule | Native check (what it looks at) |
+|---|---|
+| `missing_data_no_timeline` | an `hf/blocks` file with a `data-composition-id`, no registered timeline and no `data-no-timeline` |
+| `gsap_timeline_not_registered` | `gsap.timeline()` that neither `KIT.gsap` nor `window.__timelines` ever receives: `render(t)` never seeks it |
+| `gsap_animates_clip_element` | a GSAP tween of `visibility` / `display` / `autoAlpha` on a `KIT.video` element (the producer shows it by its `data-start` window) |
+| `media_runtime_src_mutation` | `.src =` / `setAttribute('src')` on a `KIT.video` element |
+| `speed_ramp_on_non_media` | `ramp` on `KIT.audio` (a sound is retimed with `rate`); any other option `KIT.video` / `KIT.audio` ignores is `media_option_ignored` (new) |
+| `audio_volume_tween_overrides_gain` | a tween or assignment on `volume`: the mp4's sound is the ffmpeg mix and never reads the page element |
+| `root_path_missing_in_preview` | `url(/x)`, `fetch('/x')`, `src="/x"`: a film is a `file://` page, so `/` is the disk's root |
+| `caption_transcript_not_inline` | a caption block that `fetch`es the transcript instead of holding `var TRANSCRIPT\|WORDS\|W = [...]`, the array `captions` re-feeds |
+| `media_missing_data_start`, `media_missing_id`, `nested_media_start_basis_ambiguous`, `video_nested_in_timed_element`, `video_missing_muted` | the `<video>` / `<audio>` elements of the loaded page (hand-written markup or a block; `KIT.video` makes correct ones) |
+| `video_muted_with_declared_audio` | a page `<audio>`, or `data-has-audio`: sound the mix never takes (the mix is `vo/`, music, `KIT.audio`, `KIT.video` with `audio: true`) |
+| `clip_ends_past_root_duration` | a `KIT.video`, `KIT.audio` (with an `out` or `dur`) or voiceover line that ends after `window.FILM.DUR` |
+| `nested_clip_never_visible` | a `KIT.video` parented in a `KIT.mount` host that is hidden for the clip's whole window (the page is seeked and the host watched) |
+| `system_font_will_alias` | the first font of a text element is an OS-only family (Arial, Helvetica, Georgia, Impact, …) with no `@font-face`: Colab, CI or a teammate's machine substitutes another |
+| `studio_missing_editable_id` | a `project.json` line with no usable id, or a duplicate (the Studio edits a line by its id; it names the files in `vo/`) |
+| `linked_clip_orphan` | a line and its voiced clip (`vo/lines.json`) are the linked pair: a voiced clip with no line, or a line with no clip |
+| `linked_clips_out_of_sync` | a line whose text differs from the text it was voiced from |
+| `audio_group_no_members` | `fx.<bus>` that is not `vo` / `music` / `sfx` / `lines`, or `fx.lines.<id>` naming no line: `mix.py` drops it |
+| `composition_exceeds_inspection_viewport_cap` | `width` / `height` over 8192: `--formats` and the Studio's save refuse it |
+
+No counterpart (the premise is HyperFrames' own model; each reason is `NO_COUNTERPART[code]`):
+
+| Upstream rule | Why a port would mean nothing here |
+|---|---|
+| `root_composition_duration_derived` | the duration is always `KIT.start`'s explicit `dur` (`root_composition_missing_duration_source` checks it); nothing is inferred from clips |
+| `timed_element_missing_clip_class` | `class="clip"` is a HyperFrames Studio convention; the only `data-start` element Reelwright makes is `KIT.video`'s `<video>`, which upstream exempts |
+| `timeline_element_missing_timing` | `KIT.mount`, `KIT.video` and `KIT.seq` throw at load without `start` and `dur`, so `qa` stops at the page error; no element can sit untimed |
+| `nested_structure_needs_subcomposition` | there is no timeline row per element: `render(t)` draws everything |
+| `timeline_track_too_dense` | there are no timeline tracks; a big file is `composition_file_too_large` |
+| `caption_track_kind_missing` | captions are drawn by `KIT.subs` or a caption block fed by `captions`, never a timeline track that needs a `data-track-kind` |
+| `gsap_timeline_registered_before_async_build` | `KIT.gsap` builds after fonts load and registers once; `KIT.mount` keeps the registered timeline object, so tweens added later still play |
+| `audio_volume_double_automation` | a `vol` curve, fades and `gain` multiply in one ffmpeg chain (`tools/p9-media.mjs`); no control overrides another |
+| `audio_carve_ungrouped_sources`, `audio_group_carve_attr` | there is no carve: music ducks under the voiceover automatically (`mix.py`), and `KIT.audio` is never ducked |
+| `audio_group_timing_attrs`, `audio_group_holds_elements` | buses are `project.json` keys (`fx.vo`, `fx.music`, `fx.sfx`), not elements: no timing attributes, nothing nests in them |
+| `audio_reactive_single_tween_per_group` | audio-reactive data (`tools/p9-audio.js`) is read inside `render(t)` every frame, so one tween per caption group cannot be written; no catalog component has it |
+
+Check: `node tools/selfcheck/p15-lint.mjs` (a film broken on purpose trips each of the 22; the earlier 9, these 22 and the 13 are exactly the 44 rules in `SKIP`).
 `reelwright lint --components [name… | --all]` lints catalog components (the installed `hf/blocks/*.html`, or the named / all vendored ones)
 one by one as fragments, leaving out the four rules only a host page can satisfy. Check: `node tools/selfcheck/p13-lint.mjs`.
 

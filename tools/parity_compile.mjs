@@ -376,6 +376,11 @@ function main() {
   const good = c.EQUAL + c.BETTER + c['EQUAL/BETTER'];
   console.error(`total ${b.all.length}, EQUAL+BETTER+EQUAL/BETTER ${good}, not ${b.all.length - good}`);
   if (problems.length) process.exitCode = 1;
+  if (args.includes('--check')) {   // Phase 11 exit criterion: no row is Planned, Partial, Proposed or Open
+    const open = b.all.filter((r) => stateOf(r) !== 'good' && stateOf(r) !== 'approved');
+    if (open.length) { console.error(`--check: ${open.length} open row(s): ${open.map((r) => `${r.source}:${r.id}`).join(', ')}`); process.exitCode = 1; }
+    else console.error('--check: no open rows (every row is EQUAL/BETTER or an approved exception)');
+  }
 }
 export { parseSource, SOURCES };
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

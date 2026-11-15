@@ -50,6 +50,8 @@ jobs:
           python -m py_compile tools/*.py $(ls tools/checks/*.py 2>/dev/null)
       - name: "Self-checks (every tools/selfcheck/*.mjs)"
         run: for f in tools/selfcheck/*.mjs; do [ -e "$f" ] || continue; echo "▶ $f"; node "$f" || exit 1; done
+      - name: "Parity: no row is Planned, Partial, Proposed or Open"
+        run: node tools/parity_compile.mjs --check
       - name: "Generation connector: mocked test (no keys, no network)"
         run: node tools/gen/test.mjs
       - name: "From a URL: draft a project and a theme from the local demo site (offline)"

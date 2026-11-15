@@ -11,6 +11,7 @@ Build films with the `pvk` wrapper (`bin/pvk`). It runs `video.sh` from any fold
 
 `pvk <command> [name]` is the same as `./video.sh` (or `node bin/reelwright.mjs` on Windows). The default project is `projects/example`; `pvk` with no command prints every command (README → Every command).
 
+- **Try first:** `pvk make "<brief>" [--audience a] [--length s] [--voice|--music-only]`: from one sentence it picks the template (a URL → `from-url`, `--folder` → `slideshow`, promo/launch/teaser → `promo`, demo/app → `new`, explainer/motion → `new --renderer hyperframes`) and a theme, drafts the lines (`script: …` in the brief is split into lines; otherwise marked `[DRAFT]` placeholders to replace) and prints the plan. Show the plan and lines to the user; re-run with `--yes` to create `projects/<name>` with AGENTS.md/CLAUDE.md in it. Offline; it never renders or pays. docs/playbook/make.md.
 - `pvk new <name>` (pvk renderer, screen recordings), `--renderer hyperframes` (motion graphics) or `--renderer remotion` (opt-in React, see Rules). README → Renderers says which.
 - `pvk from-url <url> <name>`: draft a HyperFrames film from a site you own; `pvk theme-from <url|image> <name>`: draft a theme from a page or image.
 - `pvk beats <name> import <file.csv|timeline.json>` / `export [file.csv]`: beat-sheet round trip with `project.json` (`--replace` to overwrite).

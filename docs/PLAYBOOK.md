@@ -102,6 +102,8 @@ The first half is craft (story, picture, sound, process, engine rules, layouts, 
 
 ## Process
 
+- **Not sure where to start? `./video.sh make "<brief>"`.** It picks the template and theme from one sentence, drafts the lines and prints
+  the plan; with `--yes` it creates the project (never renders). [playbook/make.md](playbook/make.md).
 - **Ship a v1 fast, then iterate.** Render stills (`./video.sh stills`) and a contact sheet before a full
   render; it's seconds instead of minutes.
 - **Watch it yourself before sending.** `./video.sh qa` lists blank frames and frame-to-frame jumps; every
@@ -1351,6 +1353,7 @@ One line each; the page is the detail. The same list is in [docs/playbook/README
 
 ### Story, process and review
 
+- [make](playbook/make.md): `reelwright make "<brief>"`: a guided, offline start that picks the template and theme, drafts the lines and prints the plan
 - [claude-workflow](playbook/claude-workflow.md): the agent loop: brief, script, stills, taste, preview, render
 - [final-review](playbook/final-review.md): the last step before reporting an mp4: an itemised checklist and `reelwright review` for a reviewer with a clean context
 - [prompting-data-maps](playbook/prompting-data-maps.md): ready-to-paste prompts for charts, numbers, tables and maps

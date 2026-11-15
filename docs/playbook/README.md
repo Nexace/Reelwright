@@ -7,6 +7,7 @@ the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is miss
 
 ## Story, process and review
 
+- [make](make.md): `reelwright make "<brief>"`: a guided, offline start that picks the template and theme, drafts the lines and prints the plan
 - [claude-workflow](claude-workflow.md): the agent loop: brief, script, stills, taste, preview, render
 - [final-review](final-review.md): the last step before reporting an mp4: an itemised checklist and `reelwright review` for a reviewer with a clean context
 - [prompting-data-maps](prompting-data-maps.md): ready-to-paste prompts for charts, numbers, tables and maps

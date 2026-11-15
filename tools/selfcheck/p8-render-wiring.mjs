@@ -17,7 +17,8 @@ try {
   for (const d of ["vendor", "fonts", "themes", "node_modules", "python", "templates"]) if (fs.existsSync(path.join(ROOT, d))) fs.symlinkSync(path.join(ROOT, d), path.join(tmp, d));
   for (const d of ["tools", "bin"]) fs.cpSync(path.join(ROOT, d), path.join(tmp, d), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "package.json"), path.join(tmp, "package.json"));
-  applyPatch(tmp, path.join(ROOT, "docs", "plans", "p8-patches", "render-opts.patch"));
+  // the patch is applied to the real files long since (and P5/P12a edited around it): only a tree that still lacks it is patched
+  if (!fs.readFileSync(path.join(ROOT, "bin", "reelwright.mjs"), "utf8").includes("--low-memory")) applyPatch(tmp, path.join(ROOT, "docs", "plans", "p8-patches", "render-opts.patch"));
 
   const mk = (name) => {
     const d = path.join(tmp, "p-" + name); fs.mkdirSync(path.join(d, "film"), { recursive: true });

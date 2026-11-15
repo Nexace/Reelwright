@@ -2,6 +2,8 @@
 // reelwright <command> [project]   (project defaults to projects/example)
 //
 //   new <name> [--renderer hyperframes|remotion]   copy the example (or example-hf, or templates/remotion) into projects/<name>
+//   new <name> --video <file> [--audio <file>]   a HyperFrames project that plays your media (non-H.264 video is converted; transcript.json from its audio only
+//                    if whisper-cli and $WHISPER_MODEL are set up: nothing is downloaded)
 //   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)
 //   record           run <project>/record.mjs → screen take (clips/) + film/clip.js
 //   vo               voiceover from project.json lines (edge-tts) → vo/
@@ -45,6 +47,16 @@
 //   --as <format>         extra output beside the mp4: webm, mov, gif, apng, png (a folder) or hls; same as project.json
 //                         "output": {"format": …}
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
+//   --json                any command: ONE JSON envelope on stdout { ok, command, args, exit, stdout, stderr, data?, _meta } (tools/commands/json.mjs);
+//                         the commands that print their own JSON with --json (doctor, check, catalog, …) keep doing that. Exit codes: 0 ok, 1 failed, 2 usage
+//                         (an unknown command: "did you mean" on stderr). The update notice in _meta is always null: there is no network call to ask.
+//   frames [from] [to] --cache | --resume [--segment N]   HyperFrames: render only that range, keep frames by content hash in .cache/frames-hf/,
+//                         re-render only changed ones in segments of N frames (default 240); --resume finishes an interrupted render
+//   --resolution 4k|portrait-4k|square-4k   frames and stills at that size from the same layout (the aspect must match the film); both renderers
+//   safety (frames, film, all, stills, encode): --strict (the producer fails on capture warnings) | --best-effort (hyperframes: the default; pvk:
+//                         carry on past page errors), --timeout S (kill the step, exit 124), --max-render S (hyperframes: abort a render that would run
+//                         longer), --browser-timeout MS, --player-ready-timeout MS, --protocol-timeout MS, --lock [--lock-timeout S] (renders on this
+//                         machine run one at a time, in the order asked: tools/render_lock.mjs). Cost and disk first: `preflight`.
 //
 // Plug-in commands (tools/commands/<name>.mjs; each file's header comment is its help, listed below):
 import { sizeOf } from "../tools/p5-formats.mjs";
@@ -60,6 +72,12 @@ const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "pyt
 process.env.PYTHONUTF8 = "1";
 process.env.REELWRIGHT_NODE = process.execPath;   // tools/qa.py runs its node checks with the same node
 
+// --json on any command → `json <command> …` (tools/commands/json.mjs: one envelope). Commands that already print their own JSON with --json keep that.
+{
+  const argv = process.argv.slice(2), j = argv.indexOf("--json"), c = argv[0];
+  const own = (n) => /^[\w-]+$/.test(n || "") && fs.existsSync(path.join("tools", "commands", n + ".mjs")) && fs.readFileSync(path.join("tools", "commands", n + ".mjs"), "utf8").includes('"--json"');
+  if (j >= 0 && c && c !== "json" && c !== "help" && !own(c)) process.argv.splice(2, argv.length, "json", ...argv.filter((_, i) => i !== j));
+}
 const [cmd0 = "help", ...args] = process.argv.slice(2);
 // `stills` with --at, --frames, --range, --zoom or --against is tools/commands/stills2.mjs (not together with --formats)
 const cmd = cmd0 === "stills" && !args.includes("--formats") && args.some((a) => /^--(at|frames|range|zoom|against|pad|min-ssim)$/.test(a)) ? "stills2" : cmd0;
@@ -88,6 +106,26 @@ if (formats) {   // the named shapes or any WxH with even sides (tools/p5-format
   try { if (!formats.length) throw new Error(`it takes a comma list of ${Object.keys(SIZES).join(", ")} or WxH sizes`); for (const f of formats) SIZES[f] ??= sizeOf(f); }
   catch (e) { console.log(`--formats: ${e.message}`); process.exit(1); }
 }
+// safety and resume flags (tools/renderers/hyperframes.mjs, pvk.mjs, tools/render_lock.mjs), only on the commands that render, so `batch --strict` keeps its own
+const RENDERING = ["frames", "film", "all", "stills", "encode"].includes(cmd);
+let TIMEOUT_MS = 0, LOCK = null;
+if (RENDERING) {
+  const take = (flag, env, check = (v) => /^\d+(\.\d+)?$/.test(v) && +v > 0) => {
+    const i = args.indexOf(flag); if (i < 0) return undefined;
+    const v = args.splice(i, 2)[1];
+    if (v === undefined || !check(v)) { console.error(`${flag} takes a positive number${/^--(browser|player-ready|protocol)-timeout$/.test(flag) ? " of milliseconds" : " of seconds"}, not "${v ?? ""}"`); process.exit(1); }
+    for (const e of [].concat(env)) process.env[e] = v;
+    return v;
+  };
+  const flag = (f, env) => { const i = args.indexOf(f); if (i >= 0) { args.splice(i, 1); process.env[env] = "1"; } };
+  TIMEOUT_MS = Number(take("--timeout", "REELWRIGHT_TIMEOUT")) * 1000 || 0;   // the renderers stop themselves at this time (exit 124); the kill below is the backstop
+  take("--max-render", "REELWRIGHT_MAX_RENDER"); take("--segment", "REELWRIGHT_SEGMENT");
+  take("--browser-timeout", "PRODUCER_PUPPETEER_LAUNCH_TIMEOUT_MS"); take("--protocol-timeout", "PRODUCER_PUPPETEER_PROTOCOL_TIMEOUT_MS");
+  take("--player-ready-timeout", ["PRODUCER_PLAYER_READY_TIMEOUT_MS", "REELWRIGHT_PLAYER_READY_TIMEOUT"]);
+  flag("--strict", "REELWRIGHT_STRICT"); flag("--best-effort", "REELWRIGHT_BEST_EFFORT"); flag("--cache", "REELWRIGHT_HF_CACHE"); flag("--resume", "REELWRIGHT_RESUME");
+  const lt = take("--lock-timeout", []), lk = args.indexOf("--lock");
+  if (lk >= 0) { args.splice(lk, 1); LOCK = { timeoutMs: Number(lt || 0) * 1000 }; }
+}
 let proj = "projects/example";
 if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
   const a = args[0].replace(/[\\/]+$/, "");
@@ -109,7 +147,8 @@ if (!["new", "from-url", "theme-from"].includes(cmd) && args.length) {
 function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }
 function step(name) { console.log(`\n\x1b[1;32m▶ ${name}\x1b[0m  (${proj})`); }
 function run(bin, ...a) {
-  const r = spawnSync(bin, a, { stdio: "inherit" });
+  const r = spawnSync(bin, a, { stdio: "inherit", ...(TIMEOUT_MS && { timeout: TIMEOUT_MS + 20000, killSignal: "SIGKILL" }) });
+  if (r.error?.code === "ETIMEDOUT") { console.error(`${path.basename(a[0] || bin)}: stopped after --timeout ${TIMEOUT_MS / 1000} s`); process.exit(124); }
   if (r.error) { console.error(`${bin}: ${r.error.message}`); process.exit(1); }
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
@@ -121,6 +160,12 @@ function hasTrack() { const f = project().music?.file; return !!f && fs.existsSy
 
 const C = {
   new() {
+    const take = (f) => { const i = args.indexOf(f); return i >= 0 ? args.splice(i, 2)[1] : undefined; }, video = take("--video"), audio = take("--audio");
+    if (video || audio) {   // G1: a HyperFrames project that plays your media (H.264 conversion; transcript only through the existing whisper-cli path)
+      import("../tools/new_media.mjs").then((m) => { const r = m.scaffold({ ROOT, name: args[0], video, audio }); console.log(`created ${path.relative(ROOT, r.dest)} (${r.width}x${r.height}, ${r.fps} fps, ${r.dur} s) — edit hf/film.js, then: reelwright all ${args[0]}`); })
+        .catch((e) => { console.error(e.message); process.exit(1); });
+      return;
+    }
     const r = args.indexOf("--renderer"), rend = r >= 0 ? args.splice(r, 2)[1] : "pvk";
     const hf = rend === "hyperframes";
     const name = args[0];
@@ -257,6 +302,12 @@ const C = {
   },
 };
 
+if (LOCK && Object.hasOwn(C, cmd)) {   // --lock: wait for the renders asked before this one (tools/render_lock.mjs), hold it until this command ends
+  const { acquire } = await import("../tools/render_lock.mjs");
+  try { acquire({ ...LOCK, log: (m) => console.log(m) }); } catch (e) { console.error(e.message); process.exit(1); }
+  for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => process.exit(130));
+}
+
 // --formats: shared steps once, then these steps per format with the frame size in the env (tools/sched.py and
 // tools/render.mjs read it). frames/ and stills/ are parked as frames-<fmt>/ and stills-<fmt>/ between formats.
 const PER_FORMAT = {
@@ -283,7 +334,11 @@ if (formats && Object.hasOwn(PER_FORMAT, cmd)) {
   const m = await import(pathToFileURL(path.join(ROOT, "tools", "commands", cmd + ".mjs")).href);
   await m.default({ proj, args, ROOT, PY, run, py, render, step, project, rm });
 } else if (Object.hasOwn(C, cmd)) C[cmd]();
-else {
+else if (!["help", "--help", "-h"].includes(cmd0)) {   // exit code 2 = usage; the names it is close to
+  const { commandNames, didYouMean } = await import("../tools/commands/json.mjs"), near = didYouMean(cmd0, commandNames(ROOT));
+  console.error(`reelwright: unknown command "${cmd0}"${near.length ? `\ndid you mean: ${near.join(", ")}` : ""}\n(reelwright help lists every command)`);
+  process.exit(2);
+} else {
   // help: this file's header, then each plug-in's header (tools/commands/*.mjs)
   const header = (f) => { const l = fs.readFileSync(f, "utf8").split("\n").filter((x, i) => i || !x.startsWith("#!"));
     return l.slice(0, l.findIndex((x) => !x.startsWith("//"))).map((x) => x.replace(/^\/\/ ?/, "")); };

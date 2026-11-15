@@ -19,6 +19,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { themes, writeTheme } from "../theme.mjs";
 import { copyKit, kitFiles } from "../kit_files.mjs";
 import { HIDE, CLOCK, TEXT_RULE } from "./shims.mjs";
+import { panels, checkPanelFields } from "./panels.mjs";   // H5 right-panel routes (undo, renders queue, lint, assets, catalog, captions, source…)
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
   ".json": "application/json", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
@@ -34,7 +35,7 @@ const SKIP = /^(frames|stills|out|\.cache)([-/]|$)|^hf\/kit\/|(^|\/)theme\.css$|
 // jobs that change what the film is made from (the page reloads when they end); the others only write stills/out/…
 const INPUT_JOBS = new Set(["sched", "audio"]);
 
-export function startStudio({ ROOT, DIR, port }) {
+export function startStudio({ ROOT, DIR, port, editSource = false }) {   // editSource: `studio --edit-source` lets the source panel write text files inside the project
   ROOT = fs.realpathSync(ROOT); DIR = fs.realpathSync(DIR);
   const inRoot = DIR.startsWith(ROOT + path.sep);
   // a project outside the repo (a temp folder) is served under /__p/; inside, under its own repo path as preview.mjs does
@@ -82,7 +83,7 @@ export function startStudio({ ROOT, DIR, port }) {
     for (const k of ["width", "height"]) if (k in P && !(Number.isInteger(P[k]) && P[k] > 0 && P[k] <= 8192)) return `project.json: ${k} must be a whole number`;
     if ("renderer" in P && !(typeof P.renderer === "string" && /^[\w-]+$/.test(P.renderer))) return "project.json: renderer must be a name";
     if ("out" in P && !(typeof P.out === "string" && inside(P.out))) return "project.json: out must be a path inside the project";
-    return null;
+    return checkPanelFields(P, () => X.fxNames());
   }
   // theme.mjs reads brand.json's logo and font files and copies/inlines them into theme.css, which is served: every
   // path it will read (the logo, and the src of EVERY font entry that is an object, in an array or an object) must be
@@ -114,7 +115,13 @@ export function startStudio({ ROOT, DIR, port }) {
     stills: (t) => [bin, "stills", DIR, ...(t == null ? [] : [String(t)])], // t: a validated number, the only extra argument
     taste: () => [path.join(ROOT, "tools", "checks", "taste.page.mjs"), DIR],
     embed: () => [bin, "embed", DIR],
+    mix: () => [bin, "mix", DIR],                                           // applies the audio rack (project.json "fx", "limiter"); offline
+    check: () => [bin, "check", DIR],                                       // the layout audit (a lint pass in the browser)
+    captions: () => [bin, "captions", DIR],                                 // transcript.json from the voiceover's word times
+    add: (name) => [bin, "add", DIR, name],                                 // name: validated against the catalog by panels.mjs
+    film: (r) => [bin, "film", DIR, ...r.args],                             // a queued render: every flag value comes from a fixed list
   };
+  const DIRECT = new Set(["sched", "audio", "mix", "stills", "taste", "embed", "check", "captions"]);   // what POST /__run may start by itself
   let job = null, child = null, lastJobEnd = 0;
   const results = { still: null, sheet: null, embed: null };               // survive a page reload
   const url = (f) => `${mount}/${posix(path.relative(DIR, f))}?v=${fs.statSync(f).mtimeMs | 0}`;
@@ -133,10 +140,10 @@ export function startStudio({ ROOT, DIR, port }) {
   }
   function runJob(kind, t) {
     if (job && job.state === "running") return false;
-    job = { cmd: kind === "stills" && t == null ? "contact sheet" : kind, state: "running", code: null, out: "" };
+    job = { cmd: kind === "stills" && t == null ? "contact sheet" : kind === "film" ? `render ${t.label}` : kind === "add" ? `add ${t}` : kind, state: "running", code: null, out: "" };
     const note = (s) => { job.out = (job.out + s.replace(ANSI, "")).slice(-8000); send({ job }); };
     // own process group (POSIX), so closing the studio can end the render's python/chromium children with it
-    child = spawn(process.execPath, JOBS[kind](t), { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true, detached: process.platform !== "win32" });
+    child = spawn(process.execPath, JOBS[kind](t), { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], windowsHide: true, detached: process.platform !== "win32", ...(kind === "film" && { env: { ...process.env, ...t.env } }) });
     child.stdout.on("data", (d) => note(String(d)));
     child.stderr.on("data", (d) => note(String(d)));
     const end = (code, why) => {
@@ -144,7 +151,9 @@ export function startStudio({ ROOT, DIR, port }) {
       job.state = "done"; job.code = code; if (why) job.out += `\n${why}`;
       child = null; lastJobEnd = Date.now();
       try { finishJob(kind, t); } catch (e) { job.out += `\n${e.message}`; }
+      if (kind === "film") { t.state = t.cancel ? "cancelled" : code === 0 ? "done" : "failed"; t.code = code; send({ queue: queueView() }); }
       send({ job, results });
+      setTimeout(pump, 50);                  // the next queued render
       // the files the job wrote reach the page as one reload, after the watcher has seen them (flush() ignores a
       // render's own writes unless the job changes the film's inputs); edits made while it ran are released here too
       schedule(300);
@@ -154,6 +163,39 @@ export function startStudio({ ROOT, DIR, port }) {
     send({ job });
     return true;
   }
+
+  // ── the renders queue: one render at a time (the job lock), the rest wait here in the order they were asked ──
+  const renders = []; let rseq = 0;
+  const queueView = () => renders.map(({ id, label, state, code }) => ({ id, label, state, code }));
+  function pump() {
+    if (job && job.state === "running") return;
+    const next = renders.find((r) => r.state === "queued");
+    if (!next) return;
+    next.state = "running";
+    if (!runJob("film", next)) next.state = "queued";
+    send({ queue: queueView() });
+  }
+  function enqueue(o) {
+    if (renders.filter((r) => r.state === "queued").length >= 20) throw new Error("the render queue is full (20 waiting)");
+    const label = [o.format, o.resolution, o.quality, o.fps && `${o.fps}fps`, o.gpu && "gpu", o.props && "props"].filter(Boolean).join(" ") || "default";
+    const r = { id: ++rseq, label, state: "queued", code: null, cancel: false, env: { ...(o.fps && { FPS: String(o.fps) }), ...(o.gpu && { PRODUCER_BROWSER_GPU_MODE: "hardware" }) },
+      args: [...(o.format ? ["--formats", o.format] : []), ...(o.resolution ? ["--resolution", o.resolution] : []), ...(o.quality ? ["--quality", o.quality] : []),
+        ...(o.props ? ["--props-file", path.join(DIR, "props.json")] : [])] };   // the file the Props tab wrote: the only path that reaches the command line
+    renders.push(r); if (renders.length > 50) renders.splice(0, renders.length - 50);
+    send({ queue: queueView() }); pump(); return r;
+  }
+  function cancel(id) {
+    const r = renders.find((x) => x.id === id);
+    if (!r || !["queued", "running"].includes(r.state)) return false;
+    if (r.state === "queued") r.state = "cancelled"; else { r.cancel = true; killJob(); }
+    send({ queue: queueView() }); return true;
+  }
+  const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+  // a write by a panel (undo, redo, source, transcript) to project.json / brand.json is what a save is: theme and kit follow, the lines are placed again
+  const afterWrite = (rel) => { if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
+  const X = panels({ ROOT, DIR, PY: python, reply, inside, posix, num, readProject, isHf, afterWrite, editSource });
+  const jobsApi = { busy: () => !!job && job.state === "running", enqueue, cancel, job: (kind, arg) => runJob(kind, arg) };
+  const GETS = new Set(["/__history", "/__peaks", "/__fx", "/__files", "/__file", "/__catalog", "/__assets", "/__lint", "/__transcript", "/__props"]);
 
   // ── static files and the page ──
   function resolveStatic(pathname) {
@@ -176,14 +218,15 @@ export function startStudio({ ROOT, DIR, port }) {
       mix: fs.existsSync(mix) ? url(mix) : null,
       // lines whose text differs from the one the voiceover was made from (vo/lines.json keeps it): need `audio`
       stale: (P.lines || []).filter((l) => !voiced || !voiced[l.id] || voiced[l.id].text !== l.text).map((l) => l.id),
-      job, results };
+      job, results, queue: queueView(), editSource };
   }
   function serve(req, res) {
     const u = new URL(req.url, "http://localhost");
-    if (u.pathname === "/__save" || u.pathname === "/__run") return reply(res, 405, { error: "POST only" });
+    if (u.pathname === "/__save" || u.pathname === "/__run" || (X.POSTS.has(u.pathname) && !GETS.has(u.pathname))) return reply(res, 405, { error: "POST only" });
     if (req.method !== "GET") return reply(res, 405, { error: "GET only" });
     if (u.pathname === "/") { res.writeHead(302, { location: "/tools/studio/studio.html" }); return res.end(); }
     if (u.pathname === "/__studio") return reply(res, 200, info());
+    if (GETS.has(u.pathname)) return void X.get(u, res).catch((e) => reply(res, 500, { error: e.message }));
     if (u.pathname === "/__events") {
       res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store" });
       res.write(": hello\n\n"); clients.add(res); req.on("close", () => clients.delete(res));
@@ -195,7 +238,7 @@ export function startStudio({ ROOT, DIR, port }) {
     if (P && f === path.join(DIR, isHf(P) ? "hf" : "film", "index.html") && fs.existsSync(f)) {
       // the film page gets the player shims (tools/studio/shims.mjs); for HyperFrames also the producer's text rule
       res.writeHead(200, { "content-type": TYPES[".html"], "cache-control": "no-store" });
-      return res.end(fs.readFileSync(f, "utf8").replace(/<head[^>]*>/i, (h) => h + (isHf(P) ? TEXT_RULE : "") + HIDE)
+      return res.end(fs.readFileSync(f, "utf8").replace(/<head[^>]*>/i, (h) => h + (isHf(P) ? TEXT_RULE : "") + HIDE + X.propsScript())
         .replace(/<\/body>/i, () => CLOCK + "</body>"));
     }
     fs.stat(f, (err, st) => {
@@ -218,6 +261,7 @@ export function startStudio({ ROOT, DIR, port }) {
     if (job && job.state === "running") return reply(res, 409, { error: `busy: ${job.cmd} is running` });
     // tmp file in the project folder, then rename: a reader never sees half a file
     const target = path.join(DIR, spec[0]), tmp = path.join(DIR, `.${spec[0]}.${process.pid}.tmp`);
+    X.record(spec[0], fs.existsSync(target) ? fs.readFileSync(target, "utf8") : null);   // undo puts this text back
     try { fs.writeFileSync(tmp, b.text.endsWith("\n") ? b.text : b.text + "\n"); fs.renameSync(tmp, target); }
     catch (e) { fs.rmSync(tmp, { force: true }); return reply(res, 500, { error: `could not write ${spec[0]}: ${e.message}` }); }
     const warn = prepare();                  // theme.css and the kit follow project.json / brand.json
@@ -225,7 +269,7 @@ export function startStudio({ ROOT, DIR, port }) {
     reply(res, 200, { ok: true, warn });
   }
   function run(res, b) {
-    if (typeof b.cmd !== "string" || !Object.hasOwn(JOBS, b.cmd)) return reply(res, 400, { error: "unknown command" });
+    if (typeof b.cmd !== "string" || !DIRECT.has(b.cmd)) return reply(res, 400, { error: "unknown command" });
     let t = null;
     if (b.cmd === "stills" && b.t != null) {
       if (!num(b.t, 0, 36000)) return reply(res, 400, { error: "t must be a number of seconds" });
@@ -235,7 +279,7 @@ export function startStudio({ ROOT, DIR, port }) {
     reply(res, 202, { ok: true });
   }
   function post(req, res, u) {
-    if (u.pathname !== "/__save" && u.pathname !== "/__run") return reply(res, 404, { error: "not found" });
+    if (u.pathname !== "/__save" && u.pathname !== "/__run" && !X.POSTS.has(u.pathname)) return reply(res, 404, { error: "not found" });
     if (req.headers.origin !== `http://${req.headers.host}`) return reply(res, 403, { error: "bad Origin" });
     if (!/^application\/json\s*(;|$)/i.test(req.headers["content-type"] || "")) return reply(res, 415, { error: "content-type must be application/json" });
     let n = 0; const chunks = [];
@@ -246,7 +290,7 @@ export function startStudio({ ROOT, DIR, port }) {
       let b;
       try { b = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { return reply(res, 400, { error: "body must be JSON" }); }
       if (!isObj(b)) return reply(res, 400, { error: "body must be a JSON object" });
-      try { (u.pathname === "/__save" ? save : run)(res, b); } catch (e) { reply(res, 500, { error: e.message }); }
+      try { if (X.POSTS.has(u.pathname)) X.post(u.pathname, b, res, jobsApi); else (u.pathname === "/__save" ? save : run)(res, b); } catch (e) { reply(res, 500, { error: e.message }); }
     });
   }
 

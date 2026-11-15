@@ -17,6 +17,8 @@ Thanks for helping! Bug reports, new engine components and better defaults are a
 ./video.sh all            # the example must still build end to end
 ./video.sh qa             # no new blank stretches
 ```
+A new `tools/selfcheck/<name>.mjs` is picked up by CI on its own: run `node tools/selfcheck_run.mjs --only <name>`, then
+`--record --only <name>` to add its time to `tools/selfcheck/timings.json` (and `"serial": true` there if it writes to or scans `projects/`).
 Describe what you changed and attach a still or short clip if it affects the picture or sound.
 
 ## Ideas we'd love help with

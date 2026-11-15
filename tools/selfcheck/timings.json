@@ -1,0 +1,282 @@
+{
+  "_note": "seconds per check on a dev machine (node tools/selfcheck_run.mjs --record); serial = writes to or scans the shared projects/ dir, or binds a port, so it runs alone",
+  "checks": {
+    "blocks": {
+      "s": 12.7
+    },
+    "doodle2": {
+      "s": 1.3
+    },
+    "embed": {
+      "s": 1.6
+    },
+    "hf-lint": {
+      "serial": true,
+      "s": 1.9
+    },
+    "manim": {
+      "s": 3.3
+    },
+    "motion": {
+      "s": 36.9
+    },
+    "p1-batch": {
+      "serial": true,
+      "s": 16.4
+    },
+    "p1-compare": {
+      "serial": true,
+      "s": 15
+    },
+    "p1-stills": {
+      "s": 38.4
+    },
+    "p1-variables": {
+      "s": 7.4
+    },
+    "p10-audio": {
+      "s": 3.2
+    },
+    "p10-capture": {
+      "s": 1.8
+    },
+    "p10-lints": {
+      "s": 0.8
+    },
+    "p10-motion": {
+      "s": 4.3
+    },
+    "p10-template": {
+      "serial": true,
+      "s": 10.9
+    },
+    "p11-docs": {
+      "s": 0.1
+    },
+    "p11-taste": {
+      "serial": true,
+      "s": 0
+    },
+    "p12a-hf-render": {
+      "serial": true,
+      "s": 33.8
+    },
+    "p12a-json": {
+      "s": 1.3
+    },
+    "p12a-new-media": {
+      "serial": true,
+      "s": 4.7
+    },
+    "p12a-studio": {
+      "serial": true,
+      "s": 71.1
+    },
+    "p12b-audit": {
+      "s": 0.7
+    },
+    "p12b-captions": {
+      "s": 6.4
+    },
+    "p12b-capture": {
+      "s": 14.7
+    },
+    "p12b-components": {
+      "s": 5.9
+    },
+    "p12b-face": {
+      "s": 0.5
+    },
+    "p12b-kokoro": {
+      "s": 1.3
+    },
+    "p13-lint": {
+      "s": 5.2
+    },
+    "p13-new": {
+      "serial": true,
+      "s": 0.2
+    },
+    "p13-slideshow": {
+      "serial": true,
+      "s": 6
+    },
+    "p13-slideshow-panel": {
+      "serial": true,
+      "s": 1.3
+    },
+    "p13-stream": {
+      "s": 17.9
+    },
+    "p13-studio-flags": {
+      "serial": true,
+      "s": 2.2
+    },
+    "p14-face-install": {
+      "s": 0
+    },
+    "p15-lint": {
+      "s": 1
+    },
+    "p15-studio-agent": {
+      "serial": true,
+      "s": 2.9
+    },
+    "p4-bool": {
+      "s": 0
+    },
+    "p4-code": {
+      "s": 0.4
+    },
+    "p4-lint": {
+      "s": 0.4
+    },
+    "p4-obj": {
+      "s": 0
+    },
+    "p5-motion": {
+      "s": 12.7
+    },
+    "p5-tools": {
+      "serial": true,
+      "s": 17.9
+    },
+    "p6-components": {
+      "s": 2.4
+    },
+    "p6-dotlottie": {
+      "s": 4.6
+    },
+    "p6-lottie": {
+      "s": 9.9
+    },
+    "p6-lottie-lint": {
+      "serial": true,
+      "s": 3.4
+    },
+    "p6-motion-rules": {
+      "s": 0.5
+    },
+    "p6-rules": {
+      "s": 2.2
+    },
+    "p7-audiofx": {
+      "s": 14.6
+    },
+    "p7-caption-lint": {
+      "s": 0.6
+    },
+    "p7-video": {
+      "s": 1.8
+    },
+    "p8-add-tag": {
+      "s": 0.3
+    },
+    "p8-audio-report": {
+      "s": 0.4
+    },
+    "p8-captions": {
+      "s": 0.8
+    },
+    "p8-catalog": {
+      "s": 0.1
+    },
+    "p8-d3": {
+      "s": 1.2
+    },
+    "p8-docs": {
+      "s": 0
+    },
+    "p8-doctor": {
+      "s": 2.4
+    },
+    "p8-fit": {
+      "s": 0.3
+    },
+    "p8-json": {
+      "s": 0.2
+    },
+    "p8-layout": {
+      "s": 1.3
+    },
+    "p8-lottie": {
+      "s": 3.2
+    },
+    "p8-mix-wiring": {
+      "s": 2.1
+    },
+    "p8-mixfx": {
+      "s": 0.5
+    },
+    "p8-render-opts": {
+      "s": 2.1
+    },
+    "p8-render-wiring": {
+      "s": 2.8
+    },
+    "p8-safety": {
+      "s": 0.4
+    },
+    "p9-encode": {
+      "s": 4.4
+    },
+    "p9-lint": {
+      "s": 0.1
+    },
+    "p9-media": {
+      "s": 1.8
+    },
+    "p9-media-wiring": {
+      "s": 1.2
+    },
+    "p9-motion": {
+      "s": 28.7
+    },
+    "p9-props": {
+      "s": 0.5
+    },
+    "q1-offline-voice": {
+      "s": 3.4
+    },
+    "q3-runner": {
+      "s": 0.5
+    },
+    "q6-make": {
+      "s": 6.5
+    },
+    "rails": {
+      "s": 0.8
+    },
+    "remotion": {
+      "s": 0.4
+    },
+    "runtimes": {
+      "s": 10.5
+    },
+    "shotcards-a": {
+      "s": 15.8
+    },
+    "shotcards-b": {
+      "s": 3.7
+    },
+    "sound": {
+      "s": 3.6
+    },
+    "studio": {
+      "serial": true,
+      "s": 35.2
+    },
+    "taste": {
+      "s": 0.3
+    },
+    "tex-offline": {
+      "s": 0.8
+    },
+    "theme-brief": {
+      "s": 0.2
+    },
+    "themes": {
+      "s": 0
+    }
+  }
+}

@@ -428,6 +428,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
 | `theme-brief "<what the product is>" [name]` | draft `themes/<name>.css` from a one-line brief ("budgeting app for students"): the best-matching product type's palette, font pairing and mood from the `ui-ux-pro-max` data (MIT), fonts mapped to the bundled OFL families; prints what it picked, what to avoid and the theme check; offline |
+| `gallery [shotcards\|effects\|all] [--out dir] [--check] [--only id,id]` | render every shotcard helper and every `fx-*` effect at 3 to 5 moments on the pvk renderer (offline, deterministic) into `docs/gallery/index.html` (a grid with a module filter, a contact strip, the helper call and the recipe link per item) and `docs/gallery/refs/` (small reference strips); `--check` renders again, compares with the refs (per-pixel tolerance), writes nothing and exits 1 listing the items that changed; `--only` takes ids such as `outro.logoLockup` or `fx-blur.zoomBlur` |
 | `manim [project] install [ce\|gl] [--yes] \| doctor [ce\|gl] \| render [--force] \| verify` | optional Manim scenes (`"manim"` block in `project.json`, `KIT.manim` in `film.js`): `install` prints what it would download into `<repo>/.venv-manim` and does it only with `--yes`; `render` runs after `sched` and after any VO change (`all` does not run Manim); exit 1 on any problem |
 | `code [project] highlight <file> [--lang L] [--theme T] [--id name] [--lines a-b] \| model <file.obj> [--id name]` | build-time data for `KIT.math.code` (shiki) and `KIT.math3d` models: writes `film/code-<id>.js` or `model-<id>.js` (`hf/` for HyperFrames) |
 | `manim-lint [project] [texts\|pace\|dark\|all] [--video f.mp4] [--strict]` | Manim scene lints: OFF-FRAME, TEXT-OVERLAP, TINY-TEXT, RUSHED, GAP, UNNARRATED, DARK-STRETCH |
@@ -592,7 +593,7 @@ tools/                      shared — you rarely edit these
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
   renderers/remotion.mjs    the opt-in "renderer": "remotion" (installs nothing without a yes)
   renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs   KIT.video frames and the KIT.shader transition pass
-  commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief (header = its help)
+  commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief, gallery (header = its help)
   checks/                   plug-in QA checks: hf-lint, seekable-runtimes, taste (WARN or gate declared in the file)
   studio/                   reelwright studio: server, page and the preview shims it shares with embed
   selfcheck/                CI self-checks (node tools/selfcheck/<name>.mjs): runtimes, motion, themes, studio, sound, …
@@ -605,6 +606,7 @@ tools/                      shared — you rarely edit these
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer
   theme-check.mjs, theme-gallery.mjs, theme_from.mjs   check, picture and draft themes (theme-brief is in commands/)
+  gallery.mjs, gallery-fx.mjs   the shotcard and effect gallery with its visual-regression check (commands/gallery.mjs)
   beats.mjs                 reelwright beats: beat-sheet CSV / timeline JSON <-> project.json
   gen.mjs, gen/             reelwright gen: optional generation connector (Higgsfield) and manual import; off by default
   motion-check.mjs          self-check of the easing, spring, doodle and math code (node tools/motion-check.mjs)

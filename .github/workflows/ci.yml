@@ -49,7 +49,10 @@ jobs:
           node tools/beats.mjs --self-check
           python -m py_compile tools/*.py $(ls tools/checks/*.py 2>/dev/null)
       - name: "Self-checks (every tools/selfcheck/*.mjs)"
-        run: for f in tools/selfcheck/*.mjs; do [ -e "$f" ] || continue; echo "▶ $f"; node "$f" || exit 1; done
+        run: |
+          bad=""
+          for f in tools/selfcheck/*.mjs; do [ -e "$f" ] || continue; echo "▶ $f"; node "$f" || bad="$bad $f"; done
+          if [ -n "$bad" ]; then echo "::error::self-checks failed:$bad"; exit 1; fi
       - name: "Parity: no row is Planned, Partial, Proposed or Open"
         run: node tools/parity_compile.mjs --check
       - name: "Generation connector: mocked test (no keys, no network)"

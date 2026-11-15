@@ -13,7 +13,7 @@ import { parseWhisperJson } from "../new_media.mjs";
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p12a-g1-")), names = [`p12a-g1a-${process.pid}`, `p12a-g1b-${process.pid}`, `p12a-g1c-${process.pid}`];
 const sh = (cmd, args, env = {}) => spawnSync(cmd, args, { encoding: "utf8", cwd: ROOT, env: { ...process.env, ...env, PAGES: "2" }, maxBuffer: 1 << 26 });
 const rw = (args, env) => sh(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), ...args], env);
-const probe = (f, e) => spawnSync("ffprobe", ["-v", "error", "-show_entries", e, "-of", "csv=p=0:s=,", f], { encoding: "utf8" }).stdout.trim();
+const probe = (f, e) => spawnSync("ffprobe", ["-v", "error", "-show_entries", e, "-of", "csv=p=0:s=,", f], { encoding: "utf8" }).stdout.replace(/\r/g, "").trim();
 try {
   const webm = path.join(tmp, "clip.webm"), mp4 = path.join(tmp, "clip.mp4"), beep = path.join(tmp, "beep.wav");
   assert.equal(sh("ffmpeg", ["-y", "-v", "error", "-f", "lavfi", "-i", "testsrc2=size=321x181:rate=24:duration=1.5", "-f", "lavfi", "-i", "sine=f=440:d=1.5", "-c:v", "libvpx-vp9", "-b:v", "1M", "-c:a", "libopus", "-shortest", webm]).status, 0);
@@ -29,7 +29,7 @@ try {
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /converted to H\.264 mp4/); assert.match(r.stdout, /no transcript: whisper-cli and \$WHISPER_MODEL are not set up/);
   const A = path.join(ROOT, "projects", names[0]), P = JSON.parse(fs.readFileSync(path.join(A, "project.json"), "utf8"));
   assert.deepEqual([P.width, P.height, P.fps, P.renderer], [320, 180, 24, "hyperframes"], "size (made even) and fps come from the file");
-  assert.equal(probe(path.join(A, "hf", "media", names[0] + ".mp4"), "stream=codec_name,pix_fmt").split("\n")[0], "h264,yuv420p");
+  assert.equal(probe(path.join(A, "hf", "media", names[0] + ".mp4"), "stream=codec_name,pix_fmt").split(/\r?\n/)[0], "h264,yuv420p");
   assert.ok(!fs.existsSync(path.join(A, "transcript.json")));
   // a real render of it
   r = rw(["film", names[0]]); assert.equal(r.status, 0, r.stdout.slice(-600) + r.stderr.slice(-600));

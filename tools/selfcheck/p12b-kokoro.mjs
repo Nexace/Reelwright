@@ -44,7 +44,7 @@ except ValueError as e:
   const model = path.join(tmp, "model"); fs.mkdirSync(model);
   for (const f of ["kokoro-v1.0.onnx", "voices-v1.0.bin"]) fs.writeFileSync(path.join(model, f), "stub");
   const log = path.join(tmp, "calls.jsonl");
-  const env = { PYTHONPATH: STUB, KOKORO_STUB_LOG: log, KOKORO_DIR: model, KOKORO_CACHE: path.join(tmp, "cache") };
+  const env = { REELWRIGHT_TTS_VENV: path.join(tmp, "no-venv"), REELWRIGHT_MODELS_DIR: path.join(tmp, "no-models"), PYTHONPATH: STUB, KOKORO_STUB_LOG: log, KOKORO_DIR: model, KOKORO_CACHE: path.join(tmp, "cache") };
   const lines = [{ id: "a", text: "Ship product films from plain code." }, { id: "b", text: "Every scene is a function of time, so renders never drift." }];
   const proj = mk("p", { tts: "kokoro", voice: "bf_emma", speed: 1.25, lines });
   let r = run(["tools/tts_kokoro.py", proj], env);

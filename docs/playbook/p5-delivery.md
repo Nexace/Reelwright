@@ -23,11 +23,20 @@ True peak and loudness are already qa gates; the AAC priming (about 21 ms) sits 
 (`tools/vo.py`, which gives the word timings); these are takes you can lay in with `KIT.audio`.
 
 - `say` (macOS, built in), `piper` and `kokoro` (the CLIs, if you installed them; `PIPER_MODEL` names the voice file): local, free.
+  For the film's own voice, Kokoro is an opt-in install, not an exception: `reelwright tts install` prints the plan and sizes (kokoro-onnx in a repo-local `.venv-tts`, the 310 MB model and 27 MB voices in `.models/`; both gitignored) and does nothing without `--yes`;
+  then `"tts": "kokoro"` in `project.json` makes `vo` use it. Add `reelwright transcribe install` and the word times are real (`"timing": "aligned"`, the take is transcribed and the script's words take the heard times) instead of an estimate (`"timing": "estimated"`).
 - `openai`, `gemini`, `elevenlabs`: cloud and paid; refused without `--yes`, the character count is printed first, the API key comes from `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ELEVENLABS_API_KEY`. Their
   request shapes follow each vendor's documented REST API and are tested against an injected `fetch`, **not** against the live service: run one short line before trusting a long script.
 - A take is a 24 kHz mono wav at `assets/narration/<sha1 of provider, voice, rate and text>.wav`: the same text in the same voice is never spoken twice.
-- `check` transcribes a take with whisper.cpp (`whisper-cli`, a ggml model in `WHISPER_MODEL`) and fails when more than `--max-wer` (0.1) of the words did not come back, naming the missing ones.
-  The adapters for piper, kokoro and whisper-cli are proven against stub executables on PATH (their arguments, stdin and files), not against the real models, which this repo does not install.
+- `check` transcribes a take with faster-whisper when `reelwright transcribe install` was run, else with whisper.cpp (`whisper-cli`, a ggml model in `WHISPER_MODEL`), and fails when more than `--max-wer` (0.1) of the words did not come back, naming the missing ones.
+  The adapters for piper, kokoro and whisper-cli are proven against stub executables on PATH (their arguments, stdin and files), not against the real models, which this repo does not install; the same holds for the `transcribe` and `tts` installs (their plans, venv and model selection and the stub-engine paths are checked by `tools/selfcheck/q5-install.mjs`; the real packages and downloads are the owner's run).
+
+## Local transcription
+
+`reelwright transcribe install [--model tiny|base|small] [--yes]` then `reelwright transcribe <audio|video> [--model m] [--lang l] [--out words.json]` (`tools/local_speech.mjs`, `tools/transcribe_fw.py`).
+faster-whisper (CTranslate2) in the repo-local `.venv-tts`, the model in `.models/whisper/<model>` (tiny 75 MB, base 145 MB, small 484 MB; about 100 MB of packages). Nothing is installed or downloaded without `--yes`,
+and a re-run reuses the venv and repairs the package. The output is `[{text,start,end}]` in seconds, the shape `captions` and the caption components take. Once installed, `new --video/--audio` writes `transcript.json` from the
+audio and `narrate check` hears a take back with it; `REELWRIGHT_TTS_VENV` and `REELWRIGHT_MODELS_DIR` move the venv and the models.
 
 ## Brand
 

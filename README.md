@@ -118,8 +118,9 @@ left planned or half-built. Everything new is opt-in, so a film written for 0.3 
   of every page, and the skills know the new commands.
 
 **What is not here, by decision.** Cloud and hosted render, the HeyGen desktop app, MCP and plug-in packaging, WebGPU-only
-blocks, blocks with unlicensed assets, local speech models (`transcribe`, Kokoro TTS: the adapter is in, opt-in, the model is
-not) and `measure face` (the install is opt-in: `reelwright face install --yes`), and the Higgsfield paid depth.
+blocks, blocks with unlicensed assets, and the Higgsfield paid depth. The local models are opt-in installs, each
+printing its plan and sizes and doing nothing without `--yes`: `reelwright face install`, `reelwright transcribe install` (faster-whisper) and
+`reelwright tts install` (Kokoro). None is installed with the repo.
 
 ---
 
@@ -476,6 +477,8 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `spectrum [file] [--out audio-bands.js] [--fps N] [--bins N]` | per-frame spectrum, level and waveform of an audio or video file, FFT at build time, as `window.AUDIO_BANDS` for `KIT.level` / `KIT.spectrum` / `KIT.waveform` |
 | `stills2 [project] [t,t,..] [--at t,t] [--frames N] [--range a-b[:step]] [--zoom <selector>] [--pad px] [--against ref.mp4] [--min-ssim x]` | stills with more than `stills`: times, N evenly spaced, a range, a zoomed crop of one element, or a comparison with a reference video; `stills` with any of those flags runs it |
 | `transcode [video] [--codec h264\|h265\|vp8\|vp9\|av1\|prores\|gif\|mp3\|aac\|wav] [--out file] [--crf N] [--quality draft\|looks\|standard\|high\|delivery] [--scale 0.5] [--metadata key=value]` | a finished film into another codec with Remotion's quality, pixel-format, colour-tag and metadata knobs (the full flag list is in the header of `tools/commands/transcode.mjs`); offline |
+| `transcribe install [--model tiny\|base\|small] [--yes]` / `transcribe <audio\|video> [--model m] [--lang l] [--out words.json]` | local speech to text (faster-whisper): word-level `[{text,start,end}]`, the shape `captions` takes. The install is opt-in: it prints the plan and sizes (about 100 MB of packages plus the model: tiny 75, base 145, small 484 MB) and changes nothing without `--yes`; it makes a repo-local `.venv-tts` and `.models/` (both gitignored). Once installed, `new --video/--audio` and `narrate check` use it |
+| `tts install [--yes]` | local Kokoro voiceover, opt-in: plan and sizes first (about 60 MB of packages, `kokoro-v1.0.onnx` 310 MB, `voices-v1.0.bin` 27 MB), nothing without `--yes`. Then `"tts": "kokoro"` in `project.json` makes `vo` use it; with `transcribe install` too its word times are aligned to the audio (`"timing": "aligned"`) instead of estimated |
 | `verify-av [project]` | does the sound in the rendered mp4 land where `mix.wav` put it: AAC priming, the global offset and the lag around every SFX cue; WARN past 1 frame |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |

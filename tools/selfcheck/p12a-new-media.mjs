@@ -11,7 +11,7 @@ import { ROOT, pixel } from "./p1-fixture.mjs";
 import { parseWhisperJson } from "../new_media.mjs";
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p12a-g1-")), names = [`p12a-g1a-${process.pid}`, `p12a-g1b-${process.pid}`, `p12a-g1c-${process.pid}`];
-const sh = (cmd, args, env = {}) => spawnSync(cmd, args, { encoding: "utf8", cwd: ROOT, env: { ...process.env, ...env, PAGES: "2" }, maxBuffer: 1 << 26 });
+const sh = (cmd, args, env = {}) => spawnSync(cmd, args, { encoding: "utf8", cwd: ROOT, env: { ...process.env, REELWRIGHT_TTS_VENV: path.join(os.tmpdir(), "rw-no-venv"), ...env, PAGES: "2" }, maxBuffer: 1 << 26 });
 const rw = (args, env) => sh(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), ...args], env);
 const probe = (f, e) => spawnSync("ffprobe", ["-v", "error", "-show_entries", e, "-of", "csv=p=0:s=,", f], { encoding: "utf8" }).stdout.replace(/\r/g, "").trim();
 try {

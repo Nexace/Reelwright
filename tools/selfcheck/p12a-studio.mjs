@@ -269,8 +269,8 @@ try {
   console.log("p12a-studio self-check: H3 waveform/meter, captions, gap drag + snap + ripple, range, linked, split/trim, nested drill-down; H5 undo/redo, audio rack, blur, variables, renders queue (2 real renders, 1 cancelled), lint, assets, catalog add, captions, source; trust boundary kept");
 } catch (e) { console.error("p12a-studio self-check FAILED:", e.stack || e.message); process.exitCode = 1; }
 finally {
-  await browser?.close().catch(() => {});
-  for (const s of servers) if (s.exitCode === null) { s.kill("SIGTERM"); await new Promise((r) => (s.exitCode !== null ? r() : s.once("exit", r))); }
+  await Promise.race([browser?.close().catch(() => {}), new Promise((r) => setTimeout(r, 8000))]);   // never wait forever on cleanup (Windows hung here until the runner killed the check)
+  for (const s of servers) if (s.exitCode === null) { s.kill("SIGTERM"); await Promise.race([new Promise((r) => (s.exitCode !== null ? r() : s.once("exit", r))), new Promise((r) => setTimeout(r, 8000))]); }
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
 // the work is done and cleaned up: leave now even if a child process of a render job still holds a pipe open (Windows otherwise waits for it until the runner kills the check)

@@ -1,8 +1,8 @@
 # Phase 10z: non-EQUAL rows, grouped by reason
 
-Generated 2026-11-14 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
+Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 390; not 211 (grand total of the groups below: 211).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 399; not 202 (grand total of the groups below: 202).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -15,8 +15,8 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 390; not 211 (grand total of the g
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 21 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 116 |
-| | **Grand total** | **211** |
+| 10 | Not done, no stated reason | 107 |
+| | **Grand total** | **202** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -384,13 +384,13 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12)
   - approach: exclude
 
-## 10. Not done, no stated reason (116) — 72 approved, 2 planned, 28 partial, 14 open
+## 10. Not done, no stated reason (107) — 72 approved, 2 planned, 19 partial, 14 open
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 116 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 107 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 26
+By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 17
 
 ### HyperFrames (36)
 
@@ -701,22 +701,13 @@ By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 26
   - says: (10i): `reelwright manim <p> verify` checks clip hashes, frame counts and data.js (`tools/manim.mjs`, `tools/selfcheck/manim.mjs`); `all`, `verify` and the manifest do not run Manim (shared files left alone by decision)…
   - approach: own code
 
-### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (26)
+### anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie (17)
 
-#### Docs / PLAYBOOK note only (4)
+#### Docs / PLAYBOOK note only (1)
 
 - `doodle-shots-motion:1.15` — Lessons: step sheet + captioned timelapse, drawn-stroke captions — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no drawn-stroke captions. Suggest: accept as exception.
   - approach: docs recipe on top of D.score + captions; low priority (teaching niche)
-- `doodle-shots-motion:2b.7` — Ink Press: complete 36 s validated promo template (10 shots, replace screenshots/copy/logo) — PARTIAL — partial, rest planned (open)
-  - says: (10z): docs/recipes/film is one 8-scene HF film built from the 8 recipes (docs/recipes/*.md, stills); projects/example, teaser, website, dashboard; `from-url`; missing: a validated 10-shot promo template (`new --templat…
-  - approach: docs: 'promo-energy-arc' project template (`reelwright new --template promo`) assembled from KIT.recipe.* (M). Do not copy template screenshots
-- `doodle-shots-motion:2b.9` — Energy-arc sequence: low open -> single hero -> feature climb with breath cards -> peak group-photo outro; budget hold frames first — PARTIAL — partial, rest planned (open)
-  - says: (10z): PLAYBOOK 'Story before pixels' gives the hook → grind → reveal → features → payoff → end-card order; missing: energy-arc table and a `beats` arc validator (WARN if the close is not the loudest) [10z: build]
-  - approach: docs section + `reelwright beats` arc validator (WARN if closing is not the loudest) S
-- `doodle-shots-motion:2b.11` — Final independent review checklist (P/F/V/A/... items, clean-context reviewer) — PARTIAL — partial, rest planned (open)
-  - says: (10z): docs/playbook/claude-workflow.md loop (stills, taste WARNs, qa FAIL/WARN) + AGENTS.md step 3; missing: an itemised final-review checklist and a clean-context reviewer step [10z: build]
-  - approach: docs: PLAYBOOK 'Review' checklist
 
 #### Recipe or KIT helper to add (R-tier) (7)
 
@@ -742,31 +733,16 @@ By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 26
   - says: 10z: Niche layout choreography (document parks left, pills deal out); composable from KIT.layout.split, grid-card-assemble and KIT.stagger with no kit gap. Propose as an exception (niche). [10z: except]
   - approach: R1 recipe
 
-#### Native code to add in tools/ (or a flag/command) (7)
+#### Native code to add in tools/ (or a flag/command) (2)
 
 - `doodle-shots-motion:1.37` — Mechanism explainers: exploded axonometric machine, free-angle camera, depth-sorted parts, drafted lettering, figure card — MISSING — exception (owner-approved 2026-11-12)
   - says: pieces only: `S.explode` (layers separate in z while the stack turns axonometric, tools/shots2.js) and `KIT.math3d` (Three.js scenes, tools/math3d.js). Not built (10z audit): no `KIT.axo` projection with depth-sorted pa…
   - approach: native only as docs + `KIT.axo` SVG projection helper (project mm coords with azimuth/elevation, depth-sort) or three.js for real 3D; L, defer
-- `doodle-shots-motion:2b.1` — Camera layer: layout-scale `zoom` instead of scale so text stays sharp under 3D; native-size texture rasterised then scaled (Q2) — PARTIAL — partial, rest planned (open)
-  - says: KIT.camCSS/shoot still use transform scale() (tools/shots.js); shots2 planes set --kit-line for stroke weight only; missing: `sharp:true` layout-zoom option and a 9x16 stills check [10z: build]
-  - approach: native: camCSS option `sharp:true` (CSS zoom on the filmed layer; same Chromium in both renderers) + docs; verify with stills at 9x16
-- `doodle-shots-motion:2b.3` — Velocity helpers: velocityAt, lagged, dampedSettle (state-free) — PARTIAL — partial, rest planned (open)
-  - says: (10z): K.speedBlur central-difference velocity (tools/shots.js), steepTilt `ghosts` trailing copies (tools/shots2.js), KIT.sim seekable physics (tools/motion.js); missing: velocityAt / lagged / dampedSettle helpers [10z…
-  - approach: native 10 lines in shots.js
-- `doodle-shots-motion:2b.10` — Aesthetic rules as lints: R1 hold >=1 s on wordmark, R4 <=3 whole-frame beat hits, Q11 caption >=5% frame height / secondary 3%, Q3 no hand… — PARTIAL — partial, rest planned (open)
-  - says: (10z): qa WARN tiny-text (24 px × KIT.u, tools/qa_page.mjs), taste WARNs motion/balance/empty/contrast/pacing (tools/checks/taste.page.mjs), mix.py WARN on >1 riser/subdrop; missing: wordmark-hold, 5%/3% caption height,…
-  - approach: native qa WARN set: min-text-height 5%/3%, wordmark-hold, big-slam budget (count K.shake/crashZoom), sfx-repeat
 - `doodle-shots-motion:2b.17` — Gallery of 150 looping previews + library.json API + llms.txt — MISSING — exception (owner-approved 2026-11-12)
   - says: stills/sheet.jpg contact sheet only; 10z: no per-shot looping preview gallery: tools/theme-gallery.mjs renders themes, `blocks.mjs render` renders block stills, docs/recipes has stills; a 150-clip gallery + llms.txt is…
   - approach: native `reelwright shots --gallery`: renders each KIT.recipe/shot as a looping mp4/webp sheet into docs/ (also the proof medium for these rows)
-- `doodle-shots-motion:2b.18` — Beat-synced cutting methodology: librosa grid fit, kick/snare/hat onset classes, grid validation by transient coverage, post-render cut err… — PARTIAL — partial, rest planned (open)
-  - says: tools/beatgrid.py fits tempo/phase from two onset bands (kick <120 Hz, transients 2-10 kHz) + drop; tools/music.py beds have a known grid; KIT.snap / KIT.pulse; missing: post-render cut-on-beat error report, snare/hat c…
-  - approach: native qa WARN `cut-on-beat`: extract audio from mp4 and measure cut-to-beat error (S); onset classes (low/mid/high band) S
-- `doodle-shots-motion:2b.19` — Output-audio offset compensation: AAC priming (~1.28 f) and per-file SFX peak lag (brush-write 2 f, paper-slide 10 f) — PARTIAL — partial, rest planned (open)
-  - says: (10g): per-kind PEAK table in tools/mix.py (cue start = t − peak), proved ±10 ms by tools/selfcheck/sound.mjs; missing: AAC priming measurement / `verify-av` cross-correlation on the rendered mp4 [10z: build]
-  - approach: native: per-kind PEAK table in mix.py for synthesised SFX (known by construction) + `verify-av` cross-correlation check on the rendered mp4 (S)
 
-#### Other (read the approach text) (8)
+#### Other (read the approach text) (7)
 
 - `doodle-shots-motion:1.34` — Product UI from data: before/after states, items spring to slots, matched by id — MISSING — exception (owner-approved 2026-11-12)
   - says: Reelwright films a real recorded UI instead. Not built (10z audit): no id-keyed before/after list morph; docs/recipes/before-after.md is a static two-pane split. Suggest: accept as exception (low priority, the Approach…
@@ -777,9 +753,6 @@ By source: hyperframes 36, remotion 36, manim 18, doodle-shots-motion 26
 - `doodle-shots-motion:1.53` — Interactive web art: <ani-doodle> mascots that follow the cursor, scroll-drawn hero, form companion — MISSING — exception (owner-approved 2026-11-12)
   - says: Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs and the studio exist, neither is cursor-reactive web art). Suggest: accept as exception.
   - approach: out of scope (not a video; belongs to the embeddable-player/studio work)
-- `doodle-shots-motion:2b.13` — Page capture trio: 2x full-page PNG, per-element transparent cutouts, layout.json bbox table — PARTIAL — partial, rest planned (open)
-  - says: tools/capture_site.mjs saves 2x sections, full page, images, hero + per-heading shots and site.json (text, colours, fonts, heading y); missing: per-element transparent cutouts and a layout.json bbox table [10z: build]
-  - approach: extend capture_site: element cutouts (omitBackground) + layout.json boxes; needed for 3D 'floating chip' recipes
 - `doodle-shots-motion:2b.14` — Motion Workbench: CapCut-style browser editor (tracks, retime, swap shots, schema inspector, parity check, export) — PARTIAL — exception (owner-approved 2026-11-12)
   - says: (10k): `reelwright studio` local editor (tools/studio, docs/playbook/studio.md): player, timeline of scenes/VO/beats/SFX cues, inspector for lines/gaps/style, stills/taste/embed jobs; missing: shot/transition/SFX track…
   - approach: belongs to the studio-editor audit; Remotion-Player-based, so not reusable. Reuse only the manifest idea (`workbench.ts`: shots/transitions/captions/sfx tracks)

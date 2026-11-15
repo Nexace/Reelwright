@@ -10,21 +10,21 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| HyperFrames | 60 | 6 | 0 | 22 | 18 | 6 | 0 | 0 | 112 |
-| Remotion + its skills | 63 | 4 | 3 | 8 | 19 | 0 | 12 | 1 | 110 |
+| HyperFrames | 61 | 6 | 0 | 21 | 18 | 6 | 0 | 0 | 112 |
+| Remotion + its skills | 64 | 4 | 3 | 7 | 19 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **400** | **30** | **6** | **65** | **72** | **6** | **20** | **2** | **601** |
+| **All** | **402** | **30** | **6** | **63** | **72** | **6** | **20** | **2** | **601** |
 
-**0.3.0 reaches parity on 436 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**0.3.0 reaches parity on 438 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 436 |
+| EQUAL, BETTER or EQUAL/BETTER | 438 |
 | Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 163 |
 | Planned (Phase 11), not claimed | 0 |
-| Partial: some shipped, the rest planned (open) | 2 |
+| Partial: some shipped, the rest planned (open) | 0 |
 | Proposed exceptions waiting for the owner | 0 |
 | Open, no tag | 0 |
 | **Total** | **601** |
@@ -99,7 +99,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G1 | `init` (examples, `--resolution` presets, `--video/--audio` with auto… | EQUAL | `tools/new_media.mjs` |
 | G2 | `add`, `catalog` | EQUAL | `tools/commands/catalog.mjs` |
 | G3 | `capture <url>`: scroll screenshots (default 21, full-page plate), HT… | EQUAL | `tools/capture_url.mjs` |
-| G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | PARTIAL — partial, rest planned (open) | `tools/checks/native-lint.mjs` (11): built: `reelwright lint [--components]` with 9 ported rules, drift and HDR checks (`tools/checks/native… |
+| G4 | `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 docu… | EQUAL | `tools/checks/native-lint.mjs` |
 | G5 | `snapshot` (frames at `--at`, `--frames N`, `--zoom selector`, `--aga… | EQUAL | `tools/commands/stills2.mjs` |
 | G6 | `keyframes` (list detected GSAP/CSS/anime keyframes; onion-skin PNG o… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | No keyframe listing or onion-skin command; `render(t)` is a pure function with no tween list to introspect. N… |
 | G7 | `compare` N variants into one labelled PNG; `grade-compare` | EQUAL | `tools/commands/compare.mjs` |
@@ -257,7 +257,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.18 | Optional renderer `"renderer": "remotion"` (React films rendered by R… | EQUAL | `tools/renderers/remotion.mjs` |
-| 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | PARTIAL — partial, rest planned (open) | `tools/studio/` (11): built: props sidebar, canvas zoom, quick switcher, render-from-UI, click-to-select, `--open` / `--no-op… |
+| 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | EQUAL | `tools/studio/agent.mjs` |
 | 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.8.3 | Connected compositions / pre-compose a scene with its own timeline | EQUAL | `tools/compose.js,` |
 | 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | EQUAL | `tools/p9-player.js` |
@@ -667,7 +667,7 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 436 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 2 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 438 EQUAL/BETTER, 163 accepted exceptions, 0 planned, 0 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
 ### Accepted exceptions (163, owner-approved 2026-11-12 and 2026-11-15)
 
@@ -860,17 +860,9 @@ Moved here after the first ruling because the owner dropped checkpoint 10l (Higg
 
 Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.
 
-### Partial (2)
+### Partial (0)
 
 Some of the row is built (the row names the file that proves it); the missing part is tagged build. These stay PARTIAL and count as open.
-
-#### HyperFrames (1)
-
-- `hyperframes:G4` — `lint`, `check`, `validate`/`inspect`/`layout` (deprecated): 143 documented lint rules (structure 6… — PARTIAL
-
-#### Remotion + its skills (1)
-
-- `remotion:2.8.1` — Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd/Ctrl+J), canvas zoom, quick s… — PARTIAL
 
 ### Open, no tag (0)
 

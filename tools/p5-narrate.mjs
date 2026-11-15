@@ -4,7 +4,7 @@
 //       sha1(provider | voice | rate | text), so the same line in the same voice is never spoken twice (the take is cached by hash)
 //   wer(reference, heard) → word error rate (Levenshtein over words, case and punctuation folded)
 //   check(wav, text, { asr, maxWer = 0.1 }) → { ok, wer, heard, missing }   "hears every word back": the take is transcribed by an ASR
-//       (default: whisper.cpp's `whisper-cli`, model in $WHISPER_MODEL) and the words that did not come back are listed
+//       (default: faster-whisper if `transcribe install` was run, else whisper.cpp's `whisper-cli`, model in $WHISPER_MODEL) and the words that did not come back are listed
 // Cloud providers are never called without yes: true (a paid call; the character count is printed first), and their request shapes
 // follow each vendor's documented REST API but have NOT been run from here (no key, no network in the self-check): they are tested
 // against an injected fetch only. Local providers run the CLI you have; none is installed by Reelwright.
@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { transcribeReady, transcribeMedia } from "./local_speech.mjs";
 
 const which = (cmd) => spawnSync(process.platform === "win32" ? "where" : "which", [cmd], { encoding: "utf8" }).status === 0;
 const run = (cmd, args, o = {}) => {
@@ -98,8 +99,9 @@ export function wer(reference, heard) {
   for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
   return d[a.length][b.length] / a.length;
 }
-export const asrAvailable = () => which("whisper-cli") && !!process.env.WHISPER_MODEL;
-export const whisper = (wav) => run("whisper-cli", ["-m", process.env.WHISPER_MODEL, "-f", wav, "-nt", "-np"]).trim();   // whisper.cpp: text only on stdout
+export const asrAvailable = () => transcribeReady() || (which("whisper-cli") && !!process.env.WHISPER_MODEL);
+// the installed faster-whisper (`reelwright transcribe install`) when there is one, else whisper.cpp (text only on stdout)
+export const whisper = (wav) => (transcribeReady() ? transcribeMedia(wav).map((w) => w.text).join(" ") : run("whisper-cli", ["-m", process.env.WHISPER_MODEL, "-f", wav, "-nt", "-np"]).trim());
 export function check(wav, text, { asr = whisper, maxWer = 0.1 } = {}) {
   const heard = asr(wav), w = wer(text, heard), got = new Set(words(heard));
   return { ok: w <= maxWer, wer: +w.toFixed(3), heard, missing: [...new Set(words(text))].filter((x) => !got.has(x)) };

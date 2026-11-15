@@ -3,14 +3,15 @@
 //   - the video is probed (ffprobe); anything that is not H.264 in yuv420p (a .mov, VP9, HEVC, ProRes, a 10-bit file) is converted to H.264 + AAC mp4, because the
 //     producer and browsers decode that reliably; an H.264 mp4 is copied untouched. The project takes its width, height and fps from the file.
 //   - an --audio file is copied beside it and mixed over the film (KIT.audio); with --audio only, the film is a title card for that sound.
-//   - transcript: the media's own speech, written to transcript.json ([{text,start,end}], what `captions` writes for the caption-* components) ONLY through the speech
-//     path the repo already has (tools/p5-narrate.mjs: whisper.cpp's `whisper-cli` and the model in $WHISPER_MODEL). Nothing is downloaded or installed: without
-//     both, the transcript is skipped and the result says so.
+//   - transcript: the media's own speech, written to transcript.json ([{text,start,end}], what `captions` writes for the caption-* components) ONLY through a speech
+//     path that is already installed: faster-whisper (`reelwright transcribe install`, tools/local_speech.mjs) or whisper.cpp's `whisper-cli` and the model in
+//     $WHISPER_MODEL (tools/p5-narrate.mjs). Nothing is downloaded or installed here: without either, the transcript is skipped and the result says so.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
 import { asrAvailable } from "./p5-narrate.mjs";
+import { transcribeReady, transcribeMedia } from "./local_speech.mjs";
 
 const probe = (f) => {
   const r = spawnSync("ffprobe", ["-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate,pix_fmt,duration:format=duration", "-of", "json", f], { encoding: "utf8" });
@@ -84,8 +85,8 @@ KIT.start({ dur: DUR, render: () => {} });
   let transcript = null, note;
   const src = (video && pv.a) ? video : audio || null;
   if (!src) note = "no transcript: the video has no audio";
-  else if (!asrAvailable()) note = "no transcript: whisper-cli and $WHISPER_MODEL are not set up (nothing is downloaded for you); with them, `new` writes transcript.json from the audio";
-  else { const words = transcribe(src); fs.writeFileSync(path.join(dest, "transcript.json"), JSON.stringify(words, null, 1)); transcript = words.length; note = `transcript.json: ${words.length} words from the audio`; }
+  else if (!transcribeReady() && !asrAvailable()) note = "no transcript: whisper-cli and $WHISPER_MODEL are not set up (nothing is downloaded for you); with them, or after `reelwright transcribe install --yes`, `new` writes transcript.json from the audio";
+  else { const words = transcribeReady() ? transcribeMedia(src) : transcribe(src); fs.writeFileSync(path.join(dest, "transcript.json"), JSON.stringify(words, null, 1)); transcript = words.length; note = `transcript.json: ${words.length} words from the audio`; }
   log(note);
   return { dest, converted, transcript, note, dur, width: W, height: H, fps };
 }

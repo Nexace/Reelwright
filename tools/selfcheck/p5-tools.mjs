@@ -175,8 +175,8 @@ async function withPage(film, fn) {
     stub("piper", 'out=""; while [ $# -gt 0 ]; do [ "$1" = "--output_file" ] && out="$2"; shift; done; cat > "$out.in"; ffmpeg -y -v error -f lavfi -i sine=d=1 "$out"; echo "$out.in" > "' + path.join(tmp, "piper.seen") + '"');
     stub("kokoro-tts", 'ffmpeg -y -v error -f lavfi -i sine=d=1 "$2"; echo "$@" > "' + path.join(tmp, "kokoro.args") + '"; cat "$1" > "' + path.join(tmp, "kokoro.text") + '"');
     stub("whisper-cli", 'echo "hello world"');
-    const saved = { PATH: process.env.PATH, PIPER_MODEL: process.env.PIPER_MODEL, WHISPER_MODEL: process.env.WHISPER_MODEL };
-    Object.assign(process.env, { PATH: bin + path.delimiter + process.env.PATH, PIPER_MODEL: "/models/en.onnx", WHISPER_MODEL: "/models/ggml.bin" });
+    const saved = { PATH: process.env.PATH, PIPER_MODEL: process.env.PIPER_MODEL, WHISPER_MODEL: process.env.WHISPER_MODEL, REELWRIGHT_TTS_VENV: process.env.REELWRIGHT_TTS_VENV };
+    Object.assign(process.env, { PATH: bin + path.delimiter + process.env.PATH, PIPER_MODEL: "/models/en.onnx", WHISPER_MODEL: "/models/ggml.bin", REELWRIGHT_TTS_VENV: path.join(tmp, "no-venv") });
     try {
       assert.ok(N.providers.piper.available() && N.providers.kokoro.available() && N.asrAvailable());
       const p = await N.synth("piper", "spoken by piper", { dir, log: noop }); assert.equal(wavInfo(p.file).sample_rate, "24000");

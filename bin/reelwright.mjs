@@ -3,7 +3,7 @@
 //
 //   new <name> [--renderer hyperframes|remotion]   copy the example (or example-hf, or templates/remotion) into projects/<name>
 //   new <name> --video <file> [--audio <file>]   a HyperFrames project that plays your media (non-H.264 video is converted; transcript.json from its audio only
-//                    if whisper-cli and $WHISPER_MODEL are set up: nothing is downloaded)
+//                    if `transcribe install` was run or whisper-cli and $WHISPER_MODEL are set up: nothing is downloaded)
 //                    --example <name|list> start from projects/<name>; --agents write AGENTS.md + CLAUDE.md into it;
 //                    --skills copy the repo's project skills into it; --tailwind is skipped (needs an install)
 //   add <component>  copy a HyperFrames catalog component into <project>/hf/blocks/ (use with KIT.block)

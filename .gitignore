@@ -53,3 +53,6 @@ projects/*/rm/kit-data.json
 .venv-face/
 __pycache__/
 *.pyc
+# optional local speech install (reelwright transcribe install / tts install --yes): repo-local venv and models, never committed
+.venv-tts/
+.models/

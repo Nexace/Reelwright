@@ -39,6 +39,29 @@ KIT.start({ dur, render(t) { show(A, t < CUT ? 1 : 0); show(B, t >= CUT ? 1 : 0)
 - Everything outside the two scenes (subtitles, a logo bug) is in both captures, so it gets warped too. Keep overlays
   you want steady out of transition windows or accept the effect.
 
+## Cut-centred windows — `KIT.cut`, `KIT.progress`
+
+A `KIT.transition` window is `[at, at + dur]`. `KIT.cut` puts the cut in the middle of it instead:
+`[cut − dur/2, cut + dur/2]`. Nothing is trimmed from the film — the window is an overlay on the cut, so the next
+scene keeps its time and a wipe can start 12 frames before a VO beat and finish 12 after (Remotion's
+`<TransitionSeries>` offset semantics).
+
+```js
+const CUT = KIT.snap(W('reveal', 'now'));
+const wipe = KIT.cut(CUT, { from: A, to: B, dur: 24 / PROJECT.fps, transition: 'wipe', audio: 'whoosh' });
+KIT.start({ dur, render(t) {
+  wipe.set(t);                                        // every KIT.transition option passes through (dir, seed, ease, params, …)
+  const p = KIT.progress(CUT, 24 / PROJECT.fps)(t);   // raw 0..1 across the window, clamped outside it
+  /* … */
+} });
+```
+
+`KIT.cut` returns the transition (`set`, `p`, `at`, `end`) plus `cut` and `dur`. `audio` is a `KIT.cue` at the cut;
+the transition's own `cue` still fires at the window's start. `KIT.progress` is the raw, clamped progress, while
+`transition.p(t)` is the same window through the transition's ease. `dur` is in seconds like every other KIT duration
+(`24 / PROJECT.fps` for 24 frames). A shader name works too: `KIT.cut(CUT, { from: A, to: B, transition: 'sdf-iris' })`
+puts the shader pass over the cut.
+
 Limits:
 - Transition frames are opaque: `output.alpha` keeps transparency everywhere else.
 - `motionBlur`: transition frames are sharp (one capture per frame).

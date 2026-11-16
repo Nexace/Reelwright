@@ -48,6 +48,33 @@ Not a second engine entry: `tools/engine.js` still starts one film per page, so 
 `--composition` run restores; a command that writes `project.json` itself, like `beats import`, keeps its write). Do not run two compositions of the same
 project at the same time; use `--formats` for the same film in several sizes.
 
+## Timeline extras — custom eases, reverse segments, path motion, retiming
+
+Load `tools/easing-extra.js` after `engine.js` (and `tools/transitions.js` for `KIT.cut`). All of it is opt-in and a pure
+function of `t`; nothing changes without these calls. Proof: `node tools/selfcheck/timeline.mjs` (assertions on the pure
+parts, then shuffled seeks in pvk and HyperFrames).
+
+| API | What it does |
+|---|---|
+| `KIT.easing.svg('M0,0 C…')` | an ease from an SVG path of cubic `C` (or line `L`) segments: x is progress, y the value, x resolved by binary search. The x controls must not go backwards. GSAP's `CustomEase.create` model. Returns 0 at p ≤ 0 and 1 at p ≥ 1; between them the path's own curve (overshoot allowed). |
+| `KIT.keys(t, pts, eases, { easeReverse: true \| 'outExpo' })` | on a segment whose value falls, `true` mirrors that segment's ease (`1 − e(1 − s)`, so a ping-pong repeats the forward pass at the mirrored time) and a name uses that ease as the reverse. Ascending segments keep their ease. |
+| `KIT.path(d \| [[x, y], …], { alignOrigin, autoRotate, start = 0, end = 1, curviness })` | motion along a path. `at(p)` → `{ x, y, angle }` at the `start`..`end` fraction (tangent by finite difference; `autoRotate: true` or a number of degrees); `place(el, p)` puts `alignOrigin` of the element on the point and rotates it there. A points array is smoothed by `curviness` (0 = straight). `KIT.path(d)` without options is unchanged. |
+| `KIT.range(a, b).retime('reverse' \| 'mirror' \| rate)` | a pure `t → t'` remap: `'reverse'` and `'mirror'` give `a + b − t` (mirror is the ping-pong name), a number is a playback rate (`0.5` = half speed). Feed the result to `KIT.keys`; there is no new sampler. |
+
+```js
+const ease = KIT.easing.svg('M0,0 C0.2,0 0.3,1 1,1');
+const arc = KIT.path('M80 320 C 200 40 480 340 600 80', { autoRotate: true, start: 0.05, end: 0.95 });
+const ping = KIT.range(2, 4).retime('mirror');
+render(t) {
+  arc.place(dot, ease(KIT.seg(t, 2, 4)));
+  dot.style.opacity = KIT.keys(ping(t), [[2, 0], [3, 1], [4, 0]], [null, null], { easeReverse: true });
+}
+```
+
+The path form measures a hidden `SVGPathElement` with `getTotalLength` / `getPointAtLength` (deterministic in headless
+Chrome) and caches one element per `d`; build it at load, not per frame. Cut-centred transition windows are
+`KIT.cut` / `KIT.progress` — see [shader-transitions](shader-transitions.md#cut-centred-windows--kitcut-kitprogress).
+
 ## Notes that bite
 
 - `interpolate` string outputs read numbers with an optional sign and decimals (no exponents, no `calc()`); every output must have the same text between its

@@ -24,7 +24,7 @@
       "s": 12.7
     },
     "camera-time": {
-      "s": 11.9
+      "s": 21.7
     },
     "caption-components": {
       "s": 6.5
@@ -105,6 +105,9 @@
     "hf-render": {
       "serial": true,
       "s": 30.8
+    },
+    "hit-sync": {
+      "s": 3.3
     },
     "hw-encode": {
       "s": 3.8

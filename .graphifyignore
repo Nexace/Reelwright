@@ -1,1 +1,6 @@
 vendor/
+docs/gallery/
+docs/samples/*.mp4
+projects/*/out/
+projects/*/frames/
+projects/*/stills/

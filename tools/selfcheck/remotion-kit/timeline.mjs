@@ -64,9 +64,16 @@ KIT.start({ dur: 4, render: (t) => {
       ok('KIT.path: autoRotate off is angle 0', K.path('M0 0 L0 100', { autoRotate: false }).at(0.5).angle === 0);
       ok('KIT.path: a number adds to the tangent', near(K.path('M0 0 L0 100', { autoRotate: 45 }).at(0.5).angle, 135, 0.01));
       ok('KIT.path: points + curviness 0 is straight', near(K.path([[0, 0], [100, 0], [100, 100]], { curviness: 0 }).len, 200, 0.01));
+      // an opts that asks for no motion keeps the legacy shape ({ d, len, at, slice, box }), as it did before motion existed
+      const legacy = K.path('M0 0 L100 0', {}), legacyTrue = K.path('M0 0 L100 0', true), mo = K.path('M0 0 L100 0', { autoRotate: true });
+      ok('KIT.path: an empty opts keeps the legacy shape', !('place' in legacy) && near(legacy.len, 100, 0.01) && near(legacy.box.x2, 100, 0.01) && typeof legacy.slice === 'function');
+      ok('KIT.path: a non-object second argument keeps the legacy shape', !('place' in legacyTrue) && near(legacyTrue.len, 100, 0.01) && legacyTrue.box.y2 === 0);
+      ok('KIT.path: autoRotate asks for the motion object', typeof mo.place === 'function' && typeof mo.at === 'function');
       // 5. range retiming is a pure t remap
       const mir = K.range(2, 5).retime('mirror'), rev = K.range(2, 5).retime('reverse'), half = K.range(2, 5).retime(0.5);
-      ok('KIT.range: mirror maps t to a + b − t', near(mir(2), 5) && near(mir(3.5), 3.5) && near(mir(5), 2));
+      ok('KIT.range: mirror is a triangle: a at a, b at the midpoint, a at b', near(mir(2), 2) && near(mir(3.5), 5) && near(mir(5), 2));
+      ok('KIT.range: mirror halfway up the ramp is halfway along', near(mir(3), 4));
+      ok('KIT.range: mirror repeats every dur (a loop ping-pongs)', near(mir(5 + 3), mir(5)) && near(mir(5 + 1.5), 5));
       ok('KIT.range: reverse maps t to a + b − t', near(rev(1), 6));
       ok('KIT.range: 0.5 is half speed', near(half(4), 3));
       return out;

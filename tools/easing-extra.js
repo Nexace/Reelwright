@@ -6,8 +6,9 @@
 //                                                 on a segment whose value falls: true mirrors that segment's ease
 //                                                 (1 − e(1 − s), so a ping-pong repeats the forward pass), a name uses
 //                                                 that ease as the reverse. Ascending segments keep their ease.
-//   KIT.range(a, b).retime('reverse' | 'mirror' | rate)   a pure t → t' remap: 'reverse' and 'mirror' give a + b − t
-//                                                 (mirror = the ping-pong name), a number is a playback rate (0.5 = half speed).
+//   KIT.range(a, b).retime('reverse' | 'mirror' | rate)   a pure t → t' remap: 'reverse' gives a + b − t; 'mirror' is a triangle
+//                                                 wave over [a, b] (a → b at the midpoint → a) that repeats every dur, so a loop
+//                                                 ping-pongs; a number is a playback rate (0.5 = half speed).
 //                                                 Feed the result to KIT.keys / KIT.easing; there is no new sampler.
 'use strict';
 (function () {
@@ -79,7 +80,11 @@
     return {
       a, b, dur: b - a,
       retime(mode = 1) {
-        if (mode === 'reverse' || mode === 'mirror') return (t) => a + b - t;
+        if (mode === 'reverse') return (t) => a + b - t;
+        if (mode === 'mirror') {   // triangle over the range: a → b at the midpoint → a, then the next cycle
+          const d = b - a;
+          return (t) => { const u = ((t - a) / d % 1 + 1) % 1; return a + d * (u <= 0.5 ? 2 * u : 2 * (1 - u)); };
+        }
         if (typeof mode === 'number' && Number.isFinite(mode)) return (t) => a + (t - a) * mode;
         throw new Error("KIT.range.retime: 'reverse', 'mirror' or a playback rate");
       },

@@ -1,22 +1,22 @@
 # Phase 10z: non-EQUAL rows, grouped by reason
 
-Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
+Generated 2026-11-16 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 441; not 160 (grand total of the groups below: 160).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 458; not 143 (grand total of the groups below: 143).
 
 | # | Group | Rows |
 |--:|---|--:|
 | 1 | Excluded by owner decision or repo rule | 7 |
 | 2 | Needs WebGPU / specific hardware | 4 |
-| 3 | Licence-blocked or non-OSI (and what was done instead) | 3 |
+| 3 | Licence-blocked or non-OSI (and what was done instead) | 2 |
 | 4 | Not seekable / not deterministic, so kept out by the seekable gate | 4 |
-| 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 15 |
+| 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 11 |
 | 6 | shotcraft audio, social publishing, JianYing and third-party tools skipped | 4 |
 | 7 | Paid-connector-only (Higgsfield) | 20 |
-| 8 | The audit's own approach column says skip / defer / not needed | 21 |
+| 8 | The audit's own approach column says skip / defer / not needed | 19 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
-| 10 | Not done, no stated reason | 73 |
-| | **Grand total** | **160** |
+| 10 | Not done, no stated reason | 63 |
+| | **Grand total** | **143** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -71,23 +71,17 @@ By source: hyperframes 4
   - says: (11): owner ruling 2026-11-15: exception, final, for the blocks not vendored: 37 need WebGPU, 19 have assets with an unknown licence, 14 need upstream source that is not in this repo (and writes under vendor/hyperframes…
   - approach: follows E3
 
-## 3. Licence-blocked or non-OSI (and what was done instead) (3) — 3 approved
+## 3. Licence-blocked or non-OSI (and what was done instead) (2) — 2 approved
 
 Rows whose status text or licence cell says the upstream is UNLICENSED, has no licence, is all-rights-reserved, not open source, or a paid licence. The row text says what was done instead (native rewrite, skip).
 
-By source: hyperframes 1, remotion 1, higgsfield-workflows 1
+By source: hyperframes 1, higgsfield-workflows 1
 
 ### HyperFrames (1)
 
 - `hyperframes:E7` — Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-hex`, `world-map`, `spain-map`, `nyc-paris-flight`, `north-korea-locked-… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2.0.2 vendored); `us-map`, `us-map-flow`, `spain-map` (es-atlas data not vendored: its blocks failed the seek-o…
   - approach: make the 3 failing maps seekable
-
-### Remotion + its skills (1)
-
-- `remotion:2.3.1` — `@remotion/effects`: ~91 effect docs (list in skills `SKILL.md` and `docs/effects/`); `effects={[...]}` on Img/CanvasImage/AnimatedImage/So… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: (no effects stack; CSS filters only via themes)
-  - approach: [R] free (needs `--gl=angle`, Remotion Chrome). [N] cherry-pick CSS/SVG-filter ones below
 
 ### Higgsfield workflows (docusphere, cth9191) (1)
 
@@ -119,21 +113,17 @@ By source: remotion 1, doodle-shots-motion 3
   - says: interactive or wall-clock features, not seekable
   - approach: exclude from the bundle (about 130 KB saved); lint `ScrollTrigger`, `.play(`, `repeat:-1`, global `gsap.to(` outside a paused timeline
 
-## 5. Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) (15) — 15 approved
+## 5. Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) (11) — 11 approved
 
 Plan: Remotion, Manim CE and ManimGL are opt-in installs, never bundled. Rows whose status text puts the gap in the optional renderer or says it was not built there.
 
-By source: remotion 9, manim 6
+By source: remotion 5, manim 6
 
-### Remotion + its skills (9)
+### Remotion + its skills (5)
 
 - `remotion:2.1.14` — `<Track>` non-overlapping named timeline lanes; editable timeline groups — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (Studio-only concept)
   - approach: [R] only; for [N] a "scene list" in project.json is enough
-- `remotion:2.2.6` — HTML-in-canvas shader presentations: `blurSlide, bookFlip, crossZoom, crosswarp, dissolve, dreamyZoom, filmBurn, linearBlur, ripple, swap,… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - approach: [R] only (needs Remotion's Chrome build; Chrome 149+ flag in preview). Native alternative later via WebGL, L. 12 more look ideas, not a must
-- `remotion:2.3.7` — Edges and 3D: outline, roughenEdges, shrinkwrap, tear, bevelAlpha, cylinder, sphere, pageTurn (WebGPU), shatter — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - approach: [R] only (WebGPU); skip natively
 - `remotion:2.3.9` — `createEffect()` custom effect API (2d/webgl2/webgpu backends) — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: [R] only
 - `remotion:2.3.10` — `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chrome 149+ flag; nesting needs Chrome 157; Remotion ships its own Chrome… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
@@ -141,10 +131,6 @@ By source: remotion 9, manim 6
 - `remotion:2.6.2` — `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentFrame` (no `useFrame`), `<Sequence layout="none">` inside, `useVideoTex… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: →EQUAL for a WebGL scene (10b): Three.js bundled, `KIT.three(el, build)` with preserveDrawingBuffer; no React Three Fiber, video textures untested; `tools/runtimes.js`, `tools/selfcheck/runtimes.mjs` (shuffled seeks, pv…
   - approach: owner: bundle Three.js (MIT): [N] `KIT.three(canvas, sceneFn)` that renders one frame per `render(t)` with `preserveDrawingBuffer`; [R] free, but React-only
-- `remotion:2.6.3` — `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-skia CanvasKit WASM) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - approach: [R] only; native = skip (CanvasKit is large). Canvas 2D covers most
-- `remotion:2.6.4` — `@remotion/rive` `<RemotionRiveCanvas>` — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - approach: [R] only; skip
 - `remotion:2.8.2` — Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()` + `InteractivitySchema` (number, boolean, color, enum, array, asset, f… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: [R] only; the idea to copy for our studio: edit values inline in `film.js` with codemods (their `@remotion/codemods`). Do not copy skills text
 
@@ -252,11 +238,11 @@ By source: higgsfield-workflows 20
   - says: intentionally: REST key via env or git-ignored file, plain fetch, no SDK (docs/CONNECTORS.md). CLI needs a paid plan and browser login (providers.md) so unsuitable for headless
   - approach: docs only; keep REST. MCP: a Claude Code MCP is outside the repo
 
-## 8. The audit's own approach column says skip / defer / not needed (21) — 21 approved
+## 8. The audit's own approach column says skip / defer / not needed (19) — 19 approved
 
 PARTIAL / MISSING rows whose approach column starts with skip, defer, n/a or none, or says "skip" for the hard part. The audit itself proposes not doing these; the reason is in the approach text.
 
-By source: hyperframes 6, remotion 9, doodle-shots-motion 6
+By source: hyperframes 6, remotion 7, doodle-shots-motion 6
 
 ### HyperFrames (6)
 
@@ -279,16 +265,11 @@ By source: hyperframes 6, remotion 9, doodle-shots-motion 6
   - says: not needed without H2
   - approach: skip
 
-### Remotion + its skills (9)
+### Remotion + its skills (7)
 
 - `remotion:2.1.15` — Premounting (`premountFor`), `SequenceActivityBudget` — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (pure `render(t)` has no mount cost)
   - approach: none
-- `remotion:2.1.20` — `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selection — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: one film per project folder
-  - approach: none (project folders are our unit)
-- `remotion:2.3.12` — Greenscreen via `colorKey()`; video matting (`@remotion/video-matting`, local WebGPU model) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - approach: [N] ffmpeg `chromakey`/`colorkey` in a footage pre-pass (S); AI matting = skip (model download, GPU)
 - `remotion:2.4.10` — `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/transcribe in browser), Remotion Convert — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (ffmpeg does this)
   - approach: none
@@ -360,13 +341,13 @@ By source: remotion 5, manim 2, doodle-shots-motion 2
 - `doodle-shots-motion:4.23` — EaselPlugin / PixiPlugin (canvas libraries) — N/A — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: exclude
 
-## 10. Not done, no stated reason (73) — 73 approved
+## 10. Not done, no stated reason (63) — 63 approved
 
 PARTIAL / MISSING rows whose own text gives none of the reasons above.
 
-**These 73 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
+**These 63 rows gave no stated reason in the first compile.** After the re-audit each carries a tag (see the state after every row): accepted exception, planned for Phase 11, partial, or still open without a tag. Nothing here is claimed as done.
 
-By source: hyperframes 26, remotion 12, manim 18, doodle-shots-motion 17
+By source: hyperframes 26, remotion 2, manim 18, doodle-shots-motion 17
 
 ### HyperFrames (26)
 
@@ -460,46 +441,13 @@ By source: hyperframes 26, remotion 12, manim 18, doodle-shots-motion 17
   - says: `gen --provider higgsfield` is paid and opt-in, and `gen --import <file> --source firefly/express` registers a file made elsewhere, offline (tools/gen.mjs, tools/gen/). No local mflux or LTX provider. Not built: multi-G…
   - approach: out of scope; keep `gen`
 
-### Remotion + its skills (12)
+### Remotion + its skills (2)
 
 #### Docs / PLAYBOOK note only (1)
 
 - `remotion:2.6.5` — Spline/Figma/After Effects import — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (tools/runtimes.js, CI demo projects/runtimes-hf); missing: the SVG-paste note for Figma in the docs, Spline. S…
   - approach: [D] mention SVG paste for Figma
-
-#### Native code to add in tools/ (or a flag/command) (10)
-
-- `remotion:2.1.4` — `posterize` N (stepped look) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t * n) / n, pts)`), so a helper adds nothing. [R] core `interpolate()` has it in React films only. Suggest: acce…
-  - approach: [N] `K.keys` option: sample every Nth frame (needs fps)
-- `remotion:2.1.5` — `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin, font-weight) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpolate units, colours and transforms natively and pass shuffled seeks (tools/selfcheck/runtimes.mjs). Suggest: a…
-  - approach: [N] small `K.lerpStr` for CSS values with units; low priority
-- `remotion:2.1.11` — `<Series>` / `Series.Sequence offset` — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): scene starts come from `V()` / `W()` and the script's `gap`s (tools/sched.py), which already sum the scene lengths and give `offset`. [R] core `<Series>` in React films only. Suggest: accept as ex…
-  - approach: [N] `K.series([{dur,offset}])` returns start times; sums scene lengths
-- `remotion:2.1.21` — `@remotion/animation-utils` `interpolateStyles`, `makeTransform` — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no style-object lerp (`K.styles`); GSAP tweens in `KIT.gsap` animate whole style sets with units natively (shuffled-seek proven, tools/selfcheck/runtimes.mjs) and `K.camCSS` builds transform strin…
-  - approach: [N] `K.styles(t, keys)`: lerp whole style objects (needs unit parsing, see row above)
-- `remotion:2.2.10` — Starburst / `filmBurn` / `starburst()` effect, `@remotion/starburst` — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no starburst / filmBurn; `KIT.transition` `lightLeak` / `flash` and the vendored blocks `light-leak`, `editorial-flash-overlay`, `organic-light-leak-overlay` (vendor/hyperframes/registry/blocks) c…
-  - approach: [N] optional CSS conic burst; low value
-- `remotion:2.4.9` — Silence detection recipe (loudnorm `input_thresh` -> `silencedetect noise=..:d=0.5`; merge gaps <0.2 s); `getSilentParts()` in renderer — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no silence-detect step; VO is TTS (no dead air) and music is trimmed with `music.start`; only user-supplied recordings would need it, and `ffmpeg silencedetect` is one command by hand. Suggest: ac…
-  - approach: [N] `tools/silence.py` or in mix.py to trim VO/takes (Phase 9 item 8)
-- `remotion:2.4.14` — Cropping `cropLeft/Right/Top/Bottom` ratios on any layer — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it is what tools/transitions.js uses for wipes). Suggest: accept as exception
-  - approach: [N] `K.crop(el,{l,r,t,b})`
-- `remotion:2.4.18` — `@remotion/rounded-text-box` (rounded highlight box behind multi-line text) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no rounded text-highlight box; `KIT.math.surround` / `backgroundRect` (tools/math2.js) draw a rounded box around one element's rect. Suggest: accept as exception (low value)
-  - approach: [N] optional SVG path builder; low value
-- `remotion:2.5.1` — `Caption` JSON type `{text, startMs, endMs, timestampMs, confidence, pageBreakAfter?}`; whitespace-sensitive (leading space per word) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: our VO words `{w,t,d}` in seconds. Not built (10z audit): no `Caption` JSON adapter; captions leave as .srt / .vtt beside the mp4 (tools/renderers/pvk.mjs `subtitles`), which is the interchange format. Suggest: accept a…
-  - approach: [N] export/import adapter `toCaptions()/fromCaptions()` so tools can share data
-- `remotion:2.7.3` — Hardware-accelerated encode (`--hardware-acceleration`, VideoToolbox / NVENC) — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
-  - says: Not built (10z audit): no hardware encode; it needs the machine's GPU encoder, differs per platform and would break byte-identical encodes. Suggest: accept as exception
-  - approach: [N] optional `"hwaccel": true` -> `h264_videotoolbox`/`h264_nvenc` with fallback
 
 #### Other (read the approach text) (1)
 

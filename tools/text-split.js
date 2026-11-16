@@ -8,8 +8,8 @@
 //     Breaks on "\n" and at maxWidth on spaces, then into words and glyphs with measureText. y is the line's baseline
 //     (i·lineHeight·size + half-leading + ascent), x is its left edge, glyph x/w are advances from the line's left edge with
 //     tracking included (per glyph: no pair kerning, which is what tracked display type is). Cached by every input, so a
-//     second call with the same arguments measures nothing. A declared @font-face that is not loaded throws (a fallback face
-//     would silently change every box), as does a size of 0. tracking is em as a number, or '0.04em' / '2px'.
+//     second call with the same arguments measures nothing. A declared @font-face family with no loaded face throws (a fallback
+//     face would silently change every box), as does a size of 0. tracking is em as a number, or '0.04em' / '2px'.
 //
 //   KIT.text.reveal(host, split, { by = 'lines'|'words'|'chars', mask = true, stagger = 0.04, from = 'start'|'center'|'edges',
 //                                  dur = 0.5, ease = 'outExpo', at = 0, tracking = [fromEm, toEm], axes = { wght: [400, 700] },
@@ -20,7 +20,9 @@
 //     in the middle, 'edges' at both ends; 'chars' makes each glyph an inline-block, so ligatures and pair kerning go (that is
 //     per-glyph motion). A <canvas> host gets the same reveal as clipped strips drawn from the split's
 //     glyphs. `tracking: [0.04, 0]` animates letter-spacing per line over the entrance (never per glyph: spacing stays even);
-//     `axes` animates font-variation-settings the same way (see KIT.text.axes). end = at + dur + the last unit's stagger.
+//     `axes` animates font-variation-settings the same way (see KIT.text.axes) and needs a DOM host: a <canvas> host draws
+//     through ctx.font, where font-variation-settings do not apply, so axes on a canvas throws. end = at + dur + the last
+//     unit's stagger.
 //
 //   KIT.text.axes(font, axes, { variable = false }) → (p) => 'font-variation-settings' string
 //     Validates the axes once, then interpolates them. An axis tag must be a real OpenType axis; a family whose @font-face
@@ -44,6 +46,7 @@
   const trackPx = (v, size) => { if (v == null) return 0; const e = emOf(v); return e != null ? e * size : parseFloat(String(v)) || 0; };
   const family = (f) => String(f || 'sans-serif').replace(/["']/g, '').split(',')[0].trim();
   const faces = (f) => [...document.fonts].filter((x) => x.family.replace(/["']/g, '') === family(f));
+  const faceList = (list) => list.map((f) => `${f.weight} ${f.style} → ${f.status}`).join(', ');
 
   // ── split ────────────────────────────────────────────────────────────────
   const cache = new Map();   // key = every input, so the same call never measures twice
@@ -56,8 +59,8 @@
     const key = JSON.stringify([String(str), o.font || '', size, o.weight || 400, o.style || 'normal', o.tracking || 0, o.lineHeight || 1.2, o.maxWidth || 0]);
     const hit = cache.get(key);
     if (hit) return hit;
-    const unloaded = faces(o.font).find((f) => f.status !== 'loaded');
-    if (unloaded) throw new Error(`KIT.text.split: font "${family(o.font)}" is not loaded (${unloaded.status}); build the split after document.fonts.ready, never in render(t)`);
+    const list = faces(o.font);
+    if (list.length && !list.some((f) => f.status === 'loaded')) throw new Error(`KIT.text.split: no face of font "${family(o.font)}" is loaded (faces: ${faceList(list)}); build the split after document.fonts.ready, never in render(t)`);
     measure(o, size);
     const lh = size * (o.lineHeight || 1.2), maxW = o.maxWidth > 0 ? o.maxWidth : Infinity;
     const adv = new Map();   // one char measured once per (font, size, tracking)
@@ -97,8 +100,7 @@
   T.axes = (font, axes, { variable = false } = {}) => {
     if (!axes || typeof axes !== 'object') throw new Error('KIT.text.axes: pass { axis: [from, to], … }');
     const known = [...STD, ...CUSTOM], list = faces(font);
-    const un = list.find((f) => f.status !== 'loaded');
-    if (un) throw new Error(`KIT.text.axes: font "${family(font)}" is not loaded (${un.status}); call this after document.fonts.ready`);
+    if (list.length && !list.some((f) => f.status === 'loaded')) throw new Error(`KIT.text.axes: no face of font "${family(font)}" is loaded (faces: ${faceList(list)}); call this after document.fonts.ready`);
     if (!variable && list.length && !list.some((f) => /\s/.test(f.weight) || /\s/.test(f.style))) {
       throw new Error(`KIT.text.axes: font "${family(font)}" is not variable (faces: ${[...new Set(list.map((f) => f.weight))].join(', ')}); ` +
         'ship one variable file and declare font-weight: 100 900, or pass { variable: true } to set the axes anyway');
@@ -127,6 +129,7 @@
     const isCanvas = typeof HTMLCanvasElement !== 'undefined' && host instanceof HTMLCanvasElement;
     if (!isCanvas && !(host instanceof Element)) throw new Error('KIT.text.reveal: host must be an element or a <canvas>');
     const e = typeof ease === 'function' ? ease : K.easing(ease), maskH = lh * 1.15;
+    if (isCanvas && axes) throw new Error('KIT.text.reveal: axes need a DOM host: canvas text cannot take font-variation-settings');
     const axis = axes ? T.axes(S.font, axes) : null;   // validated once, here, not per frame
     const track = tracking ? [emOf(tracking[0]) ?? 0, emOf(tracking[1]) ?? 0] : null;
     const units = [], lineEls = [], g = isCanvas ? host.getContext('2d') : null, fontCss = fontOf(S, size);

@@ -94,6 +94,23 @@ KIT.start({ dur: 3, render: (t) => { lines.set(t); words.set(t); chars.set(t); d
       aRev.set(0);
       is('axes: at t = 0 the axes are at their first value', /"wght" 400(\.0+)?,/.test(aEl.style.fontVariationSettings), aEl.style.fontVariationSettings);
 
+      // ── several faces per family: one loaded is enough, none loaded throws ──
+      const woff = new URL('var.woff2', document.baseURI).href;
+      const f400 = new FontFace('MultiFace', `url("${woff}")`, { weight: '400' }), f700 = new FontFace('MultiFace', `url("${woff}")`, { weight: '700' });
+      document.fonts.add(f400); document.fonts.add(f700);
+      await f400.load();   // the 400 face loads; the unused 700 face stays unloaded
+      const multi = T.split('One face', { font: 'MultiFace', size: 20, weight: 400 });
+      is('split: a family with one loaded face measures (an unused face may be unloaded)', multi.lines.length === 1 && multi.lines[0].glyphs.length > 0, multi.lines.length);
+      is('axes: a family with one loaded face passes the loaded check', T.axes('MultiFace', { wght: [400, 700] }, { variable: true })(0.5) === '"wght" 550.00', 0);
+      document.fonts.add(new FontFace('DeadFace', `url("${woff}")`));   // declared, never loaded
+      try { T.split('No face', { font: 'DeadFace', size: 20 }); bad.push('split: a family with no loaded face was accepted'); }
+      catch (e) { is('split: no loaded face throws and names every face', /no face of font "DeadFace"/.test(e.message) && /faces: normal normal → unloaded/.test(e.message), e.message); }
+      try { T.axes('DeadFace', { wght: [400, 700] }, { variable: true }); bad.push('axes: a family with no loaded face was accepted'); }
+      catch (e) { is('axes: no loaded face throws and names every face', /no face of font "DeadFace"/.test(e.message) && /unloaded/.test(e.message), e.message); }
+      // a canvas draws through ctx.font: font-variation-settings cannot apply, so axes is refused, not ignored
+      try { T.reveal(document.createElement('canvas'), T.split('Canvas axes', { ...opts, maxWidth: 0 }), { axes: { wght: [400, 700] } }); bad.push('canvas + axes accepted'); }
+      catch (e) { is('reveal: axes on a canvas host throws', /axes need a DOM host/.test(e.message), e.message); }
+
       // ── maskLines: line boxes of a static element ──
       const stat = KIT.el('div', '', KIT.stage, 'one line here<br>and a second one');
       KIT.css(stat, { left: '300px', top: '10px', width: '200px', font: '700 20px/1.5 ' + font, color: '#1d1b16' });

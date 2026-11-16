@@ -83,6 +83,7 @@ try {
   assert.equal(S.shutterAt(4.5), 90, 'an options-object window');
   assert.throws(() => S.shutter(361), /0\.\.360/); assert.throws(() => S.shutter(90, 5, 4), /window/);
   assert.equal(window.__reelwrightShutter(1.5), 270, 'the renderer reads window.__reelwrightShutter');
+  assert.equal(window.__reelwrightShutter(3), null, 'outside every window the renderer gets null, so a project shutter other than 180 is kept');
 
   console.log(`qa self-check: CAMBI/VMAF ${hasVmaf ? 'numbers per scene' : 'skip path'}, 180°/8 default kept, per-shot shutter windows`);
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }

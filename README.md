@@ -157,11 +157,12 @@ source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs
   theme from a one-line brief, offline. `node tools/theme-check.mjs` and `node tools/theme-gallery.mjs` check and picture them.
 - **Blocks and nested compositions.** `reelwright add <block>` brings in one of 136 supported HyperFrames blocks (of 210
   upstream); `KIT.mount` / `KIT.block` drop it, or any HyperFrames composition file, into a film as one timed layer.
-- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (14 WebGL
-  transitions), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
+- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (26 WebGL
+  transitions: HyperFrames' 14 and Remotion's 12 presentations), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
   `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`.
 - **Motion blur, grading and effects.** `"motionBlur": true` in `project.json`; `KIT.grade` (grade presets, vignette, grain,
-  LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer.
+  LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer. `KIT.fx` has
+  Remotion's effect set in CSS, canvas and WebGL2 (`fx-gl.js`: outline, tear, cylinder, sphere, pageTurn, shatter, …).
 - **Video clips and extra audio.** `KIT.video` (speed ramps, trims) and `KIT.audio` mix clips and sounds over the soundtrack.
 - **Sound.** New synthesised SFX kinds (shutter, sparkle, riser, subdrop, whoosh variants, …) and `house` and `hiphop` music
   beds beside `chill` and `drive`.
@@ -597,7 +598,7 @@ tools/                      shared — you rarely edit these
   renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
   renderers/remotion.mjs    the opt-in "renderer": "remotion" (installs nothing without a yes)
-  renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs   KIT.video frames and the KIT.shader transition pass
+  renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs, shader_glsl2.mjs   KIT.video frames and the KIT.shader / KIT.fx pass
   commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief, gallery (header = its help)
   checks/                   plug-in QA checks: hf-lint, seekable-runtimes, taste (WARN or gate declared in the file)
   studio/                   reelwright studio: server, page and the preview shims it shares with embed
@@ -608,6 +609,7 @@ tools/                      shared — you rarely edit these
   math.js, math2.js, tex.js, plot2.js, math3d.js   KIT.math.* charts, KIT.tex (MathJax), shapes, plots and fields, KIT.math3d
   runtimes.js               KIT.gsap, KIT.lottie, KIT.anime, KIT.three, KIT.animations — seek-only
   path.js, transitions.js, motion.js, shaders.js   KIT.path, KIT.transition, KIT.rate / indicate / typewriter / sim, KIT.shader
+  fx-color.js, fx-blur.js, fx-distort.js, fx-pattern.js, fx-reveal.js, fx-gl.js   KIT.fx: Remotion's effects in CSS, canvas and WebGL2
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer
   theme-check.mjs, theme-gallery.mjs, theme_from.mjs   check, picture and draft themes (theme-brief is in commands/)

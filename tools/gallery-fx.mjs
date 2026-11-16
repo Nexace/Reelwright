@@ -1,7 +1,7 @@
 // The fx-* gallery items (tools/gallery.mjs): [module, name, helper call, body, static?]. `body` is the text of a function body run in the page with
 // G = { X (KIT.fx), P (KIT.fx.pattern), card(parent, {x,y,w,h}), canvas() (a drawn source), mk(css, parent), W, H } and `root` (a clipped 480x270 box
 // on the stage); it returns f(p), p = 0..1 across the strip. An item marked static has no motion to show: its strip is one frame.
-export const FX_FILES = { color: ["fx-color"], blur: ["fx-color", "fx-blur"], distort: ["fx-color", "fx-distort"], pattern: ["fx-color", "fx-pattern"], reveal: ["fx-color", "fx-reveal"] };
+export const FX_FILES = { color: ["fx-color"], blur: ["fx-color", "fx-blur"], distort: ["fx-color", "fx-distort"], pattern: ["fx-color", "fx-pattern"], reveal: ["fx-color", "fx-reveal"], gl: ["fx-color", "fx-gl"] };
 
 const live = (what, set) => `const c = card(root), f = ${what}; return (p) => f.set(${set}).on(c);`;   // an SVG-filter handle on a card
 const pat = (call, set, bg = "#fff") => `const b = mk({ background: '${bg}', overflow: 'hidden' }), f = P.${call}; return (p) => f.set(${set});`;
@@ -78,6 +78,26 @@ export const FX = [
   ["reveal", "pixelate-progressive", "KIT.fx.pixelate.progressive(src, { axis, max, strip })", canvasFx("pixelate.progressive(canvas(), { w: W, h: H, parent: root, axis: 'y', max: 40, strip: 10 })", "p")],
   ["reveal", "snowFall", "KIT.fx.snowFall(parent, { count, seed })", `const sky = mk({ background: '#1b2a4a' }), f = X.snowFall(sky, { w: W, h: H, count: 90, seed: 2 }); return (p) => f.set(4 * p);`],
   ["reveal", "rainFall", "KIT.fx.rainFall(parent, { count, seed })", `const sky = mk({ background: '#1b2a4a' }), f = X.rainFall(sky, { w: W, h: H, count: 120, seed: 4 }); return (p) => f.set(2 * p);`],
+  // fx-gl.js (WebGL2; a source canvas, so these run in the page: no renderer pass needed)
+  ["gl", "outline", "KIT.fx.outline(src, { width, color })", canvasFx("outline(sprite(), { w: W, h: H, parent: root })", "{ width: 24 * p, color: '#ff3b6b' }")],
+  ["gl", "roughenEdges", "KIT.fx.roughenEdges(src, { amount, border })", canvasFx("roughenEdges(sprite(), { w: W, h: H, parent: root })", "{ amount: p, border: 34 }")],
+  ["gl", "shrinkwrap", "KIT.fx.shrinkwrap(src, { amount, displacement })", canvasFx("shrinkwrap(sprite(), { w: W, h: H, parent: root })", "{ amount: p, displacement: 12 * p }")],
+  ["gl", "tear", "KIT.fx.tear(src, { progress, jaggedness })", canvasFx("tear(sprite(), { w: W, h: H, parent: root })", "{ progress: 0.9 * p, jaggedness: 26 }")],
+  ["gl", "bevelAlpha", "KIT.fx.bevelAlpha(src, { edgeThickness, lightAngle })", canvasFx("bevelAlpha(sprite(), { w: W, h: H, parent: root })", "{ edgeThickness: 14, lightAngle: -90 + 180 * p }")],
+  ["gl", "cylinder", "KIT.fx.cylinder(src, { radius, rotationY })", canvasFx("cylinder(sprite(), { w: W, h: H, parent: root })", "{ radius: 130, rotationY: 120 * p }")],
+  ["gl", "sphere", "KIT.fx.sphere(src, { radius, rotationY })", canvasFx("sphere(sprite(), { w: W, h: H, parent: root })", "{ radius: 130, rotationY: 160 * p }")],
+  ["gl", "pageTurn", "KIT.fx.pageTurn(src, { foldPosition, foldRadius })", canvasFx("pageTurn(sprite(), { w: W, h: H, parent: root })", "{ foldPosition: [0.15 + 0.7 * p, 0.62], foldRadius: 60 }")],
+  ["gl", "magnify", "KIT.fx.magnify(src, { size, magnification })", canvasFx("magnify(canvas(), { w: W, h: H, parent: root })", "{ size: 150, magnification: 120 + 260 * p }")],
+  ["gl", "thermalVision", "KIT.fx.thermalVision(src, { amount, palette })", canvasFx("thermalVision(canvas(), { w: W, h: H, parent: root })", "{ amount: p }")],
+  ["gl", "linearGradient", "KIT.fx.linearGradient(src, { start, end, startColor, endColor })", canvasFx("linearGradient(canvas(), { w: W, h: H, parent: root })", "{ startColor: '#12121c', endColor: '#ffc857', end: [1, 0.5 + 0.5 * p] }")],
+  ["gl", "linearGradientTint", "KIT.fx.linearGradientTint(src, { startColor, endColor, amount })", canvasFx("linearGradientTint(canvas(), { w: W, h: H, parent: root })", "{ startColor: '#ff2d55', endColor: '#00ffff', amount: p }")],
+  ["gl", "halftoneLinearGradient", "KIT.fx.halftoneLinearGradient(src, { secondStopDotSize, gridSize })", canvasFx("halftoneLinearGradient(canvas(), { w: W, h: H, parent: root })", "{ secondStopDotSize: 46 * p, gridSize: 14, dotColor: '#14161c' }")],
+  ["gl", "radialProgressivePixelate", "KIT.fx.radialProgressivePixelate(src, { endBlockSize })", canvasFx("radialProgressivePixelate(canvas(), { w: W, h: H, parent: root })", "{ startBlockSize: 1, endBlockSize: 1 + 34 * p }")],
+  ["gl", "uvTranslate", "KIT.fx.uvTranslate(src, { u, v })", canvasFx("uvTranslate(canvas(), { w: W, h: H, parent: root })", "{ u: 0.2 * p, v: 0.08 * p }")],
+  ["gl", "starburst", "KIT.fx.starburst(src, { rays, colors, rotation })", canvasFx("starburst(canvas(), { w: W, h: H, parent: root })", "{ rays: 14, rotation: 80 * p }")],
+  ["gl", "filmBurn", "KIT.fx.filmBurn(src, { progress, seed })", canvasFx("filmBurn(canvas(), { w: W, h: H, parent: root })", "{ progress: 0.95 * p, seed: 3 }")],
+  ["gl", "shatter", "KIT.fx.shatter(src, { time, pattern, repetitions })", canvasFx("shatter(canvas(), { w: W, h: H, parent: root })", "{ time: 1.4 * p, pattern: 'bricks', repetitions: 8, seed: 2 }")],
+  ["gl", "lightning", "KIT.fx.lightning(src, { conductivityState, origin, direction })", canvasFx("lightning(canvas(), { w: W, h: H, parent: root })", "{ conductivityState: 1 + Math.floor(6 * p), origin: [0.2, 0], direction: [0.7, 1] }")],
 ];
 
 // run in the page: the shared test picture (a card of DOM, and the same picture drawn on a canvas for the canvas effects)
@@ -94,9 +114,14 @@ window.G = (() => {
     if (bg) { g.fillStyle = bg; g.fillRect(0, 0, W, H); } else { const l = g.createLinearGradient(0, 0, W, H); [[0, '#ff7a59'], [0.35, '#ffc857'], [0.7, '#36b3a0'], [1, '#3a6ea5']].forEach(([s, col]) => l.addColorStop(s, col)); g.fillStyle = l; g.fillRect(0, 0, W, H); }
     g.fillStyle = bg ? '#d22' : '#fff'; g.font = '800 54px Arial,sans-serif'; g.textBaseline = 'top'; g.fillText('Reelwright', 38, 43);
     g.fillRect(38, 135, 240, 14); g.fillStyle = '#14161c'; g.beginPath(); g.arc(380, 190, 38, 0, 6.2832); g.fill(); g.font = '600 24px Arial,sans-serif'; g.fillText('scenes from code', 48, 184); return c; };
-  return { W, H, X, P, mk, card, canvas };
+  // sprite: the same picture on a transparent canvas, for the effects that work on the silhouette (outline, roughenEdges, tear, pageTurn)
+  const sprite = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    const l = g.createLinearGradient(0, 0, W, H); [[0, '#ff7a59'], [0.35, '#ffc857'], [0.7, '#36b3a0'], [1, '#3a6ea5']].forEach(([s, col]) => l.addColorStop(s, col));
+    g.fillStyle = l; g.beginPath(); g.arc(W / 2, H / 2, H * 0.42, 0, 6.2832); g.fill();
+    g.fillStyle = '#14161c'; g.font = '800 46px Arial,sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText('Reelwright', W / 2, H / 2); return c; };
+  return { W, H, X, P, mk, card, canvas, sprite };
 })();
 window.runFx = (body) => { if (window.__root) window.__root.remove(); window.__root = KIT.el('div', '', KIT.stage); KIT.css(window.__root, { left: '0px', top: '0px', width: '480px', height: '270px', overflow: 'hidden' });
-  const G = window.G; window.__f = new Function('G', 'root', 'const { X, P, card, canvas, mk, W, H } = G; ' + body)(G, window.__root); };
+  const G = window.G; window.__f = new Function('G', 'root', 'const { X, P, card, canvas, sprite, mk, W, H } = G; ' + body)(G, window.__root); };
 window.stepFx = (p) => window.__f(p);
 `;

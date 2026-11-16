@@ -228,7 +228,7 @@
   // ── keys with a perceptual scale (engine.js's K.keys is the plain one) ──────────────────────────────────
   const keysLegacy = K.keys;
   K.keys = (t, pts, eases = [], o = {}) => {
-    if (o.output == null) return keysLegacy(t, pts, eases);
+    if (o.output == null) return keysLegacy(t, pts, eases, o);   // pass o on: KIT.keys may also carry { easeReverse }
     if (o.output !== 'perceptual-scale') throw new Error("keys: output is 'perceptual-scale' (or leave it out)");
     if (pts.some(([, v]) => typeof v !== 'number')) throw new Error('keys: output is perceptual-scale, so the values must be numbers');
     return psBack(keysLegacy(t, pts.map(([tt, v]) => [tt, psArea(v)]), eases));

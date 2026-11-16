@@ -163,8 +163,9 @@ source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs
   theme from a one-line brief, offline. `node tools/theme-check.mjs` and `node tools/theme-gallery.mjs` check and picture them.
 - **Blocks and nested compositions.** `reelwright add <block>` brings in one of 136 supported HyperFrames blocks (of 210
   upstream); `KIT.mount` / `KIT.block` drop it, or any HyperFrames composition file, into a film as one timed layer.
-- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (26 WebGL
-  transitions: HyperFrames' 14 and Remotion's 12 presentations), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
+- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types) and `KIT.cut`
+  (cut-centred windows), `KIT.shader` (26 WebGL transitions: HyperFrames' 14 and Remotion's 12 presentations), custom
+  SVG eases (`KIT.easing.svg`), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
   `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`.
 - **Motion blur, grading and effects.** `"motionBlur": true` in `project.json`; `KIT.grade` (grade presets, vignette, grain,
   LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer. `KIT.fx` has
@@ -615,7 +616,7 @@ tools/                      shared — you rarely edit these
   doodle.js, doodle2.js     KIT.doodle.* hand-drawn marks; pen strokes, score, lettering, seams
   math.js, math2.js, tex.js, plot2.js, math3d.js   KIT.math.* charts, KIT.tex (MathJax), shapes, plots and fields, KIT.math3d
   runtimes.js               KIT.gsap, KIT.lottie, KIT.anime, KIT.three, KIT.animations — seek-only
-  path.js, transitions.js, motion.js, shaders.js   KIT.path, KIT.transition, KIT.rate / indicate / typewriter / sim, KIT.shader
+  path.js, transitions.js, easing-extra.js, motion.js, shaders.js   KIT.path (draw, morph, motion along a path), KIT.transition / KIT.cut, KIT.easing.svg / KIT.range, KIT.rate / indicate / typewriter / sim, KIT.shader
   fx-color.js, fx-blur.js, fx-distort.js, fx-pattern.js, fx-reveal.js, fx-gl.js   KIT.fx: Remotion's effects in CSS, canvas and WebGL2
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer

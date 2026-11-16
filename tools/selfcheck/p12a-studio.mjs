@@ -17,7 +17,7 @@ import http from "node:http";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
-import { ROOT, makeProject, rw } from "./p1-fixture.mjs";
+import { ROOT, makeProject, rw } from "./fixture.mjs";
 let passed = false;   // watchdog: if cleanup hangs after the check has passed (seen on Windows), leave with success; if the check itself hangs, fail
 setTimeout(() => { console.error(passed ? "p12a-studio: cleanup hung after a pass, leaving" : "p12a-studio: watchdog, the check hung"); process.exit(passed ? 0 : 1); }, 420000).unref();
 
@@ -30,8 +30,8 @@ const request = (port, { method = "GET", p = "/", headers = {}, body }) => new P
 });
 async function start(extra = []) {
   const port = await freePort(), s = spawn(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "studio", dir, "--port", String(port), ...extra], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, REELWRIGHT_MEDIA_DIR: path.join(home, ".media"), PAGES: "2" } });
-  let out = ""; s.stdout.on("data", (d) => (out += d)); s.stderr.on("data", (d) => (out += d)); servers.push(s);
-  for (let i = 0; i < 300 && !out.includes(`localhost:${port}`); i++) { assert.equal(s.exitCode, null, out); await new Promise((r) => setTimeout(r, 100)); }
+  s.out = ""; s.stdout.on("data", (d) => (s.out += d)); s.stderr.on("data", (d) => (s.out += d)); servers.push(s);   // s.out: printed if the check fails
+  for (let i = 0; i < 300 && !s.out.includes(`localhost:${port}`); i++) { assert.equal(s.exitCode, null, s.out); await new Promise((r) => setTimeout(r, 100)); }
   return { port, origin: `http://localhost:${port}`, s };
 }
 let browser = null;
@@ -84,7 +84,18 @@ try {
   const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } }), errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const loaded = () => page.waitForFunction(() => window.studioReady === true, null, { timeout: 60000 });
-  const reloads = async (action) => { const nav = page.waitForEvent("load", { timeout: 60000 }); await action(); await nav; await loaded(); await page.waitForTimeout(600); await loaded(); };
+  // no fixed sleeps: the server says when it is idle (no job, no render waiting, no reload pending) and how many reloads it sent (rev); the page
+  // says which rev it loaded. settle(after): idle, a reload sent after rev `after`, and the page is that reload, fully up.
+  const settle = async (after = -1) => {
+    for (let i = 0; i < 2400; i++) {
+      const s = JSON.parse((await request(port, { p: "/__studio" })).body);
+      if (s.idle && s.rev > after && (await page.evaluate(() => window.studioReady === true && window.studioRev).catch(() => null)) === s.rev) return s.rev;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    throw new Error(`the studio did not settle (waiting for a reload after rev ${after})`);
+  };
+  const reloads = async (action) => { const r = await settle(); await action(); return settle(r); };   // an action that writes a file: done once its reload is up
+  const dropped = async (r, g) => settle((await page.evaluate(() => JSON.parse(document.getElementById("raw-project").value).lines[1].gap)) !== g ? r : -1);   // a scene drag saves only if the gap changed
   await page.goto(origin + "/"); await loaded();
   const val = (sel) => page.locator(sel).evaluate((e) => e.value);
   const proj = () => JSON.parse(fs.readFileSync(pj, "utf8"));
@@ -132,13 +143,11 @@ try {
 
   // H3: drag a scene = change its gap; snap guide while dragging; undo
   const startB = async () => Number(await page.locator('#tl-vo .box[data-id="b"]').getAttribute("data-start"));
-  const before = await startB(), box = await page.locator('#tl-scenes .box[data-id="b"]').boundingBox(), g0 = proj().lines[1].gap;
+  const r0 = await settle(), before = await startB(), box = await page.locator('#tl-scenes .box[data-id="b"]').boundingBox(), g0 = proj().lines[1].gap;
   await page.mouse.move(box.x + box.width / 2, box.y + 12); await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 20, box.y + 12, { steps: 3 });
   const shiftedLater = await page.locator("#tl-vo .box[data-id=b]").evaluate((e) => e.style.transform);
   assert.match(shiftedLater, /translateX/, "the line shifts with the drag (ripple preview)");
-  await page.mouse.up(); await page.waitForTimeout(100);   // a small drag may snap: whatever the gap becomes is valid; now a clear one with alt (no snapping)
-  await loaded();
-  await page.waitForTimeout(1500); await loaded();
+  await page.mouse.up(); await dropped(r0, g0);   // a small drag may snap: whatever the gap becomes is valid; now a clear one with alt (no snapping)
   const box2 = await page.locator('#tl-scenes .box[data-id="b"]').boundingBox(), g1 = proj().lines[1].gap;
   await page.keyboard.down("Alt"); await page.mouse.move(box2.x + box2.width / 2, box2.y + 12); await page.mouse.down(); await page.mouse.move(box2.x + box2.width / 2 + 90, box2.y + 12, { steps: 5 });
   const snapShown = await page.locator("#snapline").evaluate((e) => getComputedStyle(e).display);
@@ -146,12 +155,12 @@ try {
   const g2 = proj().lines[1].gap; assert.ok(g2 > g1 + 0.1 && g2 <= 60, `dragging a scene sideways changed the gap in project.json: ${g0} → ${g1} → ${g2}`); assert.equal(snapShown, "none", "alt: no snapping");
   assert.ok((await startB()) > before - 0.01, "the line moved with the gap");
   // snapping on: drag near a beat or edge and the guide shows
-  const box3 = await page.locator('#tl-scenes .box[data-id="b"]').boundingBox(); let guide = "none";
+  const r3 = await settle(), box3 = await page.locator('#tl-scenes .box[data-id="b"]').boundingBox(); let guide = "none";
   await page.mouse.move(box3.x + box3.width / 2, box3.y + 12); await page.mouse.down();
   for (let dx = -60; dx <= 60 && guide === "none"; dx += 6) { await page.mouse.move(box3.x + box3.width / 2 + dx, box3.y + 12); guide = await page.locator("#snapline").evaluate((e) => getComputedStyle(e).display); }
-  await page.keyboard.press("Escape"); const keep = fs.readFileSync(pj, "utf8"); await page.mouse.move(box3.x + box3.width / 2, box3.y + 12); await page.mouse.up();   // back at the start: the gap is unchanged
+  await page.keyboard.press("Escape"); await page.mouse.move(box3.x + box3.width / 2, box3.y + 12); await page.mouse.up();   // back at the start (it may still snap to something near)
   assert.equal(guide, "block", "the snap guide shows while a scene is dragged near a beat, cue or edge");
-  await page.waitForTimeout(1500); await loaded();
+  await dropped(r3, g2);
   log(`H3 drag: gap ${g0} → ${g2}, snap guide, ripple preview: ok`);
 
   // H5: undo / redo
@@ -164,18 +173,20 @@ try {
 
   // H5: audio rack, blur, variables
   const tab = (name) => page.locator("#tabs button", { hasText: new RegExp(`^${name}$`) }).click();
-  await tab("Audio"); await page.locator("#tab-audio select").first().selectOption("voice-clean"); await page.check("#tab-audio input[type=checkbox]");
+  await settle(); await tab("Audio"); await page.locator("#tab-audio select").first().selectOption("voice-clean"); await page.check("#tab-audio input[type=checkbox]");
   await reloads(() => page.locator("#tab-audio button.primary").click());
   assert.deepEqual([proj().fx, proj().limiter], [{ vo: "voice-clean" }, true], "audio rack: a preset on the voice bus and the limiter");
   const mixBefore = fs.statSync(path.join(dir, "mix.wav")).mtimeMs;
-  await tab("Audio"); await page.locator("#tab-audio button", { hasText: "Remix" }).click();
-  await page.waitForFunction(() => /^\$ mix +\((done|failed)/.test(document.getElementById("log").textContent), null, { timeout: 60000 });
-  assert.match(await page.locator("#log").textContent(), /^\$ mix +\(done\)/, "the mix job ran with the rack: " + await page.locator("#log").textContent());
-  await page.waitForTimeout(1500); await loaded();
+  await tab("Audio");
+  await reloads(async () => {   // mix rewrites mix.wav: the page reloads when the job ends
+    await page.locator("#tab-audio button", { hasText: "Remix" }).click();
+    await page.waitForFunction(() => /^\$ mix +\((done|failed)/.test(document.getElementById("log").textContent), null, { timeout: 60000 });
+    assert.match(await page.locator("#log").textContent(), /^\$ mix +\(done\)/, "the mix job ran with the rack: " + await page.locator("#log").textContent());
+  });
   assert.ok(fs.statSync(path.join(dir, "mix.wav")).mtimeMs > mixBefore, "Remix ran mix and rewrote mix.wav");
-  await tab("Blur"); await page.check("#tab-blur input[type=checkbox]");
+  await settle(); await tab("Blur"); await page.check("#tab-blur input[type=checkbox]");
   await reloads(() => page.locator("#tab-blur button.primary").click()); assert.deepEqual(proj().motionBlur, { shutter: 180, samples: 8 }, "blur tab");
-  await tab("Variables"); const bars = page.locator("#tab-vars input[type=number]").first(); await bars.fill("5");
+  await settle(); await tab("Variables"); const bars = page.locator("#tab-vars input[type=number]").first(); await bars.fill("5");
   await reloads(() => page.locator("#tab-vars button.primary").click()); assert.equal(proj().variables.find((v) => v.id === "bars").default, 5, "variables tab edits a declared default");
   log("H5 undo/redo, audio rack, blur, variables: ok");
 
@@ -186,26 +197,21 @@ try {
   await tab("Catalog"); await page.fill("#tab-catalog input[type=text]", "caption-glitch-rgb");
   await page.waitForFunction(() => document.querySelector("#tab-catalog .item b")?.textContent === "caption-glitch-rgb");   // the unfiltered list renders first; wait for the search to apply
   const name = await page.locator("#tab-catalog .item b").first().textContent();
-  await page.locator("#tab-catalog .item button", { hasText: "Add" }).first().click();
-  await page.waitForFunction((n) => true, name); for (let i = 0; i < 100 && !fs.existsSync(path.join(dir, "hf", "blocks", name + ".html")); i++) await page.waitForTimeout(200);
+  await reloads(() => page.locator("#tab-catalog .item button", { hasText: "Add" }).first().click());   // the add job ends with a reload
   assert.ok(fs.existsSync(path.join(dir, "hf", "blocks", name + ".html")), `catalog Add put ${name} in hf/blocks/`);
-  await loaded().catch(() => {}); await page.waitForTimeout(1500); await loaded();
 
   // H5: captions
-  await tab("Captions"); await page.waitForSelector("#tab-captions table input");
+  await settle(); await tab("Captions"); await page.waitForSelector("#tab-captions table input");
   await page.locator("#tab-captions table input[type=text]").first().fill("HELLO");
-  await page.locator("#tab-captions button.primary").click(); for (let i = 0; i < 50 && !fs.existsSync(path.join(dir, "transcript.json")); i++) await page.waitForTimeout(100);
+  await reloads(() => page.locator("#tab-captions button.primary").click());
   const tr = JSON.parse(fs.readFileSync(path.join(dir, "transcript.json"), "utf8")); assert.equal(tr[0].text, "HELLO"); assert.equal(tr.length, 7);
-  await page.waitForTimeout(1500); await loaded();
 
   // H5: source (--edit-source on): read, write, undo byte-identical; refusals
   const filmSrc = fs.readFileSync(fj, "utf8");
-  assert.equal((await post(srv, "/__source", { path: "hf/film.js", text: filmSrc + "\n// edited in the studio\n" })).status, 200);
+  await reloads(async () => assert.equal((await post(srv, "/__source", { path: "hf/film.js", text: filmSrc + "\n// edited in the studio\n" })).status, 200));
   assert.ok(fs.readFileSync(fj, "utf8").endsWith("// edited in the studio\n"), "source panel route wrote film.js");
   for (const p of ["../x.js", ".env", "project.json", "hf/kit/engine.js", "/etc/passwd", "hf/film.exe"]) assert.equal((await post(srv, "/__source", { path: p, text: "x" })).status, 400, `source write refused: ${p}`);
-  await page.waitForTimeout(1200); await loaded().catch(() => {}); await page.waitForTimeout(1200);
-  assert.equal((await post(srv, "/__undo", {})).status, 200); assert.equal(fs.readFileSync(fj, "utf8"), filmSrc, "undo restores the source byte for byte");
-  await page.waitForTimeout(1500); await loaded();
+  await reloads(async () => assert.equal((await post(srv, "/__undo", {})).status, 200)); assert.equal(fs.readFileSync(fj, "utf8"), filmSrc, "undo restores the source byte for byte");
   await tab("Source"); await page.waitForSelector("#tab-source div[style*=cursor]");
   assert.ok(await page.locator("#tab-source div[style*=cursor]", { hasText: "hf/film.js" }).count() >= 1, "file tree");
 
@@ -213,7 +219,7 @@ try {
   const PR = JSON.parse((await request(port, { p: "/__props" })).body); assert.ok(PR.schema.properties.title && PR.schema.properties.bars, "the schema comes from the declared variables"); assert.equal(PR.hasFile, false);
   assert.equal((await post(srv, "/__props", { props: { bars: "many" } })).status, 400, "props are checked against the schema"); assert.equal((await post(srv, "/__props", { props: [1] })).status, 400);
   assert.match(JSON.parse((await post(srv, "/__props", { props: { tone: "mid" } })).body).error, /tone/, "the error names the property");
-  await page.keyboard.press("Control+j"); assert.equal(await page.locator("#tab-props").isVisible(), true, "Ctrl+J opens the props sidebar");
+  await settle(); await page.keyboard.press("Control+j"); assert.equal(await page.locator("#tab-props").isVisible(), true, "Ctrl+J opens the props sidebar");
   await page.waitForSelector("#tab-props input[type=text]");
   await page.locator("#tab-props input[type=text]").first().fill("Props title");
   await reloads(() => page.locator("#tab-props button.primary").click());
@@ -246,17 +252,19 @@ try {
   await tab("Renders");
   const q = async (b) => (await post(srv, "/__render", b)).status;
   assert.equal(await q({ format: "1x1", quality: "draft" }), 202); assert.equal(await q({ format: "9x16", quality: "draft" }), 202); assert.equal(await q({ resolution: "4k" }), 202);
-  const state = () => page.locator("#rq .item").evaluateAll((n) => n.map((x) => x.textContent));
+  const state = async () => JSON.parse((await request(port, { p: "/__studio" })).body).queue.slice().reverse().map((r) => `#${r.id} ${r.label} · ${r.state}${r.state === "failed" ? ` (exit ${r.code})` : ""}`);
+  const until = async (ok, what) => { for (let i = 0; i < 2400; i++) { if (ok(await state())) return; await new Promise((r) => setTimeout(r, 100)); } throw new Error(`renders queue: ${what}: ${(await state()).join(" | ")}`); };
   await page.waitForFunction(() => document.querySelectorAll("#rq .item").length === 3);
   const first = await state(); assert.ok(first.some((t) => /running/.test(t)) && first.filter((t) => /queued/.test(t)).length >= 1, "one running, the rest queued: " + first.join(" | "));
   await page.locator("#rq .item", { hasText: "4k" }).locator("button", { hasText: "cancel" }).click();
-  await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].filter((x) => /done|failed|cancelled/.test(x.textContent)).length === 3, null, { timeout: 240000 });
+  await until((q) => q.filter((t) => /done|failed|cancelled/.test(t)).length === 3, "three finished");
   const fin = await state(); assert.ok(fin.filter((t) => /done/.test(t)).length === 2 && fin.some((t) => /cancelled/.test(t)), "two renders done, one cancelled: " + fin.join(" | "));
   const outsOf = () => fs.readdirSync(path.join(dir, "out")).filter((f) => f.endsWith(".mp4")), outs = outsOf(); assert.ok(outs.some((f) => /1x1/.test(f)) && outs.some((f) => /9x16/.test(f)), "both queued renders wrote their mp4: " + outs);
   assert.equal(spawnSync("ffprobe", ["-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", path.join(dir, "out", outs.find((f) => /1x1/.test(f)))], { encoding: "utf8" }).stdout.trim().replace(/x$/, ""), "1080x1080", "the 1x1 render is 1080x1080");
   // render-from-UI with props: the queued render takes --props-file from props.json (title in the h1 changes), and the option is checked on the server
-  await tab("Props"); await reloads(() => page.locator("#tab-props button", { hasText: "Render with these props" }).click().catch(() => {})).catch(() => {});
-  await tab("Renders"); await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].some((x) => /props/.test(x.textContent) && /done|failed/.test(x.textContent)), null, { timeout: 240000 });
+  await settle(); await tab("Props"); await page.locator("#tab-props button", { hasText: "Render with these props" }).click();
+  await until((q) => q.some((t) => /props/.test(t) && /done|failed/.test(t)), "the props render finished");
+  await settle();
   if (![...(await state())].some((t) => /props.*done/.test(t))) {   // diagnostic for a runner we cannot reach: the failed job's own log (the failure is intermittent), then the same command run directly
     console.error("props render, studio job log:\n" + String(JSON.parse((await request(port, { p: "/__studio" })).body).job?.out).slice(-4000));
     const d = spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "film", dir, "--props-file", path.join(dir, "props.json")], { encoding: "utf8", cwd: ROOT, timeout: 300000 });
@@ -266,15 +274,15 @@ try {
   const withProps = path.join(dir, "out", "fx.mp4"); assert.ok(fs.existsSync(withProps), "out/fx.mp4 from the props render");
   const h1px = (f) => spawnSync("ffmpeg", ["-v", "error", "-ss", "0.3", "-i", f, "-vf", "crop=140:40:10:5,format=gray", "-frames:v", "1", "-f", "rawvideo", "-"], { maxBuffer: 1 << 20 }).stdout.toString("hex");
   const a1 = h1px(withProps); fs.copyFileSync(withProps, path.join(tmp, "props.mp4"));
-  for (let i = 0; i < 3 && fs.existsSync(path.join(dir, "props.json")); i++) assert.equal((await post(srv, "/__undo", {})).status, 200);
+  for (let i = 0; i < 3 && fs.existsSync(path.join(dir, "props.json")); i++) await reloads(async () => assert.equal((await post(srv, "/__undo", {})).status, 200));
   assert.ok(!fs.existsSync(path.join(dir, "props.json")), "undo walks back to no props.json (it did not exist before)");
   assert.equal((await post(srv, "/__render", { props: true })).status, 400, "no props.json: no props render");
   assert.equal((await post(srv, "/__render", { quality: "draft", format: "16x9" })).status, 202);
-  await page.waitForFunction(() => [...document.querySelectorAll("#rq .item")].filter((x) => /16x9/.test(x.textContent) && /done|failed/.test(x.textContent)).length === 1, null, { timeout: 240000 });
+  await until((q) => q.filter((t) => /16x9/.test(t) && /done|failed/.test(t)).length === 1, "the 16x9 render finished");
   const plainOut = path.join(dir, "out", outsOf().find((f) => /16x9/.test(f))); assert.notEqual(h1px(plainOut), a1, "the h1 differs between the props render and the plain one");
   assert.deepEqual(errors, [], "page errors");
   console.log("p12a-studio self-check: H3 waveform/meter, captions, gap drag + snap + ripple, range, linked, split/trim, nested drill-down; H5 undo/redo, audio rack, blur, variables, renders queue (2 real renders, 1 cancelled), lint, assets, catalog add, captions, source; trust boundary kept");  passed = true;
-} catch (e) { console.error("p12a-studio self-check FAILED:", e.stack || e.message); process.exitCode = 1; }
+} catch (e) { console.error("p12a-studio self-check FAILED:", e.stack || e.message, "\nstudio server output (tail):\n" + (servers.at(-1)?.out || "").slice(-6000)); process.exitCode = 1; }
 finally {
   await Promise.race([browser?.close().catch(() => {}), new Promise((r) => setTimeout(r, 8000))]);   // never wait forever on cleanup (Windows hung here until the runner killed the check)
   for (const s of servers) if (s.exitCode === null) { s.kill("SIGTERM"); await Promise.race([new Promise((r) => (s.exitCode !== null ? r() : s.once("exit", r))), new Promise((r) => setTimeout(r, 8000))]); }

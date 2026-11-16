@@ -187,13 +187,13 @@ export async function initPanels(c) {
   };
 
   // ── Props sidebar (Ctrl/Cmd+J): the film's per-run data, from props.schema.json or the declared variables; props.json is what the page sees as window.PROPS
-  // (KIT.props(), tools/p9-props.js) and what "Render with these props" passes as --props-file ──
+  // (KIT.props(), tools/props.js) and what "Render with these props" passes as --props-file ──
   loaders.props = async () => {
     const s = secs.props; s.replaceChildren(h("h2", { textContent: "Props" }));
     const j = await get("/__props").catch((e) => ({ schema: null, props: {}, error: e.message })), props = { ...j.props };
     if (j.error) note(s, j.error, "bad");
     const sch = j.schema, ps = sch?.properties || {};
-    if (!sch) note(s, "No props.schema.json and no declared variables: write props as JSON below (docs/playbook/p9-delivery.md).");
+    if (!sch) note(s, "No props.schema.json and no declared variables: write props as JSON below (docs/playbook/codecs.md).");
     const errs = h("div", { className: "bad" }), set = (k, v) => { if (v === undefined) delete props[k]; else props[k] = v; };
     for (const [k, d] of Object.entries(ps)) {
       const cur = k in props ? props[k] : d.default, req = (sch.required || []).includes(k);

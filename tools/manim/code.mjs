@@ -15,7 +15,11 @@ export const langOf = (file) => EXT[path.extname(file).toLowerCase()];
 export function highlight(code, { lang, theme = "github-dark", tabSize = 4 } = {}) {
   if (!lang) throw new Error(`highlight: give a language (${LANGS.join(", ")})`);
   const text = String(code).replace(/\r\n?/g, "\n").replace(/\t/g, " ".repeat(tabSize)).replace(/\n+$/, "");
-  const r = shiki(text, lang, theme);
+  // shiki gives up on a line after 500 ms of wall clock (tokenizeTimeLimit) and emits the rest as one token: a slow first, cold call on a busy runner
+  // tokenized differently from the next one. With the clock held still during this synchronous call the limit never fires: the same tokens every run.
+  // shortcut: the clean fix is tokenizeTimeLimit: 0 in vendor/shiki/entry.src.js and a rebuild of the bundle; do that at the next shiki update.
+  const now = Date.now; Date.now = () => 0;
+  let r; try { r = shiki(text, lang, theme); } finally { Date.now = now; }
   return { lang, theme, bg: r.bg, fg: r.fg, lines: r.lines };
 }
 

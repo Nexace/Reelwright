@@ -160,8 +160,9 @@ source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs
   upstream); `KIT.mount` / `KIT.block` drop it, or any HyperFrames composition file, into a film as one timed layer.
 - **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (26 WebGL
   transitions: HyperFrames' 14 and Remotion's 12 presentations), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
-  `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`.
-- **Motion blur, grading and effects.** `"motionBlur": true` in `project.json`; `KIT.grade` (grade presets, vignette, grain,
+  `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`. `KIT.noise` is seeded simplex/curl noise sampled by `(t, id)`, and
+  `KIT.stagger({ each, from, grid, axis, jitter, seed })` staggers a grid by distance from an origin.
+- **Motion blur, grading and effects.** `"motionBlur": true` in `project.json` (per-shot `KIT.shot.shutter(deg, from, to)`); `KIT.grade` (grade presets, vignette, grain,
   LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer. `KIT.fx` has
   Remotion's effect set in CSS, canvas and WebGL2 (`fx-gl.js`: outline, tear, cylinder, sphere, pageTurn, shatter, …).
 - **Video clips and extra audio.** `KIT.video` (speed ramps, trims) and `KIT.audio` mix clips and sounds over the soundtrack.

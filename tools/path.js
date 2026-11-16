@@ -69,7 +69,9 @@
   const P = (src, opts) => {
     const d = Array.isArray(src) ? P.fromPoints(src, { curviness: opts && opts.curviness }) : dOf(src);
     if (!d) throw new Error('KIT.path: expected a path d string or an SVGPathElement with a d attribute');
-    if (opts) return motion(d, opts);
+    // Legacy shape unless opts asks for motion: a second argument that used to be ignored must not change the return.
+    const o = opts && typeof opts === 'object' ? opts : null;
+    if (o && (['start', 'end', 'autoRotate', 'alignOrigin'].some((k) => k in o) || (Array.isArray(src) && 'curviness' in o))) return motion(d, o);
     const len = lenOf(d), b = R.getBoundingBox(d);
     const at = (p) => {
       const s = Math.min(len, K.clamp(p) * len), pt = R.getPointAtLength(d, s), tg = R.getTangentAtLength(d, s);

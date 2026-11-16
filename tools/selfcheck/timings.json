@@ -106,6 +106,9 @@
       "serial": true,
       "s": 30.8
     },
+    "hw-encode": {
+      "s": 3.8
+    },
     "json-envelope": {
       "s": 0.2
     },
@@ -215,6 +218,9 @@
     "remotion": {
       "s": 0.4
     },
+    "remotion-helpers": {
+      "s": 3.8
+    },
     "remotion-kit": {
       "s": 26.3
     },
@@ -223,6 +229,9 @@
     },
     "render-wiring": {
       "s": 2.7
+    },
+    "rive": {
+      "s": 3
     },
     "runner": {
       "s": 0.5
@@ -235,6 +244,12 @@
     },
     "shotcards-b": {
       "s": 3.7
+    },
+    "silence": {
+      "s": 2.6
+    },
+    "skia": {
+      "s": 3.5
     },
     "skill-docs": {
       "s": 0
@@ -255,6 +270,9 @@
     },
     "speech-install": {
       "s": 2.2
+    },
+    "starburst": {
+      "s": 3.7
     },
     "stills": {
       "s": 30.7

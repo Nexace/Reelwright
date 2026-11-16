@@ -148,10 +148,11 @@ source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs
   motion spikes, lopsided or empty frames, low contrast and VO that is too fast. It never fails a build.
 - **HyperFrames lint in QA.** `qa` runs the vendored `@hyperframes/lint` on hyperframes films: its errors are a gate, its
   warnings are `WARN` lines. [PLAYBOOK → QA lint](docs/PLAYBOOK.md#qa-lint-for-hyperframes-films-toolscheckshf-lintpagemjs)
-- **Animation runtimes.** GSAP and its plugins, Lottie, anime.js v4, Three.js r187 and plain CSS/WAAPI, bundled and driven only
-  by seeking from `render(t)` (`KIT.gsap`, `KIT.lottie`, `KIT.anime`, `KIT.three`, `KIT.animations`). A `seekable-runtimes` QA gate
-  bans the paths that use real time or `Math.random`. GSAP is **not MIT** (Webflow's "Standard No Charge" licence, see
-  [THIRD_PARTY.md](THIRD_PARTY.md)). [PLAYBOOK → Animation runtimes](docs/PLAYBOOK.md#animation-runtimes-kitgsap-kitlottie-kitanime-kitthree-toolsruntimesjs)
+- **Animation runtimes.** GSAP and its plugins, Lottie, anime.js v4, Three.js r187, Rive and Skia (CanvasKit) plus plain
+  CSS/WAAPI, bundled and driven only by seeking from `render(t)` (`KIT.gsap`, `KIT.lottie`, `KIT.anime`, `KIT.three`,
+  `KIT.rive`, `KIT.skia`, `KIT.animations`). A `seekable-runtimes` QA gate bans the paths that use real time or `Math.random`.
+  GSAP is **not MIT** (Webflow's "Standard No Charge" licence, see [THIRD_PARTY.md](THIRD_PARTY.md)).
+  [PLAYBOOK → Animation runtimes](docs/PLAYBOOK.md#animation-runtimes-kitgsap-kitlottie-kitanime-kitthree-toolsruntimesjs)
 - **27 themes.** The eleven originals plus HyperFrames' three theme-pack looks and thirteen frame presets, each mapped to
   the `--kit-*` tokens with a motion archetype and caption skin. `reelwright theme-brief "<what the product is>"` drafts a
   theme from a one-line brief, offline. `node tools/theme-check.mjs` and `node tools/theme-gallery.mjs` check and picture them.
@@ -628,6 +629,7 @@ tools/                      shared — you rarely edit these
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages, lint, blocks and catalog components, see VENDORED.md
 vendor/hf-player/           the HyperFrames player (Apache 2.0) behind embed and studio
 vendor/gsap/ lottie/ anime/ three/ three-r147/   animation runtimes behind tools/runtimes.js (GSAP is not MIT, see its LICENSE-GSAP.md)
+vendor/rive/ canvaskit/     Rive files (KIT.rive, tools/rive.js) and Skia drawing (KIT.skia, tools/skia.js), wasm loaded from disk
 vendor/katex/ mathjax/ flubber/ paths/ polygon-clipping/ shiki/   math, paths, boolean ops and code highlighting: KIT.math.equation, KIT.tex, morphs, KIT.path, KIT.math.bool, reelwright code
 vendor/d3/ topojson-client/ world-atlas/ us-atlas/   what the map blocks load
 vendor/ui-ux-pro-max/       product-type data behind theme-brief (MIT)

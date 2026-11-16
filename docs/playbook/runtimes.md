@@ -1,4 +1,4 @@
-# Animation runtimes: GSAP, Lottie, anime.js, Three.js, CSS/WAAPI (checkpoint 10b)
+# Animation runtimes: GSAP, Lottie, anime.js, Three.js, Rive, Skia, CSS/WAAPI (checkpoint 10b)
 
 Replaces the PLAYBOOK sections "GSAP (optional)" and "Lottie (optional)" when 10z stitches this in: the libraries are now
 bundled in `vendor/` and driven by `tools/runtimes.js`. The KIT helpers (`KIT.keys`, `KIT.easing`, layouts) still cover most
@@ -19,6 +19,8 @@ Every library is paused at load and only ever **seeked** from `render(t)`: `h.se
 | Lottie | `../../../vendor/lottie/lottie.min.js` | `kit/lottie/lottie.min.js` |
 | anime.js v4 | `../../../vendor/anime/anime.umd.min.js` | `kit/anime/anime.umd.min.js` |
 | Three.js r187 | no tag: `KIT.three` imports `three.module.js` on first use | same |
+| Rive 2.50.0 | `../../../tools/rive.js` (script and wasm read from `vendor/rive/`) | `kit/rive.js` (from `kit/rive/`) |
+| Skia (CanvasKit 0.42.0) | `../../../tools/skia.js` (loader and wasm read from `vendor/canvaskit/`) | `kit/skia.js` (from `kit/canvaskit/`) |
 | all | then `../../../tools/runtimes.js`, then `film.js` | then `kit/runtimes.js`, then `film.js` |
 
 Bundled GSAP plugins: CustomEase, CustomWiggle, CustomBounce, EasePack (SlowMo, ExpoScaleEase), SplitText, DrawSVG,
@@ -41,8 +43,13 @@ const l = KIT.lottie(box, LOTTIE_JSON, { t0: W('hook', 'icon'), speed: 1, loop: 
 const a = KIT.anime((A) => A.createTimeline({ autoplay: false }).add('.dot', { y: [40, 0], delay: A.stagger(60) }, W('hook', 'dots') * 1000));
 // Three.js: build(THREE, renderer, { w, h }) → { scene, camera, update(t) }; the canvas fills `el`
 const s = KIT.three(el, (THREE, renderer, { w, h }) => { /* scene, camera, meshes */ return { scene, camera, update: (t) => { mesh.rotation.y = t; } }; });
+// Rive: a linear animation is applied at film time; a state machine is replayed in 1/60 s ticks with film-time inputs
+const r = KIT.rive(box, { src: 'assets/x.riv', animation: 'slide', start: W('hook', 'icon'), dur: 2 });
+const m = KIT.rive(box2, { src: 'assets/x.riv', stateMachine: 'Machine', inputs: [{ at: W('hook', 'go'), name: 'go', fire: true }] });
+// Skia: draw(canvas, CanvasKit, t) paints the frame; the surface is cleared first
+const k = KIT.skia(el, (c, CK, t) => { const p = new CK.Paint(); p.setColor(CK.Color(0x33, 0x66, 0xcc, 1)); c.drawRect(CK.XYWHRect(40 + 80 * t, 20, 80, 80), p); p.delete(); });
 // CSS @keyframes and element.animate(): authored as usual (finite, fill both); currentTime = t s after load
-function render(t) { g.set(t); l.set(t); a.set(t); s.set(t); KIT.animations(t); }
+function render(t) { g.set(t); l.set(t); a.set(t); s.set(t); r.set(t); m.set(t); k.set(t); KIT.animations(t); }
 ```
 
 CSS animation delays are times on the film clock: set them from the VO (`el.style.animationDelay = W('end', 'go') + 's'`).
@@ -65,6 +72,8 @@ anime.js writes nothing before a tween starts, so give its targets their "before
 | `lottie.loadAnimation(…)` directly | autoplays by default | `KIT.lottie` |
 | `gsap.timeline()` / `gsap.delayedCall` outside `KIT.gsap` | real time | the `tl` `KIT.gsap` passes to build |
 | `THREE.Clock`, `getElapsedTime`, `setAnimationLoop` | real time | animate in `update(t)` |
+| `new rive.Rive(…)` / `.play()` (the @rive-app/canvas player) | its own `requestAnimationFrame` clock | `KIT.rive` |
+| CanvasKit `MakeCanvasSurface` / a WebGL surface | GPU raster differs between machines | `KIT.skia` (its software surface) |
 
 Not bundled: ScrollTrigger and the other interactive plugins, GSDevTools, MotionPathHelper, Flip and CSSRulePlugin
 (seek behaviour unverified), the `.map` files.
@@ -94,7 +103,35 @@ Rules the test found:
 
 Not tested: Lottie masks, mattes, gradients, text, images and expressions (expressions may call `random`/`wiggle`: test a
 file before relying on it); dotLottie (`.lottie`); Three.js loaders, textures and post-processing; WebGL on a real GPU
-(renders use software GL, which is what makes frames match across machines).
+(renders use software GL, which is what makes frames match across machines); Rive audio, data binding, listeners, nested
+artboards, text and assets a `.riv` only references by URL; Skia text (the repo ships woff2 fonts, which CanvasKit's
+FreeType does not parse) and images.
+
+## Rive and Skia
+
+Two more vendored runtimes (owner ruling 2026-11-16), both seek-only and both offline: the wasm is read from `vendor/`
+and handed over as bytes / a `blob:` URL, so nothing reaches for a CDN.
+
+| Runtime | What it is | API |
+|---|---|---|
+| Rive (`@rive-app/canvas` 2.50.0, MIT, `vendor/rive/`) | the Rive runtime, not its player: the `Rive` class has its own clock | `KIT.rive(el, { src, artboard, animation \| stateMachine, start, dur, speed, loop, fit, align, inputs, step })` |
+| Skia (`canvaskit-wasm` 0.42.0, BSD-3-Clause, `vendor/canvaskit/`) | CanvasKit on a software (CPU) surface | `KIT.skia(el, draw)`; `draw(canvas, CanvasKit, t)` paints the frame |
+
+- **Rive, linear animation.** Its time is the film time: `set(t)` applies the animation at `(t - start) * speed`, holds
+  the last frame after `dur`, and wraps when `loop` is on. `dur` defaults to the animation's length.
+- **Rive, state machine.** A state machine is a graph with a real-time clock in Rive's player. Here it is replayed from
+  its first state in `step`-second ticks (default 1/60) up to the film time, with `inputs: [{ at, name, value }]` (number
+  or boolean) and `{ at, name, fire: true }` (trigger) applied when due. A seek forward continues from where it was; a seek
+  backward starts over, so the frame at t is the same whatever was drawn before. This is the same idea as
+  `KIT.dotLottie`'s `schedule`: the film decides when each input changes.
+- **Skia.** `set(t)` clears the surface and calls `draw`. Draw everything from `t` alone: no `Math.random`, no clock. The
+  surface is software on purpose, so frames raster the same on every machine. Text needs a TTF/OTF typeface
+  (`CK.Typeface.MakeFreeTypeFaceFromData(bytes)`); the bundled fonts are woff2 and will not parse.
+- **Both renderers.** pvk and HyperFrames: `tools/selfcheck/rive.mjs` and `tools/selfcheck/skia.mjs` seek 12 times
+  forward and shuffled (identical frames in both renderers, frames move, no network requests). The Rive fixture
+  (`tools/selfcheck/fixtures/sample.riv`, written by `fixtures/riv.mjs`) is ours, MIT.
+- **Sizes.** Rive: `rive.js` 684,104 + `rive.wasm` 2,264,167 bytes. CanvasKit: `canvaskit.js` 120,877 +
+  `canvaskit.wasm` 7,317,345 bytes (the default build; `bin/full` is about 1 MB larger and adds WebGPU).
 
 ## Notes
 

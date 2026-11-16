@@ -17,7 +17,7 @@ const SHADERS = { ...HF, ...SHADERS2 };
 // --force-color-profile=srgb: the same colour the renderer's pages capture, so a composited frame matches its neighbours
 export const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--disable-lcd-text", "--font-render-hinting=none", "--force-color-profile=srgb"];
 
-// page: the film's index.html; frames: [{ t, file }] (.jpg written as jpeg 94 like the renderers, else png)
+// page: the film's index.html; frames: [{ t, file }] (.jpg written as jpeg 94 like the renderers' stills/, else png like their frames/)
 export async function shaderPass(page, width, height, frames, scale = 1) {   // scale: --resolution (frames are scale x the layout size)
   if (!/shaders\.js|fx-gl\.js/.test(fs.readFileSync(page, "utf8"))) return;
   // shortcut: hf captures come from plain Chromium, not the producer, so glyph edges can differ by ~1px at the cut

@@ -1,7 +1,9 @@
 // node tools/selfcheck/capture-quality.mjs — capture and encode fidelity, end to end on a 320x180 flat film (offline, seconds):
 //   frames     pvk writes PNG frames (no JPEG q94 intermediate before x264), and stills stay jpeg
 //   encode     ffprobe: BT.709 / tv tags on the render mp4, -keyint_min gone (scene cuts keep their keyframes), -tune animation
-//              and aq-mode=3 in the x264 args
+//              and aq-mode=3 in the film encode only (transcode keeps the plain x264 args); a pure-red frame comes out as
+//              BT.709 limited-range YUV 63/102/240 (the explicit scale=out_color_matrix, not ffmpeg 7.1+ negotiation)
+//   manifest   a pvk render's <out>.manifest.json records its PNG frames, verify compares them, and a 0-frame manifest FAILs
 //   capture    the two Chrome flags that make a normal frame and a shader-transition frame identical (font hinting, srgb)
 //   dither     the kit tile is on in an mp4 film (±1-2 LSB over a flat colour) and off for an alpha capture (alpha 0) and
 //              with output.dither:false; kit.css sets -webkit-font-smoothing: antialiased
@@ -17,7 +19,7 @@ import { launch } from "../browser.mjs";
 import { kitFiles } from "../kit_files.mjs";
 import pvk, { launchArgs, encode } from "../renderers/pvk.mjs";
 import { GL_ARGS } from "../renderers/shader_pass.mjs";
-import { x264Args } from "../render_opts.mjs";
+import { x264Args, FILM_X264 } from "../render_opts.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const W = 320, H = 180, FPS = 10;
@@ -87,7 +89,18 @@ try {
   const kf = x264Args({ keyframeInterval: 12 });
   assert.ok(!kf.includes("-keyint_min"), "-keyint_min is not set (equal to -g it suppressed scene-cut keyframes)");
   assert.equal(kf[kf.indexOf("-g") + 1], "12", "-g still is");
-  assert.ok(x264Args().join(" ").includes("-tune animation") && x264Args().join(" ").includes("aq-mode=3:aq-strength=1.0"), "tune animation + aq-mode=3");
+  assert.ok(FILM_X264.join(" ").includes("-tune animation") && FILM_X264.join(" ").includes("aq-mode=3:aq-strength=1.0"), "tune animation + aq-mode=3");
+  assert.match(fs.readFileSync(T("opaque/out/film.mp4"), "latin1"), /x264 - core[^\0]*\baq=3:1\.00\b/, "the film encode used aq-mode=3 (x264's own settings SEI)");
+  assert.ok(!x264Args().includes("-tune") && !x264Args().includes("-colorspace"), "x264Args (transcode's) has no film tune or BT.709 tags");
+
+  // a pure-red frame: BT.709 limited range is Y 63, Cb 102, Cr 240 (BT.601 would be 81/90/240)
+  const R = film("red");
+  fs.mkdirSync(path.join(R, "frames"));
+  spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i", `color=c=red:s=${W}x${H}:r=${FPS}:d=0.2,format=rgb24`, "-start_number", "0", path.join(R, "frames/f%05d.png")]);
+  await quiet(async () => encode(R, P(), FPS, "frames/f%05d.png", 0));
+  const yuv = spawnSync("ffmpeg", ["-v", "error", "-i", T("red/out/film.mp4"), "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "yuv420p", "-"], { encoding: "buffer" }).stdout;
+  const red = [yuv[0], yuv[W * H], yuv[W * H + (W / 2) * (H / 2)]];
+  assert.ok(red.every((v, i) => Math.abs(v - [63, 102, 240][i]) <= 1), `pure red encodes as BT.709 tv-range YUV ~63/102/240 (got ${red})`);
 
   // ── 4. the capture flags (pvk and the shader pass set the same font/colour ones) ──
   for (const f of ["--font-render-hinting=none", "--force-color-profile=srgb"]) {
@@ -95,6 +108,7 @@ try {
     assert.ok(GL_ARGS.includes(f), `the shader pass launches Chrome with ${f}`);
   }
   assert.ok(launchArgs(2).includes("--force-device-scale-factor=2"), "the launch scale follows the capture scale");
+  assert.ok(launchArgs(1).includes("--enable-unsafe-swiftshader"), "pvk lets WebGL2 (fx-gl) fall back to SwiftShader on a GPU-less box");
 
   // ── 5. supersample: 2x capture, output size at encode ──
   process.env.REELWRIGHT_SUPERSAMPLE = "2";
@@ -129,7 +143,20 @@ try {
     await p.evaluate((c) => document.documentElement.classList.add(c), "kit-dither");
     assert.match(await after(), /kit-dither\.png/, "html.kit-dither paints the tile: what pvk and the producer add for a film capture");
   } finally { await b.close(); }
-  console.log(`capture-quality self-check: PNG frames, BT.709 tags, no keyint_min, tune animation + aq-mode=3, capture flags, dither on/off (${lo}..${hi} LSB), supersample 2x→${W}x${H}, ProRes 4444 10-bit master`);
+  // ── 8. the manifest: a pvk render records its PNG frames and verify compares every one; 0 frames is a FAIL ──
+  const V = film("verify"), node = (...a) => spawnSync(process.execPath, [path.join(ROOT, "tools/render.mjs"), V, ...a], { cwd: ROOT, encoding: "utf8" });
+  fs.writeFileSync(path.join(V, "project.json"), JSON.stringify(P()));
+  for (const m of ["frames", "encode"]) assert.equal(node(m).status, 0, `render.mjs ${m}`);
+  const mf = path.join(V, "out/film.manifest.json"), man = JSON.parse(fs.readFileSync(mf, "utf8"));
+  assert.equal(man.output.frames, FPS, `the manifest records the ${FPS} PNG frames (got ${man.output.frames})`);
+  let v = node("verify");
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, new RegExp(`PASS  frames  all ${FPS} identical`), "verify re-renders and compares every frame");
+  fs.writeFileSync(mf, JSON.stringify({ ...man, output: { ...man.output, frames: 0, frame_sha256: [] } }));
+  v = node("verify");
+  assert.equal(v.status, 1, "a manifest with 0 frames fails verify instead of passing vacuously");
+  assert.match(v.stdout, /FAIL  frames  .* records 0 frames/);
+  console.log(`capture-quality self-check: PNG frames, BT.709 tags, red → 63/102/240, manifest + verify on ${FPS} frames, no keyint_min, tune animation + aq-mode=3, capture flags, dither on/off (${lo}..${hi} LSB), supersample 2x→${W}x${H}, ProRes 4444 10-bit master`);
 } finally {
   if (oldPages === undefined) delete process.env.PAGES; else process.env.PAGES = oldPages;
   fs.rmSync(tmp, { recursive: true, force: true });

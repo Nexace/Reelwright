@@ -3,19 +3,20 @@
 # frames (a missing image, a scene that faded to nothing). Then look at the times it prints.
 # Gates, each PASS / FAIL with a time, frame or file; any FAIL exits 1. Skip one with project.json "qa": {"<gate>": false}.
 #   loudness      the mp4's audio: integrated within ±1 LU of project.json loudness, true peak ≤ −1 dBTP
-#   cambi         banding in the delivered mp4, per scene: the mean CAMBI score must stay under 6 (libvmaf; skipped
-#                 when the local ffmpeg has no libvmaf, so the pipeline stays offline-safe)
-#   vmaf          only when project.json "output": {"master": "<file>"} exists: the mp4's VMAF against that master,
-#                 per scene, mean ≥ 93 (libvmaf; skipped the same way, and when there is no master)
+#   cambi         opt-in (project.json "qa": {"cambi": true}): banding in the delivered mp4, per scene, mean CAMBI under 6
+#                 (libvmaf; skipped when the local ffmpeg has no libvmaf, so the pipeline stays offline-safe)
+#   vmaf          with project.json "output": {"master": "prores"}: the mp4's VMAF against the <out>-master.mov encode
+#                 writes, per scene, mean ≥ 93. WARN unless "qa": {"vmaf": true}; skipped like cambi, and with no master
 #   captions      in the safe area, ≤ 2 lines, contrast ≥ 4.5 (tools/qa_page.mjs)
 #   flash         ≤ 3 flashes in any 1 s, over the whole frame or any quarter (WCAG 2.3.1 general flash; red flash not checked)
 #   illustrative  numbers on screen come with an "Illustrative data" label; numbers in a screenshot's data-qa-text
 #                 pass with that label or a "Source: …" credit (tools/qa_page.mjs)
 #   ai-label      WARN only: a `reelwright gen` image/video on screen with no KIT.aiLabel / "AI-generated" text (tools/qa_page.mjs)
 #   seekable      the film's own code has no clock, randomness, timers or CSS transitions: render(t) must be a pure function of t
-#   hero-ease     an element marked data-hero uses a generic easing keyword (ease, linear, ease-in-out) instead of an
-#                 intent name (enter / exit / ambient / impact)
-#   shot-shutter  KIT.shot.shutter(deg) is 0–360 and has motion blur to spread (project.json "motionBlur" or --blur)
+#   hero-ease     a line that references the data-hero element uses a generic easing keyword (ease, linear,
+#                 ease-in-out) instead of an intent name (enter / exit / ambient / impact)
+#   shot-shutter  KIT.shot.shutter(deg) is 0–360 and has motion blur to spread (project.json "motionBlur", --blur, or the
+#                 blur the last encode recorded in <out>.manifest.json; with none of those and no manifest, not checked)
 # WARN lines, never failures, skippable the same way ("qa": {"overlap": false}): overlap, tiny-text, wordy (tools/qa_page.mjs),
 # dark (stretches over 2 s of flat near-black frames with no VO playing), scale-zero (an entrance that starts at scale 0;
 # start at 0.93 instead).
@@ -50,6 +51,10 @@ def gate(name, problems, ok_note=""):
         if len(problems) > 8: print(f"          … {len(problems) - 8} more")
     else:
         print(f"  PASS  {name}  {ok_note}")
+def soft(name, problems, ok_note=""):   # WARN lines unless project.json "qa": {"<name>": true} makes it a gate
+    if Q.get(name) is True: return gate(name, problems, ok_note)
+    if problems: warn(name, problems + [f'a FAIL only with project.json "qa": {{"{name}": true}}'])
+    else: print(f"  PASS  {name}  {ok_note}")
 def skip(name, why):
     print(f"  SKIP  {name}  (project.json qa.{name} = false)" if Q.get(name) is False else f"  SKIP  {name}  ({why})")
 def warn(name, lines):
@@ -57,7 +62,7 @@ def warn(name, lines):
         for x in lines[:8]: print(f"  WARN  {name}: {x}")
         if len(lines) > 8: print(f"  WARN  {name}: … {len(lines) - 8} more")
 
-files = sorted(f for f in os.listdir(D) if f.endswith((".jpg", ".png"))) if FULL else []   # pvk: f%05d.jpg, hyperframes: frame_%06d.png
+files = sorted(f for f in os.listdir(D) if f.endswith((".jpg", ".png"))) if FULL else []   # pvk: f%05d.png, hyperframes: frame_%06d.png
 prev, diffs, flat, lums = None, [], [], []
 if FULL:
     for i, f in enumerate(files):
@@ -138,18 +143,24 @@ def per_scene(frames, key):
     return out
 
 def quality():
-    if Q.get("cambi") is False and Q.get("vmaf") is False: return
+    master = (P.get("output") or {}).get("master")
+    if master == "prores": master = re.sub(r"\.mp4$", "", mp4) + "-master.mov"   # the file encode writes for it
+    cambi = Q.get("cambi") is True   # the CAMBI pass decodes the whole mp4 twice: off until a film asks for it
+    if not cambi: skip("cambi", 'opt in with project.json "qa": {"cambi": true}')
+    if not cambi and (Q.get("vmaf") is False or not master):   # nothing to measure: no libvmaf probe either
+        return skip("vmaf", "no output.master")
     try:
         has = "libvmaf" in subprocess.run([FFMPEG, "-hide_banner", "-filters"], capture_output=True, text=True, timeout=30).stdout
     except Exception:
         has = False
     if not has:
-        skip("cambi", "this ffmpeg has no libvmaf (offline build); banding not measured")
+        if cambi: skip("cambi", "this ffmpeg has no libvmaf (offline build); banding not measured")
         skip("vmaf", "this ffmpeg has no libvmaf; quality not measured")
         return
     if not os.path.exists(mp4):
-        skip("cambi", f"no {mp4} — run encode first"); skip("vmaf", f"no {mp4} — run encode first"); return
-    if Q.get("cambi") is not False:
+        if cambi: skip("cambi", f"no {mp4} — run encode first")
+        return skip("vmaf", f"no {mp4} — run encode first")
+    if cambi:
         try:
             fs = libvmaf_frames(mp4, mp4, "cambi"); means = per_scene(fs, "cambi")
             vals = [f["metrics"]["cambi"] for f in fs if "cambi" in f["metrics"]]
@@ -161,17 +172,16 @@ def quality():
         except Exception as e:
             skip("cambi", f"libvmaf could not measure this file: {e}")
     if Q.get("vmaf") is not False:
-        master = (P.get("output") or {}).get("master")
         if not master:
             skip("vmaf", "no output.master")
         elif not os.path.exists(os.path.join(proj, master)):
-            gate("vmaf", [f"output.master {master} not found"])
+            soft("vmaf", [f"output.master {master} not found"])
         else:
             try:
                 fs = libvmaf_frames(mp4, os.path.join(proj, master)); means = per_scene(fs, "vmaf")
                 vals = [f["metrics"]["vmaf"] for f in fs if "vmaf" in f["metrics"]]
                 print("  VMAF   per scene: " + ", ".join(f"{n} {v:.1f}" for n, v in means if v is not None) + f"  (mean {sum(vals) / len(vals):.1f})")
-                gate("vmaf", [f"{n} {v:.1f} (mean < 93 against the master)" for n, v in means if v is not None and v < 93],
+                soft("vmaf", [f"{n} {v:.1f} (mean < 93 against the master)" for n, v in means if v is not None and v < 93],
                      f"(mean {sum(vals) / len(vals):.1f})")
             except Exception as e:
                 skip("vmaf", f"libvmaf could not measure this file: {e}")
@@ -253,8 +263,12 @@ if FULL:
 GENERIC = re.compile(r"""(?:KIT\.easing|K\.easing|\beasing|\bease|\beaseIn|\beaseOut)\s*[:(]\s*['"](ease(?:-in|-out|-in-out)?|linear)['"]|(?:animation-timing-function|transition(?:-timing-function)?|animation)\s*:[^;{}]*\b(ease(?:-in|-out|-in-out)?|linear)\b""")
 SCALE0 = re.compile(r"\bscale(?:3d)?\s*\(\s*0(?:\.0+)?(?![\d.])|\bscale\s*:\s*0(?:\.0+)?(?![\d.])")
 SHUTTER = re.compile(r"KIT\.shot\.shutter\s*\(([^)]*)\)")
+def built_blur():   # True / False: the last encode's REELWRIGHT_BLUR from <out>.manifest.json; None: no manifest to ask
+    try: return bool(json.load(open(re.sub(r"\.mp4$", ".manifest.json", mp4), encoding="utf-8")).get("blur"))
+    except (OSError, ValueError): return None
 if not QUALITY_ONLY:
     hero, zero, shut = [], [], []
+    blur = bool(P.get("motionBlur") or os.environ.get("REELWRIGHT_BLUR")) or built_blur()
     for f in src:
         fp = os.path.join(proj, f)
         if not os.path.exists(fp): continue
@@ -268,16 +282,20 @@ if not QUALITY_ONLY:
                 d = re.match(r"\s*(-?[\d.]+)", m.group(1))
                 if d and not (0 <= float(d.group(1)) <= 360):
                     shut.append(f"{f}:{n}: KIT.shot.shutter({d.group(1)}) is outside 0–360")
-                if not P.get("motionBlur") and not os.environ.get("REELWRIGHT_BLUR"):
+                if blur is False:
                     shut.append(f"{f}:{n}: KIT.shot.shutter({d.group(1) if d else '…'}) has no effect — motionBlur is off "
                                 f'(set project.json "motionBlur": true or pass --blur)')
         if marks:
-            name = f
+            name, refs = f, {"data-hero"}   # what a line must mention to be about the hero: its id / name, the variable it is in
             for _, line in marks:
                 m = re.search(r"""KIT\.el\(\s*['"][^'"]+['"]\s*,\s*['"]([^'"]+)['"]""", line) or re.search(r"""\bid\s*[:=]\s*['"]([^'"]+)['"]""", line)
-                if m: name = m.group(1); break
+                if m and name == f: name = m.group(1)
+                if m: refs.add(m.group(1))
+                refs.update(re.findall(r"\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=", line) + re.findall(r"([A-Za-z_$][\w$]*)\.dataset\.hero\b", line))
+            about = re.compile("|".join(r"(?<![\w$-])" + re.escape(r) + r"(?![\w$-])" for r in refs))
+            # shortcut: line by line, so a CSS rule or call that spans lines is only seen on the line naming the hero
             for n, line in enumerate(lines, 1):
-                if line.lstrip().startswith("//"): continue
+                if line.lstrip().startswith("//") or not about.search(line): continue
                 for m in GENERIC.finditer(line):
                     kw = m.group(1) or m.group(2)
                     hero.append(f"{f}:{n}: hero element {name!r} uses the generic easing {kw!r}; "

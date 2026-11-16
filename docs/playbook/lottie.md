@@ -1,7 +1,7 @@
 # Lottie and dotLottie (Phase 11, package P6)
 
 Extends [runtimes.md](runtimes.md) (`KIT.lottie`, lottie-web 5.13.0). What is verified, what is not, and `.lottie` files.
-Every claim below has a fixture in `tools/selfcheck/p6-lottie.mjs`, `p6-lottie-lint.mjs` or `p6-dotlottie.mjs`: each is seeked
+Every claim below has a fixture in `tools/selfcheck/lottie.mjs`, `lottie-lint.mjs` or `dotlottie.mjs`: each is seeked
 12 times forward on one page and the same times shuffled on a fresh one, in pvk and in HyperFrames, and the frames must match.
 
 ## What lottie-web draws (verified)
@@ -31,7 +31,7 @@ scale). `KIT.lottie` waits for `document.fonts.ready` before the first frame, so
 
 ## Expressions (row 5.5)
 
-lottie-web evaluates After Effects expressions on every seek. Measured (`p6-lottie-lint.mjs`, three fresh page loads, t = 1):
+lottie-web evaluates After Effects expressions on every seek. Measured (`lottie-lint.mjs`, three fresh page loads, t = 1):
 a time-driven expression (`time * 180`, `Math.sin(time * 3)`, `value`) gives the same transform every time and passes
 the shuffled-seek test; `wiggle(...)` and `random(...)` give three different transforms. So:
 

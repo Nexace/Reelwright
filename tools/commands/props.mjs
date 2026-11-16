@@ -3,11 +3,11 @@
 // props <project> merge <file.json | '{...}'>     the props with every default of the schema filled in, as JSON on stdout
 //   Per-run props (Remotion `--props`, Zod schema): `reelwright <any command> --props '{"title":"Hi"}'` / `--props-file data.json` (aliases of
 //   --variables / --variables-file, bin patch docs/plans/p9-patches/props-flags.patch) are checked against props.schema.json when the project has
-//   one, then written to the page's kit-vars.js; the page reads them with KIT.props() (tools/p9-props.js). Rows of a CSV: `batch <project> rows.csv`.
-//   Offline. docs/playbook/p9-delivery.md
+//   one, then written to the page's kit-vars.js; the page reads them with KIT.props() (tools/props.js). Rows of a CSV: `batch <project> rows.csv`.
+//   Offline. docs/playbook/codecs.md
 import fs from "node:fs";
 import path from "node:path";
-import { validate, withDefaults, schemaFromVariables } from "../p9-schema.mjs";
+import { validate, withDefaults, schemaFromVariables } from "../props-schema.mjs";
 
 const readJson = (spec) => { const t = String(spec).trim(); return JSON.parse(t.startsWith("{") ? t : fs.readFileSync(spec, "utf8")); };
 export function loadSchema(proj) {

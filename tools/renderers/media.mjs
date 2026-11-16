@@ -9,7 +9,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-import { audioChain, extractVideoFrames } from "../p9-media.mjs";   // loop, volume curves, pitch, stream index, alpha frames (docs/playbook/p9-delivery.md)
+import { audioChain, extractVideoFrames } from "../media-ffmpeg.mjs";   // loop, volume curves, pitch, stream index, alpha frames (docs/playbook/codecs.md)
 
 const LIST = (DIR) => path.join(DIR, ".cache", "media-audio.json");
 const run = (cmd, args) => { const r = spawnSync(cmd, args, { encoding: "utf8" });
@@ -39,7 +39,7 @@ export async function pagesMedia(DIR, page, FPS, pageDir, { frames = true } = {}
       fs.rmSync(dir, { recursive: true, force: true });
       fs.mkdirSync(dir, { recursive: true });
       console.log(`KIT.video("${v.id}"): extracting frames at ${FPS} fps → ${path.relative(DIR, dir)}`);
-      // same frame rule as before (tools/p9-media.mjs extractVideoFrames); `transparent` keeps the alpha plane as RGBA png
+      // same frame rule as before (tools/media-ffmpeg.mjs extractVideoFrames); `transparent` keeps the alpha plane as RGBA png
       extractVideoFrames(src, dir, { fps: FPS, transparent: !!v.transparent });
       fs.writeFileSync(done, String(fs.readdirSync(dir).filter((f) => f.endsWith("." + ext)).length));
     }
@@ -80,7 +80,7 @@ export function mediaMix(DIR) {
         [...atempo((b - a) / c.step), "apad", "asetpts=N/SR/TB", `atrim=duration=${n6(c.step)}`].join(",") + `[c${i}t${j}]`));
       g.push(`${c.slices.map((_, j) => `[c${i}t${j}]`).join("")}concat=n=${c.slices.length}:v=0:a=1,${tail}[c${i}]`);
     } else {
-      // volume curve, loop, pitch (tone / varispeed) and the audio stream index: tools/p9-media.mjs audioChain (the old chain plus those)
+      // volume curve, loop, pitch (tone / varispeed) and the audio stream index: tools/media-ffmpeg.mjs audioChain (the old chain plus those)
       g.push(`[${k}:a:${c.stream ?? 0}]${audioChain({ ...c, out: end, len }, { end })}[c${i}]`);
     }
     pads.push(`[c${i}]`);

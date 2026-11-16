@@ -105,16 +105,16 @@ No counterpart (the premise is HyperFrames' own model; each reason is `NO_COUNTE
 | `timeline_track_too_dense` | there are no timeline tracks; a big file is `composition_file_too_large` |
 | `caption_track_kind_missing` | captions are drawn by `KIT.subs` or a caption block fed by `captions`, never a timeline track that needs a `data-track-kind` |
 | `gsap_timeline_registered_before_async_build` | `KIT.gsap` builds after fonts load and registers once; `KIT.mount` keeps the registered timeline object, so tweens added later still play |
-| `audio_volume_double_automation` | a `vol` curve, fades and `gain` multiply in one ffmpeg chain (`tools/p9-media.mjs`); no control overrides another |
+| `audio_volume_double_automation` | a `vol` curve, fades and `gain` multiply in one ffmpeg chain (`tools/media-ffmpeg.mjs`); no control overrides another |
 | `audio_carve_ungrouped_sources`, `audio_group_carve_attr` | there is no carve: music ducks under the voiceover automatically (`mix.py`), and `KIT.audio` is never ducked |
 | `audio_group_timing_attrs`, `audio_group_holds_elements` | buses are `project.json` keys (`fx.vo`, `fx.music`, `fx.sfx`), not elements: no timing attributes, nothing nests in them |
-| `audio_reactive_single_tween_per_group` | audio-reactive data (`tools/p9-audio.js`) is read inside `render(t)` every frame, so one tween per caption group cannot be written; no catalog component has it |
+| `audio_reactive_single_tween_per_group` | audio-reactive data (`tools/audio-viz.js`) is read inside `render(t)` every frame, so one tween per caption group cannot be written; no catalog component has it |
 
-Check: `node tools/selfcheck/p15-lint.mjs` (a film broken on purpose trips each of the 22; the earlier 9, these 22 and the 13 are exactly the 44 rules in `SKIP`).
+Check: `node tools/selfcheck/lint-ports.mjs` (a film broken on purpose trips each of the 22; the earlier 9, these 22 and the 13 are exactly the 44 rules in `SKIP`).
 `reelwright lint --components [name… | --all]` lints catalog components (the installed `hf/blocks/*.html`, or the named / all vendored ones)
-one by one as fragments, leaving out the four rules only a host page can satisfy. Check: `node tools/selfcheck/p13-lint.mjs`.
+one by one as fragments, leaving out the four rules only a host page can satisfy. Check: `node tools/selfcheck/native-lint.mjs`.
 
 ## `new` options
 `new <name> --example <name|list>` starts from `projects/<name>`; `--agents` writes `AGENTS.md` (project guide + the repo's rules) and
 `CLAUDE.md` (`@AGENTS.md`) into the new project; `--skills` copies the repo's project skills into `.claude/skills/`; `--tailwind` is
-accepted and skipped (it needs an npm install, which `new` never runs). Check: `node tools/selfcheck/p13-new.mjs`.
+accepted and skipped (it needs an npm install, which `new` never runs). Check: `node tools/selfcheck/new-flags.mjs`.

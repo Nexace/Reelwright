@@ -124,5 +124,5 @@ runtime, so they match what `KIT.grade` gives in a render.
 
 ## Self-checks
 
-`node tools/selfcheck/p1-variables.mjs`, `p1-batch.mjs`, `p1-stills.mjs`, `p1-compare.mjs`: offline, they build a tiny project
-(`p1-fixture.mjs`) and check pixels in the pages, the mp4 files and the sheets.
+`node tools/selfcheck/variables.mjs`, `batch.mjs`, `stills.mjs`, `compare.mjs`: offline, they build a tiny project
+(`fixture.mjs`) and check pixels in the pages, the mp4 files and the sheets.

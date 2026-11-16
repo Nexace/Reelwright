@@ -1,5 +1,5 @@
 # lottie-expressions-info (warn): a Lottie file carries After Effects expressions. lottie-web evaluates them on every seek;
-# time-driven ones are deterministic (tools/selfcheck/p6-lottie.mjs), but an expression can read layer state or other
+# time-driven ones are deterministic (tools/selfcheck/lottie.mjs), but an expression can read layer state or other
 # properties that were never tested here: look at stills around the animation. The non-deterministic ones (wiggle, random,
 # seedRandom, gaussRandom) fail the lottie-expressions gate instead. Skip: "qa": {"lottie-expressions-info": false}.
 import os, sys

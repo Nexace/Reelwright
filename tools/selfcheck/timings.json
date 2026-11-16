@@ -21,51 +21,51 @@
     "motion": {
       "s": 36.9
     },
-    "p1-batch": {
+    "batch": {
       "serial": true,
       "s": 16.4
     },
-    "p1-compare": {
+    "compare": {
       "serial": true,
       "s": 15
     },
-    "p1-stills": {
+    "stills": {
       "s": 38.4
     },
-    "p1-variables": {
+    "variables": {
       "s": 7.4
     },
-    "p10-audio": {
+    "beat-sync": {
       "s": 3.2
     },
-    "p10-capture": {
+    "capture-trio": {
       "s": 1.8
     },
-    "p10-lints": {
+    "aesthetic-lints": {
       "s": 0.8
     },
-    "p10-motion": {
+    "velocity": {
       "s": 4.3
     },
-    "p10-template": {
+    "promo-template": {
       "serial": true,
       "s": 10.9
     },
-    "p11-docs": {
+    "docs-index": {
       "s": 0.1
     },
-    "p11-taste": {
+    "taste-shotcards": {
       "serial": true,
       "s": 0
     },
-    "p12a-hf-render": {
+    "hf-render": {
       "serial": true,
       "s": 33.8
     },
-    "p12a-json": {
+    "json-flag": {
       "s": 1.3
     },
-    "p12a-new-media": {
+    "new-media": {
       "serial": true,
       "s": 4.7
     },
@@ -73,182 +73,182 @@
       "serial": true,
       "s": 71.1
     },
-    "p12b-audit": {
+    "contrast-audit": {
       "s": 0.7
     },
-    "p12b-captions": {
+    "caption-components": {
       "s": 6.4
     },
-    "p12b-capture": {
+    "capture-url": {
       "s": 14.7
     },
-    "p12b-components": {
+    "component-assets": {
       "s": 5.9
     },
-    "p12b-face": {
+    "measure-face": {
       "s": 0.5
     },
-    "p12b-kokoro": {
+    "kokoro": {
       "s": 1.3
     },
-    "p13-lint": {
+    "native-lint": {
       "s": 5.2
     },
-    "p13-new": {
+    "new-flags": {
       "serial": true,
       "s": 0.2
     },
-    "p13-slideshow": {
+    "slideshow": {
       "serial": true,
       "s": 6
     },
-    "p13-slideshow-panel": {
+    "slideshow-panel": {
       "serial": true,
       "s": 1.3
     },
-    "p13-stream": {
+    "stream": {
       "s": 17.9
     },
-    "p13-studio-flags": {
+    "studio-flags": {
       "serial": true,
       "s": 2.2
     },
-    "p14-face-install": {
+    "face-install": {
       "s": 0
     },
-    "p15-lint": {
+    "lint-ports": {
       "s": 1
     },
     "p15-studio-agent": {
       "serial": true,
       "s": 2.9
     },
-    "p4-bool": {
+    "math-bool": {
       "s": 0
     },
-    "p4-code": {
+    "code-highlight": {
       "s": 0.4
     },
-    "p4-lint": {
+    "manim-lint": {
       "s": 0.4
     },
-    "p4-obj": {
+    "obj-reader": {
       "s": 0
     },
-    "p5-motion": {
+    "camera-time": {
       "s": 12.7
     },
-    "p5-tools": {
+    "delivery": {
       "serial": true,
       "s": 17.9
     },
-    "p6-components": {
+    "kit-components": {
       "s": 2.4
     },
-    "p6-dotlottie": {
+    "dotlottie": {
       "s": 4.6
     },
-    "p6-lottie": {
+    "lottie": {
       "s": 9.9
     },
-    "p6-lottie-lint": {
+    "lottie-lint": {
       "serial": true,
       "s": 3.4
     },
-    "p6-motion-rules": {
+    "choreography-lint": {
       "s": 0.5
     },
-    "p6-rules": {
+    "motion-rules": {
       "s": 2.2
     },
-    "p7-audiofx": {
+    "audio-fx": {
       "s": 14.6
     },
-    "p7-caption-lint": {
+    "caption-lint": {
       "s": 0.6
     },
-    "p7-video": {
+    "measure-video": {
       "s": 1.8
     },
-    "p8-add-tag": {
+    "add-tag": {
       "s": 0.3
     },
-    "p8-audio-report": {
+    "audio-report": {
       "s": 0.4
     },
-    "p8-captions": {
+    "captions": {
       "s": 0.8
     },
-    "p8-catalog": {
+    "catalog": {
       "s": 0.1
     },
-    "p8-d3": {
+    "d3": {
       "s": 1.2
     },
-    "p8-docs": {
+    "skill-docs": {
       "s": 0
     },
-    "p8-doctor": {
+    "doctor": {
       "s": 2.4
     },
-    "p8-fit": {
+    "fit": {
       "s": 0.3
     },
-    "p8-json": {
+    "json-envelope": {
       "s": 0.2
     },
-    "p8-layout": {
+    "layout-audit": {
       "s": 1.3
     },
-    "p8-lottie": {
+    "lottie-features": {
       "s": 3.2
     },
-    "p8-mix-wiring": {
+    "mix-wiring": {
       "s": 2.1
     },
-    "p8-mixfx": {
+    "mixfx": {
       "s": 0.5
     },
-    "p8-render-opts": {
+    "render-opts": {
       "s": 2.1
     },
-    "p8-render-wiring": {
+    "render-wiring": {
       "s": 2.8
     },
-    "p8-safety": {
+    "qa-strict": {
       "s": 0.4
     },
-    "p9-encode": {
+    "encode": {
       "s": 4.4
     },
-    "p9-lint": {
+    "rand-lint": {
       "s": 0.1
     },
-    "p9-media": {
+    "media-ffmpeg": {
       "s": 1.8
     },
-    "p9-media-wiring": {
+    "media-wiring": {
       "s": 1.2
     },
-    "p9-motion": {
+    "remotion-kit": {
       "s": 28.7
     },
-    "p9-props": {
+    "props": {
       "s": 0.5
     },
-    "q1-offline-voice": {
+    "offline-voice": {
       "s": 3.4
     },
-    "q2-gallery": {
+    "gallery": {
       "s": 3.4
     },
-    "q3-runner": {
+    "runner": {
       "s": 0.5
     },
-    "q5-install": {
+    "speech-install": {
       "s": 2.2
     },
-    "q6-make": {
+    "make": {
       "s": 6.5,
       "serial": true
     },

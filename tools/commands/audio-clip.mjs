@@ -1,9 +1,9 @@
 // audio-clip <src> <out.wav> [--trim A-B] [--dur S] [--delay S] [--vol t:v,t:v,…] [--rate R] [--tone F] [--varispeed] [--loop N|inf]
 //                  [--loop-volume repeat|extend] [--stream I] [--fade-in S] [--fade-out S] [--gain G]   one audio clip the way KIT.audio mixes it (Remotion
 //                  <Audio>): trim, delay, a volume curve, speed (pitch kept; --varispeed moves pitch too), pitch (--tone 0.01-2, duration kept),
-//                  loop, audio stream index. src may be a local .m3u8 (HLS) or any audio / video file. Offline (ffmpeg); docs/playbook/p9-delivery.md
+//                  loop, audio stream index. src may be a local .m3u8 (HLS) or any audio / video file. Offline (ffmpeg); docs/playbook/codecs.md
 import path from "node:path";
-import { renderAudioClip } from "../p9-media.mjs";
+import { renderAudioClip } from "../media-ffmpeg.mjs";
 
 export default async ({ args }) => {
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : undefined; };

@@ -7,8 +7,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { frameList, selectExpr } from "../p9-frames.mjs";
-import { stillArgs } from "../p9-encode.mjs";
+import { frameList, selectExpr } from "../frames.mjs";
+import { stillArgs } from "../encode.mjs";
 
 const probe = (f) => {
   const r = spawnSync("ffprobe", ["-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries", "stream=nb_read_frames,r_frame_rate", "-of", "csv=p=0", f], { encoding: "utf8" });

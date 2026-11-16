@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-// KIT.transition.names (tools/transitions.js); tools/selfcheck/p13-slideshow.mjs compares the two in a browser
+// KIT.transition.names (tools/transitions.js); tools/selfcheck/slideshow.mjs compares the two in a browser
 export const TRANSITIONS = ["cut", "fade", "fadeThrough", "slide", "push", "wipe", "barnDoor", "blinds", "clockWipe", "iris", "flip", "cube",
   "zoom", "pushCut", "flash", "lightLeak", "brush", "glitch", "none"];
 export const IMAGE = /\.(jpe?g|png|webp|gif|avif|svg)$/i, CLIP = /\.(mp4|mov|webm|m4v)$/i;

@@ -83,11 +83,11 @@ Check: `node tools/selfcheck/p12a-studio.mjs` (real renders, about 90 s).
 `slideshow` command, run as a job. The film you are editing is not touched. Open it with `reelwright studio <project>/slideshows/<name>`.
 The same thing from the shell: `reelwright slideshow <folder> [name] [--seconds 3] [--transition fade|slide,iris,…] [--tdur 0.6] [--zoom 0.05]`
 (clips keep their own length up to `--clip-max 8` s; `hf/slides.js` holds the order and the seconds per slide). Check:
-`node tools/selfcheck/p13-slideshow.mjs` (a real render) and `p13-slideshow-panel.mjs` (the tab, the job, the trust boundary).
+`node tools/selfcheck/slideshow.mjs` (a real render) and `slideshow-panel.mjs` (the tab, the job, the trust boundary).
 
 **Launch flags** (remotion:2.8.1): `--open` opens the page in your browser (the OS's own opener, no shell); `--no-open` is Remotion
 Studio's flag and is what happens without either; `--force-new` starts this studio on the next free port when the port is busy (without it a
-busy port stops with the old message). Check: `node tools/selfcheck/p13-studio-flags.mjs`. Remotion Studio's WebMCP tools are not built as MCP (repo rule): the next section is the same tools as plain JSON routes and a CLI.
+busy port stops with the old message). Check: `node tools/selfcheck/studio-flags.mjs`. Remotion Studio's WebMCP tools are not built as MCP (repo rule): the next section is the same tools as plain JSON routes and a CLI.
 
 ## Agent tools without MCP (remotion:2.8.1)
 Remotion Studio hands an in-browser agent a few WebMCP tools (look, select, inspect, set style, frame). Reelwright does not speak MCP, so the same

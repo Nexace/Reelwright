@@ -1367,7 +1367,7 @@ One line each; the page is the detail. The same list is in [docs/playbook/README
 - [themes](playbook/themes.md): the 27 themes: tokens, motion archetypes, caption skins, `theme-check` and `theme-gallery`
 - [theme-brief](playbook/theme-brief.md): `reelwright theme-brief`: a theme drafted offline from a one-line brief
 - [grading-effects](playbook/grading-effects.md): `KIT.grade` and `KIT.vfx`: grade presets, vignette, grain, LUTs, per-pixel effects
-- [p9-effects](playbook/p9-effects.md): `KIT.fx.*` and the doodle highlights: colour, blur, lighting, distortion, patterns, reveals
+- [effects](playbook/effects.md): `KIT.fx.*` and the doodle highlights: colour, blur, lighting, distortion, patterns, reveals
 - [motion-blur](playbook/motion-blur.md): `"motionBlur"` in `project.json`, and `--blur` on `frames`
 - [output-formats](playbook/output-formats.md): `--as`, `--formats`, alpha, HDR and 4:5
 
@@ -1375,17 +1375,17 @@ One line each; the page is the detail. The same list is in [docs/playbook/README
 
 - [motion](playbook/motion.md): paths, transitions, camera shots and rate functions: `KIT.path`, `KIT.transition`, `KIT.shot.*`
 - [motion-rules](playbook/motion-rules.md): `KIT.motionRules`: duration and distance scaling, state-feedback patterns, and the checks that warn when a film breaks them
-- [p5-motion](playbook/p5-motion.md): camera keys, `KIT.timeRemap`, `KIT.world`, `KIT.morph.handoff`, callouts and steps
-- [p5-deck](playbook/p5-deck.md): `reelwright deck`: 46 named moves, each with its KIT call
+- [camera-time](playbook/camera-time.md): camera keys, `KIT.timeRemap`, `KIT.world`, `KIT.morph.handoff`, callouts and steps
+- [motion-deck](playbook/motion-deck.md): `reelwright deck`: 46 named moves, each with its KIT call
 - [shotcraft-lints](playbook/shotcraft-lints.md): sharp camera layer, velocity helpers, `reelwright arc`, aesthetic lints, `beatsync`, `verify-av`, `capture-trio`
 - [shader-transitions](playbook/shader-transitions.md): `KIT.shader`: 14 WebGL transitions
 - [kit-components](playbook/kit-components.md): `KIT.components`: info strip, odometer, flash cut, ticker, clip card
 
 ### Text, media and time
 
-- [p5-text-media](playbook/p5-text-media.md): reading time, phrase cutting, perceptual scale and `KIT.animatedImage` (`reelwright animimg`)
-- [p9-text-rules](playbook/p9-text-rules.md): text size and safe-area rules in `KIT.u` units
-- [p9-time](playbook/p9-time.md): `KIT.interpolate`, `KIT.random`, colour, noise, shapes, text fitting and `KIT.player`
+- [text-media](playbook/text-media.md): reading time, phrase cutting, perceptual scale and `KIT.animatedImage` (`reelwright animimg`)
+- [text-rules](playbook/text-rules.md): text size and safe-area rules in `KIT.u` units
+- [timing](playbook/timing.md): `KIT.interpolate`, `KIT.random`, colour, noise, shapes, text fitting and `KIT.player`
 - [video-audio](playbook/video-audio.md): `KIT.video` and `KIT.audio`: clips, speed ramps and extra sounds over the soundtrack
 
 ### Sound
@@ -1410,7 +1410,7 @@ One line each; the page is the detail. The same list is in [docs/playbook/README
 ### Variables, delivery, QA and the studio
 
 - [variables](playbook/variables.md): composition variables, `batch`, `stills2` (zoom, compare) and `compare`
-- [p9-delivery](playbook/p9-delivery.md): `transcode`, `range`, `audio-clip`, `spectrum` and per-run `props`
-- [p5-delivery](playbook/p5-delivery.md): gates, `ship` checks, narration providers, `brand`, blur and formats
+- [codecs](playbook/codecs.md): `transcode`, `range`, `audio-clip`, `spectrum` and per-run `props`
+- [delivery](playbook/delivery.md): gates, `ship` checks, narration providers, `brand`, blur and formats
 - [qa-lint](playbook/qa-lint.md): the HyperFrames lint inside `qa`
 - [studio](playbook/studio.md): `reelwright studio`: timeline, panels and render queue

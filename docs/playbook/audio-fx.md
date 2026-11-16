@@ -1,7 +1,7 @@
 # Audio FX rack (HyperFrames D1 + D2)
 
 Per-clip audio effects built on ffmpeg filters only: no plug-in, no model, offline. The module is `tools/audio_fx.py`,
-the command is `reelwright audiofx`, the self-check is `node tools/selfcheck/p7-audiofx.mjs`.
+the command is `reelwright audiofx`, the self-check is `node tools/selfcheck/audio-fx.mjs`.
 
 ## The command
 ```
@@ -57,7 +57,7 @@ the names of the 22 presets follow the D2 row.
 ```
 `mix.py` applies `fx.lines.<id>` to that voice line (tail kept), `fx.vo` to the whole voice bus (after the music duck, which
 listens to the dry voice), `fx.music` to the bed and `fx.sfx` to the SFX bus, each a preset/job name, a chain list or
-`{"preset": ..., "chain": [...]}`. Needs the `tools/mix.py` hook `tools/selfcheck/p7-mix-fx.patch` (the self-check applies it
+`{"preset": ..., "chain": [...]}`. Needs the `tools/mix.py` hook `tools/selfcheck/mix-fx.patch` (the self-check applies it
 to a copy until it is in `mix.py`). From Python: `audio_fx.process_f32(x, sr, spec, keep_length=True)`.
 
 Not built: automation lanes and per-clip fades (D3), groups and buses (D5), a live preview of the chain.
@@ -67,7 +67,7 @@ Not built: automation lanes and per-clip fades (D3), groups and buses (D5), a li
 `reelwright diff <reference> <candidate> [--bar 0.9]` (SSIM per frame on a scaled copy, missed and extra cuts, audio
 offset from the loudness envelopes, exit 1 under the bar), `reelwright reverse <video>` (shot list `shots.json` plus a
 still per shot). Face detection and an AI rebuild of the film from the video are not included. Self-check:
-`node tools/selfcheck/p7-video.mjs`.
+`node tools/selfcheck/measure-video.mjs`.
 
 # Caption lint (HyperFrames F2)
 `tools/checks/caption-lint.page.mjs` is a WARN check in `reelwright qa`: it reads the rendered page for caption elements
@@ -75,4 +75,4 @@ still per shot). Face detection and an AI rebuild of the film from the video are
 safe area, text-shadow on a group of translucent words, a caption still visible when no voice line is on, and voice lines
 without word times. The two caption-track rules and the Studio transcript rule of the upstream lint stay skipped (they are
 about HyperFrames' declarative tracks and Studio). Off: `"qa": {"caption-lint": false}`. Self-check:
-`node tools/selfcheck/p7-caption-lint.mjs`.
+`node tools/selfcheck/caption-lint.mjs`.

@@ -2,7 +2,7 @@
 
 `tools/kit-components.js` adds `KIT.components` (load after `engine.js`; `flashCut` also needs `transitions.js`): five small pieces
 rewritten from the video-shotcraft card names. Each builds its DOM once and writes styles in `set(t)`, a pure function of t
-(proof: `node tools/selfcheck/p6-components.mjs`, both renderers, shuffled seeks). Position the returned `el` like any stage child.
+(proof: `node tools/selfcheck/kit-components.mjs`, both renderers, shuffled seeks). Position the returned `el` like any stage child.
 
 | component | call | what it does |
 |---|---|---|

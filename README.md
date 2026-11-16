@@ -99,7 +99,7 @@ left planned or half-built. Everything new is opt-in, so a film written for 0.3 
   path ops (vendored `polygon-clipping`), code highlighting (vendored `shiki`, `reelwright code`), 3D lighting and OBJ
   models, and `manim-lint`. [manim-native](docs/playbook/manim-native.md)
 - **Remotion-style helpers.** `KIT.interpolate`, `KIT.seq`, `KIT.tseries`, `KIT.timing`, a colour, blur, distortion, pattern and
-  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `props`. [p9-time](docs/playbook/p9-time.md)
+  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `props`. [timing](docs/playbook/timing.md)
 - **Doodle and camera craft.** Callouts, drawn kinetic type, shape handoff, camera keys, true dolly zoom, shake, time remap,
   one-canvas `KIT.world`, reading-time and subtitle rules, `brand`, `narrate`, `gate` (determinism and dead-air), `ship`
   (delivery checks), `deck` (46 named moves), `animimg`, linear-light motion blur (`--blur`) and any `--formats WxH`.
@@ -114,7 +114,7 @@ left planned or half-built. Everything new is opt-in, so a film written for 0.3 
   the frame or covered, `audit` checks contrast and `*.motion.json`, `capture <url>` takes a site (with an SSRF guard).
 - **Components and captions.** `catalog` lists and picks, `add <tag>` installs by tag, asset components install with their
   fonts and textures, `captions` feeds all 16 caption styles from your script's word times, `slideshow` turns a folder into a film.
-- **Docs and skills.** Every command has a README row (checked by `tools/selfcheck/p11-docs.mjs`), the playbook has an index
+- **Docs and skills.** Every command has a README row (checked by `tools/selfcheck/docs-index.mjs`), the playbook has an index
   of every page, and the skills know the new commands.
 
 **What is not here, by decision.** Cloud and hosted render, the HeyGen desktop app, MCP and plug-in packaging, WebGPU-only
@@ -442,9 +442,9 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `diff <reference.mp4> <candidate.mp4> [--bar 0.9] [--fps 10] [--tol 0.15] [--threshold 0.3] [--json]` | how close a render is to a reference: SSIM per frame, missed and extra cuts, audio offset; exit 1 when the mean SSIM is under `--bar` |
 | `reverse <video> [--out <dir>] [--threshold 0.3]` | a video taken apart into a shot list (`shots.json` and a still per shot) to rebuild it from; offline |
 | `beats [project] import <file.csv\|timeline.json> [--replace] \| export [file.csv] [--replace]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; only those keys change; `--replace` overwrites (on export: an existing csv) |
-| `animimg <file.gif\|apng\|webp\|avif> [dir] [--width N] [--fps N]` | split an animated image into PNG frames + `<name>.frames.json` for `KIT.animatedImage` ([docs/playbook/p5-text-media.md](docs/playbook/p5-text-media.md)); offline |
+| `animimg <file.gif\|apng\|webp\|avif> [dir] [--width N] [--fps N]` | split an animated image into PNG frames + `<name>.frames.json` for `KIT.animatedImage` ([docs/playbook/text-media.md](docs/playbook/text-media.md)); offline |
 | `arc [project] [--mix]` | validate the energy arc (`project.json` `"arc"`: a low open, one hero, a climb with breath cards, a peak close); WARN lines only; `--mix` also measures `mix.wav` per shot ([docs/playbook/shotcraft-lints.md](docs/playbook/shotcraft-lints.md)) |
-| `audio-clip <src> <out.wav> [--trim A-B] [--dur S] [--delay S] [--vol t:v,…] [--rate R] [--tone F] [--varispeed] [--loop N\|inf] [--loop-volume repeat\|extend] [--stream I] [--fade-in S] [--fade-out S] [--gain G]` | one audio clip the way `KIT.audio` mixes it: trim, delay, volume curve, speed, pitch, loop, stream index; offline ([docs/playbook/p9-delivery.md](docs/playbook/p9-delivery.md)) |
+| `audio-clip <src> <out.wav> [--trim A-B] [--dur S] [--delay S] [--vol t:v,…] [--rate R] [--tone F] [--varispeed] [--loop N\|inf] [--loop-volume repeat\|extend] [--stream I] [--fade-in S] [--fade-out S] [--gain G]` | one audio clip the way `KIT.audio` mixes it: trim, delay, volume curve, speed, pitch, loop, stream index; offline ([docs/playbook/codecs.md](docs/playbook/codecs.md)) |
 | `audio-report <file> [--at T] [--range A B] [--place-at T] [--json]` | onsets, loudness sections and rhythm (tempo, steadiness) of any audio or video file; `--at` / `--place-at` name the onset and beat nearest a time |
 | `audit [project] [--contrast] [--motion] [--range a-b] [--at-transitions]` | the browser audits of the built film page: WCAG contrast of every visible text (`--contrast`), the project's `*.motion.json` assertions (`--motion`); no flag runs both; exit 1 when a motion assertion fails |
 | `batch <project> <rows.json\|rows.csv> [--concurrency N] [--fail-fast] [--out-dir dir] [--strict] [--keep-work]` | one film per row of composition variables → `out/batch/<name>.mp4` and `batch.json`; rows are checked first ([docs/playbook/variables.md](docs/playbook/variables.md)) |
@@ -458,18 +458,18 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `check [project] [--at 1.5,4] [--range 2 6] [--at-transitions] [--caption-zone] [--frame-check] [--json]` | layout and occlusion audit of the film page without rendering (text outside the frame, clipped, covered, or on the caption row); exit 1 on any finding |
 | `compare <variant> <variant> [<variant>..] --at t,t [--labels a,b,c] [--out file.png]` | N variants of a film (a project, `projects/x@style`, a video, a folder of stills) at the same moments, one labelled PNG |
 | `compositions [project] [--all] [--json]` | the compositions in a HyperFrames project (id, start, duration, size, file); `--all` lists every project's renderer and film length |
-| `deck [list]` / `deck find <words>` / `deck deal [--seed S] [--cats open,cam,...]` | the motion deck: 46 named moves with the KIT call behind each; `deal` hands one per group from a seeded hash ([docs/playbook/p5-deck.md](docs/playbook/p5-deck.md)) |
+| `deck [list]` / `deck find <words>` / `deck deal [--seed S] [--cats open,cam,...]` | the motion deck: 46 named moves with the KIT call behind each; `deal` hands one per group from a seeded hash ([docs/playbook/motion-deck.md](docs/playbook/motion-deck.md)) |
 | `docs [topic]` | the craft docs from the terminal: no topic lists `docs/playbook`, `docs/recipes` and PLAYBOOK pages, a topic prints the best match |
 | `doctor [--json]` | what a film needs here: node, ffmpeg and its encoders, python and libs, the headless browser, docker and GPU (optional), disk, cores, RAM; exit 1 if a required check fails |
 | `face <video> [--every s] [--json]` | where the faces are in a video: a local OpenCV Haar detector (`pip install opencv-python-headless`), share of time a face is present, segments, biggest face, head room |
-| `gate [project] [--n 16]` | the two delivery gates on the built pvk film page: determinism (16 frames hashed forward, reverse, cached and cold) and dead air; exit 1 on either ([docs/playbook/p5-delivery.md](docs/playbook/p5-delivery.md)) |
+| `gate [project] [--n 16]` | the two delivery gates on the built pvk film page: determinism (16 frames hashed forward, reverse, cached and cold) and dead air; exit 1 on either ([docs/playbook/delivery.md](docs/playbook/delivery.md)) |
 | `grade-compare <image\|video> [--at t] [--presets a,b,c \| grade \| effect \| all] [--intensity 0..1] [--cols n] [--out file.png]` | one picture or video frame through the HyperFrames colour-grading presets (the ones `KIT.grade` takes), side by side, one labelled PNG |
 | `json <command> [project] [args…]` | run any command and print ONE JSON envelope (`ok`, `command`, `args`, `exit`, `stdout`, `stderr`, `data?`, `_meta`); `--json` on any command does the same; exit 0 ok, 1 failed, 2 usage with `did_you_mean` |
 | `lottie <file.lottie> [out.json] [--animation <id>]` | unzip a dotLottie file into plain Lottie JSON for `KIT.lottie`; lists the animations when there are several |
 | `narrate providers \| speak "<text>" [--provider say] [--voice V] [--rate 1] [--yes] \| check <wav> "<text>" [--max-wer 0.1]` | narration providers beside edge-tts (say, piper, kokoro, openai, gemini, elevenlabs; the cloud ones need `--yes` and a key); takes are cached by hash; `check` transcribes a take with `whisper-cli` |
 | `preflight [project] [--json]` | before a render: the disk the frames need, the disk that is free, and whether it fits with 10% to spare; exit 1 if not |
 | `promo <name\|path> ["Title"]` | start a film from the Ink Press promo template: 36 s, 10 shots on the energy arc, music only; then edit `hf/content.js` ([docs/recipes/ink-press-promo.md](docs/recipes/ink-press-promo.md)) |
-| `props <project> check [file.json \| '{...}']` / `schema [--write]` / `merge <file.json \| '{...}'>` | per-run props against `props.schema.json` (or the project's variables); any command takes `--props '{...}'` / `--props-file f.json` ([docs/playbook/p9-delivery.md](docs/playbook/p9-delivery.md)) |
+| `props <project> check [file.json \| '{...}']` / `schema [--write]` / `merge <file.json \| '{...}'>` | per-run props against `props.schema.json` (or the project's variables); any command takes `--props '{...}'` / `--props-file f.json` ([docs/playbook/codecs.md](docs/playbook/codecs.md)) |
 | `qa-strict [project]` | run `qa` and exit 1 on any WARN as well as any FAIL (the CI mode) |
 | `rand-lint [project]` | opt-in lint of the film's own scripts for `Math.random()`, `Date.now()`, `new Date()`, `performance.now()`, `requestAnimationFrame` and timers, with the fix (`KIT.random(seed)`, or `t`); exit 1 on any finding |
 | `range [video] --frames 0-9,30,100- [--every-nth-frame N] [--duration S] [--stills dir [--format jpg\|png] [--jpeg-quality 1-100]] [--out clip.mp4] [--dry-run]` | cut a frame selection out of a finished film (Remotion's `--frames`, `--every-nth-frame`, `--duration`) as a clip or as stills |

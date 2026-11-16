@@ -3,7 +3,7 @@
 The craft rules for how things move, as tables you can call (`KIT.motionRules`, `tools/motion-rules.js`, load it after
 `engine.js`) and two checks that warn when a film breaks them. Rewritten from the video-shotcraft motion-design notes; numbers
 the notes give are used as written, the rest are our own fit and are marked *fit*. Everything is a pure function of its
-arguments: it is safe inside `render(t)`. Proof: `node tools/selfcheck/p6-rules.mjs`, `p6-motion-rules.mjs`.
+arguments: it is safe inside `render(t)`. Proof: `node tools/selfcheck/motion-rules.mjs`, `choreography-lint.mjs`.
 
 ```js
 const R = KIT.motionRules;                       // also KIT.material, KIT.springs, KIT.distDur, KIT.loop when free
@@ -145,7 +145,7 @@ never `Math.random`. Existing blocks: `aurora-drift`, `grain-field`, `drift-hold
 
 ## 11. Quality checklist, severities and troubleshooting (3.14)
 
-`R.quality` is this table; every `enforced` name is a real check (`p6-motion-rules.mjs` verifies it).
+`R.quality` is this table; every `enforced` name is a real check (`choreography-lint.mjs` verifies it).
 
 | tier | check | enforced by |
 |---|---|---|

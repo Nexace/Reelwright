@@ -1,7 +1,7 @@
 # Manim, native: 18 more Manim features as plain KIT calls (Phase 11, package P4)
 
 No Manim install, no Python, no render step. Each call is built once at load and every `.set(t)` is a pure function of t, so
-the same film renders the same in pvk and HyperFrames (the shuffled-seek self-checks `tools/selfcheck/motion/p4-*.mjs` prove it).
+the same film renders the same in pvk and HyperFrames (the shuffled-seek self-checks `tools/selfcheck/motion/manim-*.mjs` prove it).
 The header comment of each module is the API reference; this page is the Manim name -> KIT name table and the load order.
 Builds on [math2.md](math2.md) and [manim.md](manim.md) (the optional real-Manim renderer).
 
@@ -59,5 +59,5 @@ HyperFrames: the renderer copies every `tools/*.js` and `vendor/polygon-clipping
 
 ## Self-checks
 
-`node tools/selfcheck/motion.mjs p4-fx p4-grid p4-graph p4-3d` (browser, both renderers, shuffled seeks plus the numbers),
-`node tools/selfcheck/p4-bool.mjs`, `p4-code.mjs`, `p4-obj.mjs`, `p4-lint.mjs` (no browser; the last also runs the Python exporter test).
+`node tools/selfcheck/motion.mjs manim-fx manim-grid manim-graph manim-3d` (browser, both renderers, shuffled seeks plus the numbers),
+`node tools/selfcheck/math-bool.mjs`, `code-highlight.mjs`, `obj-reader.mjs`, `manim-lint.mjs` (no browser; the last also runs the Python exporter test).

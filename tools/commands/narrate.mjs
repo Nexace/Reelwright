@@ -2,9 +2,9 @@
 //                  narration providers beside edge-tts: say (macOS), piper, kokoro (local CLIs you installed), openai, gemini, elevenlabs (paid
 //                  cloud: needs --yes and an API key). speak writes <project>/assets/narration/<sha1>.wav (the take is cached by hash: same text,
 //                  voice and provider = no second call). check transcribes a take with whisper.cpp (`whisper-cli`, $WHISPER_MODEL) and fails
-//                  when more than --max-wer of the words did not come back. Opt-in; the film's voice stays tools/vo.py. tools/p5-narrate.mjs.
+//                  when more than --max-wer of the words did not come back. Opt-in; the film's voice stays tools/vo.py. tools/narrate.mjs.
 import path from "node:path";
-import { providers, synth, check, asrAvailable } from "../p5-narrate.mjs";
+import { providers, synth, check, asrAvailable } from "../narrate.mjs";
 
 export default async ({ proj, args }) => {
   const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : d; }, flag = (k) => { const i = args.indexOf(k); if (i >= 0) args.splice(i, 1); return i >= 0; };

@@ -4,7 +4,7 @@
 
 ## What is tested
 
-`tools/selfcheck/p8-lottie.mjs` builds six fixtures here and seeks each forward and shuffled in separate browsers (identical pixels, frames that move, no console error): a mask (animated mask path), a track matte (alpha matte, scaling ellipse), a gradient fill (rotating), an image asset (data URI PNG), a text layer (font from the page) and expressions (`time`-driven rotation and position). `tools/selfcheck/runtimes.mjs` covers a shape animation on pvk and hyperframes. A feature not listed (3D layers, effects such as drop shadow or glow, merge paths) is untested: `stills` it before trusting it.
+`tools/selfcheck/lottie-features.mjs` builds six fixtures here and seeks each forward and shuffled in separate browsers (identical pixels, frames that move, no console error): a mask (animated mask path), a track matte (alpha matte, scaling ellipse), a gradient fill (rotating), an image asset (data URI PNG), a text layer (font from the page) and expressions (`time`-driven rotation and position). `tools/selfcheck/runtimes.mjs` covers a shape animation on pvk and hyperframes. A feature not listed (3D layers, effects such as drop shadow or glow, merge paths) is untested: `stills` it before trusting it.
 
 ## dotLottie (.lottie)
 

@@ -6,6 +6,8 @@ Commands below use `./video.sh`; on Windows (or anywhere) the same is `node bin/
 or container needs `./setup.sh` (Windows: `node setup.mjs`) first; the voiceover step needs internet access.
 
 ## Workflow for a new film
+0. Quickest start: `./video.sh make "<brief>" --audience <a> --length <s>` prints a plan (template, theme, lines, duration) and creates nothing;
+   `--yes` creates `projects/<name>` (it never renders). Then continue at step 3 with the project it made.
 1. Ask who the audience is, the length, voice or music-only, and what must be shown — then write the VO
    lines into `projects/<name>/project.json` and show them to the user before building. If they already have a
    script in a spreadsheet, `./video.sh beats <name> import sheet.csv` fills `lines` from it (PLAYBOOK → Process).

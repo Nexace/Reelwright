@@ -74,6 +74,56 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 
 ---
 
+## What's new in 1.0
+
+Phase 11 finished the port. Of the 601 features audited in HyperFrames, Remotion, Manim, anidoodle, video-shotcraft,
+motion-design-skill, GSAP, Lottie and the Higgsfield workflows, **441 are EQUAL or BETTER, each proved by a file or a
+self-check, and the other 160 are exceptions you can read with their reasons** in [docs/PARITY.md](docs/PARITY.md). Nothing is
+left planned or half-built. Everything new is opt-in, so a film written for 0.3 builds the same way. Every command is in
+[Every command](#every-command); the craft notes are in [docs/playbook/](docs/playbook/README.md).
+
+- **Variables, batch and stills.** `--variables` on any command (typed composition variables), `batch` renders one film per
+  row of a CSV or JSON file, `stills` takes zoom, ranges and `--against` a reference, `compare` and `grade-compare` make
+  labelled sheets. [variables](docs/playbook/variables.md)
+- **Audio.** `audiofx` (17 effects, 22 presets, `project.json` `fx`), `automation` lanes, fades and a true-peak `limiter` in the
+  mix, `audio-report` (onsets, sections, tempo), `beatsync` and `verify-av`, plus `measure`, `diff` and `reverse` for video.
+  [audio-fx](docs/playbook/audio-fx.md)
+- **Shotcards.** 88 shot recipes as `KIT.shotcards.*` (camera, opening, outro, transition, rhythm, typography, UI entrance,
+  data, effects, interaction), each a pure function of time with a recipe page. [recipes](docs/recipes/shotcards/README.md)
+- **Motion rules.** `KIT.motionRules` (easing, spring and duration tables, material feels, ambient loops, stagger), a
+  `motion-rules` QA warning and `KIT.components` (info strip, digit roll, flash cut, vertical ticker, clip card).
+  [motion-rules](docs/playbook/motion-rules.md)
+- **Lottie and dotLottie.** `KIT.dotLottie` with a vendored player, `add-lottie`, expressions lint, text, masks and mattes.
+  [lottie](docs/playbook/lottie.md)
+- **Manim, natively.** `Create`, typing, tables, matrices, axes, number lines, bar charts, vector scenes, ZoomedScene, boolean
+  path ops (vendored `polygon-clipping`), code highlighting (vendored `shiki`, `reelwright code`), 3D lighting and OBJ
+  models, and `manim-lint`. [manim-native](docs/playbook/manim-native.md)
+- **Remotion-style helpers.** `KIT.interpolate`, `KIT.seq`, `KIT.tseries`, `KIT.timing`, a colour, blur, distortion, pattern and
+  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `props`. [p9-time](docs/playbook/p9-time.md)
+- **Doodle and camera craft.** Callouts, drawn kinetic type, shape handoff, camera keys, true dolly zoom, shake, time remap,
+  one-canvas `KIT.world`, reading-time and subtitle rules, `brand`, `narrate`, `gate` (determinism and dead-air), `ship`
+  (delivery checks), `deck` (46 named moves), `animimg`, linear-light motion blur (`--blur`) and any `--formats WxH`.
+- **Promo template and review.** `promo` starts the 36 s Ink Press film; `arc` checks its energy arc; `review` prints the
+  independent review brief; `capture-trio` writes the page capture set. [final-review](docs/playbook/final-review.md)
+- **Studio.** A timeline with waveform, caption lane and gap dragging, undo and redo, an Audio FX rack, Blur, Variables, a
+  render queue, Lint, Assets, Catalog and Slideshow tabs, and an MCP-free agent API (`reelwright studio look|inspect|select|set-style|frame`).
+  [studio](docs/playbook/studio.md)
+- **Rendering.** 4K on the HyperFrames path, a frame cache, ranges and `--resume`, `frames --stream` (no frames on disk),
+  quality presets, `--workers`, timeouts, `--best-effort` and a render lock; `--json` envelope on any command; `doctor`.
+- **Lint and capture.** `lint` (with `--components`) ports 31 of the 44 upstream rules the kit skips, `check` finds text outside
+  the frame or covered, `audit` checks contrast and `*.motion.json`, `capture <url>` takes a site (with an SSRF guard).
+- **Components and captions.** `catalog` lists and picks, `add <tag>` installs by tag, asset components install with their
+  fonts and textures, `captions` feeds all 16 caption styles from your script's word times, `slideshow` turns a folder into a film.
+- **Docs and skills.** Every command has a README row (checked by `tools/selfcheck/p11-docs.mjs`), the playbook has an index
+  of every page, and the skills know the new commands.
+
+**What is not here, by decision.** Cloud and hosted render, the HeyGen desktop app, MCP and plug-in packaging, WebGPU-only
+blocks, blocks with unlicensed assets, and the Higgsfield paid depth. The local models are opt-in installs, each
+printing its plan and sizes and doing nothing without `--yes`: `reelwright face install`, `reelwright transcribe install` (faster-whisper) and
+`reelwright tts install` (Kokoro). None is installed with the repo.
+
+---
+
 ## What's new in 0.3
 
 Phase 10 brought the parts of the neighbouring video tools that fit this kit (HyperFrames, motion-design and camera
@@ -82,9 +132,7 @@ for 0.2 builds the same way. (The one new gate, the HyperFrames lint, applies to
 passes it.) The full craft notes are in [docs/PLAYBOOK.md](docs/PLAYBOOK.md); the audits of what was taken from each
 source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs/PARITY.md](docs/PARITY.md).
 
-**Parity, stated plainly.** 0.3.0 reaches parity on 222 of 601 audited features (EQUAL or BETTER); the rest are listed as
-planned or accepted exceptions in [docs/PARITY.md](docs/PARITY.md): 158 accepted exceptions (owner-approved 2026-11-12), 27
-planned for Phase 11, 168 partly built (the missing part planned) and 26 rows not yet tagged. Nothing planned is claimed as done.
+**Parity at 0.3.0** was 222 of 601 audited features; 1.0 is 441 of 601 plus 160 accepted exceptions (see above).
 
 - **Preview anywhere.** `reelwright embed` writes `out/embed.html`: one self-contained page (film, kit, fonts, images,
   blocks, mix) played by the vendored HyperFrames player ([`vendor/hf-player/`](vendor/hf-player/VENDORED.md)). It needs
@@ -355,8 +403,10 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 
 | Command | What it does |
 |---|---|
+| `make "<brief>" [--name n] [--audience a] [--length s] [--voice\|--music-only] [--url u] [--folder f] [--yes]` | guided start, offline, no AI: routes the brief to `from-url`, `slideshow`, `promo`, `new` or `new --renderer hyperframes`, picks a theme with `theme-brief`, drafts the lines, prints the plan; `--yes` creates the project (never renders; [docs/playbook/make.md](docs/playbook/make.md)) |
 | `new <name> [--renderer hyperframes\|remotion]` | copy the example (or example-hf, or `templates/remotion`) into `projects/<name>` |
-| `add [project] <name>` | a HyperFrames catalog component → `<project>/hf/blocks/<name>.html` (use with `KIT.block`), or a HyperFrames block → `<project>/hf/compositions/<name>.html` (use with `KIT.mount`; hyperframes films only); prints the title, duration, variables and usage line |
+| `new <name> --video <file> [--audio <file>]` | a HyperFrames project that plays your own media (a non-H.264 video is converted; `transcript.json` only when `whisper-cli` and `$WHISPER_MODEL` are set up, nothing is downloaded) |
+| `add [project] <name> [--font-dir <folder>] [--all-textures]` | a HyperFrames catalog component → `<project>/hf/blocks/<name>.html` (use with `KIT.block`), or a HyperFrames block → `<project>/hf/compositions/<name>.html` (use with `KIT.mount`; hyperframes films only); prints the title, duration, variables and usage line; a component with assets installs with them (`--font-dir` points at fonts the repo does not bundle, `--all-textures` generates every texture-mask-text texture) |
 | `add --list [tag]` | the supported blocks and components |
 | `record` | run `record.mjs` → the screen take (`clips/`) + `film/clip.js` |
 | `vo` | voiceover from `project.json` lines → `vo/` (only changed lines regenerate) |
@@ -366,28 +416,78 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `music` | `music/bed.wav` from your track or the built-in bed |
 | `mix` | `mix.wav`: voice + ducked music + SFX at the target loudness |
 | `stills [t,t,..]` | preview frames → `stills/` + `stills/sheet.jpg` |
-| `frames` | render every frame → `frames/` (`--no-cache` to skip the frame cache) |
+| `frames [from] [to]` | render every frame → `frames/` (`--no-cache` to skip the frame cache; `--resolution 4k\|portrait-4k\|square-4k` at that size from the same layout; hyperframes: `--cache` keeps frames by content hash, `--resume [--segment N]` finishes an interrupted render) |
 | `encode` | frames + `mix.wav` → the mp4, plus `.srt`, `.vtt` and `.manifest.json` beside it |
 | `qa` | blank frames, jumps, then the gates (loudness, captions, flash, illustrative, seekable; for hyperframes films also the HyperFrames lint and `seekable-runtimes`), WARN checks (overlap, tiny-text, wordy, dark, taste, lint warnings) and a variety line |
 | `verify` | inputs still match the manifest and a fresh render gives the same frames |
 | `preview` | live scrubber at http://localhost:4173 |
 | `embed [project] [--out <file.html>]` | one self-contained preview page → `<project>/out/embed.html` (`sched` runs first): the film with every script, style, font, image and block inlined, played by the vendored HyperFrames player with `mix.wav`; works offline, from `file://` and as an artifact; add `#12.5` to open at a moment; lists any file the page still asks the network for |
-| `studio [project] [--port N]` | local editor at http://localhost:4175 (`PORT=…` works too): film in the player, timeline of lines, scenes, beats and cues, inspector for each line's text and gap, style, title and fps, raw `project.json` / `brand.json` editors, stills, taste and embed jobs; writes only those two files, listens on 127.0.0.1 |
+| `studio [project] [--port N] [--edit-source]` | local editor at http://localhost:4175 (`PORT=…` works too): film in the player, timeline of lines, scenes, beats and cues with waveform and snapping, inspector for each line's text and gap, style, title and fps, raw `project.json` / `brand.json` editors, side panels (undo, audio FX, blur, variables, renders queue, lint, assets, catalog, captions, source), stills, taste and embed jobs; writes only those two files unless `--edit-source` lets the source panel save text files inside the project; listens on 127.0.0.1 ([docs/playbook/studio.md](docs/playbook/studio.md)) |
+| `studio [project] look\|inspect\|select\|set-style\|frame\|state [--port N]` | talk to a running studio, Remotion Studio's WebMCP tools without MCP: `look [--t S \| --frame N] [--selector CSS] [--out f.png] [--format png\|jpeg]` screenshot of the film or one element; `inspect --selector CSS` box, computed style and script line; `select --line ID \| --selector CSS \| --clear`; `frame --t S \| --frame N` moves open tabs; `set-style --selector CSS --set prop=value … \| --reset` an unsaved overlay (`--edit-source` appends the rule to the film's `<style>` when the studio runs with it); prints JSON ([docs/playbook/studio.md](docs/playbook/studio.md)) |
 | `remix` | stills in the 3 themes furthest from yours × 16x9, 9x16, 1x1 → `stills-remix/sheet.jpg` |
 | `clean` | delete `frames/`, `stills/`, `.cache/` and intermediate audio (keeps the mp4) |
 | `themes` | list the themes |
 | `from-url <url> [name] [--yes]` | capture a page and draft a HyperFrames project from it |
 | `theme-from <url\|image> [name]` | draft `themes/<name>.css` from a page or an image |
 | `theme-brief "<what the product is>" [name]` | draft `themes/<name>.css` from a one-line brief ("budgeting app for students"): the best-matching product type's palette, font pairing and mood from the `ui-ux-pro-max` data (MIT), fonts mapped to the bundled OFL families; prints what it picked, what to avoid and the theme check; offline |
+| `gallery [shotcards\|effects\|all] [--out dir] [--check] [--only id,id]` | render every shotcard helper and every `fx-*` effect at 3 to 5 moments on the pvk renderer (offline, deterministic) into `docs/gallery/index.html` (a grid with a module filter, a contact strip, the helper call and the recipe link per item) and `docs/gallery/refs/` (small reference strips); `--check` renders again, compares with the refs (per-pixel tolerance), writes nothing and exits 1 listing the items that changed; `--only` takes ids such as `outro.logoLockup` or `fx-blur.zoomBlur` |
 | `manim [project] install [ce\|gl] [--yes] \| doctor [ce\|gl] \| render [--force] \| verify` | optional Manim scenes (`"manim"` block in `project.json`, `KIT.manim` in `film.js`): `install` prints what it would download into `<repo>/.venv-manim` and does it only with `--yes`; `render` runs after `sched` and after any VO change (`all` does not run Manim); exit 1 on any problem |
+| `code [project] highlight <file> [--lang L] [--theme T] [--id name] [--lines a-b] \| model <file.obj> [--id name]` | build-time data for `KIT.math.code` (shiki) and `KIT.math3d` models: writes `film/code-<id>.js` or `model-<id>.js` (`hf/` for HyperFrames) |
+| `manim-lint [project] [texts\|pace\|dark\|all] [--video f.mp4] [--strict]` | Manim scene lints: OFF-FRAME, TEXT-OVERLAP, TINY-TEXT, RUSHED, GAP, UNNARRATED, DARK-STRETCH |
+| `lint [project] [--no-browser]` / `lint --components [name… \| --all]` | native lint beside the vendored one `qa` runs: upstream findings, native ports of 31 of the 44 skipped rules (the other 13 have no counterpart, each with its reason), coordinate drift, HDR; `--components` lints installed catalog components as fragments. Exit 1 on an upstream ERROR (docs/playbook/qa-lint.md) |
+| `slideshow <folder> [name] [--seconds 3] [--transition fade\|a,b,c] [--tdur 0.6] [--zoom 0.05] [--clip-max 8] [--size 1920x1080] [--fit cover\|contain] [--out <dir>]` | a folder of images and clips → a HyperFrames film at `projects/<name>`: one layer per slide, `KIT.transition` between neighbours, slow zoom on stills; also the studio's Slideshow tab |
+| `add-lottie [project] x.lottie [name]` | unpack a dotLottie archive into `assets/lottie/` (animations, themes, state machines, index.json) and print the `KIT.dotLottie` / `KIT.lottie` lines |
+| `audiofx <in> <out> --preset <name> \| --job <name> \| --profile <name>=0..1 \| --chain '<json>' \| --fx "<spec>"` | the audio FX rack (ffmpeg only, offline): 17 effects, 22 presets, 5 jobs, 5 one-knob profiles; `audiofx --list` shows them, `--print` shows the ffmpeg graph; in a build it is the `project.json` `fx` key ([docs/playbook/audio-fx.md](docs/playbook/audio-fx.md)) |
+| `measure <video> probe\|cuts\|frames [--json] [--threshold 0.3] [--at 1.5,4,9 \| --count 8] [--out <dir>]` | numbers about any mp4/mov/webm (ffprobe + ffmpeg, offline): size, fps, codecs, duration; scene-change times; jpg frames at times |
+| `diff <reference.mp4> <candidate.mp4> [--bar 0.9] [--fps 10] [--tol 0.15] [--threshold 0.3] [--json]` | how close a render is to a reference: SSIM per frame, missed and extra cuts, audio offset; exit 1 when the mean SSIM is under `--bar` |
+| `reverse <video> [--out <dir>] [--threshold 0.3]` | a video taken apart into a shot list (`shots.json` and a still per shot) to rebuild it from; offline |
 | `beats [project] import <file.csv\|timeline.json> [--replace] \| export [file.csv] [--replace]` | beat-sheet round trip: CSV (both docusphere headers) or `{timeline:[{start_s,end_s,label}]}` → `lines` + `beats` in project.json; only those keys change; `--replace` overwrites (on export: an existing csv) |
+| `animimg <file.gif\|apng\|webp\|avif> [dir] [--width N] [--fps N]` | split an animated image into PNG frames + `<name>.frames.json` for `KIT.animatedImage` ([docs/playbook/p5-text-media.md](docs/playbook/p5-text-media.md)); offline |
+| `arc [project] [--mix]` | validate the energy arc (`project.json` `"arc"`: a low open, one hero, a climb with breath cards, a peak close); WARN lines only; `--mix` also measures `mix.wav` per shot ([docs/playbook/shotcraft-lints.md](docs/playbook/shotcraft-lints.md)) |
+| `audio-clip <src> <out.wav> [--trim A-B] [--dur S] [--delay S] [--vol t:v,…] [--rate R] [--tone F] [--varispeed] [--loop N\|inf] [--loop-volume repeat\|extend] [--stream I] [--fade-in S] [--fade-out S] [--gain G]` | one audio clip the way `KIT.audio` mixes it: trim, delay, volume curve, speed, pitch, loop, stream index; offline ([docs/playbook/p9-delivery.md](docs/playbook/p9-delivery.md)) |
+| `audio-report <file> [--at T] [--range A B] [--place-at T] [--json]` | onsets, loudness sections and rhythm (tempo, steadiness) of any audio or video file; `--at` / `--place-at` name the onset and beat nearest a time |
+| `audit [project] [--contrast] [--motion] [--range a-b] [--at-transitions]` | the browser audits of the built film page: WCAG contrast of every visible text (`--contrast`), the project's `*.motion.json` assertions (`--motion`); no flag runs both; exit 1 when a motion assertion fails |
+| `batch <project> <rows.json\|rows.csv> [--concurrency N] [--fail-fast] [--out-dir dir] [--strict] [--keep-work]` | one film per row of composition variables → `out/batch/<name>.mp4` and `batch.json`; rows are checked first ([docs/playbook/variables.md](docs/playbook/variables.md)) |
+| `beatsync [project] [--grid t0,beat] [--json]` | beat-synced cutting measured on the rendered mp4: hits per grid beat, the music offset in ms and every hard cut's error in frames; needs the mp4 and ffmpeg |
+| `brand [project] inventory \| check` | the project's logos as a table, and the brand check (palette valid, ink on bg contrast, every logo on disk, raster logos big enough); exit 1 on any problem |
+| `browser path \| ensure [--install] \| clear [--yes]` | the headless browser the kit renders with: `path` prints it, `ensure` launches it (`--install` downloads Chromium), `clear` lists the Playwright cache (`--yes` deletes it) |
+| `captions [project] [<caption-component>]` | write `transcript.json` from the VO words of `timeline.json` and, given a `caption-*` component, install it fed by that transcript (run `info` first) |
+| `capture <url> [--out dir] [--shots N] [--width W] [--video]` | read-only capture of a public page you own or may use: scroll screenshots, contact sheet, HTML, CSS, text, design tokens, fonts, images, notes → `captures/<host>/`; refuses private and loopback addresses |
+| `capture-trio <url> <out_dir> [width] [--selector "<css>"] [--max 40]` | the page capture trio: `full@2x.png`, a transparent cutout PNG per element and `layout.json`, for floating-chip and camera-over-a-page shots |
+| `catalog [words…] [--type block\|component] [--tag <tag>] [--all] [--tags] [--json] [--pick]` | search the HyperFrames catalog; `--all` also shows what this repo cannot run, `--tags` lists tags, `--pick` asks for a number and prints the `add` line |
+| `check [project] [--at 1.5,4] [--range 2 6] [--at-transitions] [--caption-zone] [--frame-check] [--json]` | layout and occlusion audit of the film page without rendering (text outside the frame, clipped, covered, or on the caption row); exit 1 on any finding |
+| `compare <variant> <variant> [<variant>..] --at t,t [--labels a,b,c] [--out file.png]` | N variants of a film (a project, `projects/x@style`, a video, a folder of stills) at the same moments, one labelled PNG |
+| `compositions [project] [--all] [--json]` | the compositions in a HyperFrames project (id, start, duration, size, file); `--all` lists every project's renderer and film length |
+| `deck [list]` / `deck find <words>` / `deck deal [--seed S] [--cats open,cam,...]` | the motion deck: 46 named moves with the KIT call behind each; `deal` hands one per group from a seeded hash ([docs/playbook/p5-deck.md](docs/playbook/p5-deck.md)) |
+| `docs [topic]` | the craft docs from the terminal: no topic lists `docs/playbook`, `docs/recipes` and PLAYBOOK pages, a topic prints the best match |
+| `doctor [--json]` | what a film needs here: node, ffmpeg and its encoders, python and libs, the headless browser, docker and GPU (optional), disk, cores, RAM; exit 1 if a required check fails |
+| `face <video> [--every s] [--json]` | where the faces are in a video: a local OpenCV Haar detector (`pip install opencv-python-headless`), share of time a face is present, segments, biggest face, head room |
+| `gate [project] [--n 16]` | the two delivery gates on the built pvk film page: determinism (16 frames hashed forward, reverse, cached and cold) and dead air; exit 1 on either ([docs/playbook/p5-delivery.md](docs/playbook/p5-delivery.md)) |
+| `grade-compare <image\|video> [--at t] [--presets a,b,c \| grade \| effect \| all] [--intensity 0..1] [--cols n] [--out file.png]` | one picture or video frame through the HyperFrames colour-grading presets (the ones `KIT.grade` takes), side by side, one labelled PNG |
+| `json <command> [project] [args…]` | run any command and print ONE JSON envelope (`ok`, `command`, `args`, `exit`, `stdout`, `stderr`, `data?`, `_meta`); `--json` on any command does the same; exit 0 ok, 1 failed, 2 usage with `did_you_mean` |
+| `lottie <file.lottie> [out.json] [--animation <id>]` | unzip a dotLottie file into plain Lottie JSON for `KIT.lottie`; lists the animations when there are several |
+| `narrate providers \| speak "<text>" [--provider say] [--voice V] [--rate 1] [--yes] \| check <wav> "<text>" [--max-wer 0.1]` | narration providers beside edge-tts (say, piper, kokoro, openai, gemini, elevenlabs; the cloud ones need `--yes` and a key); takes are cached by hash; `check` transcribes a take with `whisper-cli` |
+| `preflight [project] [--json]` | before a render: the disk the frames need, the disk that is free, and whether it fits with 10% to spare; exit 1 if not |
+| `promo <name\|path> ["Title"]` | start a film from the Ink Press promo template: 36 s, 10 shots on the energy arc, music only; then edit `hf/content.js` ([docs/recipes/ink-press-promo.md](docs/recipes/ink-press-promo.md)) |
+| `props <project> check [file.json \| '{...}']` / `schema [--write]` / `merge <file.json \| '{...}'>` | per-run props against `props.schema.json` (or the project's variables); any command takes `--props '{...}'` / `--props-file f.json` ([docs/playbook/p9-delivery.md](docs/playbook/p9-delivery.md)) |
+| `qa-strict [project]` | run `qa` and exit 1 on any WARN as well as any FAIL (the CI mode) |
+| `rand-lint [project]` | opt-in lint of the film's own scripts for `Math.random()`, `Date.now()`, `new Date()`, `performance.now()`, `requestAnimationFrame` and timers, with the fix (`KIT.random(seed)`, or `t`); exit 1 on any finding |
+| `range [video] --frames 0-9,30,100- [--every-nth-frame N] [--duration S] [--stills dir [--format jpg\|png] [--jpeg-quality 1-100]] [--out clip.mp4] [--dry-run]` | cut a frame selection out of a finished film (Remotion's `--frames`, `--every-nth-frame`, `--duration`) as a clip or as stills |
+| `review [project]` | print the brief for the final independent review: the project's facts, the commands to run and the itemised checklist ([docs/playbook/final-review.md](docs/playbook/final-review.md)); paste it into a fresh subagent |
+| `ship [project] [--sign "name"]` | ship checks on the delivered mp4 (read time, safe zone, facts, motion scan, dead air, A/V sync) and a review ledger in `ship.json`; `--sign` adds a sign-off that counts only while the mp4's sha still matches |
+| `spectrum [file] [--out audio-bands.js] [--fps N] [--bins N]` | per-frame spectrum, level and waveform of an audio or video file, FFT at build time, as `window.AUDIO_BANDS` for `KIT.level` / `KIT.spectrum` / `KIT.waveform` |
+| `stills2 [project] [t,t,..] [--at t,t] [--frames N] [--range a-b[:step]] [--zoom <selector>] [--pad px] [--against ref.mp4] [--min-ssim x]` | stills with more than `stills`: times, N evenly spaced, a range, a zoomed crop of one element, or a comparison with a reference video; `stills` with any of those flags runs it |
+| `transcode [video] [--codec h264\|h265\|vp8\|vp9\|av1\|prores\|gif\|mp3\|aac\|wav] [--out file] [--crf N] [--quality draft\|looks\|standard\|high\|delivery] [--scale 0.5] [--metadata key=value]` | a finished film into another codec with Remotion's quality, pixel-format, colour-tag and metadata knobs (the full flag list is in the header of `tools/commands/transcode.mjs`); offline |
+| `transcribe install [--model tiny\|base\|small] [--yes]` / `transcribe <audio\|video> [--model m] [--lang l] [--out words.json]` | local speech to text (faster-whisper): word-level `[{text,start,end}]`, the shape `captions` takes. The install is opt-in: it prints the plan and sizes (about 100 MB of packages plus the model: tiny 75, base 145, small 484 MB) and changes nothing without `--yes`; it makes a repo-local `.venv-tts` and `.models/` (both gitignored). Once installed, `new --video/--audio` and `narrate check` use it |
+| `tts install [--yes]` | local Kokoro voiceover, opt-in: plan and sizes first (about 60 MB of packages, `kokoro-v1.0.onnx` 310 MB, `voices-v1.0.bin` 27 MB), nothing without `--yes`. Then `"tts": "kokoro"` in `project.json` makes `vo` use it; with `transcribe install` too its word times are aligned to the audio (`"timing": "aligned"`) instead of estimated |
+| `verify-av [project]` | does the sound in the rendered mp4 land where `mix.wav` put it: AAC priming, the global offset and the lag around every SFX cue; WARN past 1 frame |
 | `all` | record → vo → (beatgrid) → sched → info → music → mix → frames → encode → qa |
 | `audio` | vo → sched → info → music → mix (after editing the script) |
 | `film` | sched → info → mix → frames → encode (after editing the edit) |
 | `gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image\|video] [--yes]` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
 | `gen [project] --import <file> --source firefly\|express "<note>"` | register a file made in Firefly or Express in `assets/gen.json` (offline) |
 
-Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1,4x5,16x10`, `--as <format>` (webm, mov, gif, apng, png, hls: an extra output beside the mp4), `--no-cache` (above). Environment:
+Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1,4x5,16x10` (or any `WxH` with even sides), `--as <format>` (webm, mov, gif, apng, png, hls: an extra output beside the mp4), `--no-cache` (above), `--json` (any command: one JSON envelope), `--variables '<json>'` / `--variables-file <file>` / `--strict-variables` (composition variables for this run; `--props` and `--props-file` are the Remotion names), `--blur`, `--workers N`, `--low-memory`, the encode knobs `--quality draft|looks|standard|high|delivery`, `--crf N`, `--video-bitrate`, `--max-bitrate`, `--buffer-size`, `--keyframe-interval`, `--vp9-cpu-used`, `--resolution 4k|portrait-4k|square-4k`, and on `frames`, `film`, `all`, `stills` and `encode` the safety flags `--strict`, `--best-effort`, `--timeout S`, `--max-render S`, `--browser-timeout MS`, `--player-ready-timeout MS`, `--protocol-timeout MS`, `--lock [--lock-timeout S]`. Environment:
 `PAGES=6` (parallel browser pages), `FPS`, `BROWSER=chrome|chromium`, `PYTHON`.
 
 `gen` is off by default and needs a key for Higgsfield; setup, costs and the manual Firefly/Express route are in
@@ -451,7 +551,7 @@ without it nothing needs a key, an account or a network beyond what the core alr
 Keys, costs, errors, terms and how to add a provider: [docs/CONNECTORS.md](docs/CONNECTORS.md).
 
 **Works without any connector:** `new`, `add`, `record`, `vo`, `beatgrid`, `sched`, `info`, `music`, `mix`, `stills`, `frames`,
-`encode`, `qa`, `verify`, `preview`, `embed`, `studio`, `remix`, `clean`, `themes`, `from-url`, `theme-from`, `theme-brief`, `beats`,
+`encode`, `qa`, `verify`, `preview`, `embed`, `studio`, `remix`, `clean`, `themes`, `make`, `from-url`, `theme-from`, `theme-brief`, `beats`,
 `all`, `audio` and `film`. Only `gen` is optional. (`vo` and `from-url` use the internet as before: edge-tts, and the page you point
 it at. `manim` and the Remotion renderer need their own opt-in installs, see [Renderers](#renderers).)
 
@@ -497,7 +597,7 @@ tools/                      shared — you rarely edit these
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
   renderers/remotion.mjs    the opt-in "renderer": "remotion" (installs nothing without a yes)
   renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs   KIT.video frames and the KIT.shader transition pass
-  commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief (header = its help)
+  commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief, gallery (header = its help)
   checks/                   plug-in QA checks: hf-lint, seekable-runtimes, taste (WARN or gate declared in the file)
   studio/                   reelwright studio: server, page and the preview shims it shares with embed
   selfcheck/                CI self-checks (node tools/selfcheck/<name>.mjs): runtimes, motion, themes, studio, sound, …
@@ -510,6 +610,7 @@ tools/                      shared — you rarely edit these
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer
   theme-check.mjs, theme-gallery.mjs, theme_from.mjs   check, picture and draft themes (theme-brief is in commands/)
+  gallery.mjs, gallery-fx.mjs   the shotcard and effect gallery with its visual-regression check (commands/gallery.mjs)
   beats.mjs                 reelwright beats: beat-sheet CSV / timeline JSON <-> project.json
   gen.mjs, gen/             reelwright gen: optional generation connector (Higgsfield) and manual import; off by default
   motion-check.mjs          self-check of the easing, spring, doodle and math code (node tools/motion-check.mjs)
@@ -526,7 +627,7 @@ tools/                      shared — you rarely edit these
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages, lint, blocks and catalog components, see VENDORED.md
 vendor/hf-player/           the HyperFrames player (Apache 2.0) behind embed and studio
 vendor/gsap/ lottie/ anime/ three/ three-r147/   animation runtimes behind tools/runtimes.js (GSAP is not MIT, see its LICENSE-GSAP.md)
-vendor/katex/ mathjax/ flubber/ paths/           math and paths: KIT.math.equation, KIT.tex, morphs, KIT.path
+vendor/katex/ mathjax/ flubber/ paths/ polygon-clipping/ shiki/   math, paths, boolean ops and code highlighting: KIT.math.equation, KIT.tex, morphs, KIT.path, KIT.math.bool, reelwright code
 vendor/d3/ topojson-client/ world-atlas/ us-atlas/   what the map blocks load
 vendor/ui-ux-pro-max/       product-type data behind theme-brief (MIT)
 python/reelwright_manim/    the Manim adapter (RWScene, frame-quantised timing); Manim itself is installed on request into .venv-manim
@@ -577,6 +678,12 @@ NOTICE, THIRD_PARTY.md      licenses of the vendored code, fonts and tools
 ## Contributing
 
 Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Ideas: more engine components.
+
+**CI.** Each OS (Ubuntu, macOS, Windows) runs the self-checks in 3 parallel shards (`self-checks`) and everything else (syntax,
+parity, the example and demo films) in `build-example`; the `ci-ok` job is green only when all of them are, so it is the one
+check a PR gate needs. Locally: `node tools/selfcheck_run.mjs` runs every `tools/selfcheck/*.mjs` (`--only a,b`, `--shard 1/3`,
+`--list`, `--jobs 4` to overlap the checks that are safe to; CI uses 2). The balance comes from `tools/selfcheck/timings.json`; after adding
+a slow check, refresh it with `node tools/selfcheck_run.mjs --record --only <name>`.
 
 ## Licence and credits
 

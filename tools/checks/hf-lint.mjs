@@ -8,6 +8,8 @@ import path from "node:path";
 // Rules whose premise is HyperFrames' own model, not Reelwright's: the film page is built by film.js at runtime and
 // render(t) is the only clock (KIT.start registers window.__timelines.main, KIT.gsap registers its timeline, the mp4's
 // audio is mixed by ffmpeg, never taken from the page). Every other rule runs.
+// 31 of the 44 have a native version (tools/checks/native-lint.mjs, native-lint2.mjs: `reelwright lint`, opt-in in qa); the other 13 have no Reelwright
+// counterpart (NO_COUNTERPART in native-lint2.mjs). The reason on each line is why the UPSTREAM rule is skipped; the table is in docs/playbook/qa-lint.md.
 export const SKIP = {
   // the timeline is registered, and its duration set, at runtime by KIT.start — static lint can't see that
   missing_timeline_registry: "KIT.start registers window.__timelines.main at runtime",
@@ -26,7 +28,7 @@ export const SKIP = {
   caption_track_kind_missing: "captions are rendered by the engine (KIT.subs), not as timeline tracks",
   multiple_caption_tracks: "captions are rendered by the engine (KIT.subs), not as timeline tracks",
   gsap_animates_clip_element: "no clip elements; render(t) and GSAP legitimately move the same elements",
-  media_missing_data_start: "KIT.video seeks a plain <video> from render(t); it has no data-start",
+  media_missing_data_start: "KIT.video sets data-start itself; hand-written <video> / <audio> in the page is checked by native-lint2.mjs",
   media_missing_id: "only about data-start media, which Reelwright does not use",
   nested_media_start_basis_ambiguous: "only about data-start media",
   video_nested_in_timed_element: "only about data-start media",

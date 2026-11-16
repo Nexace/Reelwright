@@ -103,6 +103,10 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
 3. Fresh-clone build of the example films and every new demo; all gates pass; CI green on three OSes.
 4. Stitch docs, final version number (owner names it), then tag and release **only with the owner's yes**, then the cleanup list (also with a yes).
 
+## Owner instruction (2026-11-13)
+
+After all waves are done: run the final cleanup (the cleanup list), then release Reelwright **1.0.0**. This is the owner's advance yes for the cleanup, the version bump, the tag and the release; deleting anything beyond the cleanup list, installs and paid calls still need a fresh ask.
+
 ## Orchestrator rules
 
 - Keep prompts short and file-specific; give each subagent only its rows, not the whole table.
@@ -117,10 +121,10 @@ Row ids come from the Planned list in `docs/PARITY.md`; each package takes the r
 
 | Wave | Package | State |
 |---|---|---|
-| 1 | P1 P2 P3 P4 | not started |
-| 2 | P5 P6 P7 P8 | not started |
-| 3 | P9 P10 P11 | not started |
-| 0 | triage and assignments | not started |
+| 1 | P1 P2 P3 P4 | merged, verified, 110 rows flipped (332/601) |
+| 2 | P5 P6 P7 P8 | P5 P6 P7 P8 merged (388/601); P8 left D9 E2 E4 E8 G1 G3 G4 H3 H5 I10 I13 G15 I5 open for a follow-up package |
+| 3 | P9 P10 P12a P12b merged; P11 P13 P14 running | 433/601 EQUAL; D10 D9 E2 E4 accepted as exceptions 2026-11-15 |
+| 0 | triage and assignments | done: docs/plans/phase-11-assignments.md (221 rows); owner rulings 2026-11-13: vendor dotLottie, polygon-clipping, shiki; Remotion transcribe = exception |
 | 4 | close-out, final release | not started |
 
 ## Start prompt (paste into a new session in this repo)

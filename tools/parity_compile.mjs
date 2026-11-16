@@ -177,7 +177,7 @@ const reasonOf = (r) => REASONS.find((g) => g.test(r)).id;
 //     planned for Phase 11 and are not claimed. A PARTIAL row tagged build is partly shipped: it stays PARTIAL, open.
 // (3) These four Higgsfield rows were moved to group 7 after the first ruling (owner dropped checkpoint 10l on
 //     2026-11-09): proposed, they wait for the owner's own yes.
-const APPROVED_ON = '2026-11-12';
+const APPROVED_ON = '2026-11-12 and 2026-11-15';
 const FROZEN_APPROVED = new Set(['higgsfield-workflows:11', 'higgsfield-workflows:13', 'higgsfield-workflows:17', 'higgsfield-workflows:23', 'doodle-shots-motion:1.18', 'doodle-shots-motion:1.38', 'doodle-shots-motion:1.39', 'doodle-shots-motion:1.42', 'doodle-shots-motion:1.43', 'doodle-shots-motion:1.44', 'doodle-shots-motion:2b.15', 'doodle-shots-motion:2b.16', 'doodle-shots-motion:2b.21', 'doodle-shots-motion:3.15', 'doodle-shots-motion:4.15', 'doodle-shots-motion:4.19', 'doodle-shots-motion:4.21', 'doodle-shots-motion:4.22', 'doodle-shots-motion:4.23', 'higgsfield-workflows:1', 'higgsfield-workflows:10', 'higgsfield-workflows:15', 'higgsfield-workflows:19', 'higgsfield-workflows:2', 'higgsfield-workflows:21', 'higgsfield-workflows:24', 'higgsfield-workflows:26', 'higgsfield-workflows:27', 'higgsfield-workflows:28', 'higgsfield-workflows:31', 'higgsfield-workflows:32', 'higgsfield-workflows:33', 'higgsfield-workflows:4', 'higgsfield-workflows:5', 'higgsfield-workflows:8', 'higgsfield-workflows:9', 'hyperframes:A15', 'hyperframes:A21', 'hyperframes:B10', 'hyperframes:B7', 'hyperframes:B9', 'hyperframes:E3', 'hyperframes:E7', 'hyperframes:G14', 'hyperframes:G17', 'hyperframes:H6', 'hyperframes:H7', 'hyperframes:I14', 'hyperframes:K4', 'hyperframes:K5', 'hyperframes:K6', 'hyperframes:L3', 'manim:m1.7', 'manim:m11.4', 'manim:m12.11', 'manim:m13.1', 'manim:m13.2', 'manim:m4.2', 'remotion:2.1.14', 'remotion:2.1.15', 'remotion:2.1.20', 'remotion:2.2.6', 'remotion:2.3.1', 'remotion:2.3.10', 'remotion:2.3.12', 'remotion:2.3.7', 'remotion:2.3.9', 'remotion:2.4.10', 'remotion:2.4.16', 'remotion:2.4.3', 'remotion:2.5.8', 'remotion:2.5.9', 'remotion:2.6.10', 'remotion:2.6.2', 'remotion:2.6.3', 'remotion:2.6.4', 'remotion:2.7.11', 'remotion:2.7.13', 'remotion:2.7.15', 'remotion:2.7.16', 'remotion:2.7.17', 'remotion:2.8.2', 'remotion:2.8.5', 'remotion:2.8.7']);
 const PENDING_OWNER = new Set([]);   // empty: the owner ruled on 2026-11-12 (the four Higgsfield rows are exceptions)
 const EXCEPT_TAG = /\[10z: except\]|Suggest: (?:accept as )?exception|Suggest: except/i;
@@ -249,7 +249,7 @@ function renderParity({ data, count }, date) {
   const good = tot.EQUAL + tot.BETTER + tot['EQUAL/BETTER'];
   const allRows = data.flatMap((d) => d.rows), nOf = (k) => allRows.filter((r) => stateOf(r) === k).length;
   const [nA, nP, nL, nQ, nO] = ['approved', 'proposed', 'planned', 'partial', 'open'].map(nOf);
-  L.push(`**0.3.0 reaches parity on ${good} of ${T_} rows; the rest are listed as planned or accepted exceptions.**`, '');
+  L.push(`**${JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version} reaches parity on ${good} of ${T_} rows; the rest are listed as planned or accepted exceptions.**`, '');
   L.push('| State | Rows |', '|---|--:|');
   L.push(`| EQUAL, BETTER or EQUAL/BETTER | ${good} |`, `| Accepted exceptions (owner-approved ${APPROVED_ON}) | ${nA} |`, `| Planned (Phase 11), not claimed | ${nL} |`,
     `| Partial: some shipped, the rest planned (open) | ${nQ} |`, `| Proposed exceptions waiting for the owner | ${nP} |`, `| Open, no tag | ${nO} |`, `| **Total** | **${T_}** |`, '');
@@ -282,7 +282,7 @@ function renderParity({ data, count }, date) {
   }
   L.push(`### Proposed exceptions waiting for the owner (${nP})`, '', 'Moved here after the first ruling because the owner dropped checkpoint 10l (Higgsfield depth) on 2026-11-09. Not approved; the owner decides.', '');
   for (const r of allRows.filter((r) => stateOf(r) === 'proposed')) L.push(`- ${ref(r)}`);
-  L.push('', `### Planned (Phase 11) (${nL})`, '', 'Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in 0.3.0 does. Not claimed.', '');
+  L.push('', `### Planned (Phase 11) (${nL})`, '', 'Rows the re-audit tagged `[10z: build]` or "Suggest: build" and that nothing in the release does. Not claimed.', '');
   for (const { x, rs } of bySrc(allRows.filter((r) => stateOf(r) === 'planned'))) {
     L.push(`#### ${x.title} (${rs.length})`, '');
     for (const r of rs) L.push(`- ${ref(r)}${r.approach ? ` — plan: ${trim(clean2(r.approach), 160)}` : ''}`);
@@ -376,5 +376,11 @@ function main() {
   const good = c.EQUAL + c.BETTER + c['EQUAL/BETTER'];
   console.error(`total ${b.all.length}, EQUAL+BETTER+EQUAL/BETTER ${good}, not ${b.all.length - good}`);
   if (problems.length) process.exitCode = 1;
+  if (args.includes('--check')) {   // Phase 11 exit criterion: no row is Planned, Partial, Proposed or Open
+    const open = b.all.filter((r) => stateOf(r) !== 'good' && stateOf(r) !== 'approved');
+    if (open.length) { console.error(`--check: ${open.length} open row(s): ${open.map((r) => `${r.source}:${r.id}`).join(', ')}`); process.exitCode = 1; }
+    else console.error('--check: no open rows (every row is EQUAL/BETTER or an approved exception)');
+  }
 }
-main();
+export { parseSource, SOURCES };
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

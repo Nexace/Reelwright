@@ -13,11 +13,15 @@ jobs:
           for d in fonts/*/; do test -s "$d/OFL.txt" || { echo "missing $d/OFL.txt"; exit 1; }; done
           for f in projects/*/hf/blocks/*.html; do [ -e "$f" ] || continue; head -1 "$f" | grep -q "HyperFrames catalog" || { echo "no source header: $f"; exit 1; }; done
           echo "licenses OK"
-  build-example:
+  selfchecks:
+    # Every tools/selfcheck/*.mjs, split into 3 balanced shards per OS by tools/selfcheck_run.mjs (timings: tools/selfcheck/timings.json).
+    # A new check is picked up by itself; after adding slow ones, refresh the table: node tools/selfcheck_run.mjs --record
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        shard: [1, 2, 3]
+    name: self-checks (${{ matrix.os }}, shard ${{ matrix.shard }}/3)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     defaults:
@@ -28,19 +32,78 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
       - name: Install ffmpeg
         run: |
           case "$RUNNER_OS" in
-            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg ;;
+            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg espeak-ng ;;
             macOS) brew install ffmpeg ;;
             Windows) choco install -y --no-progress ffmpeg ;;
           esac
+      - name: Browser cache location
+        run: echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/pw-browsers" >> "$GITHUB_ENV"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pw-browsers
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json', 'package-lock.json') }}
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package.json', 'package-lock.json', 'vendor/hyperframes/*/package.json') }}
       - name: Install
         run: |
           pip install -r requirements.txt
           npm install
-          npx playwright install $([ "$RUNNER_OS" = Linux ] && echo --with-deps) chromium
+          npx playwright install chromium   # a no-op when the cache above restored it
+          if [ "$RUNNER_OS" = Linux ]; then npx playwright install-deps chromium; fi   # system libraries are never cached
+      - name: "Self-checks: shard ${{ matrix.shard }} of 3"
+        run: node tools/selfcheck_run.mjs --shard ${{ matrix.shard }}/3 --jobs 2
+  build-example:
+    # Everything except the self-checks (those run in `selfchecks` above): syntax, parity, connector, from-url, the films.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 100
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install ffmpeg
+        run: |
+          case "$RUNNER_OS" in
+            Linux) sudo apt-get update -q && sudo apt-get install -yq ffmpeg espeak-ng ;;
+            macOS) brew install ffmpeg ;;
+            Windows) choco install -y --no-progress ffmpeg ;;
+          esac
+      - name: Browser cache location
+        run: echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/pw-browsers" >> "$GITHUB_ENV"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pw-browsers
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json', 'package-lock.json') }}
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package.json', 'package-lock.json', 'vendor/hyperframes/*/package.json') }}
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          npm install
+          npx playwright install chromium   # a no-op when the cache above restored it
+          if [ "$RUNNER_OS" = Linux ]; then npx playwright install-deps chromium; fi   # system libraries are never cached
       - name: Syntax checks
         run: |
           for f in bin/*.mjs setup.mjs tools/*.mjs tools/*/*.mjs projects/*/record.mjs; do [ -e "$f" ] || continue; node --check "$f"; done
@@ -48,8 +111,8 @@ jobs:
           node tools/motion-check.mjs
           node tools/beats.mjs --self-check
           python -m py_compile tools/*.py $(ls tools/checks/*.py 2>/dev/null)
-      - name: "Self-checks (every tools/selfcheck/*.mjs)"
-        run: for f in tools/selfcheck/*.mjs; do [ -e "$f" ] || continue; echo "▶ $f"; node "$f" || exit 1; done
+      - name: "Parity: no row is Planned, Partial, Proposed or Open"
+        run: node tools/parity_compile.mjs --check
       - name: "Generation connector: mocked test (no keys, no network)"
         run: node tools/gen/test.mjs
       - name: "From a URL: draft a project and a theme from the local demo site (offline)"
@@ -77,6 +140,9 @@ jobs:
         with:
           name: example-film-${{ matrix.os }}
           path: projects/example/out/*.mp4
+      - name: "Offline voiced film: the example built with the OS voice (no network), qa, audio, duration and frame count"
+        env: { PAGES: 2, PYTHON: python }
+        run: node tools/ci_film.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build the HyperFrames example
         env: { PAGES: 2, PYTHON: python }
         run: node bin/reelwright.mjs all example-hf
@@ -169,3 +235,14 @@ jobs:
           path: |
             cloud/run*.ipynb
             drive/projects/example/out/
+  ci-ok:
+    # The one required check for the PR gate: green only when every job above succeeded (a skipped or cancelled one counts as red).
+    if: always()
+    needs: [licenses, selfchecks, build-example, colab-notebook]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All jobs succeeded
+        env: { RESULTS: "${{ join(needs.*.result, ' ') }}" }
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do [ "$r" = success ] || { echo "::error::a CI job did not succeed ($r)"; exit 1; }; done

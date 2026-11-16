@@ -38,6 +38,7 @@ The first half is craft (story, picture, sound, process, engine rules, layouts, 
 - [Studio](#studio-reelwright-studio-toolsstudio)
 - [Optional Manim scenes](#optional-manim-scenes-reelwright-manim-kitmanim)
 - [The Remotion renderer, optional](#the-remotion-renderer-optional-renderer-remotion)
+- [Every playbook page, by topic](#every-playbook-page-by-topic-phase-11)
 
 ## Story before pixels
 
@@ -101,6 +102,8 @@ The first half is craft (story, picture, sound, process, engine rules, layouts, 
 
 ## Process
 
+- **Not sure where to start? `./video.sh make "<brief>"`.** It picks the template and theme from one sentence, drafts the lines and prints
+  the plan; with `--yes` it creates the project (never renders). [playbook/make.md](playbook/make.md).
 - **Ship a v1 fast, then iterate.** Render stills (`./video.sh stills`) and a contact sheet before a full
   render; it's seconds instead of minutes.
 - **Watch it yourself before sending.** `./video.sh qa` lists blank frames and frame-to-frame jumps; every
@@ -1343,3 +1346,71 @@ template, the pins, the licence text, `film.mjs`/`kit.js` in Node and the no-TTY
 - Not run on Windows (the code spawns `npx.cmd`/`npm.cmd` there). Remotion has no Windows arm64 build.
 - `--lang` works through the kit data. The cue words in `film.mjs` must exist in the translated line, because the
   base-language fallback (`VO[id].base`) is not in `kit.js`.
+
+## Every playbook page, by topic (Phase 11)
+
+One line each; the page is the detail. The same list is in [docs/playbook/README.md](playbook/README.md). Recipes (scene patterns, film recipes and the 88 shot cards, `KIT.shotcards`) are in [docs/recipes/README.md](recipes/README.md).
+
+### Story, process and review
+
+- [make](playbook/make.md): `reelwright make "<brief>"`: a guided, offline start that picks the template and theme, drafts the lines and prints the plan
+- [claude-workflow](playbook/claude-workflow.md): the agent loop: brief, script, stills, taste, preview, render
+- [final-review](playbook/final-review.md): the last step before reporting an mp4: an itemised checklist and `reelwright review` for a reviewer with a clean context
+- [prompting-data-maps](playbook/prompting-data-maps.md): ready-to-paste prompts for charts, numbers, tables and maps
+- [prompting-recreate-reference](playbook/prompting-recreate-reference.md): prompts for "make mine look like that" from a site, a screenshot or a film
+- [prompting-editing-existing](playbook/prompting-editing-existing.md): prompts for footage you already have: trim, captions, lower thirds, recut to a track
+- [skill-references](playbook/skill-references.md): the product-video skill split by topic, with the CLI and registry skills in short form
+- [skill-patch](playbook/skill-patch.md): the text appended to the shared skill file for the 0.3 commands
+
+### Look: themes, grading, effects, formats
+
+- [themes](playbook/themes.md): the 27 themes: tokens, motion archetypes, caption skins, `theme-check` and `theme-gallery`
+- [theme-brief](playbook/theme-brief.md): `reelwright theme-brief`: a theme drafted offline from a one-line brief
+- [grading-effects](playbook/grading-effects.md): `KIT.grade` and `KIT.vfx`: grade presets, vignette, grain, LUTs, per-pixel effects
+- [p9-effects](playbook/p9-effects.md): `KIT.fx.*` and the doodle highlights: colour, blur, lighting, distortion, patterns, reveals
+- [motion-blur](playbook/motion-blur.md): `"motionBlur"` in `project.json`, and `--blur` on `frames`
+- [output-formats](playbook/output-formats.md): `--as`, `--formats`, alpha, HDR and 4:5
+
+### Motion, camera and shot cards
+
+- [motion](playbook/motion.md): paths, transitions, camera shots and rate functions: `KIT.path`, `KIT.transition`, `KIT.shot.*`
+- [motion-rules](playbook/motion-rules.md): `KIT.motionRules`: duration and distance scaling, state-feedback patterns, and the checks that warn when a film breaks them
+- [p5-motion](playbook/p5-motion.md): camera keys, `KIT.timeRemap`, `KIT.world`, `KIT.morph.handoff`, callouts and steps
+- [p5-deck](playbook/p5-deck.md): `reelwright deck`: 46 named moves, each with its KIT call
+- [shotcraft-lints](playbook/shotcraft-lints.md): sharp camera layer, velocity helpers, `reelwright arc`, aesthetic lints, `beatsync`, `verify-av`, `capture-trio`
+- [shader-transitions](playbook/shader-transitions.md): `KIT.shader`: 14 WebGL transitions
+- [kit-components](playbook/kit-components.md): `KIT.components`: info strip, odometer, flash cut, ticker, clip card
+
+### Text, media and time
+
+- [p5-text-media](playbook/p5-text-media.md): reading time, phrase cutting, perceptual scale and `KIT.animatedImage` (`reelwright animimg`)
+- [p9-text-rules](playbook/p9-text-rules.md): text size and safe-area rules in `KIT.u` units
+- [p9-time](playbook/p9-time.md): `KIT.interpolate`, `KIT.random`, colour, noise, shapes, text fitting and `KIT.player`
+- [video-audio](playbook/video-audio.md): `KIT.video` and `KIT.audio`: clips, speed ramps and extra sounds over the soundtrack
+
+### Sound
+
+- [sound](playbook/sound.md): synthesised SFX kinds and the `house` and `hiphop` music beds
+- [audio-fx](playbook/audio-fx.md): `reelwright audiofx`: the 17-effect rack, presets and the `fx` key
+
+### Drawing, math and runtimes
+
+- [doodle](playbook/doodle.md): `KIT.doodle` depth: pen strokes, score, letters, depth seams
+- [math2](playbook/math2.md): `KIT.tex`, shapes, plots, vector fields and `KIT.math3d`
+- [d3](playbook/d3.md): d3 scales, shapes and delaunay as pure functions of t
+- [manim](playbook/manim.md): optional Manim scenes (`reelwright manim`, `KIT.manim`)
+- [manim-native](playbook/manim-native.md): 18 Manim features as plain KIT calls, with `manim-lint`
+- [runtimes](playbook/runtimes.md): GSAP, Lottie, anime.js, Three.js and CSS/WAAPI driven by seeking
+- [lottie](playbook/lottie.md): Lottie rules and dotLottie: `KIT.dotLottie`, `add-lottie`, `lottie`
+- [lottie-hf](playbook/lottie-hf.md): `KIT.lottie` basics in HyperFrames films
+- [blocks](playbook/blocks.md): HyperFrames blocks: `reelwright add`, `KIT.mount`, `KIT.block`
+- [nested-compositions](playbook/nested-compositions.md): `KIT.mount`: a HyperFrames composition as one timed layer
+- [remotion](playbook/remotion.md): the optional Remotion renderer
+
+### Variables, delivery, QA and the studio
+
+- [variables](playbook/variables.md): composition variables, `batch`, `stills2` (zoom, compare) and `compare`
+- [p9-delivery](playbook/p9-delivery.md): `transcode`, `range`, `audio-clip`, `spectrum` and per-run `props`
+- [p5-delivery](playbook/p5-delivery.md): gates, `ship` checks, narration providers, `brand`, blur and formats
+- [qa-lint](playbook/qa-lint.md): the HyperFrames lint inside `qa`
+- [studio](playbook/studio.md): `reelwright studio`: timeline, panels and render queue

@@ -10,6 +10,8 @@ TL = json.load(open(os.path.join(proj, "timeline.json")))
 SR = 48000
 DUR = TL["DUR"]; N = int(DUR * SR)
 rng = np.random.default_rng(7)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import audio_fx   # project.json "fx": {"vo", "music", "sfx", "lines": {id}}
+FX = P.get("fx", {})
 
 
 def load(path, ch):
@@ -26,6 +28,7 @@ def mavg(x, w):  # fast moving average (np.convolve with a huge window hangs on 
 vo = np.zeros(N)
 for lid, v in (TL.get("VO") or {}).items():
     x = load(os.path.join(proj, "vo", os.environ.get("REELWRIGHT_LANG", ""), f"{lid}.mp3"), 1)[:, 0]
+    if lid in FX.get("lines", {}): x = audio_fx.process_f32(x[:, None], SR, FX["lines"][lid], keep_length=False)[:, 0]   # keeps the reverb/echo tail
     i = int(round(v["at"] * SR)); j = min(N, i + len(x))
     if i < 0: x = x[-i:]; i = 0
     vo[i:j] += x[: j - i]
@@ -34,11 +37,13 @@ for lid, v in (TL.get("VO") or {}).items():
 bed_path = os.path.join(proj, "music/bed.wav")
 music = load(bed_path, 2)[:N] if os.path.exists(bed_path) else np.zeros((N, 2))
 music = np.pad(music, ((0, N - len(music)), (0, 0)))
+if FX.get("music"): music = audio_fx.process_f32(music, SR, FX["music"])
 speaking = (mavg(np.abs(vo), int(0.05 * SR)) > 0.004).astype(float)
 speaking = (mavg(speaking, int(0.6 * SR)) > 0.01).astype(float)       # bridge gaps < 0.6 s
 env = mavg(speaking, int(0.3 * SR))
 duck = 10 ** (P.get("music", {}).get("duck_db", -10) / 20)
 music *= (1 - env * (1 - duck))[:, None]
+if FX.get("vo"): vo = audio_fx.process_f32(vo[:, None], SR, FX["vo"])[:, 0]   # after the ducking envelope, which listens to the dry voice
 
 # ── SFX library (all synthesised, no samples) ──
 def lp(x, fc):  # one-pole low-pass with a moving cutoff
@@ -135,15 +140,25 @@ for c in TL.get("cues", []):
     a = int((c["t"] - PEAK[kd]) * SR)
     if kd == "subdrop" or (kd in ("impact", "riser") and P.get("music", {}).get("duck_sfx")): duck_around(duck, max(0, a), int((c["t"] + .2) * SR))
     if a < 0: s = s[-a:]; a = 0
+    if c.get("fadeIn") or c.get("fadeOut"):   # per-cue fades, seconds (tools/mixfx.py)
+        import mixfx; s = s * mixfx.fade(len(s), SR, 0.0, None, c.get("fadeIn", 0), c.get("fadeOut", 0))
     b = min(N, a + len(s)); fx[a:b] += s[: b - a] * g
 
 music *= duck[:, None]
+if FX.get("sfx"): fx = audio_fx.process_f32(fx[:, None], SR, FX["sfx"])[:, 0]
+# project.json "automation": { "music" | "voice" | "sfx": { gain: [[t, dB], ...], cutoff: [[t, Hz], ...], fade_in, fade_out } }  (tools/mixfx.py; off by default)
+A = P.get("automation") or {}
+if A:
+    import mixfx
+    if A.get("music"): music = mixfx.automate(music, SR, A["music"])
+    if A.get("voice"): vo = mixfx.automate(vo, SR, A["voice"])
+    if A.get("sfx"): fx = mixfx.automate(fx, SR, A["sfx"])
 out = music * 0.85 + ((vo * 1.3) + fx * 0.45)[:, None]
 f = int(0.3 * SR); out[-f:] *= np.linspace(1, 0, f)[:, None]
 out = np.tanh(out * 1.05) / np.tanh(1.05)               # soft-clip guard
 tmp = os.path.join(proj, "mix.f32"); out.astype(np.float32).tofile(tmp)
 lufs = P.get("loudness", -14)
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", tmp,
-                "-af", f"loudnorm=I={lufs}:TP=-1.5:LRA=11", "-ar", str(SR), os.path.join(proj, "mix.wav")], check=True)
+                "-af", f"loudnorm=I={lufs}:TP=-1.5:LRA=11" + (("," + __import__("mixfx").limiter_filter(SR, **(P["limiter"] if isinstance(P["limiter"], dict) else {}))) if P.get("limiter") else ""), "-ar", str(SR), os.path.join(proj, "mix.wav")], check=True)
 os.remove(tmp)
 print(f"mix.wav: {DUR:.2f}s, {len(TL.get('VO') or {})} VO lines, {len(TL.get('cues', []))} SFX cues, {lufs} LUFS")

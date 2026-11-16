@@ -54,3 +54,21 @@ node tools/checks/taste.page.mjs docs/recipes/film     # pre-render taste check
 ```
 
 The build output (`vo/`, `hf/kit/`, `stills/`, `out/`, …) is git-ignored; only the film's source and `img/` are committed. The film is not in CI.
+
+## More recipes
+
+Whole films and the shot cards. These are not excerpts of the eight-scene film above: each page says what to load and which commands to run.
+
+| Recipe | What it is for |
+|---|---|
+| [PR to video](pr-to-video.md) | A 30 to 45 second film of one pull request: what changed, why, how big. Facts from the GitHub API, nothing written back. |
+| [Lyric video](lyric-video.md) | A song with its lyrics as big type, one line at a time, every line landing on the beat from `beatgrid`. |
+| [Faceless explainer](faceless-explainer.md) | A 60 to 90 second voiceover-led explainer with motion graphics, no recorded app and no presenter. |
+| [Ink Press promo](ink-press-promo.md) | A 36 s music-only promo template of ten shots on the energy arc (`reelwright promo`, `reelwright arc`). |
+| [One world](one-world.md) | One canvas, one camera that travels between boxes instead of cutting (`KIT.world`, `KIT.timeRemap`). |
+| [Shotcards A](shotcards/README.md) | 31 shot cards (camera, opening, outro, transition, rhythm; `KIT.shotcards.*`), one recipe page each. |
+| [Shotcards B](shotcards/b-index.md) | 57 shot cards (typography, UI entrance, data, effects, interaction), one recipe page each. |
+
+[The gallery](../gallery/index.html) shows every shot card and every `fx-*` effect as a contact strip with its helper call and recipe link (`reelwright gallery`; `reelwright gallery --check` is a visual regression check against `docs/gallery/refs/`).
+
+A film that calls `KIT.shotcards.<helper>` gets that helper's advice from the taste plug-in (`tools/checks/taste-shotcards.page.mjs`, data in `tools/checks/taste-shotcards.json`), printed as a `WARN` line by `qa` and on its own with `node tools/checks/taste-shotcards.page.mjs projects/<name>`.

@@ -49,5 +49,10 @@ projects/*/rm/kit-data.json
 
 # optional Manim install (reelwright manim <p> install ce --yes): one shared venv, never committed
 .venv-manim*/
+# optional face-detector install (reelwright face install --yes): repo-local venv, never committed
+.venv-face/
 __pycache__/
 *.pyc
+# optional local speech install (reelwright transcribe install / tts install --yes): repo-local venv and models, never committed
+.venv-tts/
+.models/

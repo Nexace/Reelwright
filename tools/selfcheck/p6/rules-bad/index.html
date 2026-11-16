@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- tools/selfcheck/p6-motion-rules.mjs fixture: every choreography problem on purpose. #lin travels linearly; #list has 8
+     items starting 0.12 s apart (0.84 s, over the 0.5 s budget); #cards has 6 cards that all start at the same frame. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../kit.css">
+<style>
+  body { background: #0f1115; }
+  #lin { width: 160px; height: 160px; background: #6ee7b7; left: 0; top: 60px; }
+  #list, #cards { left: 0; top: 0; width: 1920px; height: 1080px; }
+  #list > div { width: 300px; height: 50px; left: 100px; background: #93c5fd; }
+  #cards > div { width: 200px; height: 200px; top: 640px; background: #fca5a5; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080"><div id="stage"></div></div>
+<script>window.PROJECT = { title: "rules bad", fps: 30, width: 1920, height: 1080, lead: 0, tail: 0, speechEnd: 5 }; window.VO = {};</script>
+<script src="../../../engine.js"></script>
+<script>
+'use strict';
+const { el, show, seg, E } = KIT;
+const lin = el('div'); lin.id = 'lin';
+const list = el('div'); list.id = 'list';
+const items = Array.from({ length: 8 }, (_, i) => { const e = el('div', '', list); e.style.top = (330 + i * 60) + 'px'; return e; });
+const cards = el('div'); cards.id = 'cards';
+const cs = Array.from({ length: 6 }, (_, i) => { const e = el('div', '', cards); e.style.left = (100 + i * 250) + 'px'; return e; });
+function render(t) {
+  lin.style.transform = `translateX(${200 + 800 * seg(t, 0.3, 1.8)}px)`;   // linear: constant speed, no ease
+  items.forEach((e, i) => { const p = E.out(seg(t, 0.5 + i * 0.12, 0.9 + i * 0.12)); show(e, p); e.style.transform = `translateY(${(1 - p) * 30}px)`; });
+  cs.forEach((e) => { const p = E.out(seg(t, 3, 3.5)); show(e, p); e.style.transform = `translateY(${(1 - p) * 60}px)`; });
+}
+KIT.start({ dur: 5, render });
+</script>
+</body>
+</html>

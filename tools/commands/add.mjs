@@ -28,6 +28,16 @@ export default async function add({ proj, args, ROOT }) {
 
   const name = args[0];
   const b = name && blocks[name];
+  if (name && !b && !fs.existsSync(path.join(comps, name, "registry-item.json"))) {   // `add captions`: by tag (tools/catalog.mjs)
+    const { catalog, byTag } = await import("../catalog.mjs");
+    const hits = byTag(catalog(ROOT), name);
+    if (hits.length === 1 || (hits.length && args.includes("--all"))) { for (const h of hits) await add({ proj, args: [h.name], ROOT }); return; }
+    if (hits.length) {
+      console.log(`${hits.length} items tagged "${name}":`);
+      for (const h of hits) console.log(`  ${h.name.padEnd(34)} ${h.type.padEnd(9)} ${h.title}`);
+      console.log(`add one by name, or all of them: reelwright add ${name} --all`); return;
+    }
+  }
   if (b) {
     if (b.status !== "supported") { console.log(`${name} is a HyperFrames block reelwright can't run: ${b.reason}`); process.exit(1); }
     const P = JSON.parse(fs.readFileSync(path.join(proj, "project.json"), "utf8"));
@@ -55,6 +65,14 @@ export default async function add({ proj, args, ROOT }) {
     console.log("usage: reelwright add [project] <component|block>   (list: reelwright add --list [tag])"); process.exit(1);
   }
   const item = JSON.parse(fs.readFileSync(path.join(dir, "registry-item.json"), "utf8"));
+  if ((item.files || []).length > 1) {   // P12b: components with assets (tools/component_assets.mjs)
+    const { installComponent } = await import("../component_assets.mjs");
+    const fd = args.indexOf("--font-dir");
+    const r = installComponent(name, proj, { fontDir: fd >= 0 ? args[fd + 1] : undefined, allTextures: args.includes("--all-textures") });
+    if (!r.ok) { console.log(`${name} can't be installed: ${r.missing.map((m) => `${m.file} (${m.why})`).join("; ")}. Supply the files with --font-dir <folder>.`); process.exit(1); }
+    console.log(`${r.dest} — ${r.item.description || r.item.title}\nassets: ${r.assets.join(", ")}`);
+    return;
+  }
   const files = (item.files || []).map((f) => f.path);
   if (files.length !== 1 || !files[0].endsWith(".html")) {
     console.log(`${name} needs ${files.join(", ")} — only single-file components are vendored`); process.exit(1);

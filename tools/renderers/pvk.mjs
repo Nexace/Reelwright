@@ -13,8 +13,10 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
+import { blurSpec, linearBlurFilter } from "../p5-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
+import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
@@ -22,12 +24,11 @@ const SHOT_ALPHA = { type: "png", omitBackground: true };
 // after load so the film's own CSS stays untouched; anything else the film paints stays in the frame
 export const TRANSPARENT = "html, body, #stage { background: transparent !important; background-image: none !important; }";
 // project.json "motionBlur": true | {shutter (deg, default 180), samples (default 8)} → null when off
-export const blurOf = (P) => { const m = P.motionBlur; if (!m) return null;
-  return { shutter: Number(m.shutter ?? 180), samples: Math.max(2, Math.round(Number(m.samples ?? 8))) }; };
+export const blurOf = (P) => blurSpec(P);   // project.json motionBlur or --blur auto|N; linear light unless { linear: false }
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
 // What a frame shows, in the page after render(t): the DOM (render(t) sets inline styles) minus what can't paint,
 // video times, scroll offsets and canvas pixels. null (never cached) when a canvas can't be read.
-function fingerprint() {
+export function fingerprint() {
   const d = document, out = [d.head.outerHTML, ...[...d.documentElement.attributes].map((a) => a.name + "=" + a.value), scrollX, scrollY];
   const shown = (e) => getComputedStyle(e).visibility !== "hidden";
   const walk = (n) => {
@@ -56,24 +57,29 @@ function fingerprint() {
 
 export default async function pvk(DIR, P, mode, [a3, a4] = []) {
   const FPS = Number(process.env.FPS || P.fps || 60);
-  const N = Number(process.env.PAGES || 4);
+  const N = Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY });   // PAGES wins; else min(cores/2, RAM/512 MB)
   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
+  const SCALE = process.env.REELWRIGHT_RESOLUTION ? resolution(P, process.env.REELWRIGHT_RESOLUTION).scale : 1;   // --resolution 4k: layout size stays, pixels x SCALE
+  const BEST_EFFORT = !!process.env.REELWRIGHT_BEST_EFFORT, READY_MS = Number(process.env.REELWRIGHT_PLAYER_READY_TIMEOUT) || 0;   // I13 flags, off = as before
   const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
   if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
   const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
 
   async function openPages(n, alpha = false) {
-    const browser = await launch(["--force-device-scale-factor=1", "--allow-file-access-from-files"]);
+    const browser = await launch([`--force-device-scale-factor=${SCALE}`, "--allow-file-access-from-files"]);
     const pages = [], loaded = new Set();   // every file a page requested (frame cache key)
     let errors = 0;
     for (let i = 0; i < n; i++) {
-      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
+      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
       p.on("request", (r) => loaded.add(r.url()));
       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
-      await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href);
-      const ok = await p.evaluate(() => window.READY).catch((e) => { console.error(e.message); return false; });
-      if (!ok || errors) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
+      await p.goto(pathToFileURL(path.join(DIR, "film/index.html")).href, READY_MS ? { timeout: READY_MS } : undefined);
+      const ready = p.evaluate(() => window.READY);   // --player-ready-timeout ms bounds the wait; --best-effort carries on past page errors
+      const ok = await (READY_MS ? Promise.race([ready, new Promise((_, no) => setTimeout(() => no(new Error(`the film page was not ready after ${READY_MS} ms`)), READY_MS))]) : ready)
+        .catch((e) => { console.error(e.message); return false; });
+      if (!ok || (errors && !BEST_EFFORT)) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
+      if (errors) console.error(`best-effort: carrying on past ${errors} page error${errors > 1 ? "s" : ""}`);
       if (alpha) await p.addStyleTag({ content: TRANSPARENT });
       await pagesMedia(DIR, p, FPS, path.join(DIR, "film"), { frames: mode !== "info" });   // KIT.video / KIT.audio (tools/media.js)
       pages.push(p);
@@ -95,7 +101,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     const css = await page.evaluate(() => [...document.styleSheets].map((s) => {
       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
     }).join("\n"));
-    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT], platform: `${process.platform}-${process.arch}`,
+    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT, SCALE], platform: `${process.platform}-${process.arch}`,
       browser: process.env.BROWSER || "", version: browser.version(), shot: SHOTOPT }));
   }
   async function shot(p, t, file) {
@@ -113,7 +119,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
         fs.writeFileSync(path.join(tmp, `s${String(i).padStart(2, "0")}.${EXT}`), await p.screenshot(SHOTOPT));
       }
       const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-framerate", "1", "-i", path.join(tmp, `s%02d.${EXT}`),
-        "-vf", `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
+        "-vf", MB.linear ? linearBlurFilter(MB.samples, { alpha: ALPHA }) : `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
         ...(ALPHA ? [] : ["-q:v", "2"]), file], { stdio: "inherit" });
       if (r.status !== 0) { console.error("motion blur: ffmpeg failed"); process.exit(r.status || 1); }
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
@@ -134,7 +140,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     fs.mkdirSync(out, { recursive: true });
     try { for (const t of ts) await shot(pages[0], t, path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg")); }
     finally { await browser.close(); }
-    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })));
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, ts.map((t) => ({ t, file: path.join(out, "t" + t.toFixed(2).padStart(6, "0") + ".jpg") })), SCALE);
     console.log("stills →", out, ts.join(", "));
   } else if (mode === "frames") {
     const { browser, pages, loaded } = await openPages(N, ALPHA);
@@ -180,7 +186,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       }
     } finally { await browser.close(); }
     // KIT.shader windows: always recomposited after the cache step (the cache holds the crossfade)
-    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })));
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })), SCALE);
     const shots = [];   // runs of consecutive re-rendered frames
     for (const f of todo) { const s = shots[shots.length - 1]; if (s && s[1] === f - 1) s[1] = f; else shots.push([f, f]); }
     const list = shots.slice(0, 8).map(([a, b]) => `${a}–${b} (${(a / FPS).toFixed(2)}–${((b + 1) / FPS).toFixed(2)} s)`).join(", ");
@@ -209,7 +215,7 @@ function audioInputs(DIR) {
 
 // frames + mix.wav → the mp4 at project.json "out" (H.264 + AAC), plus the extra format asked for in "output". Shared with the other renderers.
 export function encode(DIR, P, FPS, pattern, start) {
-  const o = { ...P.output }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
+  const o = { ...P.output, ...outputFromEnv() }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
   if (!FORMATS.includes(fmt)) { console.error(`output format "${fmt}" is not one of ${FORMATS.join(", ")}`); process.exit(1); }
   const outFile = path.join(DIR, P.out || "out/film.mp4");
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
@@ -219,8 +225,7 @@ export function encode(DIR, P, FPS, pattern, start) {
   if (!aud.has) console.log("no mix.wav — encoding silent video");
   const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status || 1); };
-  const crf = String(o.crf ?? 16);
-  ff(...frames, ...aud.args, "-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", "yuv420p", "-profile:v", "high",
+  ff(...frames, ...aud.args, ...x264Args(o),
     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
   if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);
@@ -233,7 +238,7 @@ function extra(fmt, o, base, frames, aud, ff) {
   const sound = (...c) => (aud.has ? [...c, "-shortest"] : []);
   const file = base + "." + fmt;
   if (fmt === "webm") {
-    ff(...frames, ...aud.args, ...vf(), "-c:v", "libvpx-vp9", "-crf", String(o.crf ?? 24), "-b:v", "0", "-row-mt", "1",
+    ff(...frames, ...aud.args, ...vf(), ...vp9Args(o),
       "-pix_fmt", alpha ? "yuva420p" : "yuv420p", ...(alpha ? ["-auto-alt-ref", "0"] : []), ...sound("-c:a", "libopus", "-b:a", "160k"), file);
   } else if (fmt === "mov") {
     const prof = String(o.prores ?? (alpha ? "4444" : "hq"));
@@ -266,7 +271,7 @@ function extra(fmt, o, base, frames, aud, ff) {
 }
 
 // timeline.json captions (KIT.captionCues) → <out>.srt and <out>.vtt beside the mp4
-function subtitles(DIR, outFile) {
+export function subtitles(DIR, outFile) {
   const cues = JSON.parse(fs.readFileSync(path.join(DIR, "timeline.json"), "utf8")).captions || [];
   if (!cues.length) return;
   const ts = (s, sep) => new Date(Math.round(s * 1000)).toISOString().slice(11, 23).replace(".", sep);

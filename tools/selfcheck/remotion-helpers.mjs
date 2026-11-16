@@ -37,6 +37,10 @@ try {
   r = run(["bin/reelwright.mjs", "captions", other, "--from", path.join(proj, "captions.json")]);
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(other, "transcript.json"), "utf8")), words, "--from imports Remotion captions without timeline.json");
+  const third = path.join(tmp, "third"); fs.mkdirSync(third); fs.copyFileSync(path.join(proj, "captions.json"), path.join(third, "captions.json"));
+  r = run(["bin/reelwright.mjs", "captions", third, "--from", "captions.json"]);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(third, "transcript.json"), "utf8")), words, "a bare --from name is looked up in the project");
   assert.equal(run(["bin/reelwright.mjs", "captions", proj, "--format", "srt"]).status, 1, "an unknown --format is refused");
 
   // ── compositions ──
@@ -65,6 +69,16 @@ try {
   fs.writeFileSync(path.join(cp, "project.json.composition-bak"), original); fs.writeFileSync(path.join(cp, "project.json"), "{ merged by a killed run }");   // repair after a kill
   r = run(["bin/reelwright.mjs", "sched", cp, "--composition", "square"]);
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), original, "a killed run's leftovers are repaired");
+  // a command that rewrites project.json itself (beats import) keeps its write: the merge is not put back over it
+  const writer = path.join(tmp, "writer.mjs"), comp = pathToFileURL(path.join(ROOT, "tools/compositions.mjs")).href;
+  fs.writeFileSync(writer, `import { applyComposition } from ${JSON.stringify(comp)};\nimport fs from "node:fs";\n` +
+    `applyComposition(${JSON.stringify(cp)}, "square");\nfs.writeFileSync(${JSON.stringify(path.join(cp, "project.json"))}, '{"rewritten": true}\\n');\n`);
+  r = run([writer]);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), '{"rewritten": true}\n', "a rewrite during the run is kept");
+  assert.ok(!fs.existsSync(path.join(cp, "project.json.composition-bak")), "and no backup is left behind");
+  assert.match(r.stderr, /rewritten during the run/);
+  fs.writeFileSync(path.join(cp, "project.json"), original);
   r = run(["bin/reelwright.mjs", "sched", cp]);   // without the flag: the project's own size
   assert.match(fs.readFileSync(path.join(cp, "film", "data.js"), "utf8"), /"width": 1920, "height": 1080, "speechEnd"/);
   assert.equal(typeof applyComposition, "function");

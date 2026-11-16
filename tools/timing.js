@@ -53,10 +53,10 @@
   };
   K.interpolate = (t, input, output, o = {}) => {
     const n = input.length;
-    if (o.posterize != null) t = K.posterize(t, o.posterize);
-    if (output.some((x) => typeof x === 'string')) { if (output.length !== n || n < 2) throw new Error('interpolate: input and output need the same length, at least 2'); return strInterp(t, input, output, { ...o, posterize: undefined }); }
     if (n < 2 || output.length !== n) throw new Error('interpolate: input and output need the same length, at least 2');
     for (let i = 1; i < n; i++) if (!(input[i] > input[i - 1])) throw new Error('interpolate: input must be strictly ascending');
+    if (o.posterize != null) t = K.posterize(t, o.posterize);
+    if (output.some((x) => typeof x === 'string')) return strInterp(t, input, output, { ...o, posterize: undefined });
     const L = o.left || 'extend', R = o.right || 'extend', ok = ['extend', 'clamp', 'identity', 'wrap'];
     if (!ok.includes(L) || !ok.includes(R)) throw new Error(`interpolate: left / right is ${ok.join(' | ')}`);
     const e = Array.isArray(o.easing) ? o.easing : null;

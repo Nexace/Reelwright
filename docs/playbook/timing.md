@@ -40,11 +40,13 @@ Load `tools/styles.js` after `timing.js`; `tools/text-box.js` after `engine.js`.
 `project.json` takes `"compositions": [{ "id": "square", "width": 1080, "height": 1080, "out": "out/square.mp4", "lines": [...] }, …]`. Any command with
 `--composition <id>` (`film`, `stills`, `all`, `frames`, `encode`, …) runs the project with that entry's keys laid over `project.json`: a shallow merge, so a
 `lines` array replaces the whole script, and `out` defaults to `<out>-<id>.mp4`. The film sees the id as `PROJECT.composition`, so `film.js` (or `hf/film.js`)
-branches on it: `if (PROJECT.composition === 'square') …`. A still is a composition with a short film and `reelwright stills <project> 1.5 --composition cover`.
+branches on it: `if (PROJECT.composition === 'square') …`. A still is a composition with a short film: `reelwright sched <project> --composition cover` first
+(`stills` takes the composition's size but does not re-schedule; `film` and `all` run `sched` themselves), then `reelwright stills <project> 1.5 --composition cover`.
 
 Not a second engine entry: `tools/engine.js` still starts one film per page, so every composition shares one `film.js` and one set of recordings.
 `project.json` is rewritten for the run and put back byte for byte when the process exits (a kill leaves `project.json.composition-bak`, which the next
-`--composition` run restores). Do not run two compositions of the same project at the same time; use `--formats` for the same film in several sizes.
+`--composition` run restores; a command that writes `project.json` itself, like `beats import`, keeps its write). Do not run two compositions of the same
+project at the same time; use `--formats` for the same film in several sizes.
 
 ## Notes that bite
 

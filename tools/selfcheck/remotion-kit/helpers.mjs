@@ -43,6 +43,7 @@ KIT.start({ dur: 6, render: (t) => {
       is('rgb() colours', K.interpolate(0, [0, 1], ['rgb(255, 0, 0)', 'rgb(0, 0, 255)']), 'rgba(255, 0, 0, 1)');
       is('named colours', K.interpolate(1, [0, 1], ['red', 'blue']), 'rgba(0, 0, 255, 1)');
       throws('different shapes', () => K.interpolate(0.5, [0, 1], ['10px', '20%'])); throws('different counts', () => K.interpolate(0.5, [0, 1], ['10px', '20px 5px']));
+      throws('non-ascending input, string outputs', () => K.interpolate(0.5, [1, 1], ['0deg', '90deg']));
       is('numbers still numbers', K.interpolate(0.5, [0, 1], [0, 10]), 5);
       // series
       const s = K.series([{ dur: 2 }, { dur: 2, offset: 0.5 }, { dur: 1, offset: -0.5 }]);

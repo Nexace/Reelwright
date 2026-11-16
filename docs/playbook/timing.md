@@ -48,6 +48,66 @@ Not a second engine entry: `tools/engine.js` still starts one film per page, so 
 `--composition` run restores; a command that writes `project.json` itself, like `beats import`, keeps its write). Do not run two compositions of the same
 project at the same time; use `--formats` for the same film in several sizes.
 
+## Motion craft: a motion budget, anticipation, springs by feel, perceptual scale
+
+`tools/direct.js` (load it after `engine.js` and `velocity.js`) plus the spring and `perceptual-scale` additions in
+`tools/timing.js`. Everything is a pure function of `t` — no clock, no DOM, no accumulator — so it is safe inside `render(t)`
+in both renderers. Proof: `node tools/selfcheck/motion-craft.mjs` (exact numbers) and the fixture
+`tools/selfcheck/remotion-kit/motion-craft.mjs` (shuffled seeks, pvk and HyperFrames).
+
+| call | what it gives you |
+|---|---|
+| `KIT.direct(cues, { order, stagger = 0.02, total = 0.5, maxConcurrent = 2 })` | `{ [id]: delay }`, the entrance budget for a whole scene: cues sorted by role (`order: ['shell','body','primary','viz']`), dealt into waves of `maxConcurrent` so no more than that many begin together, waves `stagger` apart, and the step shrinks so the last wave starts at `total` at the latest |
+| `KIT.direct.hierarchy(hero, followers, { ratio = 0.35, lag = 1/60 })` | `{ [id]: (t) => value }`: the secondary layer — each follower is `ratio` of the hero's *displacement*, same direction and curve, about `lag` behind (`KIT.lagged`, closed form) |
+| `KIT.anticipate(t, t0, { dur = 0.08, amount = 0.06 })` | `-amount..0`, a counter-move over `[t0 − dur, t0]` that is back at 0 at `t0`, C¹ at both ends: `p * (1 + KIT.anticipate(t, t0))` |
+| `KIT.step(fps = 12)` / `KIT.hold(t, t0, t1)` | stepped time (`floor(t·fps + 1e-6)/fps`, "on twos" at 12) and a clamp that holds a driver still outside a window |
+| `KIT.spring({ visualDuration, bounce, velocity })` | a spring by feel instead of by constants: `bounce` 0..1 is the overshoot, `visualDuration` is how long it looks like it takes, `velocity` continues the previous segment's motion |
+| `KIT.spring('plop', from, to)`, `KIT.spring.presets` | the Motion Canvas presets below |
+| `KIT.interpolate(t, input, output, { output: 'perceptual-scale' })`, same option on `KIT.keys` | the value is interpolated as its signed visible **area** (`sign·v²`) and square-rooted back, so scale 0→1 moves linearly in area instead of looking like it accelerates |
+
+```js
+const delay = KIT.direct(cues, { order: ['shell', 'body', 'primary', 'viz'] });
+const plop = KIT.spring('plop', 0, 260);            // Motion Canvas' tuned feel, 0 → 260 px
+shell.style.left = 20 + plop(t - delay.shell) + 'px';
+body.style.left = 20 + plop(t - delay.body) + 'px';
+```
+
+**The budget.** Carbon's choreography numbers: a 20 ms stagger between elements measurably lowers cognitive load, and a whole
+entrance inside 500 ms still reads as one move. `stagger` is the default, `total` is the ceiling — with 40 cues and
+`maxConcurrent: 1` the step shrinks to `0.5 / 39` so the last cue still starts at 0.5 s. A cue is `{ id, role }` (or just an
+id); a role not in `order` goes last, and cues of the same role keep the order you gave them. Use the delays on a driver —
+`KIT.seg(t - delay, 0, dur)`, `plop(t - delay)`, `KIT.seq({ from: delay })` — never on a value you then measure.
+
+**Springs by feel.** `ζ = 1 − bounce`, `ω0 = −ln(0.001)/(ζ·visualDuration)`, so the envelope `e^(−ζω0t)` is at 0.1 % at
+`visualDuration`; the overshoot of a bounce is `e^(−ζπ/√(1−ζ²))` (16.3 % at ζ = 0.5, 0.02 % at ζ = 0.9). Closed form in `t`:
+underdamped `y(t) = e^(−ζω0t)(y0 cos ωdt + ((v0+ζω0y0)/ωd) sin ωdt)`, critically damped `y(t) = (y0 + (v0+ω0y0)t)e^(−ω0t)`,
+with `y0 = from − to` and `v0 = velocity`. `velocity` is the hand-off from the previous segment's derivative
+(`KIT.velocityAt(prev, t1)`), so a retargeted element carries its momentum instead of snapping to a stop — Motion only fixed
+that in 14.12. The old `{ stiffness, damping, mass }` form is untouched: same numbers, frame for frame.
+
+| preset | mass | stiffness | damping | velocity | ζ | measured peak |
+|---|---|---|---|---|---|---|
+| `plop` | 0.2 | 20 | 0.68 | 0 | 0.17 | 58 % |
+| `strike` | 0.03 | 20 | 0.9 | 4.8 | 0.58 | 11 % |
+| `smooth` | 0.16 | 15.35 | 1.88 | 0 | 0.60 | 9.5 % |
+| `bounce` | 0.08 | 4.75 | 0.05 | 0 | 0.04 | 88 % |
+| `swing` | 0.39 | 19.85 | 2.82 | 0 | 0.51 | 16 % |
+| `jump` | 0.04 | 10 | 0.7 | 8 | 0.55 | 15 % |
+| `beat` | 0.13 | 5.7 | 1.2 | 10 | 0.70 | 25 % |
+
+The peak is measured, not the ζ overshoot, where the preset carries an initial velocity (`strike`, `jump`, `beat`): the kick
+adds to the bounce. `KIT.timing.spring({ visualDuration, bounce })` gives the same feel as a timing, with `dur` =
+`visualDuration`.
+
+**Stepped time and holds.** `KIT.step(12)` is "on twos", `KIT.step(8)` is "on threes"; `KIT.hold(t, a, b)` freezes a driver
+before `a` and after `b`. Apply them to a *driver* — a value you then ease, a scale, a stagger input — **never to a camera
+move or any continuous move**: a camera that jumps 12 times a second reads as a stutter, not as stop-motion.
+
+**Perceptual scale.** Scale is a linear dimension; the eye reads area, so a linear 0→1 scale looks like it accelerates.
+`output: 'perceptual-scale'` interpolates `sign(v)·v²` and square-roots the result: 0→1 at the middle is `√0.5 = 0.707`,
+1→2 is `√2.5 = 1.581`, 0→−1 is `−0.707`. `easing` still shapes the progress; the option only changes how the value is
+distributed. Strings are refused (they have no area).
+
 ## Notes that bite
 
 - `interpolate` string outputs read numbers with an optional sign and decimals (no exponents, no `calc()`); every output must have the same text between its

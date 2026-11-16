@@ -93,6 +93,11 @@ left planned or half-built. Everything new is opt-in, so a film written for 0.3 
 - **Motion rules.** `KIT.motionRules` (easing, spring and duration tables, material feels, ambient loops, stagger), a
   `motion-rules` QA warning and `KIT.components` (info strip, digit roll, flash cut, vertical ticker, clip card).
   [motion-rules](docs/playbook/motion-rules.md)
+- **Motion craft.** `KIT.direct` (a 20 ms stagger / 500 ms entrance budget for a whole scene), `KIT.anticipate` (a wind-up
+  before a move), `KIT.step` / `KIT.hold` (stepped time, holds), springs by feel (`visualDuration`, `bounce`, `velocity`) and
+  the Motion Canvas presets, `KIT.direct.hierarchy` (a secondary layer at 25-40 % of the hero, a frame behind) and
+  `output: 'perceptual-scale'` for a scale that does not look like it accelerates.
+  [timing](docs/playbook/timing.md#motion-craft-a-motion-budget-anticipation-springs-by-feel-perceptual-scale)
 - **Lottie and dotLottie.** `KIT.dotLottie` with a vendored player, `add-lottie`, expressions lint, text, masks and mattes.
   [lottie](docs/playbook/lottie.md)
 - **Manim, natively.** `Create`, typing, tables, matrices, axes, number lines, bar charts, vector scenes, ZoomedScene, boolean

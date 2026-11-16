@@ -171,6 +171,9 @@
     "motion": {
       "s": 36.9
     },
+    "motion-craft": {
+      "s": 0.1
+    },
     "motion-rules": {
       "s": 2.2
     },

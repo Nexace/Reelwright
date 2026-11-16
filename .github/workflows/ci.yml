@@ -140,7 +140,7 @@ jobs:
         with:
           name: example-film-${{ matrix.os }}
           path: projects/example/out/*.mp4
-      - name: "Offline voiced film: the example built with the OS voice (no network), qa, audio, duration and frame count"
+      - name: "Offline voiced film: the example built with the OS voice (no network; a stand-in voice where the OS voice writes no speech), qa, audio, duration and frame count"
         env: { PAGES: 2, PYTHON: python }
         run: node tools/ci_film.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build the HyperFrames example

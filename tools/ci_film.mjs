@@ -6,7 +6,10 @@
 //     and neither is any voiceover line
 //   - every vo/lines.json entry is marked "timing": "estimated"; project.json is byte-for-byte what it was
 //   - no qa gate printed FAIL (WARN lines are fine; a FAIL also makes `all` exit 1)
-// SKIP (exit 0, with the reason) when the machine has no local speech engine (REELWRIGHT_REQUIRE_TTS=1 makes that a FAIL). It rebuilds the project in place: vo/, out/, frames/ are replaced.
+// The OS voice is probed first (tools/tts_local.py --probe speaks a test line): when the machine has no engine, or its engine writes no speech
+// (seen on macOS CI runners: `say` exits 0 with 0.01 s of audio), the film is built with the deterministic stand-in voice
+// (REELWRIGHT_TTS_ENGINE=synth) and the reason is printed, so the offline path still runs end to end; REELWRIGHT_REQUIRE_TTS=1 makes that a FAIL.
+// It rebuilds the project in place: vo/, out/, frames/ are replaced.
 // PAGES (render workers) defaults to 2, as in CI. Exit 1 on any failed assertion, the first problem listed.
 import fs from "node:fs";
 import path from "node:path";
@@ -19,16 +22,15 @@ const PY = process.env.PYTHON || (process.platform === "win32" ? "python" : "pyt
 const name = process.argv[2] || "example", dir = path.join(ROOT, "projects", name);
 const lines = (s) => s.split(/\r?\n/);   // CRLF on Windows
 
-if (process.env.CI && process.platform !== "linux" && process.env.REELWRIGHT_FORCE_LOCAL_TTS !== "1") {   // shortcut: on macOS and Windows CI runners the OS voice gave a silent or failing film (cause not found), so only Linux espeak-ng is the CI end-to-end; upgrade by setting REELWRIGHT_FORCE_LOCAL_TTS=1 and reading the gate output
-  console.log("SKIP ci_film: the OS voice is not verified on macOS/Windows CI runners (REELWRIGHT_FORCE_LOCAL_TTS=1 runs it anyway)"); process.exit(0);
+const pv = spawnSync(PY, [path.join(ROOT, "tools", "tts_local.py"), "--probe"], { encoding: "utf8" });
+let voice = String(pv.stdout || "").trim(), why = "";
+if (pv.status !== 0) {
+  why = (String(pv.stderr || "").trim().split(/\r?\n/).pop() || "no output") + (pv.error ? ` [${PY}: ${pv.error.message}]` : "");
+  if (process.env.REELWRIGHT_REQUIRE_TTS === "1") { console.log(`FAIL ci_film: the OS voice is not usable here: ${why}`); process.exit(1); }
+  voice = "synth";
+  console.log(`ci_film: the OS voice is not usable here (${why}): building with the stand-in voice instead (REELWRIGHT_TTS_ENGINE=synth)`);
 }
-const eng = spawnSync(PY, [path.join(ROOT, "tools", "tts_local.py"), "--engine"], { encoding: "utf8" });
-if (eng.status !== 0) {
-  const need = process.env.REELWRIGHT_REQUIRE_TTS === "1";   // CI sets it where an engine is guaranteed: a missing one is then a failure
-  console.log(`${need ? "FAIL" : "SKIP"} ci_film: no local speech engine on this machine (macOS say, Linux espeak-ng, Windows PowerShell SAPI)${eng.error ? ` [${PY}: ${eng.error.message}]` : ""}`);
-  process.exit(need ? 1 : 0);
-}
-console.log(`ci_film: ${name} with the local voice "${eng.stdout.trim()}"`);
+console.log(`ci_film: ${name} with the local voice "${voice}"`);
 
 const pj = path.join(dir, "project.json"), sha = () => crypto.createHash("sha1").update(fs.readFileSync(pj)).digest("hex");
 const before = sha(), P = JSON.parse(fs.readFileSync(pj, "utf8"));
@@ -36,7 +38,7 @@ const bad = [], ok = (cond, msg) => { if (!cond) bad.push(msg); };
 
 const log = [];
 const code = await new Promise((res) => {
-  const p = spawn(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "all", name], { cwd: ROOT, env: { PAGES: "2", ...process.env, REELWRIGHT_TTS: "local" } });
+  const p = spawn(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "all", name], { cwd: ROOT, env: { PAGES: "2", ...process.env, REELWRIGHT_TTS: "local", ...(why && { REELWRIGHT_TTS_ENGINE: "synth" }) } });
   for (const s of [p.stdout, p.stderr]) s.on("data", (d) => { log.push(d.toString()); process.stdout.write(d); });
   p.on("close", (c) => res(c ?? 1));
 });
@@ -79,4 +81,4 @@ for (const [id, l] of Object.entries(L)) {
 }
 
 if (bad.length) { console.error(`\nci_film: FAIL\n  ${bad.join("\n  ")}`); process.exit(1); }
-console.log("ci_film: PASS");
+console.log(`ci_film: PASS (voice: ${voice}${why ? `, because the OS voice is not usable: ${why}` : ""})`);

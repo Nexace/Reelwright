@@ -11,6 +11,7 @@
 //   seed       brush, glitch and lightLeak look (same seed, same look)                  cue    KIT.cue(at, cue) once, e.g. 'whoosh'
 //   type       one of KIT.transition.names, or (p, { from, to, dir, overlay, ... }) => void for your own (writes styles only)
 // Types: cut fade fadeThrough slide push wipe barnDoor blinds clockWipe iris flip cube zoom pushCut flash lightLeak brush glitch (+ none = cut)
+// (+ filmBurn once tools/fx-starburst.js is loaded after this file; KIT.transition.register(name, (p, ctx) => void) adds more)
 // A layer can be the `to` of one transition and the `from` of the next (a chain): whichever transition started most recently
 // owns the layer, so the order of the set() calls does not matter. Call every transition's set(t) from render(t).
 // Overlays (flash, light leak, glitch bars, fadeThrough colour) are children of KIT.stage with z-index 30 and are hidden outside the window.
@@ -148,4 +149,7 @@
     return me;
   };
   K.transition.names = Object.keys(TYPES);
+  // extra types from other kit files (tools/fx-starburst.js adds filmBurn); util = the helpers a type needs: tri(p), cutAt(p, c), wash(c, opacity)
+  K.transition.register = (name, fn) => { TYPES[name] = fn; K.transition.names = Object.keys(TYPES); };
+  K.transition.util = { tri, cutAt, wash };
 })();

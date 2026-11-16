@@ -94,9 +94,9 @@ if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
 const as = args.indexOf("--as");   // encode: also write this format beside the mp4 (tools/renderers/pvk.mjs encode)
 if (as >= 0) process.env.REELWRIGHT_OUT_FORMAT = args.splice(as, 2)[1] || "";
 // render options → env (tools/render_opts.mjs): --quality draft|looks|standard|high|delivery, --crf N, --video-bitrate 8M, --max-bitrate 10M,
-// --buffer-size 20M, --keyframe-interval N, --vp9-cpu-used 0-8, --resolution 4k|portrait-4k|square-4k|2x, --workers N, --low-memory
+// --buffer-size 20M, --keyframe-interval N, --vp9-cpu-used 0-8, --resolution 4k|portrait-4k|square-4k|2x, --hardware-acceleration auto|on|off, --workers N, --low-memory
 for (const [flag, env] of [["--quality", "QUALITY"], ["--crf", "CRF"], ["--video-bitrate", "VIDEO_BITRATE"], ["--max-bitrate", "MAX_BITRATE"], ["--buffer-size", "BUFFER_SIZE"],
-  ["--keyframe-interval", "KEYFRAME_INTERVAL"], ["--vp9-cpu-used", "VP9_CPU_USED"], ["--resolution", "RESOLUTION"]]) {
+  ["--keyframe-interval", "KEYFRAME_INTERVAL"], ["--vp9-cpu-used", "VP9_CPU_USED"], ["--resolution", "RESOLUTION"], ["--hardware-acceleration", "HARDWARE"]]) {
   const i = args.indexOf(flag); if (i >= 0) process.env["REELWRIGHT_" + env] = args.splice(i, 2)[1] || "";
 }
 const wk = args.indexOf("--workers"); if (wk >= 0) process.env.PAGES = args.splice(wk, 2)[1] || "";

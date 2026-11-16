@@ -10,7 +10,7 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { launch } from "../browser.mjs";
-import { adaptCaption, captionComponents, groupWords, transcriptFromTimeline, writeTranscript } from "../caption_transcript.mjs";
+import { adaptCaption, captionComponents, groupWords, transcriptFromTimeline, writeTranscript } from "../captions.mjs";
 import { installComponent } from "../component_assets.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));

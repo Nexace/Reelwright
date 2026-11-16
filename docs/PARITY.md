@@ -89,7 +89,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | E5 | 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `themes/hf-{bold,editorial,neutral}.css` Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only exam… |
 | E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | EQUAL | `tools/commands/catalog.mjs` |
 | E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
-| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | EQUAL | `tools/caption_transcript.mjs` |
+| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | EQUAL | `tools/captions.mjs` |
 | E9 | Registry item schema (`registry-item.json`: params, variables, contro… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/blocks.mjs` `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in too… |
 | E10 | 13 frame presets (`FRAME.md` spec + `caption-skin.html` + showcase ea… | BETTER | `themes/hf-*.css` |
 | F1 | Word-timed captions on screen, karaoke/word highlight, SRT/VTT export | EQUAL | `tools/renderers/pvk.mjs` |

@@ -3,8 +3,7 @@
 //                        (use with KIT.block('<name>'); the film loads vendor/gsap). Run `info` first (timeline.json).
 import fs from "node:fs";
 import path from "node:path";
-import { transcriptFrom, retarget } from "../captions.mjs";
-import { adaptCaption } from "../caption_transcript.mjs";   // P12b: all 16 components; retarget (P8) is the fallback
+import { transcriptFrom, adaptCaption, retarget } from "../captions.mjs";   // adaptCaption: all 16 components; retarget is the fallback
 
 export default async function captions({ proj, args, ROOT }) {
   const tlf = path.join(proj, "timeline.json");

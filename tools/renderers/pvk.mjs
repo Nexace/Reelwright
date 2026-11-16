@@ -14,7 +14,7 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
-import { blurSpec, linearBlurFilter } from "../motion-blur.mjs";
+import { blurSpec, linearBlurFilter, shotShutter, subFrameTimes } from "../motion-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
 import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv, outputSize, supersample, BT709 } from "../render_opts.mjs";
@@ -126,9 +126,10 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     if (!MB) { await p.evaluate((t) => window.render(t), f / FPS); return fs.writeFileSync(file, await p.screenshot(SHOTOPT)); }
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-mb-"));
     try {
+      const deg = await p.evaluate((t) => (window.__reelwrightShutter ? window.__reelwrightShutter(t) : null), f / FPS);   // KIT.shot.shutter
+      const spec = shotShutter(MB, deg), times = subFrameTimes(f / FPS, FPS, spec);
       for (let i = 0; i < MB.samples; i++) {
-        const t = Math.max(0, f / FPS + (i / MB.samples - 0.5) * MB.shutter / 360 / FPS);
-        await p.evaluate((t) => window.render(t), t);
+        await p.evaluate((t) => window.render(t), times[i]);
         fs.writeFileSync(path.join(tmp, `s${String(i).padStart(2, "0")}.${EXT}`), await p.screenshot(SHOTOPT));
       }
       const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-framerate", "1", "-i", path.join(tmp, `s%02d.${EXT}`),

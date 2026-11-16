@@ -17,6 +17,7 @@ import { blurSpec, linearBlurFilter } from "../motion-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
 import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
+import { hardwareEncode } from "../hw_encode.mjs";
 
 const SHOT = { type: "jpeg", quality: 94 };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
@@ -225,7 +226,10 @@ export function encode(DIR, P, FPS, pattern, start) {
   if (!aud.has) console.log("no mix.wav — encoding silent video");
   const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status || 1); };
-  ff(...frames, ...aud.args, ...x264Args(o),
+  let hw = null;   // output.hardware / --hardware-acceleration: off (default) leaves the software arguments untouched
+  try { hw = hardwareEncode("h264", o); } catch (e) { console.error(e.message); process.exit(1); }
+  if (hw) console.log("hardware encode:", hw.encoder);
+  ff(...(hw ? hw.pre : []), ...frames, ...aud.args, ...(hw ? [...hw.video, ...(hw.vf ? ["-vf", hw.vf] : [])] : x264Args(o)),
     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
   if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);

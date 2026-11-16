@@ -64,6 +64,7 @@ export function autoWorkers({ cores = os.cpus().length, freeMem = os.freemem(), 
 export function outputFromEnv(env = process.env) {
   const o = {}, n = (k) => (env[k] != null && env[k] !== "" ? Number(env[k]) : undefined);
   if (env.REELWRIGHT_QUALITY) o.quality = env.REELWRIGHT_QUALITY;
+  if (env.REELWRIGHT_HARDWARE) o.hardware = env.REELWRIGHT_HARDWARE;   // auto | on | off (tools/hw_encode.mjs)
   for (const [k, e] of [["crf", "CRF"], ["keyframeInterval", "KEYFRAME_INTERVAL"], ["vp9CpuUsed", "VP9_CPU_USED"]]) if (n("REELWRIGHT_" + e) !== undefined) o[k] = n("REELWRIGHT_" + e);
   for (const [k, e] of [["videoBitrate", "VIDEO_BITRATE"], ["maxBitrate", "MAX_BITRATE"], ["bufferSize", "BUFFER_SIZE"]]) if (env["REELWRIGHT_" + e]) o[k] = env["REELWRIGHT_" + e];
   return o;

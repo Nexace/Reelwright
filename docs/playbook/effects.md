@@ -2,7 +2,7 @@
 
 Renderer-neutral replacements for `@remotion/effects` (UNLICENSED, so not used) and `@remotion/rough-notation`, as CSS filter, SVG filter, canvas and
 SVG-ribbon code. Everything is a pure function of what `set(...)` is given: build once at load, call `set` from `render(t)`. The header of each file is
-the API reference. Proof: `node tools/selfcheck/remotion-kit.mjs fx-color fx-blur fx-distort fx-pattern fx-reveal hl` (pixel statistics on real screenshots,
+the API reference. Proof: `node tools/selfcheck/remotion-kit.mjs fx-color fx-blur fx-distort fx-pattern fx-reveal starburst hl` (pixel statistics on real screenshots,
 then shuffled seeks in pvk and HyperFrames).
 
 | Row | What | File |
@@ -13,6 +13,7 @@ then shuffled seeks in pvk and HyperFrames).
 | 2.3.5 distortion | `chromaticAberration`, `noiseDisplacement`, `turbulentDisplace`, `cornerPin`, `transform` (skew, scale, translate), and canvas `barrelDistortion`, `fisheye`, `mirror`, `tile`, `wave` | `tools/fx-distort.js` |
 | 2.3.6 textures | `KIT.fx.pattern.*`: checkerboard, dotGrid, gridlines, lines, scanlines, rings, flannel, zigzag, waves, pattern, noise, fractalNoise, speckle, contourLines, liquidContours, paper, burlap, whiteNoise, halftone, emboss, tvSignalOff | `tools/fx-pattern.js` |
 | 2.3.8 weather and reveal | `snowFall`, `rainFall`, `irisWipe`, `radialWipe`, `venetianBlinds`, `pixelDissolve`, `evolve`, `pixelate`, `pixelate.progressive` | `tools/fx-reveal.js` |
+| 2.2.10 starburst and film burn | `KIT.fx.starburst(parent, { rays, colors, rotate, width, x, y, reach, seed })` → `{ el, set(t, amount) }` (rays turn `rotate` degrees per second); the `filmBurn` transition: `KIT.transition('filmBurn', { from, to, at, dur, x, y, seed, color })` once `tools/transitions.js` and then `tools/fx-starburst.js` are loaded (both register through `KIT.transition.register`) | `tools/fx-starburst.js` |
 | 2.3.11 `Trail` | `KIT.fx.trail(parent, make, { layers, lag, opacity })`: copies at `t - lag * i` (the shutter motion blur is `project.json motionBlur`) | `tools/fx-blur.js` |
 | 2.5.7 text highlights | `KIT.doodle.mark(el, 'highlight' \| 'strike' \| 'crossed' \| 'box' \| 'bracket', { in, draw, out, style, color })`; underline and circle are `KIT.doodle.underline / circle` | `tools/highlight.js` |
 

@@ -17,7 +17,7 @@ import { launch } from "../browser.mjs";
 import { blurSpec, linearBlurFilter, shotShutter, subFrameTimes } from "../motion-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
-import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv, outputSize, supersample, BT709 } from "../render_opts.mjs";
+import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv, outputSize, supersample, BT709, FILM_X264 } from "../render_opts.mjs";
 import { colorFilter } from "../encode.mjs";
 import { hardwareEncode } from "../hw_encode.mjs";
 
@@ -31,9 +31,10 @@ const STILL = { type: "jpeg", quality: 94 };
 export const TRANSPARENT = "html, body, #stage { background: transparent !important; background-image: none !important; }";
 // the kit's dither tile (tools/kit.css) is on for an opaque film capture: the renderer adds this class to <html>
 export const DITHER_CLASS = "kit-dither";
-// the same text and colour flags the producer (tools/blocks.mjs) and the shader pass set, so every capture path agrees
+// the same text and colour flags the producer (tools/blocks.mjs) and the shader pass set, so every capture path agrees;
+// --enable-unsafe-swiftshader: WebGL2 (KIT fx-gl) on a GPU-less Linux box falls back to SwiftShader instead of no context
 export const launchArgs = (px) => [`--force-device-scale-factor=${px}`, "--allow-file-access-from-files",
-  "--font-render-hinting=none", "--force-color-profile=srgb"];
+  "--font-render-hinting=none", "--force-color-profile=srgb", "--enable-unsafe-swiftshader"];
 // project.json "motionBlur": true | {shutter (deg, default 180), samples (default 8)} → null when off
 export const blurOf = (P) => blurSpec(P);   // project.json motionBlur or --blur auto|N; linear light unless { linear: false }
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
@@ -242,12 +243,14 @@ export function encode(DIR, P, FPS, pattern, start) {
     if (r.status !== 0) process.exit(r.status || 1); };
   const { width: OW, height: OH } = outputSize(P);
   const down = supersample(o) > 1 ? `scale=${OW}:${OH}:flags=lanczos` : null;   // --supersample: 2x/3x/4x capture → the output size
+  // the mp4's RGB → YUV conversion itself, BT.709 limited range: an older ffmpeg (6.x) otherwise converts with BT.601 under bt709 tags
+  const toYuv = `${down ? down + ":" : "scale="}out_color_matrix=bt709:out_range=tv`;
   let hw = null;   // output.hardware / --hardware-acceleration: off (default) leaves the software arguments untouched
   try { hw = hardwareEncode("h264", o); } catch (e) { console.error(e.message); process.exit(1); }
   if (hw) console.log("hardware encode:", hw.encoder);
   // ffmpeg 7+ takes primaries / trc from the frame properties: the tags go in as a setparams filter too, or the mp4 says "unknown"
-  const vf = [down, colorFilter(BT709), hw?.vf].filter(Boolean);
-  ff(...(hw ? hw.pre : []), ...frames, ...aud.args, ...(vf.length ? ["-vf", vf.join(",")] : []), ...(hw ? hw.video : x264Args(o)),
+  const vf = [toYuv, colorFilter(BT709), hw?.vf].filter(Boolean);
+  ff(...(hw ? hw.pre : []), ...frames, ...aud.args, ...(vf.length ? ["-vf", vf.join(",")] : []), ...(hw ? hw.video : [...x264Args(o), ...FILM_X264]),
     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
   if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff, down);

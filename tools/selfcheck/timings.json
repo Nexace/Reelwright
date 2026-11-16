@@ -36,7 +36,7 @@
       "s": 0.8
     },
     "capture-quality": {
-      "s": 2
+      "s": 4.7
     },
     "capture-trio": {
       "s": 1.8
@@ -222,7 +222,7 @@
       "s": 1.3
     },
     "qa-lint": {
-      "s": 4.5
+      "s": 3.4
     },
     "qa-strict": {
       "s": 0.3

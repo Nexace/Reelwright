@@ -2,7 +2,8 @@
 // (wiring: docs/plans/p8-patches.md). Everything here is testable offline: tools/selfcheck/render-opts.mjs.
 //   x264Args(output)        ffmpeg video args for the mp4. output = project.json "output": { quality: draft|looks|standard|high|delivery,
 //                           crf, videoBitrate "8M", maxBitrate "10M", bufferSize "20M", keyframeInterval frames, preset, bitDepth 8|10 }.
-//                           No options = slow, crf 16, high profile, yuv420p, BT.709 tags (the sRGB frames' real colour space).
+//                           No options = slow, crf 16, high profile, yuv420p. The film encode (pvk encode()) adds FILM_X264 on top;
+//                           transcode does not (arbitrary footage keeps its own colour and needs no animation tune).
 //   vp9Args(output)         webm args: crf (default 24), cpuUsed (--vp9-cpu-used), row-mt
 //   resolution(P, spec)     "4k" | "portrait-4k" | "square-4k" | "2x" | a number → { width, height, viewport, scale }: the page keeps the
 //                           film's own layout size (viewport) and renders at deviceScaleFactor `scale`, so layout is identical and the frame
@@ -12,10 +13,12 @@
 //   supersample(output)     --supersample / output.supersample: capture at N × the output pixels and downscale at encode (1 = off)
 //   autoWorkers({...})      render pages / producer workers when PAGES is not set: min(cores / 2, free RAM / 512 MB (256 MB low-memory)), 1..24
 import os from "node:os";
-import { colorArgs } from "./encode.mjs";   // one colour-tag helper for every encode (a cycle, but functions only: resolved when called)
 
 // the frames are sRGB, x264 writes limited-range BT.709: tag it, or players guess (and some guess wrong)
 export const BT709 = { colorSpace: "bt709", colorPrimaries: "bt709", colorTrc: "bt709", colorRange: "tv" };
+// the film encode only (rendered frames are flat colour): -tune animation keeps flat blocks, aq-mode=3 feeds dark scenes
+export const FILM_X264 = ["-tune", "animation", "-x264-params", "aq-mode=3:aq-strength=1.0",
+  "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"];
 
 export const PRESETS = {
   draft: { crf: 28, preset: "veryfast" },
@@ -39,8 +42,7 @@ export function x264Args(o = {}) {
   if (o.keyframeInterval) a.push("-g", String(o.keyframeInterval));   // no -keyint_min: equal to -g it would suppress scene-cut keyframes
   if (o.bitDepth != null && o.bitDepth !== 8 && o.bitDepth !== 10) throw new Error("output.bitDepth is 8 or 10");
   const d10 = o.bitDepth === 10;   // opt-in only: High10 does not play in Safari
-  return [...a, "-tune", "animation", "-x264-params", "aq-mode=3:aq-strength=1.0",
-    "-pix_fmt", d10 ? "yuv420p10le" : "yuv420p", "-profile:v", d10 ? "high10" : "high", ...colorArgs(BT709)];
+  return [...a, "-pix_fmt", d10 ? "yuv420p10le" : "yuv420p", "-profile:v", d10 ? "high10" : "high"];
 }
 
 export function vp9Args(o = {}) {

@@ -3,6 +3,7 @@
 //   inputs   sha256 of every file in the project except build output (frames*, stills*, out/, .cache/), the theme,
 //            and tools/ (the fonts used are inside the project's generated theme.css); text files with LF line ends
 //   output   the mp4's duration and video frame count, the rendered frame count, sha256 of every frame
+//   blur     the --blur the build ran with (REELWRIGHT_BLUR), or null
 // verify: inputs must match (it names the ones that don't), then it re-renders the frames into a temp folder with
 // the cache off and compares the frame count (= the duration, at the film's fps) and per-frame hashes. Same machine: identical frames. A manifest
 // from another OS or Chromium: within .github/framediff.py's raster-noise tolerance, against the original frames/.
@@ -53,7 +54,7 @@ async function tools() {
 }
 
 // only the renderer's own frame names (tools/render.mjs contract)
-const FRAME = { pvk: /^f\d{5}\.jpg$/, hyperframes: /^frame_\d{6}\.png$/, remotion: /^frame_\d{6}\.png$/ };
+const FRAME = { pvk: /^f\d{5}\.png$/, hyperframes: /^frame_\d{6}\.png$/, remotion: /^frame_\d{6}\.png$/ };
 const frameFiles = (d, P) => fs.readdirSync(d).filter((f) => FRAME[P.renderer || "pvk"].test(f)).sort().map((f) => path.join(d, f));
 const manifestPath = (DIR, P) => path.join(DIR, (P.out || "out/film.mp4").replace(/(\.mp4)?$/, ".manifest.json"));
 
@@ -63,6 +64,7 @@ export async function writeManifest(DIR, P, FPS) {
   const frames = frameFiles(path.join(DIR, "frames"), P);
   // the mp4's own duration and frame count are for the record: -shortest and AAC packets can trim a frame
   const m = { out: P.out || "out/film.mp4", platform: `${process.platform}-${process.arch}`, renderer: P.renderer || "pvk", fps: FPS,
+    blur: process.env.REELWRIGHT_BLUR || null,   // the --blur this build ran with: qa's shot-shutter reads it when qa runs without one
     tools: await tools(), inputs: inputs(DIR, P), output: { duration: probe("format=duration", []),
       video_frames: probe("stream=nb_frames", ["-select_streams", "v:0"]), frames: frames.length, frame_sha256: frames.map(sha) } };
   fs.writeFileSync(manifestPath(DIR, P), JSON.stringify(m, null, 1));
@@ -78,6 +80,8 @@ export async function verify(DIR, P, FPS, render) {
     .map((k) => `${k} (${!now[k] ? "missing" : !M.inputs[k] ? "new" : "changed"})`);
   if (bad.length) { console.log(`  FAIL  inputs differ from ${rel(mf)}:\n          ${bad.join("\n          ")}`); process.exit(1); }
   console.log(`  PASS  inputs  (${Object.keys(now).length} files match)`);
+  // a manifest that recorded no frames would make every frame comparison below pass vacuously
+  if (!M.output.frames) { console.log(`  FAIL  frames  ${rel(mf)} records 0 frames: re-run encode (or the frame names no longer match the ${P.renderer || "pvk"} pattern)`); process.exit(1); }
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-verify-"));
   Object.assign(process.env, { REELWRIGHT_NO_CACHE: "1", REELWRIGHT_FRAMES_DIR: tmp });

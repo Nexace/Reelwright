@@ -1,5 +1,5 @@
 // node tools/selfcheck/render-opts.mjs — tools/render_opts.mjs: no options give the default encode (slow, crf 16, high profile, yuv420p,
-// -tune animation + aq-mode=3, BT.709 tags); the quality presets order by size (draft < standard < looks < high < delivery) on a real ffmpeg
+// no film-only tune / colour tags: those are FILM_X264, which only the film encode adds); the quality presets order by size (draft < standard < looks < high < delivery) on a real ffmpeg
 // encode; bitrate / maxrate / keyframe interval are honoured (ffprobe) and -keyint_min never suppresses scene cuts; the 4K presets keep the
 // layout size and reject a wrong aspect, and a page at that scale gives a 2x frame in Chromium; supersample and bitDepth; workers by cores/RAM.
 import fs from "node:fs";
@@ -8,10 +8,12 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
-import { PRESETS, x264Args, vp9Args, resolution, autoWorkers, outputSize, supersample } from "../render_opts.mjs";
+import { PRESETS, x264Args, vp9Args, resolution, autoWorkers, outputSize, supersample, FILM_X264 } from "../render_opts.mjs";
 
-assert.deepEqual(x264Args(), ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-tune", "animation", "-x264-params", "aq-mode=3:aq-strength=1.0",
-  "-pix_fmt", "yuv420p", "-profile:v", "high", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"], "default = the film encode");
+assert.deepEqual(x264Args(), ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-profile:v", "high"],
+  "default = the 1.0 args: transcode re-encodes arbitrary footage with these, so no tune and no colour tags");
+assert.deepEqual(FILM_X264, ["-tune", "animation", "-x264-params", "aq-mode=3:aq-strength=1.0",
+  "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"], "the film encode's own additions");
 assert.deepEqual(x264Args({ crf: 10 }).slice(4, 6), ["-crf", "10"]);
 assert.ok(!x264Args({ keyframeInterval: 12 }).includes("-keyint_min"), "-keyint_min is gone: equal to -g it suppresses scene-cut keyframes");
 const ten = x264Args({ bitDepth: 10 });
@@ -72,4 +74,4 @@ assert.equal(autoWorkers({ cores: 64, freeMem: 2 ** 40, frames: 1000 }), 24, "cl
 assert.equal(autoWorkers({ cores: 2, freeMem: 2 ** 30, frames: 1000 }), 1);
 assert.equal(autoWorkers({ cores: 16, freeMem: 32 * 2 ** 30, frames: 3 }), 3, "never more workers than frames");
 assert.equal(autoWorkers({ cores: 16, freeMem: 32 * 2 ** 30, frames: 1000, lowMemory: true }), 2, "low-memory mode");
-console.log("render-opts self-check: default encode (tune animation, aq-mode=3, BT.709, no keyint_min), 5 quality presets order by size, bitrate/maxrate/keyint honoured, bitDepth 10 opt-in, supersample + output size, 4K scale 2 gives 3840x2160, workers by cores/RAM");
+console.log("render-opts self-check: default encode (no film tune/tags, no keyint_min), FILM_X264, 5 quality presets order by size, bitrate/maxrate/keyint honoured, bitDepth 10 opt-in, supersample + output size, 4K scale 2 gives 3840x2160, workers by cores/RAM");

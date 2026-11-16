@@ -49,6 +49,7 @@
 //   --as <format>         extra output beside the mp4: webm, mov, gif, apng, png (a folder) or hls; same as project.json
 //                         "output": {"format": …}
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
+//   --composition <id>    any command: project.json "compositions" entry laid over the project for this run (tools/compositions.mjs)
 //   --json                any command: ONE JSON envelope on stdout { ok, command, args, exit, stdout, stderr, data?, _meta } (tools/commands/json.mjs);
 //                         the commands that print their own JSON with --json (doctor, check, catalog, …) keep doing that. Exit codes: 0 ok, 1 failed, 2 usage
 //                         (an unknown command: "did you mean" on stderr). The update notice in _meta is always null: there is no network call to ask.
@@ -146,6 +147,9 @@ if (!["new", "from-url", "theme-from", "slideshow", "make"].includes(cmd) && arg
   if (vj || vf) (await import("../tools/commands/props.mjs")).checkProps(proj, { json: vj, file: vf });
   if (vj || vf) (await import("../tools/commands/batch.mjs")).applyVariables(proj, { json: vj, file: vf, strict: sv >= 0 });
 }
+
+// --composition <id>   any command: this project.json "compositions" entry laid over the project for this run (tools/compositions.mjs)
+{ const i = args.indexOf("--composition"); if (i >= 0) (await import("../tools/compositions.mjs")).applyComposition(proj, args.splice(i, 2)[1] || ""); }
 
 function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }
 function step(name) { console.log(`\n\x1b[1;32m▶ ${name}\x1b[0m  (${proj})`); }

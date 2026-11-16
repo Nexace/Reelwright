@@ -58,7 +58,7 @@ speech_end = t
 music.update({k: M[k] for k in ("drop_bar", "end_bar", "style") if k in M})
 if "drop_bar" in M:   # set by hand (or the synth bed's drop): overrides detection
     music["drop"] = round(music["t0"] + M["drop_bar"] * music["bar"], 3)
-data = {"PROJECT": {k: P[k] for k in ("title", "fps", "lead", "tail", "width", "height") if k in P}, "VO": vo, "MUSIC": music}
+data = {"PROJECT": {k: P[k] for k in ("title", "fps", "lead", "tail", "width", "height", "composition") if k in P}, "VO": vo, "MUSIC": music}
 if LANG: data["PROJECT"]["lang"] = LANG
 data["PROJECT"]["speechEnd"] = round(speech_end, 3)
 out = "hf/kit-data.js" if P.get("renderer") == "hyperframes" else "film/data.js"

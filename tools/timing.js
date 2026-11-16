@@ -5,6 +5,10 @@
 //   left / right = what happens outside the input range: 'extend' (the first / last segment carries on, linearly in its progress; a custom
 //   easing FUNCTION is called with the raw progress, as in Remotion; a KIT.easing NAME clamps inside the segment and continues linearly),
 //   'clamp' (the end value), 'identity' (t itself) or 'wrap' (t folded back into the range, then interpolated; both sides use it).
+//   { posterize: fps } steps t to whole frames of that rate first (Remotion's stepped look). Outputs may be STRINGS: "20deg", "0px 0px", "50% 50%",
+//   "translateX(0px) scale(1)", "400" (font-weight): every output has the same text around its numbers, the numbers are interpolated one by one
+//   (easing / left / right / posterize as for numbers) and put back. Colours ("#f00", "rgb(...)", "red") go through KIT.color.interpolate (rgb; { space }).
+// KIT.posterize(t, fps) → t stepped down to a whole frame of `fps`: floor(t · fps) / fps.
 // KIT.color: colours without a clock.
 //   KIT.color.parse(c) → [r, g, b, a] (any CSS colour the browser reads)    KIT.color.toCss([r, g, b, a]) → 'rgba(r, g, b, a)'
 //   KIT.color.mix(a, b, p, { space = 'rgb' | 'hsl' | 'oklab' }) → css     hsl takes the short way round the hue wheel; oklab mixes in linear light
@@ -16,6 +20,9 @@
 //   film clock; local = trim + (t - from) · rate. loop: true | { every, times = Infinity }: local time wraps every `every` seconds of content
 //   (default: the slot's own length · rate). freeze: a local time held for the whole slot. s.info(t) → { active, local, iteration, progress };
 //   s.end = from + dur (finite after loop.times); s.at = s.
+// KIT.series([{ dur, offset = 0, ...seq options }]) → { scenes: [{ start, end, dur, seq }], total, active(t) → [{ index, local }] }
+//   Remotion's <Series> / <Series.Sequence offset>: each scene starts where the one before ended, shifted by its offset (negative = overlap);
+//   scenes[i].seq is a KIT.seq (trim, rate, loop, freeze pass through). Only the last scene may have an infinite dur.
 // KIT.timing.linear({ dur }), KIT.timing.spring({ stiffness, damping, mass, dur?, threshold }), KIT.timing.custom(fn, { dur })
 //   → { dur, at(p) }: Remotion's linearTiming / springTiming / custom. dur of a spring = its settle time (KIT.springDur) unless `dur` stretches it;
 //   at(p) is the progress 0..1 (the spring's value, which reaches 1 at p = 1 within `threshold`, default 0.005).
@@ -32,10 +39,24 @@
   const ease = (e) => (typeof e === 'string' ? K.easing(e) : typeof e === 'function' ? e : (x) => x);
 
   // ── interpolate ──────────────────────────────────────────────────────────
+  K.posterize = (t, fps) => { if (!(fps > 0)) throw new Error('posterize: fps must be > 0'); return Math.floor(t * fps + 1e-9) / fps; };
+  const NUM = /-?(?:\d+\.?\d*|\.\d+)/g, COLOUR = /^\s*(#[0-9a-f]{3,8}\s*$|(rgb|hsl|hwb|lab|lch|oklab|oklch|color)a?\()/i;
+  const r4 = (v) => String(+v.toFixed(4));
+  // string outputs: same text around the numbers in every output; the numbers are interpolated one by one. shortcut: no exponents ("1e3"), no calc().
+  const strInterp = (t, input, out, o) => {
+    out = out.map(String);
+    const P = out.map((s) => ({ text: s.split(NUM), n: (s.match(NUM) || []).map(Number) })), k = P[0].n.length;
+    if (out.some((s) => COLOUR.test(s)) || !k) return K.color.interpolate(t, input, out, o);   // hex, rgb(), hsl(), named
+    P.forEach((p, i) => { if (p.n.length !== k || p.text.some((x, j) => x !== P[0].text[j])) throw new Error(`interpolate: output ${i} ("${out[i]}") is not shaped like output 0 ("${out[0]}")`); });
+    const v = P[0].n.map((_, j) => K.interpolate(t, input, P.map((p) => p.n[j]), o));
+    return P[0].text.reduce((acc, x, j) => acc + x + (j < k ? r4(v[j]) : ''), '');
+  };
   K.interpolate = (t, input, output, o = {}) => {
     const n = input.length;
     if (n < 2 || output.length !== n) throw new Error('interpolate: input and output need the same length, at least 2');
     for (let i = 1; i < n; i++) if (!(input[i] > input[i - 1])) throw new Error('interpolate: input must be strictly ascending');
+    if (o.posterize != null) t = K.posterize(t, o.posterize);
+    if (output.some((x) => typeof x === 'string')) return strInterp(t, input, output, { ...o, posterize: undefined });
     const L = o.left || 'extend', R = o.right || 'extend', ok = ['extend', 'clamp', 'identity', 'wrap'];
     if (!ok.includes(L) || !ok.includes(R)) throw new Error(`interpolate: left / right is ${ok.join(' | ')}`);
     const e = Array.isArray(o.easing) ? o.easing : null;
@@ -126,6 +147,20 @@
     const s = (t) => info(t).local;
     s.info = info; s.at = s; s.end = from + len; s.from = from;
     return s;
+  };
+
+  // ── Series ───────────────────────────────────────────────────────────────
+  K.series = (items) => {
+    let cursor = 0;
+    const scenes = items.map(({ dur, offset = 0, ...rest }, i) => {
+      if (!(dur > 0)) throw new Error(`series: item ${i}: dur must be > 0`);
+      if (!Number.isFinite(dur) && i < items.length - 1) throw new Error(`series: item ${i}: only the last scene may be infinite`);
+      const start = cursor + offset;
+      if (start < -1e-9) throw new Error(`series: item ${i} would start before 0 (offset ${offset})`);
+      cursor = start + dur;
+      return { start, end: start + dur, dur, seq: K.seq({ ...rest, from: start, dur }) };
+    });
+    return { scenes, total: Math.max(0, ...scenes.map((s) => s.end)), active: (t) => scenes.flatMap((s, index) => { const local = s.seq(t); return local == null ? [] : [{ index, local }]; }) };
   };
 
   // ── timings ──────────────────────────────────────────────────────────────

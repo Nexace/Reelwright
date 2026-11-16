@@ -147,6 +147,9 @@ if (!["new", "from-url", "theme-from", "slideshow", "make"].includes(cmd) && arg
   if (vj || vf) (await import("../tools/commands/batch.mjs")).applyVariables(proj, { json: vj, file: vf, strict: sv >= 0 });
 }
 
+// --composition <id>   any command: this project.json "compositions" entry laid over the project for this run (tools/compositions.mjs)
+{ const i = args.indexOf("--composition"); if (i >= 0) (await import("../tools/compositions.mjs")).applyComposition(proj, args.splice(i, 2)[1] || ""); }
+
 function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }
 function step(name) { console.log(`\n\x1b[1;32m▶ ${name}\x1b[0m  (${proj})`); }
 function run(bin, ...a) {

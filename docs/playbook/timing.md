@@ -18,7 +18,40 @@ Proof: `node tools/selfcheck/remotion-kit.mjs time shapes text player props` (sh
 | `<Player>` / `PlayerRef` / events / `inFrame` `outFrame` / `Thumbnail` | `KIT.player({ render, fps, dur, loop, inFrame, outFrame, audio, … })` → `play pause seekTo getCurrentFrame setVolume setPlaybackRate on(event) thumbnail`; `KIT.player.controls(ref)` | `tools/player.js` |
 | `getInputProps()` / `defaultProps` | `KIT.props()` (variables + `window.PROPS`, frozen) | `tools/props.js` |
 
+## Style, crop, caption and composition helpers
+
+Clean-room implementations of what Remotion documents publicly (no Remotion code). Proof: `node tools/selfcheck/remotion-helpers.mjs` (exact numbers, pixels, shuffled seeks in pvk and HyperFrames).
+
+| Remotion | Reelwright | File |
+|---|---|---|
+| `posterize` (stepped look) | `KIT.posterize(t, fps)` → `floor(t · fps) / fps`; `KIT.interpolate(t, in, out, { posterize: fps })` | `tools/timing.js` |
+| `interpolate` string outputs (`"20deg"`, `"0px 0px"`, `"50% 50%"`, transform-origin, `"400"` font-weight) and colours | `KIT.interpolate(t, [0, 1], ['0deg', '90deg'])` → `'45deg'`; the outputs share their text, the numbers are interpolated one by one (easing, extrapolation and `posterize` as for numbers); `"#f00"`, `rgb()`, `hsl()` and named colours go through `KIT.color` | `tools/timing.js` |
+| `<Series>`, `<Series.Sequence offset>` | `KIT.series([{ dur, offset }])` → `{ scenes: [{ start, end, dur, seq }], total, active(t) }`; a scene starts where the last ended plus its `offset` (negative = overlap); `seq` options pass through | `tools/timing.js` |
+| `interpolateStyles`, `makeTransform` | `KIT.interpolateStyles(t, [0, 1], [styleA, styleB], opts)` → a style object for `KIT.css(el, …)`; `KIT.makeTransform([{ rotate: 45 }, { translateX: 10 }, { scale: 1.5 }])` → `'rotate(45deg) translateX(10px) scale(1.5)'` | `tools/styles.js` |
+| `cropLeft / cropRight / cropTop / cropBottom` | `KIT.crop(el, { left, right, top, bottom })` (ratios 0..1, a `clip-path: inset(…)`); animate it by calling it from `render(t)` | `tools/styles.js` |
+| `@remotion/rounded-text-box` | `KIT.roundedTextBox(el, { radius, pad, color })` measures each line of the text and puts one rounded outline (an `<svg>` path) behind it; call it at load, after fonts are ready, before the element is animated. `KIT.roundedTextBox.outline(lines, { radius, pad })` is the pure geometry | `tools/text-box.js` |
+| `Caption` JSON (`{ text, startMs, endMs, timestampMs, confidence, pageBreakAfter }`) | `toCaptions(words)` / `fromCaptions(json)` in `tools/captions.mjs`; `reelwright captions <project> --format remotion` writes `captions.json`, `--from file.json` reads one | `tools/captions.mjs` |
+| `<Composition id>` / `<Still>`, several per project | `"compositions": [{ "id": "square", "width": 1080, "height": 1080 }]` in `project.json` and `--composition <id>` (below) | `tools/compositions.mjs` |
+
+Load `tools/styles.js` after `timing.js`; `tools/text-box.js` after `engine.js`.
+
+### Compositions: several films or stills in one project
+
+`project.json` takes `"compositions": [{ "id": "square", "width": 1080, "height": 1080, "out": "out/square.mp4", "lines": [...] }, …]`. Any command with
+`--composition <id>` (`film`, `stills`, `all`, `frames`, `encode`, …) runs the project with that entry's keys laid over `project.json`: a shallow merge, so a
+`lines` array replaces the whole script, and `out` defaults to `<out>-<id>.mp4`. The film sees the id as `PROJECT.composition`, so `film.js` (or `hf/film.js`)
+branches on it: `if (PROJECT.composition === 'square') …`. A still is a composition with a short film and `reelwright stills <project> 1.5 --composition cover`.
+
+Not a second engine entry: `tools/engine.js` still starts one film per page, so every composition shares one `film.js` and one set of recordings.
+`project.json` is rewritten for the run and put back byte for byte when the process exits (a kill leaves `project.json.composition-bak`, which the next
+`--composition` run restores). Do not run two compositions of the same project at the same time; use `--formats` for the same film in several sizes.
+
 ## Notes that bite
+
+- `interpolate` string outputs read numbers with an optional sign and decimals (no exponents, no `calc()`); every output must have the same text between its
+  numbers (`'10px'` to `'20%'` is refused). `translate3d(...)`-style names work because their digit is the same in every output.
+- `KIT.crop` cuts with `clip-path`, so the element keeps its layout box; Remotion's crop on media also rescales the visible part, which you do with `KIT.fit` or CSS.
+- `KIT.roundedTextBox` reads the layout once. Text that reflows later (a font loading late, a changed width) needs another call; remove the old `svg` first.
 
 - `interpolate` with `left`/`right: 'extend'` keeps going along the first or last segment; a custom easing *function* is called with the raw
   progress (as Remotion does), a `KIT.easing` *name* clamps inside the segment and carries on linearly outside it.

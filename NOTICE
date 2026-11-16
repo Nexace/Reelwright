@@ -29,6 +29,18 @@ This product includes the following MIT-licensed components, each in vendor/<nam
 This product includes CanvasKit (canvaskit-wasm 0.42.0, Skia), Copyright (c) 2011 Google Inc.,
 licensed under the BSD 3-Clause License (vendor/canvaskit/LICENSE).
 
+This product includes shader formulas from the gl-transitions collection (github.com/gl-transitions/gl-transitions),
+Copyright (c) 2017-present gl-transitions contributors, licensed under the MIT License (text in THIRD_PARTY.md):
+cross-zoom (rectalogic, based on glfx.js zoomBlur, Copyright (c) 2011 Evan Wallace), crosswarp (Eke Péter),
+dreamy-zoom (Zeh Fernando), linear-blur, ripple and swap (gre), in tools/renderers/shader_glsl2.mjs.
+
+vendor/canvaskit/canvaskit.wasm links these libraries statically: ICU (Unicode License, Copyright (C) 2016 and later
+Unicode, Inc. and others), FreeType (FreeType License), HarfBuzz (MIT), libpng (libpng License), zlib (zlib License,
+Jean-loup Gailly and Mark Adler), libjpeg-turbo (IJG, BSD-3-Clause and zlib licences, Copyright 1991-2024 The libjpeg-turbo
+Project and many others), libwebp (BSD-3-Clause, Google Inc.) and Wuffs (Apache-2.0, The Wuffs Authors).
+vendor/rive/rive.wasm links Luau (MIT, Copyright (c) 2019-2024 Roblox Corporation) and miniaudio (public domain or MIT-0,
+David Reid). Details in THIRD_PARTY.md.
+
 This product includes the following ISC-licensed components, each in vendor/<name>/ with its licence file:
   D3, Copyright 2010-2026 Mike Bostock
   topojson-client, Copyright 2012-2019 Michael Bostock

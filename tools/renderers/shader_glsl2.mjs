@@ -2,8 +2,9 @@
 // (tools/renderers/shader_pass.mjs): blur-slide, book-flip, cross-zoom, crosswarp, dissolve, dreamy-zoom, film-burn, linear-blur, ripple, swap,
 // zoom-blur, zoom-in-out. Clean-room from Remotion's docs (what each one does and its options); no Remotion code.
 // crosswarp, cross-zoom, dreamy-zoom, linear-blur, ripple and swap follow the formulas of the gl-transitions collection of the same names
-// (github.com/gl-transitions/gl-transitions, MIT; authors Eke Péter, rectalogic, Zeh Fernando, gre), rewritten for this header; the other six
-// are written here. Extra options arrive as uniforms u_<name> (KIT.shader in tools/shaders.js fills the defaults).
+// (github.com/gl-transitions/gl-transitions, MIT, Copyright (c) 2017-present gl-transitions contributors; per shader: cross-zoom by rectalogic,
+// itself based on glfx.js zoomBlur (Evan Wallace, MIT); crosswarp by Eke Péter; dreamy-zoom by Zeh Fernando; linear-blur, ripple and swap by gre),
+// rewritten for this header. The MIT licence text is in THIRD_PARTY.md ("gl-transitions"); the other six are written here. Extra options arrive as uniforms u_<name> (KIT.shader in tools/shaders.js fills the defaults).
 import { H, NQ } from "./shader_glsl.mjs";
 
 // y-up helpers as in gl-transitions: p = (0,0) bottom-left; A/B sample the outgoing / incoming scene, black outside

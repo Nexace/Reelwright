@@ -2,7 +2,7 @@
 
 Generated 2026-11-16 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
-Total rows 601; EQUAL + BETTER + EQUAL/BETTER 458; not 143 (grand total of the groups below: 143).
+Total rows 601; EQUAL + BETTER + EQUAL/BETTER 457; not 144 (grand total of the groups below: 144).
 
 | # | Group | Rows |
 |--:|---|--:|
@@ -10,13 +10,13 @@ Total rows 601; EQUAL + BETTER + EQUAL/BETTER 458; not 143 (grand total of the g
 | 2 | Needs WebGPU / specific hardware | 4 |
 | 3 | Licence-blocked or non-OSI (and what was done instead) | 2 |
 | 4 | Not seekable / not deterministic, so kept out by the seekable gate | 4 |
-| 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 11 |
+| 5 | Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) | 12 |
 | 6 | shotcraft audio, social publishing, JianYing and third-party tools skipped | 4 |
 | 7 | Paid-connector-only (Higgsfield) | 20 |
 | 8 | The audit's own approach column says skip / defer / not needed | 19 |
 | 9 | Not applicable by design (N/A, UNVERIFIED, DIFFERENT) | 9 |
 | 10 | Not done, no stated reason | 63 |
-| | **Grand total** | **143** |
+| | **Grand total** | **144** |
 
 Row format: `source:id — feature — status`, then what the row says (status text) and, for open items, its approach column. IDs: HyperFrames and Higgsfield use the source ids; the other sources use `<section>.<n>` (Manim `m<group>.<n>`), numbering the data rows of that section in file order.
 
@@ -113,13 +113,13 @@ By source: remotion 1, doodle-shots-motion 3
   - says: interactive or wall-clock features, not seekable
   - approach: exclude from the bundle (about 130 KB saved); lint `ScrollTrigger`, `.play(`, `repeat:-1`, global `gsap.to(` outside a paused timeline
 
-## 5. Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) (11) — 11 approved
+## 5. Optional renderer / install not bundled (Remotion, Manim CE, ManimGL) (12) — 12 approved
 
 Plan: Remotion, Manim CE and ManimGL are opt-in installs, never bundled. Rows whose status text puts the gap in the optional renderer or says it was not built there.
 
-By source: remotion 5, manim 6
+By source: remotion 6, manim 6
 
-### Remotion + its skills (5)
+### Remotion + its skills (6)
 
 - `remotion:2.1.14` — `<Track>` non-overlapping named timeline lanes; editable timeline groups — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: (Studio-only concept)
@@ -131,6 +131,9 @@ By source: remotion 5, manim 6
 - `remotion:2.6.2` — `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentFrame` (no `useFrame`), `<Sequence layout="none">` inside, `useVideoTex… — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
   - says: →EQUAL for a WebGL scene (10b): Three.js bundled, `KIT.three(el, build)` with preserveDrawingBuffer; no React Three Fiber, video textures untested; `tools/runtimes.js`, `tools/selfcheck/runtimes.mjs` (shuffled seeks, pv…
   - approach: owner: bundle Three.js (MIT): [N] `KIT.three(canvas, sceneFn)` that renders one frame per `render(t)` with `preserveDrawingBuffer`; [R] free, but React-only
+- `remotion:2.6.3` — `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-skia CanvasKit WASM) — PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15)
+  - says: (11): `KIT.skia(host, (canvas, CK, t) => …)` over vendored CanvasKit 0.42.0 (tools/skia.js, vendor/canvaskit/, docs/playbook/runtimes.md) draws rects, paths and shaders; text is not drawn by default: the vendored build…
+  - approach: [10z: build] ship one TTF and a `KIT.skia.text()` helper that loads it; [R] only; native = skip (CanvasKit is large). Canvas 2D covers most
 - `remotion:2.8.2` — Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()` + `InteractivitySchema` (number, boolean, color, enum, array, asset, f… — MISSING — exception (owner-approved 2026-11-12 and 2026-11-15)
   - approach: [R] only; the idea to copy for our studio: edit values inline in `film.js` with codemods (their `@remotion/codemods`). Do not copy skills text
 

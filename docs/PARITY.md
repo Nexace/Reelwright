@@ -11,18 +11,18 @@ Compiled 2026-11-16 from the five per-source checklists in [docs/parity/](parity
 | Source | EQUAL | BETTER | EQUAL/BETTER | PARTIAL | MISSING | OUT | N/A | OTHER | Total |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | HyperFrames | 63 | 6 | 0 | 20 | 17 | 6 | 0 | 0 | 112 |
-| Remotion + its skills | 81 | 4 | 4 | 4 | 4 | 0 | 12 | 1 | 110 |
+| Remotion + its skills | 80 | 4 | 4 | 5 | 4 | 0 | 12 | 1 | 110 |
 | Manim CE + ManimGL + manim skills | 59 | 8 | 1 | 18 | 5 | 0 | 3 | 0 | 94 |
 | anidoodle, video-shotcraft, motion-design-skill, GSAP, Lottie | 215 | 5 | 0 | 5 | 23 | 0 | 4 | 0 | 252 |
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
-| **All** | **421** | **30** | **7** | **59** | **56** | **6** | **20** | **2** | **601** |
+| **All** | **420** | **30** | **7** | **60** | **56** | **6** | **20** | **2** | **601** |
 
-**1.0.1 reaches parity on 458 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**1.0.1 reaches parity on 457 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|
-| EQUAL, BETTER or EQUAL/BETTER | 458 |
-| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 143 |
+| EQUAL, BETTER or EQUAL/BETTER | 457 |
+| Accepted exceptions (owner-approved 2026-11-12 and 2026-11-15) | 144 |
 | Planned (Phase 11), not claimed | 0 |
 | Partial: some shipped, the rest planned (open) | 0 |
 | Proposed exceptions waiting for the owner | 0 |
@@ -230,7 +230,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.5.9 | `@remotion/mac-cursors` (macOS cursor set) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | drawn `K.cursor` |
 | 2.6.1 | `@remotion/lottie` `<Lottie animationData>` driven by frame; `getLott… | EQUAL | `tools/runtimes.js` |
 | 2.6.2 | `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentF… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/runtimes.js` →EQUAL for a WebGL scene (10b): Three.js bundled, `KIT.three(el, build)` with preserveDrawingBuffer; no React… |
-| 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | EQUAL | `tools/skia.js,` |
+| 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/skia.js,` (11): `KIT.skia(host, (canvas, CK, t) => …)` over vendored CanvasKit 0.42.0 (tools/skia.js, vendor/canvaskit/… |
 | 2.6.4 | `@remotion/rive` `<RemotionRiveCanvas>` | EQUAL | `tools/rive.js,` |
 | 2.6.5 | Spline/Figma/After Effects import | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/figma_export.py` (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (… |
 | 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | EQUAL | `tools/shapes.js` |
@@ -667,9 +667,9 @@ Source: [docs/parity/higgsfield-workflows.md](parity/higgsfield-workflows.md). 3
 
 ## Exceptions
 
-Counts: 458 EQUAL/BETTER, 143 accepted exceptions, 0 planned, 0 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
+Counts: 457 EQUAL/BETTER, 144 accepted exceptions, 0 planned, 0 partial, 0 proposed, 0 open (no tag). Only the owner approves an exception; nothing in this file or the script decides one. Full row text by reason: [docs/plans/phase-10z-exceptions-proposed.md](plans/phase-10z-exceptions-proposed.md).
 
-### Accepted exceptions (143, owner-approved 2026-11-12 and 2026-11-15)
+### Accepted exceptions (144, owner-approved 2026-11-12 and 2026-11-15)
 
 Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and rows the re-audit tagged `[10z: except]` or "Suggest: accept as exception" (reason = the row's own note).
 
@@ -719,7 +719,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `hyperframes:K6` — `inspector` package (source maps, CSS/JS scope analysis for the studio picker) — MISSING — reason: The audit's own approach column says skip / defer / not needed
 - `hyperframes:L3` — Claude/Codex/Cursor plugin packaging and marketplace — OUT — reason: Excluded by owner decision or repo rule
 
-#### Remotion + its skills (21)
+#### Remotion + its skills (22)
 
 - `remotion:2.1.14` — `<Track>` non-overlapping named timeline lanes; editable timeline groups — MISSING — reason: Optional renderer / install not bundled (Remotion, Manim CE, ManimGL)
 - `remotion:2.1.15` — Premounting (`premountFor`), `SequenceActivityBudget` — N/A — reason: The audit's own approach column says skip / defer / not needed
@@ -731,6 +731,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `remotion:2.5.8` — `@remotion/animated-emoji` (Noto animated emoji) — MISSING — reason: The audit's own approach column says skip / defer / not needed
 - `remotion:2.5.9` — `@remotion/mac-cursors` (macOS cursor set) — PARTIAL — reason: The audit's own approach column says skip / defer / not needed
 - `remotion:2.6.2` — `@remotion/three` `<ThreeCanvas width height>`, drive by `useCurrentFrame` (no `useFrame`), `<Seque… — PARTIAL — reason: Optional renderer / install not bundled (Remotion, Manim CE, ManimGL)
+- `remotion:2.6.3` — `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-skia CanvasKit WASM) — PARTIAL — reason: Optional renderer / install not bundled (Remotion, Manim CE, ManimGL)
 - `remotion:2.6.5` — Spline/Figma/After Effects import — PARTIAL — reason: (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (tools/runtimes.js, CI demo projects/runtimes-hf); missing: the SVG-paste note for Figma in…
 - `remotion:2.6.9` — Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Turf, CesiumJS flyovers (Google 3… — PARTIAL — reason: (10f): offline maps from the vendored d3 + topojson + world / US atlases as blocks `world-map`, `us-map-bubble`, `us-map-hex` (vendor/hyperframes/registry/blocks, tools/selfcheck/blocks.mjs samples t…
 - `remotion:2.6.10` — Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@remotion/enable-scss`, `@remotion… — N/A — reason: Not applicable by design (N/A, UNVERIFIED, DIFFERENT)

@@ -91,7 +91,7 @@ function recipes(outDir) {
   const text = Object.fromEntries(pages.map((f) => [f, rd(`${dir}/${f}`)]));
   const rel = (f) => path.relative(outDir, path.join(ROOT, f)).split(path.sep).join("/");   // a link from index.html, wherever --out is
   return (item, mod) => {
-    if (mod.startsWith("fx-")) return { href: rel("docs/playbook/p9-effects.md"), text: "Effects playbook page" };
+    if (mod.startsWith("fx-")) return { href: rel("docs/playbook/effects.md"), text: "Effects playbook page" };
     const n = (s, name) => (s.match(new RegExp(`\\b${name}\\b`, "g")) || []).length;
     const base = item.name.split(".")[0], best = pages.map((f) => [f, n(text[f], base)]).filter(([, c]) => c).sort((a, b) => b[1] - a[1])[0];
     if (best) return { href: rel(`${dir}/${best[0]}`), text: text[best[0]].split(/\r?\n/)[0].replace(/^#+\s*/, "") };

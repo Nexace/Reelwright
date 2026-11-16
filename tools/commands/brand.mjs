@@ -1,8 +1,8 @@
 // brand [project] inventory | check   the project's logos (assets/, brand/, brand.json "logos") as a table, and the brand check: palette
 //                  colours valid, ink on bg contrast >= 4.5, every listed logo on disk, no raster logo too small or without
-//                  transparency, svg with a viewBox. Exit 1 on any problem. Figma frames: tools/figma_export.py. tools/p5-brand.mjs.
+//                  transparency, svg with a viewBox. Exit 1 on any problem. Figma frames: tools/figma_export.py. tools/brand.mjs.
 import path from "node:path";
-import { inventory, check } from "../p5-brand.mjs";
+import { inventory, check } from "../brand.mjs";
 
 export default async ({ proj, args }) => {
   const [sub] = args, dir = path.resolve(proj);

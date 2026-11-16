@@ -1,9 +1,9 @@
 // spectrum [file] [--out audio-bands.js] [--fps N] [--bins N]   per-frame spectrum, level and waveform of an audio or video file, FFT at build time
-//                  (no numpy), written as `window.AUDIO_BANDS = {…}` for KIT.level(t) / KIT.spectrum(t, n) / KIT.waveform(t, n) (tools/p9-audio.js;
+//                  (no numpy), written as `window.AUDIO_BANDS = {…}` for KIT.level(t) / KIT.spectrum(t, n) / KIT.waveform(t, n) (tools/audio-viz.js;
 //                  Remotion visualizeAudio). file defaults to the project's mix.wav; --out defaults to <project>/film/audio-bands.js. --bins is a power of 2.
 import fs from "node:fs";
 import path from "node:path";
-import { audioBands } from "../p9-media.mjs";
+import { audioBands } from "../media-ffmpeg.mjs";
 
 export default async ({ proj, args }) => {
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : undefined; };

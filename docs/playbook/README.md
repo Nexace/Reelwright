@@ -3,7 +3,7 @@
 Every page in this folder is a topic of [docs/PLAYBOOK.md](../PLAYBOOK.md), the document to read. A new topic is written here first, as
 `docs/playbook/<topic>.md` (one file per topic, so parallel work never edits the same lines), then listed below and in the PLAYBOOK
 index. If you change a fact in a topic file, change it in the PLAYBOOK section too. `reelwright docs <topic>` prints a page from
-the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is missing from this list.
+the terminal; `node tools/selfcheck/docs-index.mjs` fails when a page here is missing from this list.
 
 ## Story, process and review
 
@@ -21,7 +21,7 @@ the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is miss
 - [themes](themes.md): the 27 themes: tokens, motion archetypes, caption skins, `theme-check` and `theme-gallery`
 - [theme-brief](theme-brief.md): `reelwright theme-brief`: a theme drafted offline from a one-line brief
 - [grading-effects](grading-effects.md): `KIT.grade` and `KIT.vfx`: grade presets, vignette, grain, LUTs, per-pixel effects
-- [p9-effects](p9-effects.md): `KIT.fx.*` and the doodle highlights: colour, blur, lighting, distortion, patterns, reveals
+- [effects](effects.md): `KIT.fx.*` and the doodle highlights: colour, blur, lighting, distortion, patterns, reveals
 - [motion-blur](motion-blur.md): `"motionBlur"` in `project.json`, and `--blur` on `frames`
 - [output-formats](output-formats.md): `--as`, `--formats`, alpha, HDR and 4:5
 
@@ -29,17 +29,17 @@ the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is miss
 
 - [motion](motion.md): paths, transitions, camera shots and rate functions: `KIT.path`, `KIT.transition`, `KIT.shot.*`
 - [motion-rules](motion-rules.md): `KIT.motionRules`: duration and distance scaling, state-feedback patterns, and the checks that warn when a film breaks them
-- [p5-motion](p5-motion.md): camera keys, `KIT.timeRemap`, `KIT.world`, `KIT.morph.handoff`, callouts and steps
-- [p5-deck](p5-deck.md): `reelwright deck`: 46 named moves, each with its KIT call
+- [camera-time](camera-time.md): camera keys, `KIT.timeRemap`, `KIT.world`, `KIT.morph.handoff`, callouts and steps
+- [motion-deck](motion-deck.md): `reelwright deck`: 46 named moves, each with its KIT call
 - [shotcraft-lints](shotcraft-lints.md): sharp camera layer, velocity helpers, `reelwright arc`, aesthetic lints, `beatsync`, `verify-av`, `capture-trio`
 - [shader-transitions](shader-transitions.md): `KIT.shader`: 14 WebGL transitions
 - [kit-components](kit-components.md): `KIT.components`: info strip, odometer, flash cut, ticker, clip card
 
 ## Text, media and time
 
-- [p5-text-media](p5-text-media.md): reading time, phrase cutting, perceptual scale and `KIT.animatedImage` (`reelwright animimg`)
-- [p9-text-rules](p9-text-rules.md): text size and safe-area rules in `KIT.u` units
-- [p9-time](p9-time.md): `KIT.interpolate`, `KIT.random`, colour, noise, shapes, text fitting and `KIT.player`
+- [text-media](text-media.md): reading time, phrase cutting, perceptual scale and `KIT.animatedImage` (`reelwright animimg`)
+- [text-rules](text-rules.md): text size and safe-area rules in `KIT.u` units
+- [timing](timing.md): `KIT.interpolate`, `KIT.random`, colour, noise, shapes, text fitting and `KIT.player`
 - [video-audio](video-audio.md): `KIT.video` and `KIT.audio`: clips, speed ramps and extra sounds over the soundtrack
 
 ## Sound
@@ -55,8 +55,7 @@ the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is miss
 - [manim](manim.md): optional Manim scenes (`reelwright manim`, `KIT.manim`)
 - [manim-native](manim-native.md): 18 Manim features as plain KIT calls, with `manim-lint`
 - [runtimes](runtimes.md): GSAP, Lottie, anime.js, Three.js and CSS/WAAPI driven by seeking
-- [lottie](lottie.md): Lottie rules and dotLottie: `KIT.dotLottie`, `add-lottie`, `lottie`
-- [lottie-hf](lottie-hf.md): `KIT.lottie` basics in HyperFrames films
+- [lottie](lottie.md): Lottie rules and dotLottie: `KIT.lottie`, `KIT.dotLottie`, `add-lottie` (and `--inline`)
 - [blocks](blocks.md): HyperFrames blocks: `reelwright add`, `KIT.mount`, `KIT.block`
 - [nested-compositions](nested-compositions.md): `KIT.mount`: a HyperFrames composition as one timed layer
 - [remotion](remotion.md): the optional Remotion renderer
@@ -64,8 +63,8 @@ the terminal; `node tools/selfcheck/p11-docs.mjs` fails when a page here is miss
 ## Variables, delivery, QA and the studio
 
 - [variables](variables.md): composition variables, `batch`, `stills2` (zoom, compare) and `compare`
-- [p9-delivery](p9-delivery.md): `transcode`, `range`, `audio-clip`, `spectrum` and per-run `props`
-- [p5-delivery](p5-delivery.md): gates, `ship` checks, narration providers, `brand`, blur and formats
+- [codecs](codecs.md): `transcode`, `range`, `audio-clip`, `spectrum` and per-run `props`
+- [delivery](delivery.md): gates, `ship` checks, narration providers, `brand`, blur and formats
 - [qa-lint](qa-lint.md): the HyperFrames lint inside `qa`
 - [studio](studio.md): `reelwright studio`: timeline, panels and render queue
 ## Recipes

@@ -3,7 +3,7 @@
 **What it is:** every beat is a box on one big canvas and one camera travels between them. No slide cuts: what lies between two boxes is on screen while the
 camera passes, which is what makes it read as a film and not a deck.
 
-**Load** (after engine.js and shots.js): `p5-camera.js`, `p5-time.js`. HyperFrames copies both into `hf/kit/`.
+**Load** (after engine.js and shots.js): `camera.js`, `time-remap.js`. HyperFrames copies both into `hf/kit/`.
 
 ```js
 const world = KIT.world({ regions: {
@@ -23,6 +23,6 @@ KIT.start({ dur, render: (t) => world.shoot(t, tour) });
 - `world.frame('feature', { fit: 0.9 })` is the camera state that fits a box (90 % of the frame on its tight axis); `KIT.project(state, [x, y])` says where a world point lands.
 - Keep the boxes far enough apart that the move reads as travel (about one frame width), and not so far that the middle is empty for more than a beat.
 - Under the camera, use `KIT.shot.planes` for depth and `KIT.shakeNoise` for an impact; callouts (`D.callout({ anchor, cam })`) follow the camera.
-- Do not put the callout overlays above a `KIT.shoot` layer without reading the finding at the end of `docs/playbook/p5-motion.md`.
+- Do not put the callout overlays above a `KIT.shoot` layer without reading the finding at the end of `docs/playbook/camera-time.md`.
 
-Proof: `tools/selfcheck/p5/world.mjs` (the tour stops centred on each box, fills 90 %, holds its ends; shuffled-seek identical in both renderers).
+Proof: `tools/selfcheck/camera-time/world.mjs` (the tour stops centred on each box, fills 90 %, holds its ends; shuffled-seek identical in both renderers).

@@ -1,6 +1,6 @@
 # python tools/transcribe_fw.py <audio|video> [--model base] [--lang en] [--models-dir <dir>]
 # Word-level transcript with faster-whisper (CTranslate2), run by the venv python that `reelwright transcribe install` makes. Prints
-# [{"text","start","end"}] (seconds) on stdout: the shape `captions` / tools/caption_transcript.mjs use. The model is read from
+# [{"text","start","end"}] (seconds) on stdout: the shape `captions` / tools/captions.mjs use. The model is read from
 # <models-dir>/whisper/<model> (default <repo>/.models); nothing is downloaded here. faster-whisper decodes the file itself (PyAV), video included.
 import argparse, json, os, sys
 

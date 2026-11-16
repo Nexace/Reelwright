@@ -1,8 +1,8 @@
 // animimg <file.gif|apng|webp|avif> [dir] [--width N] [--fps N]   split an animated image into PNG frames + <name>.frames.json (real frame
-//                  times, ffmpeg at build) for KIT.animatedImage (tools/p5-media.js; docs/playbook/p5-media.md). dir defaults to
+//                  times, ffmpeg at build) for KIT.animatedImage (tools/animated-image.js; docs/playbook/animated-image.md). dir defaults to
 //                  <project>/assets/<name>/. Offline; the film shows frame i from render(t), so it seeks in any order.
 import path from "node:path";
-import { extractAnimation } from "../p5-animimg.mjs";
+import { extractAnimation } from "../image-frames.mjs";
 
 export default async ({ proj, args }) => {
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? Number(args.splice(i, 2)[1]) : undefined; };

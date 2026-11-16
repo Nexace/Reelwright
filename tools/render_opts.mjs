@@ -1,5 +1,5 @@
 // Render options as pure functions (no side effects), for tools/renderers/pvk.mjs, hyperframes.mjs and bin/reelwright.mjs
-// (wiring: docs/plans/p8-patches.md). Everything here is testable offline: tools/selfcheck/p8-render-opts.mjs.
+// (wiring: docs/plans/p8-patches.md). Everything here is testable offline: tools/selfcheck/render-opts.mjs.
 //   x264Args(output)        ffmpeg video args for the mp4. output = project.json "output": { quality: draft|looks|standard|high|delivery,
 //                           crf, videoBitrate "8M", maxBitrate "10M", bufferSize "20M", keyframeInterval frames, preset }. No options = today's
 //                           encode exactly (slow, crf 16, high profile, yuv420p).

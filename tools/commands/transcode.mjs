@@ -3,10 +3,10 @@
 //                  [--color-space bt709] [--color-primaries bt709] [--color-trc bt709] [--color-range tv|pc] [--prores-profile hq] [--gif-fps 15]
 //                  [--scale 0.5] [--metadata key=value]…   a finished film (video defaults to the project's "out" mp4) into another codec, with the
 //                  quality, pixel-format, colour-tag and metadata knobs of Remotion's `render` (Remotion 2.7.1 / 2.7.2 / 2.7.14). Audio-only codecs
-//                  (mp3 aac wav) keep just the sound. Offline (ffmpeg). docs/playbook/p9-delivery.md
+//                  (mp3 aac wav) keep just the sound. Offline (ffmpeg). docs/playbook/codecs.md
 import fs from "node:fs";
 import path from "node:path";
-import { transcode } from "../p9-encode.mjs";
+import { transcode } from "../encode.mjs";
 
 export default async ({ proj, args }) => {
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : undefined; };

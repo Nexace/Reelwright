@@ -50,4 +50,4 @@ to ffmpeg's stdin, so no frame file is ever written (`frames/stream.mp4` is the 
 `--workers` is ignored), so it is slower than the default on a machine with spare cores and lighter on disk. `encode` then muxes `mix.wav` into it
 (video copied, like HDR) and writes the `.srt`/`.vtt`; other output formats are ignored. Not with a frame range, `--cache`/`--resume` or
 `output.alpha` (they need frame files: refused), nor with `KIT.shader` transitions. `qa` still runs, but its frame gates (blank, blip, flash)
-see no frames. Default behaviour is unchanged. Check: `node tools/selfcheck/p13-stream.mjs` (a poller proves no image appears).
+see no frames. Default behaviour is unchanged. Check: `node tools/selfcheck/stream.mjs` (a poller proves no image appears).

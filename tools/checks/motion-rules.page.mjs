@@ -5,7 +5,7 @@
 //   together  more than a third of ≥ 3 same-size siblings start moving in the same frame (lead with the hero, stagger the rest)
 // An element "starts" the first frame it moves or fades while visible; frames where most elements appear at once (a cut) are
 // skipped. Lines look like `linear 3.40s: "#card" moves 0.42 H in 1.20 s at constant speed (ease it: KIT.ease)`.
-// Skip: "qa": {"motion-rules": false}. Fixtures + proof: tools/selfcheck/p6-motion-rules.mjs.
+// Skip: "qa": {"motion-rules": false}. Fixtures + proof: tools/selfcheck/choreography-lint.mjs.
 export const kind = "warn";
 
 const T = {

@@ -36,5 +36,5 @@ def scan(proj):
 
 
 # expressions lottie-web evaluates with Math.random-backed values: two page loads (and a revisit of the same frame) give
-# different frames (tools/selfcheck/p6-lottie-lint.mjs measures this). time-driven expressions are deterministic.
+# different frames (tools/selfcheck/lottie-lint.mjs measures this). time-driven expressions are deterministic.
 NONDET = re.compile(r"\b(wiggle|random|seedRandom|gaussRandom)\s*\(|Math\.random|Date\.now|new\s+Date|performance\.now")

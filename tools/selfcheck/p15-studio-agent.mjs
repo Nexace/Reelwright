@@ -4,14 +4,13 @@
 //   box + computed style + the script line; select by line / selector; set-style is an overlay that shows in look and inspect and in an open tab, is not saved,
 //   and is cleared by --reset; with --edit-source (studio and command) it appends one rule to the film's <style>, undoable; and the studio's trust boundary
 //   holds for the new route (Host, Origin, JSON, a fixed cmd list, values validated, no url() / braces, GET refused).
-process.on("uncaughtException", (e) => { if (e && e.code === "ECONNRESET") return; throw e; });   // a keep-alive socket reset during teardown (seen on CI) is not a failure
 import fs from "node:fs";
 import http from "node:http";
 import net from "node:net";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { tinyFilm, ROOT } from "../p13_fixture.mjs";
+import { tinyFilm, ROOT } from "../tiny-film.mjs";
 import { launch } from "../browser.mjs";
 import { callAgent, SUBS } from "../commands/studio.mjs";
 import { CMDS } from "../studio/agent.mjs";
@@ -21,8 +20,8 @@ const f = tinyFilm(), servers = [];
 const freePort = () => new Promise((ok) => { const s = net.createServer().listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); });
 async function start(...extra) {
   const port = await freePort(), c = spawn(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), "studio", f.dir, "--port", String(port), ...extra], { cwd: ROOT });
-  let out = ""; servers.push(c); c.stdout.on("data", (d) => (out += d)); c.stderr.on("data", (d) => (out += d));
-  for (let i = 0; i < 300 && !out.includes(`localhost:${port}`); i++) { assert.equal(c.exitCode, null, out); await new Promise((r) => setTimeout(r, 100)); }
+  c.out = ""; servers.push(c); c.stdout.on("data", (d) => (c.out += d)); c.stderr.on("data", (d) => (c.out += d));   // c.out: printed if the check fails
+  for (let i = 0; i < 300 && !c.out.includes(`localhost:${port}`); i++) { assert.equal(c.exitCode, null, c.out); await new Promise((r) => setTimeout(r, 100)); }
   return { port, c };
 }
 const cli = (port, ...a) => spawnSync(process.execPath, [path.join(ROOT, "bin/reelwright.mjs"), "studio", f.dir, ...a, "--port", String(port)], { cwd: ROOT, encoding: "utf8" });
@@ -113,7 +112,14 @@ try {
   assert.ok(after.includes("/* reelwright studio set-style */\n.pulse { opacity: 0.4 }"), "the rule is in the film's <style>"); assert.equal(after.length > before.length, true);
   assert.equal((await raw(e.port, { headers: { origin: `http://localhost:${e.port}`, "content-type": "application/json" }, body: "{}" , method: "POST" })).status, 400);
   const postUndo = () => new Promise((ok2, no2) => { const r = http.request({ host: "127.0.0.1", port: e.port, method: "POST", path: "/__undo", agent: false, headers: { host: `localhost:${e.port}`, origin: `http://localhost:${e.port}`, "content-type": "application/json", connection: "close" } }, (res) => { res.resume(); res.on("end", () => ok2(res.statusCode)); }); r.on("error", no2); r.end("{}"); });
-  let undo; for (let k = 0; ; k++) { try { undo = await postUndo(); break; } catch (err) { if (k >= 2 || err.code !== "ECONNRESET") throw err; await new Promise((r) => setTimeout(r, 300)); } }   // a CI runner can reset the first connection
+  const undo = await postUndo();
   assert.equal(undo, 200); assert.equal(fs.readFileSync(idx, "utf8"), before, "undo restores the source byte for byte");
   console.log("p15-studio-agent: ok");
-} finally { await browser?.close(); for (const c of servers) c.kill(); await new Promise((r) => setTimeout(r, 300)); f.rm(); }
+} catch (err) { for (const c of servers) console.error(`studio server (exit ${c.exitCode}) output:\n${c.out.slice(-3000)}`); throw err; }
+finally {
+  await browser?.close();
+  // every request here is its own connection (agent: false, connection: close): a pooled keep-alive socket closed by the server's keepAliveTimeout
+  // while a request reused it was the ECONNRESET once seen on CI. The servers exit before the folder they watch is removed.
+  await Promise.all(servers.map((c) => c.exitCode !== null ? null : new Promise((r) => { c.once("exit", r); c.kill(); setTimeout(r, 8000); })));
+  f.rm();
+}

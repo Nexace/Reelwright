@@ -1,7 +1,7 @@
 // rand-lint [project]   opt-in lint of a film's own scripts (film/*.js, hf/*.js, record.mjs is not scanned): Math.random(), Date.now(), new Date(),
 //                  performance.now(), requestAnimationFrame and setTimeout/setInterval make a frame depend on more than t. Each finding gets the fix:
-//                  KIT.random(seed) (tools/p9-time.js, Remotion's random()) for random numbers, t for time. Comments and strings are ignored.
-//                  Exit 1 when anything is found. Not part of `qa` (opt-in). docs/playbook/p9-time.md
+//                  KIT.random(seed) (tools/timing.js, Remotion's random()) for random numbers, t for time. Comments and strings are ignored.
+//                  Exit 1 when anything is found. Not part of `qa` (opt-in). docs/playbook/timing.md
 import fs from "node:fs";
 import path from "node:path";
 

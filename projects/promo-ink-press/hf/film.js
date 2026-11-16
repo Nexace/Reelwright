@@ -73,7 +73,7 @@ function render(t) {
     if (!on) return;
     const lt = t - T0[s.i], cs = shots[s.name](t);
     if (s.name === 'group') { const h = KIT.shake(t, GROUP, 9 * u); cs.x += h.x; cs.y += h.y; }
-    KIT.shoot(s.cam, cs, { sharp: true });   // layout zoom: the layer is rasterised at its final size every frame (tools/p10-sharp.js)
+    KIT.shoot(s.cam, cs, { sharp: true });   // layout zoom: the layer is rasterised at its final size every frame (tools/sharp-camera.js)
     // entrances: copy and product land in a stagger from the bar, the hero card springs in
     const ax = s.cam.querySelectorAll('.kick, .big, .body, .card');
     ax.forEach((e, k) => { if (e.closest('.av') || e.id === 'num') return; const p = ent(t, T0[s.i] + dur(0.08) * k, 0.5); e.style.opacity = p; e.style.transform = `translateY(${(1 - p) * 24 * u}px)`; });

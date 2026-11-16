@@ -2,7 +2,7 @@
 //   One repo-local venv (<repo>/.venv-tts, gitignored) and one model folder (<repo>/.models, gitignored); both can be moved with
 //   REELWRIGHT_TTS_VENV / REELWRIGHT_MODELS_DIR. Nothing is installed or downloaded unless the install is run with --yes (same pattern as `face install`).
 //   transcribeInstall({ model, yes, log, run }) / ttsInstall({ yes, log, run }) → { ok, planned? }   `run` (default spawnSync, inherited stdio) is injectable
-//   transcribeMedia(media, { model, lang, run }) → [{ text, start, end }]   word-level timings, the shape `captions` and caption_transcript.mjs use
+//   transcribeMedia(media, { model, lang, run }) → [{ text, start, end }]   word-level timings, the shape `captions` and tools/captions.mjs use
 //   transcribeReady() → true when the venv python and at least one whisper model are there
 // Pins are ranges that keep the major line (a bare `pip install` once pulled OpenCV 5 and broke `face`): change PINS here, nowhere else.
 import fs from "node:fs";

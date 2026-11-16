@@ -1,6 +1,6 @@
 // Ink Press: the one file to edit to make this promo yours. Replace the copy and the logo letter, and set `screen` to a path under
 // assets/ (a screenshot of YOUR product, 16:10 works best) where a shot shows a mock card instead. The arc below must match
-// project.json "arc" (shot, role, bars, energy, hold): `node tools/selfcheck/p10-template.mjs` checks that, and
+// project.json "arc" (shot, role, bars, energy, hold): `node tools/selfcheck/promo-template.mjs` checks that, and
 // `reelwright arc promo-ink-press` validates it. Made-up numbers stay labelled "Illustrative data".
 window.CONTENT = {
   brand: 'Ink Press', logo: 'I', tagline: 'Make the page worth reading.',

@@ -32,7 +32,7 @@ const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const num = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi;
 const ANSI = /\x1b\[[0-9;]*[A-Za-z]/g;
 // changes that are only a build writing its own output: never a reason to reload the page
-const SKIP = /^(frames|stills|out|slideshows|\.cache)([-/]|$)|^hf\/kit\/|(^|\/)theme\.css$|^timeline\.json$|\.(mp4|tmp)$/;
+const SKIP = /^(\.?frames|stills|out|slideshows|\.cache)([-./]|$)|^hf\/kit\/|(^|\/)theme\.css$|^timeline\.json$|\.(mp4|tmp)$/;
 // jobs that change what the film is made from (the page reloads when they end); the others only write stills/out/…
 const INPUT_JOBS = new Set(["sched", "audio"]);
 
@@ -195,7 +195,8 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   }
   const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
   // a write by a panel (undo, redo, source, transcript) to project.json / brand.json is what a save is: theme and kit follow, the lines are placed again
-  const afterWrite = (rel) => { if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
+  // changed(rel): the page reloads for the studio's own write even where the watcher misses it (Linux recursive fs.watch lost the second rename over a file)
+  const afterWrite = (rel) => { changed(rel); if (/^(project|brand)\.json$/.test(rel)) { prepare(); runJob("sched"); } };
   const X = panels({ ROOT, DIR, PY: python, reply, inside, posix, num, readProject, isHf, afterWrite, editSource });
   const A = agent({ DIR, readProject, isHf, send, editSource, writeSource: X.write, busy: () => !!job && job.state === "running" });
   const jobsApi = { busy: () => !!job && job.state === "running", enqueue, cancel, job: (kind, arg) => runJob(kind, arg) };
@@ -222,7 +223,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
       mix: fs.existsSync(mix) ? url(mix) : null,
       // lines whose text differs from the one the voiceover was made from (vo/lines.json keeps it): need `audio`
       stale: (P.lines || []).filter((l) => !voiced || !voiced[l.id] || voiced[l.id].text !== l.text).map((l) => l.id),
-      job, results, queue: queueView(), editSource, agent: { ...(A.view().t > 0 && { t: A.view().t }), ...(A.view().select?.line && { select: A.view().select.line }), css: A.css() } };
+      job, results, queue: queueView(), editSource, rev, idle: !(job && job.state === "running") && !renders.some((r) => r.state === "queued") && !timer && !pending.size, agent: { ...(A.view().t > 0 && { t: A.view().t }), ...(A.view().select?.line && { select: A.view().select.line }), css: A.css() } };
   }
   function serve(req, res) {
     const u = new URL(req.url, "http://localhost");
@@ -233,7 +234,7 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
     if (GETS.has(u.pathname)) return void X.get(u, res).catch((e) => reply(res, 500, { error: e.message }));
     if (u.pathname === "/__events") {
       res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store" });
-      res.write(": hello\n\n"); clients.add(res); req.on("close", () => clients.delete(res));
+      res.write(`data: ${JSON.stringify({ rev })}\n\n`); clients.add(res); req.on("close", () => clients.delete(res));   // rev: a page that loaded before the last reload was sent reloads now
       return;
     }
     const f = resolveStatic(u.pathname);
@@ -301,8 +302,9 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
   }
 
   // ── watch: the project folder and the kit, as preview.mjs does; one debounced event for the page ──
-  let pending = new Set(), timer = null;
+  let pending = new Set(), timer = null, rev = 0;   // rev: how many reloads were sent; info() and every page load carry it
   const flush = () => {
+    timer = null;
     if (job && job.state === "running") return;   // held until the job ends (schedule() then runs again)
     const files = [...pending]; pending = new Set();
     // a render stamps hf/index.html with the frame size and puts it back: not an edit
@@ -310,11 +312,13 @@ export function startStudio({ ROOT, DIR, port, editSource = false }) {   // edit
     if (!keep.length) return;
     if (keep.some((f) => /^(project|brand)\.json$|^(tools|themes)\//.test(f))) prepare();
     console.log("changed:", keep.join(", "));
-    send({ changed: keep });
+    send({ changed: keep, rev: ++rev });
   };
   function schedule(ms = 150) { clearTimeout(timer); timer = setTimeout(flush, ms); }
   function changed(rel) {
     if (!rel || SKIP.test(rel)) return;
+    // a folder's own event is no edit (its files report themselves): Windows sends one when a folder is only listed (/__files, /__assets), which reloaded the page
+    if (fs.statSync(path.join(DIR, rel), { throwIfNoEntry: false })?.isDirectory()) return;
     A.invalidate(); pending.add(rel); schedule();
   }
   const watchers = [

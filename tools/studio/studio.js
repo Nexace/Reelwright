@@ -334,7 +334,7 @@ new EventSource("/__events").onmessage = (e) => {
   if (m.agent) agentApply(m.agent);
   if (m.job) renderJob(m.job);
   if (m.results) renderResults(m.results);
-  if (m.changed) location.reload();
+  if (m.changed || ("rev" in m && m.rev !== info.rev)) location.reload();   // rev: a reload sent while this page was still loading
 };
 
 build();
@@ -346,4 +346,4 @@ agentApply(info.agent);
 const { initPanels } = await import("./panels.js");
 await initPanels({ $, el, api, banner, status, info, proj, FILM, D, fps, win, player, seek, now, save, pretty, edited, lineOf, store, sel: () => sel, select, now });
 await scanNested().catch((e) => console.warn("nested compositions:", e.message));
-window.studioReady = true;   // for tools/selfcheck/studio.mjs
+window.studioRev = info.rev; window.studioReady = true;   // for tools/selfcheck/studio.mjs and p12a-studio.mjs

@@ -611,6 +611,7 @@ tools/                      shared — you rarely edit these
   math.js, math2.js, tex.js, plot2.js, math3d.js   KIT.math.* charts, KIT.tex (MathJax), shapes, plots and fields, KIT.math3d
   runtimes.js               KIT.gsap, KIT.lottie, KIT.anime, KIT.three, KIT.animations — seek-only
   path.js, transitions.js, motion.js, shaders.js   KIT.path, KIT.transition, KIT.rate / indicate / typewriter / sim, KIT.shader
+  text-measure.js, text-box.js, text-split.js   KIT.measureText / fitText / fillTextBox, KIT.roundedTextBox, KIT.text: split, masked reveals, tracking, variable-font axes
   fx-color.js, fx-blur.js, fx-distort.js, fx-pattern.js, fx-reveal.js, fx-gl.js   KIT.fx: Remotion's effects in CSS, canvas and WebGL2
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer

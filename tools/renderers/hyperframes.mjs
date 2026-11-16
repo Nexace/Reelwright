@@ -21,10 +21,10 @@ import { chromium } from "playwright";
 import { launch } from "../browser.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { producerResolution, rangeShim, runsOf, frameKeys } from "./hf_range.mjs";
-import { encode, blurOf, subtitles, TRANSPARENT } from "./pvk.mjs";
+import { encode, blurOf, subtitles, TRANSPARENT, DITHER_CLASS } from "./pvk.mjs";
 import { copyKit } from "../kit_files.mjs";
 import { shaderPass } from "./shader_pass.mjs";
-import { autoWorkers } from "../render_opts.mjs";
+import { autoWorkers, supersample } from "../render_opts.mjs";
 
 // Playwright ships chromium-NNNN and chromium_headless_shell-NNNN side by side; HyperFrames wants the shell.
 export function headlessShell() {
@@ -51,6 +51,9 @@ export default async function hyperframes(DIR, P, mode, [a3, a4] = []) {
   const STARTED = Date.now();
   const ALPHA = !!P.output?.alpha, HDR = !!P.output?.hdr, MB = blurOf(P);
   const RES = process.env.REELWRIGHT_RESOLUTION ? producerResolution(P, process.env.REELWRIGHT_RESOLUTION) : null, SCALE = RES ? RES.scale : 1;
+  // --supersample is a pvk capture option: the producer only renders to its own canvas presets (--resolution 4k is that path)
+  if (supersample(P.output) > 1) { console.error("--supersample / output.supersample is a pvk option; hyperframes films use --resolution 4k"); process.exit(1); }
+  const DITHER = !ALPHA && P.output?.dither !== false;   // tools/kit.css: the tile is on only when the page has html.kit-dither
   const E = process.env, STRICTNESS = E.REELWRIGHT_STRICT && E.REELWRIGHT_BEST_EFFORT ? null : E.REELWRIGHT_STRICT ? "strict" : E.REELWRIGHT_BEST_EFFORT ? "best-effort" : undefined;
   if (STRICTNESS === null) { console.error("--strict and --best-effort together: pick one"); process.exit(1); }
   const hdrFile = path.join(DIR, "frames", "hdr.mp4");
@@ -68,6 +71,7 @@ export default async function hyperframes(DIR, P, mode, [a3, a4] = []) {
     let sized = src.replace(/<[^>]*data-composition-id[^>]*>/, (tag) => tag
       .replace(/data-width="\d+"/, `data-width="${P.width || 1920}"`).replace(/data-height="\d+"/, `data-height="${P.height || 1080}"`));
     if (film && ALPHA) sized = sized.replace("</head>", () => `<style>${TRANSPARENT}</style>\n</head>`);
+    if (DITHER) sized = sized.replace("</head>", () => `<script>document.documentElement.classList.add("${DITHER_CLASS}")</script>\n</head>`);
     if (range) sized = sized.replace(/<head[^>]*>/i, (h) => h + rangeShim(range.from, range.n, fps));
     const restore = () => fs.writeFileSync(idx, src);
     const interrupted = () => { restore(); process.exit(130); };
@@ -108,7 +112,7 @@ export default async function hyperframes(DIR, P, mode, [a3, a4] = []) {
     const total = Math.ceil(JSON.parse(fs.readFileSync(tl, "utf8")).DUR * FPS), from = a3 == null ? 0 : Number(a3), to = a4 == null ? total : Math.min(total, Number(a4));
     if (!(Number.isInteger(from) && Number.isInteger(to) && from >= 0 && from < to)) { console.error(`frames <from> <to>: whole frame numbers, from < to <= ${total}`); process.exit(1); }
     const { keys, media } = await frameKeys({ launch, DIR, HF, P, FPS, from, to, scale: SCALE, fingerprints: cache,
-      extra: { alpha: ALPHA, strictness: STRICTNESS, res: RES && RES.preset, browser: process.env.HYPERFRAMES_BROWSER_PATH, producer: JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.resolve("@hyperframes/producer"))), "..", "package.json"), "utf8")).version } });
+      extra: { alpha: ALPHA, dither: DITHER, strictness: STRICTNESS, res: RES && RES.preset, browser: process.env.HYPERFRAMES_BROWSER_PATH, producer: JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.resolve("@hyperframes/producer"))), "..", "package.json"), "utf8")).version } });
     if (media) { console.error("frame ranges and the frame cache don't work with KIT.video clips (the producer extracts a video's frames by its own clock): render the whole film"); process.exit(1); }
     const name = (f) => path.join(fdir, `frame_${String(f + 1).padStart(6, "0")}.png`), cdir = path.join(DIR, ".cache", "frames-hf");
     const ck = (f) => cache && keys.get(f) ? path.join(cdir, keys.get(f) + ".png") : null;

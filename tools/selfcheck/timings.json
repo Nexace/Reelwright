@@ -35,6 +35,9 @@
     "captions": {
       "s": 0.8
     },
+    "capture-quality": {
+      "s": 2
+    },
     "capture-trio": {
       "s": 1.8
     },

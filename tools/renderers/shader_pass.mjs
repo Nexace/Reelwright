@@ -14,7 +14,8 @@ const SHADERS = { ...HF, ...SHADERS2 };
 
 // what the producer uses for PRODUCER_BROWSER_GPU_MODE=software (engine/dist/services/browserManager.js)
 // --disable-lcd-text: same as the vendored engine patch; will-change layers (KIT.words) otherwise pick LCD or greyscale AA per run
-const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--disable-lcd-text", "--font-render-hinting=none"];
+// --force-color-profile=srgb: the same colour the renderer's pages capture, so a composited frame matches its neighbours
+export const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--disable-lcd-text", "--font-render-hinting=none", "--force-color-profile=srgb"];
 
 // page: the film's index.html; frames: [{ t, file }] (.jpg written as jpeg 94 like the renderers, else png)
 export async function shaderPass(page, width, height, frames, scale = 1) {   // scale: --resolution (frames are scale x the layout size)

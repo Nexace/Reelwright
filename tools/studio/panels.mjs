@@ -11,7 +11,7 @@ import { catalog, search } from "../catalog.mjs";
 import { loadVars } from "../commands/batch.mjs";
 import { hfLint } from "../checks/hf-lint.mjs";
 import { loadSchema } from "../commands/props.mjs";
-import { validate } from "../p9-schema.mjs";
+import { validate } from "../props-schema.mjs";
 import { TRANSITIONS, IMAGE, CLIP } from "../slideshow.mjs";
 
 export const FORMATS = ["16x9", "9x16", "1x1", "4x5", "16x10"], RESOLUTIONS = ["4k", "portrait-4k", "square-4k"], QUALITIES = ["draft", "looks", "standard", "high", "delivery"];

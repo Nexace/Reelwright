@@ -17,7 +17,7 @@ const listed = (r) => r.stdout.split(/\r?\n/).filter((l) => l && !l.startsWith("
 // 1. --list: every top-level check, no libraries, no itself-missing; the real table has serial flags and every check a time
 const all = listed(sh("--list"));
 const onDisk = fs.readdirSync(path.join(ROOT, "tools/selfcheck")).filter((f) => f.endsWith(".mjs") && fs.statSync(path.join(ROOT, "tools/selfcheck", f)).isFile()).map((f) => f.slice(0, -4));
-const libs = ["fixture", "seek-harness", ...(onDisk.includes("p1-fixture") ? ["p1-fixture"] : [])];   // p1-fixture: re-export alias until p12a-studio imports fixture.mjs
+const libs = ["fixture", "seek-harness"];
 for (const lib of libs) assert.ok(onDisk.includes(lib) && !all.includes(lib), lib + " is a library, not a check");
 assert.ok(all.includes("runner") && all.includes("themes") && all.length === onDisk.length - libs.length, `the list is the folder minus the ${libs.length} libraries`);
 const table = JSON.parse(fs.readFileSync(path.join(ROOT, "tools/selfcheck/timings.json"), "utf8")).checks;

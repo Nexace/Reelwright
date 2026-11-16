@@ -18,7 +18,7 @@ import { launch } from "../browser.mjs";
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "studio-")));
 const dir = path.join(tmp, "film"), pj = path.join(dir, "project.json"), css = path.join(dir, "hf", "theme.css");
-let server = null, browser = null, t0 = Date.now();
+let server = null, browser = null, out = "", t0 = Date.now();
 const log = (m) => console.log(`[${((Date.now() - t0) / 1000).toFixed(1)}s] ${m}`);
 const freePort = () => new Promise((ok) => { const s = net.createServer().listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); });
 
@@ -46,7 +46,7 @@ try {
   // the real command: sched first, then the server
   const port = await freePort(), origin = `http://localhost:${port}`;
   server = spawn(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "studio", dir, "--port", String(port)], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
-  let out = ""; server.stdout.on("data", (d) => (out += d)); server.stderr.on("data", (d) => (out += d));
+  server.stdout.on("data", (d) => (out += d)); server.stderr.on("data", (d) => (out += d));
   for (let i = 0; i < 300 && !out.includes(origin); i++) { assert.equal(server.exitCode, null, `studio exited:\n${out}`); await new Promise((r) => setTimeout(r, 100)); }
   assert.ok(out.includes(origin), `studio did not start:\n${out}`);
   log("server up");
@@ -109,9 +109,18 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => { if (!r.url().startsWith(origin)) foreign.add(r.url()); });
   page.on("load", () => navs++);
-  const loaded = () => page.waitForFunction(() => window.studioReady === true, null, { timeout: 30000 });
-  // a save reloads the page when sched is done; give a second reload (there must not be one) time to show
-  const reloads = async (action) => { const nav = page.waitForEvent("load", { timeout: 30000 }); await action(); await nav; await loaded(); await page.waitForTimeout(800); await loaded(); };
+  const loaded = () => page.waitForFunction(() => window.studioReady === true, null, { timeout: 60000 });
+  // no fixed sleeps (tools/selfcheck/p12a-studio.mjs): the server says when it is idle (no job, no render waiting, no reload pending) and how many
+  // reloads it sent (rev); the page says which rev it loaded. settle(after): idle, a reload sent after rev `after`, and the page is that reload, fully up.
+  const settle = async (after = -1) => {
+    for (let i = 0; i < 1800; i++) {
+      const s = JSON.parse((await request(port, { p: "/__studio" })).body);
+      if (s.idle && s.rev > after && (await page.evaluate(() => window.studioReady === true && window.studioRev).catch(() => null)) === s.rev) return s.rev;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    throw new Error(`the studio did not settle (waiting for a reload after rev ${after})`);
+  };
+  const reloads = async (action) => { const r = await settle(); await action(); return settle(r); };   // an action that writes a file: done once its reload is up
   await page.goto(origin + "/"); await loaded();
   assert.equal(await page.evaluate(() => document.getElementById("film").ready), true, "player ready");
   assert.equal(await page.locator("#tl-vo .box").count(), 4, "4 VO boxes");
@@ -166,14 +175,15 @@ try {
   assert.equal(fs.readFileSync(pj, "utf8"), keep, "project.json unchanged after a refused raw save");
 
   // still at the playhead: an image comes back, and the render's own file writes don't reload the page
-  const n = navs;
+  const n = navs, rev0 = await settle();
   await page.click("#btn-still");
   await page.waitForFunction(() => document.getElementById("stillbox").classList.contains("show") && document.getElementById("still").naturalWidth > 0, null, { timeout: 90000 });
   const img = await page.locator("#still").getAttribute("src");
   const r = await request(port, { p: img });
   assert.equal(r.status, 200); assert.ok(/^\/__p\/stills\/t[\d.]+\.jpg/.test(img), img);
-  await page.waitForTimeout(1200);
+  await settle();   // idle with no reload pending: a reload caused by the render's own file writes would have bumped rev
   assert.equal(navs, n, "the page reloaded during a still");
+  assert.equal(await settle(), rev0, "the server sent a reload during a still");
   log(`still: ${img}`);
 
   // the brand validator still accepts a legal brand.json (a font inside the project, a bundled family), and the secret never lands in theme.css
@@ -187,7 +197,7 @@ try {
   assert.deepEqual([...foreign], [], "requests outside the studio (the player must not fetch its runtime)");
   console.log("studio self-check: ok");
 } catch (e) {
-  console.error("studio self-check FAILED:", e.message);
+  console.error("studio self-check FAILED:", e.message, "\nstudio server output (tail):\n" + out.slice(-6000));
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});

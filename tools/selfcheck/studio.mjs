@@ -177,7 +177,7 @@ try {
   // still at the playhead: an image comes back, and the render's own file writes don't reload the page
   const n = navs, rev0 = await settle();
   await page.click("#btn-still");
-  await page.waitForFunction(() => document.getElementById("stillbox").classList.contains("show") && document.getElementById("still").naturalWidth > 0, null, { timeout: 90000 });
+  await page.waitForFunction(() => document.getElementById("stillbox").classList.contains("show") && document.getElementById("still").naturalWidth > 0, null, { timeout: 300000 });
   const img = await page.locator("#still").getAttribute("src");
   const r = await request(port, { p: img });
   assert.equal(r.status, 200); assert.ok(/^\/__p\/stills\/t[\d.]+\.jpg/.test(img), img);

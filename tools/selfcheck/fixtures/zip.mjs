@@ -1,5 +1,5 @@
 // A .lottie (dotLottie v2: a/ t/ s/) archive builder for the P6 self-checks: a plain zip (deflate), a/<id>.json + manifest.json
-// (+ t/<id>.json themes). Test fixture only; the reader is in tools/commands/add-lottie.mjs.
+// (+ t/<id>.json themes). Test fixture only; the reader is in tools/dotlottie.mjs.
 import zlib from "node:zlib";
 
 export function zip(files) {   // { "path": Buffer|string } → Buffer

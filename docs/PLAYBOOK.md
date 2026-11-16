@@ -1401,8 +1401,7 @@ One line each; the page is the detail. The same list is in [docs/playbook/README
 - [manim](playbook/manim.md): optional Manim scenes (`reelwright manim`, `KIT.manim`)
 - [manim-native](playbook/manim-native.md): 18 Manim features as plain KIT calls, with `manim-lint`
 - [runtimes](playbook/runtimes.md): GSAP, Lottie, anime.js, Three.js and CSS/WAAPI driven by seeking
-- [lottie](playbook/lottie.md): Lottie rules and dotLottie: `KIT.dotLottie`, `add-lottie`, `lottie`
-- [lottie-hf](playbook/lottie-hf.md): `KIT.lottie` basics in HyperFrames films
+- [lottie](playbook/lottie.md): Lottie rules and dotLottie: `KIT.lottie`, `KIT.dotLottie`, `add-lottie` (and `--inline`)
 - [blocks](playbook/blocks.md): HyperFrames blocks: `reelwright add`, `KIT.mount`, `KIT.block`
 - [nested-compositions](playbook/nested-compositions.md): `KIT.mount`: a HyperFrames composition as one timed layer
 - [remotion](playbook/remotion.md): the optional Remotion renderer

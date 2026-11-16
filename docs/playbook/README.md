@@ -55,8 +55,7 @@ the terminal; `node tools/selfcheck/docs-index.mjs` fails when a page here is mi
 - [manim](manim.md): optional Manim scenes (`reelwright manim`, `KIT.manim`)
 - [manim-native](manim-native.md): 18 Manim features as plain KIT calls, with `manim-lint`
 - [runtimes](runtimes.md): GSAP, Lottie, anime.js, Three.js and CSS/WAAPI driven by seeking
-- [lottie](lottie.md): Lottie rules and dotLottie: `KIT.dotLottie`, `add-lottie`, `lottie`
-- [lottie-hf](lottie-hf.md): `KIT.lottie` basics in HyperFrames films
+- [lottie](lottie.md): Lottie rules and dotLottie: `KIT.lottie`, `KIT.dotLottie`, `add-lottie` (and `--inline`)
 - [blocks](blocks.md): HyperFrames blocks: `reelwright add`, `KIT.mount`, `KIT.block`
 - [nested-compositions](nested-compositions.md): `KIT.mount`: a HyperFrames composition as one timed layer
 - [remotion](remotion.md): the optional Remotion renderer

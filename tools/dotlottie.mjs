@@ -1,31 +1,40 @@
 // dotLottie (.lottie) support, no dependency: a .lottie is a zip of a manifest, animations (a/<id>.json in v2, animations/<id>.json in v1) and
 // images (i/ or images/). readDotLottie turns one into plain Lottie JSON with its images inlined as data URIs, which KIT.lottie (tools/runtimes.js)
-// plays like any other. `reelwright lottie <file.lottie>` writes that JSON next to the film. Themes and state machines are ignored.
+// plays like any other. `reelwright add-lottie <file.lottie> --inline` writes that JSON next to the film; themes and state machines are ignored.
+// The one zip reader of the dotLottie path: `add-lottie` (both modes) and the self-checks use readZip.
 //   readDotLottie(buf, { animation }) → { json, manifest, animations: [ids] }     animation = an id (default: the first in the manifest)
-//   readZip(buf) → Map name → Buffer      stored and deflated entries
+//   readZip(buf) → Map name → Buffer      stored and deflated entries; refuses encrypted entries, zip64 and paths that leave the folder
 //   writeZip([[name, Buffer], ...], { deflate }) → Buffer      for tests and tools
 import zlib from "node:zlib";
 
 const T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 export const crc32 = (b) => { let c = 0xffffffff; for (const x of b) c = T[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
 
+// minimal zip reader: central directory, stored (0) and deflate (8) entries; rejects zip64, encryption and unsafe paths
 export function readZip(buf) {
   let e = buf.length - 22;
   while (e >= 0 && buf.readUInt32LE(e) !== 0x06054b50) e--;
-  if (e < 0) throw new Error("not a zip file (no end-of-directory record): a .lottie is a zip");
-  const n = buf.readUInt16LE(e + 10); let p = buf.readUInt32LE(e + 16);
+  if (e < 0) throw new Error("not a zip file (no end-of-directory record)");
+  const n = buf.readUInt16LE(e + 10);
+  let p = buf.readUInt32LE(e + 16);
   const out = new Map();
   for (let i = 0; i < n; i++) {
-    if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error("zip directory is damaged");
-    const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20), nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32), off = buf.readUInt32LE(p + 42);
+    if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error("corrupt zip central directory");
+    const flags = buf.readUInt16LE(p + 8), method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20), size = buf.readUInt32LE(p + 24);
+    const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32), off = buf.readUInt32LE(p + 42);
     const name = buf.toString("utf8", p + 46, p + 46 + nl);
-    const data = off + 30 + buf.readUInt16LE(off + 26) + buf.readUInt16LE(off + 28);
-    const raw = buf.subarray(data, data + csize);
-    if (!name.endsWith("/")) {
-      if (method !== 0 && method !== 8) throw new Error(`zip entry ${name} uses compression method ${method}: only stored and deflate are supported`);
-      out.set(name, method === 8 ? zlib.inflateRawSync(raw) : Buffer.from(raw));
-    }
     p += 46 + nl + xl + cl;
+    if (name.endsWith("/")) continue;
+    if (flags & 1) throw new Error(`${name}: encrypted entries are not supported`);
+    if (csize === 0xffffffff || size === 0xffffffff) throw new Error("zip64 is not supported");
+    if (/^([\\/]|[A-Za-z]:)|(^|[\\/])\.\.([\\/]|$)/.test(name)) throw new Error(`unsafe path in archive: ${name}`);
+    const start = off + 30 + buf.readUInt16LE(off + 26) + buf.readUInt16LE(off + 28), raw = buf.subarray(start, start + csize);
+    let data;
+    if (method === 0) data = Buffer.from(raw);
+    else if (method === 8) data = zlib.inflateRawSync(raw);
+    else throw new Error(`${name}: compression method ${method} is not supported`);
+    if (data.length !== size) throw new Error(`${name}: size mismatch`);
+    out.set(name, data);
   }
   return out;
 }

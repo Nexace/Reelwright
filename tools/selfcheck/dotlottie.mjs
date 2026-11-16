@@ -12,15 +12,15 @@ import { spawnSync } from "node:child_process";
 import { runFixtures, baseStyle, ROOT } from "./seek-harness.mjs";
 import { samples } from "./fixtures/lottie-samples.mjs";
 import { zip, dotLottie } from "./fixtures/zip.mjs";
-import { readZip } from "../commands/add-lottie.mjs";
+import { readZip } from "../dotlottie.mjs";
 
 const THEME = { rules: [{ id: "box_color", type: "Color", value: [1, 0, 0, 1] }] };
 const archive = dotLottie({ shapes: samples.shapes, features: samples.features, themed: samples.themed },
   { themes: { red: THEME }, states: { click: { initial: "a", states: [{ name: "a", type: "PlaybackState", animation: "shapes" }] } } });
 
 // 1. reader + command
-assert.deepEqual(Object.keys(readZip(archive)).sort(), ["a/features.json", "a/shapes.json", "a/themed.json", "manifest.json", "s/click.json", "t/red.json"]);
-assert.equal(JSON.parse(readZip(archive)["manifest.json"]).version, "2");
+assert.deepEqual([...readZip(archive).keys()].sort(), ["a/features.json", "a/shapes.json", "a/themed.json", "manifest.json", "s/click.json", "t/red.json"]);
+assert.equal(JSON.parse(readZip(archive).get("manifest.json")).version, "2");
 assert.throws(() => readZip(zip({ "../evil.json": "{}" })), /unsafe path/);
 assert.throws(() => readZip(Buffer.from("not a zip")), /not a zip/);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p6dl-"));

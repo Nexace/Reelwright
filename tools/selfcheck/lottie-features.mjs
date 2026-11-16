@@ -1,7 +1,7 @@
 // node tools/selfcheck/lottie-features.mjs — Lottie beyond the one shape fixture: six fixtures made here (mask, track matte, gradient fill, image asset,
 // text layer, expression) each give identical pixels when seeked forward in one browser and shuffled in another, change over time, and log
 // no error (vendor/lottie, goToAndStop, the way KIT.lottie seeks). And dotLottie: a .lottie zip (v2 a/ i/ layout and v1 animations/ images/,
-// deflated and stored) unzips into JSON with its image inlined, `reelwright lottie` writes it, and bad files fail with a reason. Offline.
+// deflated and stored) unzips into JSON with its image inlined, `reelwright add-lottie --inline` writes it, and bad files fail with a reason. Offline.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -88,9 +88,9 @@ try {
   // the command
   const proj = path.join(tmp, "p"); fs.mkdirSync(proj); fs.writeFileSync(path.join(proj, "project.json"), JSON.stringify({ renderer: "hyperframes" }));
   const f = path.join(tmp, "pop.lottie"); fs.writeFileSync(f, mk(2, true));
-  const r = spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "lottie", proj, f], { encoding: "utf8", cwd: ROOT });
+  const r = spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "add-lottie", proj, f, "--inline"], { encoding: "utf8", cwd: ROOT });
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.match(r.stdout, /animations in the file: pop, other/); assert.match(r.stdout, /KIT\.lottie\(el, 'assets\/pop\.json'/);
   assert.equal(JSON.parse(fs.readFileSync(path.join(proj, "hf", "assets", "pop.json"), "utf8")).assets[0].e, 1);
   assert.equal(spawnSync(process.execPath, [path.join(ROOT, "bin", "reelwright.mjs"), "lottie", proj, path.join(tmp, "nope.lottie")], { encoding: "utf8", cwd: ROOT }).status, 1);
-  console.log("lottie-features self-check: mask, track matte, gradient, image, text and expression fixtures seek-pure and moving; dotLottie v1 and v2 unzip with images inlined; `reelwright lottie` writes the JSON");
+  console.log("lottie-features self-check: mask, track matte, gradient, image, text and expression fixtures seek-pure and moving; dotLottie v1 and v2 unzip with images inlined; `add-lottie --inline` (and its deprecated alias `lottie`) writes the JSON");
 } finally { await b.close(); fs.rmSync(tmp, { recursive: true, force: true }); }

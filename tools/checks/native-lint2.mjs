@@ -68,7 +68,7 @@ const keysOf = (obj) => split(obj.trim().replace(/^\{|\}$/g, "")).flatMap((p) =>
 const lastObj = (args) => { const p = split(args).at(-1); return p && p.startsWith("{") ? p : null; };
 
 // The 13 skipped upstream rules whose premise Reelwright does not have (no native check answers them); the reason is the whole table
-// in docs/playbook/qa-lint.md, and tools/selfcheck/p15-lint.mjs checks that these, the ports and SKIP in hf-lint.mjs partition exactly.
+// in docs/playbook/qa-lint.md, and tools/selfcheck/lint-ports.mjs checks that these, the ports and SKIP in hf-lint.mjs partition exactly.
 export const NO_COUNTERPART = {
   root_composition_duration_derived: "a film's duration is always KIT.start's explicit dur (root_composition_missing_duration_source checks it); nothing is inferred from clips",
   timed_element_missing_clip_class: "class=\"clip\" is a HyperFrames Studio convention; the only data-start element Reelwright makes is KIT.video's <video>, which upstream exempts",
@@ -77,12 +77,12 @@ export const NO_COUNTERPART = {
   timeline_track_too_dense: "there are no timeline tracks; file size is composition_file_too_large",
   caption_track_kind_missing: "captions are drawn by KIT.subs or a caption block fed by `captions`, never a timeline track that needs a data-track-kind",
   gsap_timeline_registered_before_async_build: "KIT.gsap builds after fonts load and registers once; KIT.mount keeps the registered timeline object, so tweens added later still play",
-  audio_volume_double_automation: "a vol curve, fades and gain multiply in one ffmpeg chain (tools/p9-media.mjs audioChain); no control overrides another",
+  audio_volume_double_automation: "a vol curve, fades and gain multiply in one ffmpeg chain (tools/media-ffmpeg.mjs audioChain); no control overrides another",
   audio_carve_ungrouped_sources: "there is no carve: music ducks under the voiceover automatically (mix.py), and KIT.audio is never ducked",
   audio_group_timing_attrs: "buses are project.json keys (fx.vo, fx.music, fx.sfx), not elements, so they have no timing attributes",
   audio_group_holds_elements: "buses are project.json keys, not HTML elements that can hold other elements",
   audio_group_carve_attr: "there is no carve (see audio_carve_ungrouped_sources)",
-  audio_reactive_single_tween_per_group: "audio-reactive data (tools/p9-audio.js) is read inside render(t) every frame, so one tween per caption group cannot be written; no catalog component has it",
+  audio_reactive_single_tween_per_group: "audio-reactive data (tools/audio-viz.js) is read inside render(t) every frame, so one tween per caption group cannot be written; no catalog component has it",
 };
 
 // KIT.video / KIT.audio take one options object and ignore any other key (tools/media.js destructures it)

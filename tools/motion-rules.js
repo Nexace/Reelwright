@@ -175,7 +175,7 @@
     return amp * (1 - p) * Math.sin(2 * Math.PI * n * p);
   };
 
-  // ── prose-backed data: the docs name each key, tools/selfcheck/p6-rules.mjs keeps them in step ──────
+  // ── prose-backed data: the docs name each key, tools/selfcheck/motion-rules.mjs keeps them in step ──────
   R.checklist = [   // 3.1 pre-animation, 8 steps
     "purpose: what the viewer should understand or feel after this motion",
     "hierarchy: which one thing is primary, what is secondary, what stays still",

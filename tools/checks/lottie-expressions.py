@@ -1,6 +1,6 @@
 # lottie-expressions (gate): a Lottie expression that is not a pure function of time. lottie-web evaluates wiggle(), random(),
 # seedRandom() and gaussRandom() with Math.random-backed values, so the same frame differs between page loads and revisits
-# (measured: tools/selfcheck/p6-lottie-lint.mjs). Time-driven expressions (time, Math.sin, value) are deterministic and
+# (measured: tools/selfcheck/lottie-lint.mjs). Time-driven expressions (time, Math.sin, value) are deterministic and
 # pass. The warning for any expression at all is lottie-expressions-info. Skip: "qa": {"lottie-expressions": false}.
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))

@@ -32,5 +32,5 @@ How it follows the rules:
 - **The camera is sharp**: `KIT.shoot(cam, state, { sharp: true })` ([shotcraft-lints](../playbook/shotcraft-lints.md)); under shuffled seeks the frames are identical.
 - The number carries an "Illustrative data" label. No screenshots ship with the template: a mock UI card stands in until you set `screen`.
 
-`node tools/selfcheck/p10-template.mjs` builds a fresh copy offline, checks that `project.json`'s arc and `content.js` agree and are valid,
+`node tools/selfcheck/promo-template.mjs` builds a fresh copy offline, checks that `project.json`'s arc and `content.js` agree and are valid,
 seeks it in shuffled order and runs the aesthetic lints on it.

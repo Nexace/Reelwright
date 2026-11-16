@@ -13,7 +13,7 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
-import { blurSpec, linearBlurFilter } from "../p5-blur.mjs";
+import { blurSpec, linearBlurFilter } from "../motion-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
 import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";

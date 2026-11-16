@@ -2,14 +2,14 @@
 
 Everything here is opt-in: nothing runs on a film unless you call it or switch it on in `project.json`.
 
-## Sharp camera layer (`tools/p10-sharp.js`)
+## Sharp camera layer (`tools/sharp-camera.js`)
 
 `KIT.shoot(el, state)` films with `scale(z)`: Chromium rasterises the layer at its native size and scales the texture, so small
 text softens under a deep zoom or a 3D tilt. Pass `{ sharp: true }` and the layer is zoomed by layout instead (CSS `zoom: z`):
 text is laid out and rasterised at its final size. Same camera state, same picture, crisper type.
 
 ```html
-<script src="kit/shots.js"></script><script src="kit/p10-sharp.js"></script>
+<script src="kit/shots.js"></script><script src="kit/sharp-camera.js"></script>
 ```
 ```js
 KIT.shoot(cam, S.orbit({ t0, t1 })(t), { sharp: true });      // cam = a layer that fills the frame
@@ -18,14 +18,14 @@ KIT.camCSS(state, { sharp: true });                           // { zoom, width, 
 
 - The layer's box must start at the frame's top-left and fill it: the helper sets its width and height in px. A layer that is not
   frame-sized (a card, a bleed floor) goes inside a frame-sized wrapper (the `.cam` of `projects/shots-hf`).
-- A marker lands where `scale()` puts it, within 0.05 px, in 16x9 and 9x16 (`tools/selfcheck/motion/p10-sharp.mjs`); text boxes
+- A marker lands where `scale()` puts it, within 0.05 px, in 16x9 and 9x16 (`tools/selfcheck/motion/sharp-camera.mjs`); text boxes
   differ by a rounded line box because they are re-laid out at the zoomed size.
 - Headless screenshots re-raster every frame, so the pixel gain shows only where a compositor reuses a layer's texture. One
   measured gain: the Ink Press template, under shuffled seeks in HyperFrames, differed by about one pixel on every circle edge
   with `scale()` and is identical with `sharp: true`.
 - Without the option, the call goes straight to `tools/shots.js`.
 
-## Velocity helpers (`tools/p10-motion.js`)
+## Velocity helpers (`tools/velocity.js`)
 
 State-free, so safe in `render(t)`: `KIT.velocityAt(fn, t)` (central difference, units per second, number / array / object),
 `KIT.lagged(fn, t, tau)` (what an exponential follower of `fn` with time constant `tau` shows; trails by about `tau`) and

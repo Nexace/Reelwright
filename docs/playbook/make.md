@@ -35,4 +35,4 @@ The theme comes from `theme-brief`'s matcher (the brief against 192 product type
 
 It refuses, creating nothing, on an empty brief, an unknown flag, `--voice` with `--music-only`, a bad `--length`, a missing or empty folder, a bad `--url`, and a name that already exists (`--name` picks another). `from-url --yes` loads the one page you name; capture only sites you own or may use.
 
-`node tools/selfcheck/q6-make.mjs` checks the routing, the dry run, `--yes` and the refusals.
+`node tools/selfcheck/make.mjs` checks the routing, the dry run, `--yes` and the refusals.

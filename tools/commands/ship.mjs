@@ -1,6 +1,6 @@
 // ship [project] [--sign "name"]   ship checks on the delivered file and a review ledger. Runs on the built film page and the mp4 at project.json
-//                  "out": readtime + caption-tight, safe-zone (9:16), facts, motionscan, dead-air (tools/checks/p5-*.page.mjs) and A/V sync
-//                  (p5-av-sync.py), prints every finding, and writes <project>/ship.json: the mp4's sha256 and size, each check's lines, and the
+//                  "out": readtime + caption-tight, safe-zone (9:16), facts, motionscan, dead-air (tools/checks/{readtime,safe-zone,facts,motionscan,dead-air}.page.mjs) and A/V sync
+//                  (av-sync.py), prints every finding, and writes <project>/ship.json: the mp4's sha256 and size, each check's lines, and the
 //                  review entries. --sign "name" adds a sign-off for THIS mp4; it counts only while the sha still matches, so a re-render
 //                  voids it. Exit 1 when the mp4 is missing; findings are WARNs (they never fail the exit code), unsigned review is listed.
 import fs from "node:fs";
@@ -11,7 +11,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { launch } from "../browser.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const CHECKS = ["p5-readtime", "p5-safe-zone", "p5-facts", "p5-motionscan", "p5-dead-air"];
+const CHECKS = ["readtime", "safe-zone", "facts", "motionscan", "dead-air"];
 
 export default async ({ proj, args }) => {
   const si = args.indexOf("--sign"), signer = si >= 0 ? args.splice(si, 2)[1] : null;
@@ -30,8 +30,8 @@ export default async ({ proj, args }) => {
     for (const n of CHECKS) if (P.qa?.[n] !== false) checks[n] = (await (await import(`../checks/${n}.page.mjs`)).default(p, { DIR, P, W, H })).slice();
   } finally { await b.close(); }
   const py = spawnSync(process.platform === "win32" ? "python" : "python3", ["-c", "import importlib.util,sys,json\ns=importlib.util.spec_from_file_location('c',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps(m.check({'mp4':sys.argv[2],'proj':sys.argv[3]})))",
-    path.join(ROOT, "tools", "checks", "p5-av-sync.py"), mp4, DIR], { encoding: "utf8" });
-  checks["p5-av-sync"] = py.status === 0 ? JSON.parse(py.stdout) : [`av-sync skipped: ${py.stderr.trim().split("\n").pop()}`];
+    path.join(ROOT, "tools", "checks", "av-sync.py"), mp4, DIR], { encoding: "utf8" });
+  checks["av-sync"] = py.status === 0 ? JSON.parse(py.stdout) : [`av-sync skipped: ${py.stderr.trim().split("\n").pop()}`];
   // sign-offs stay valid only for the same bytes
   const review = (old.review || []).filter((r) => r.sha256 === sha);
   if (signer) review.push({ by: signer, sha256: sha });

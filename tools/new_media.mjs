@@ -5,12 +5,12 @@
 //   - an --audio file is copied beside it and mixed over the film (KIT.audio); with --audio only, the film is a title card for that sound.
 //   - transcript: the media's own speech, written to transcript.json ([{text,start,end}], what `captions` writes for the caption-* components) ONLY through a speech
 //     path that is already installed: faster-whisper (`reelwright transcribe install`, tools/local_speech.mjs) or whisper.cpp's `whisper-cli` and the model in
-//     $WHISPER_MODEL (tools/p5-narrate.mjs). Nothing is downloaded or installed here: without either, the transcript is skipped and the result says so.
+//     $WHISPER_MODEL (tools/narrate.mjs). Nothing is downloaded or installed here: without either, the transcript is skipped and the result says so.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
-import { asrAvailable } from "./p5-narrate.mjs";
+import { asrAvailable } from "./narrate.mjs";
 import { transcribeReady, transcribeMedia } from "./local_speech.mjs";
 
 const probe = (f) => {

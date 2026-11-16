@@ -89,7 +89,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | E5 | 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `themes/hf-{bold,editorial,neutral}.css` Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only exam… |
 | E6 | `catalog` listing / search by `--type`, `--tag`, `--json`; picker; `a… | EQUAL | `tools/commands/catalog.mjs` |
 | E7 | Data/map blocks: `us-map`, `us-map-bubble`, `us-map-flow`, `us-map-he… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | (10f): `world-map`, `us-map-bubble` supported (d3 7.9.2, topojson-client 3.1.0, us-atlas 3.0.1, world-atlas 2… |
-| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | EQUAL | `tools/caption_transcript.mjs` |
+| E8 | Caption-style components (16, tag `caption-style`) + 1 caption block;… | EQUAL | `tools/captions.mjs` |
 | E9 | Registry item schema (`registry-item.json`: params, variables, contro… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/blocks.mjs` `add` and tools/blocks.mjs read registry-item.json (variables, tags, files); no JSON-schema validation in too… |
 | E10 | 13 frame presets (`FRAME.md` spec + `caption-skin.html` + showcase ea… | BETTER | `themes/hf-*.css` |
 | F1 | Word-timed captions on screen, karaoke/word highlight, SRT/VTT export | EQUAL | `tools/renderers/pvk.mjs` |
@@ -107,7 +107,7 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | G9 | `reverse` / `measure` (probe, cuts, frames, face) / `diff` (SSIM per… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/videotools.mjs` (11): owner ruling 2026-11-15: exception, final, for `reverse` (AI rebuild stays OUT, as the row says) and fo… |
 | G10 | `render` (see section I) and `benchmark` (tries fps/quality/workers,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/renderers/pvk.mjs` `frames` renders the whole film or a pvk range (`frames <from> <to>`, tools/renderers/pvk.mjs), `PAGES`/`FPS`… |
 | G11 | `preview` (hot reload, background/foreground/status/list, port) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/preview.mjs` `preview` (tools/preview.mjs): live scrubber on :4173 (PORT=), fs.watch + SSE reload at the same t, Host-chec… |
-| G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | EQUAL | `tools/selfcheck/p8-doctor.mjs` |
+| G13 | `doctor` (Node, FFmpeg, Chrome, Docker, GPU, cache dir, version), `br… | EQUAL | `tools/selfcheck/doctor.mjs` |
 | G14 | `skills` / `update` / `upgrade` / `figma` / `events` / `templates` /… | OUT — exception (owner-approved 2026-11-12 and 2026-11-15) | for `auth billing cloud lambda cloudrun publish open catch-up usage telemetry feedback templates` (HeyGen acc… |
 | G15 | `--json` envelope on every command, `_meta` version/update notice, ex… | BETTER | `bin/reelwright.mjs` |
 | G16 | `figma asset/tokens/component` (REST: SVG/PNG/JPG/PDF assets frozen u… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/figma_export.py` tools/figma_export.py exports a file's or node's top-level frames as PNG at `--scale` (default 2) with frames… |
@@ -122,11 +122,11 @@ Source: [docs/parity/hyperframes.md](parity/hyperframes.md). 112 rows.
 | I1 | Formats: `mp4` (H.264 + AAC), `webm` (VP9 + alpha, Opus), `mov` (ProR… | EQUAL | `tools/renderers/pvk.mjs` |
 | I2 | Alpha / transparent output (webm, mov, png-sequence; transparent root… | EQUAL | (10a). `"output": {"alpha": true}`: pvk takes PNG screenshots with a transparent page, hf keeps the producer'… |
 | I3 | fps: 1-240 or rational (`30000/1001`); root `data-fps` | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/render.mjs` fps comes from `FPS` env or project.json `fps` (integer, default 60; tools/render.mjs:33, hyperframes.mjs:36,… |
-| I4 | Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `-… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
+| I4 | Quality: `draft`, `looks` (CRF 16), `standard`, `high`/`delivery`; `-… | EQUAL | `tools/selfcheck/render-opts.mjs` |
 | I5 | Resolution presets and 4K supersampling (`--resolution 4k/portrait-4k… | EQUAL | `tools/renderers/hyperframes.mjs` |
 | I6 | Multi-format outputs from one project | BETTER | `--formats 16x9,9x16,1x1,4x5,16x10` (4:5 and 16:10 added in 10a) re-layouts with `KIT.safe` and builds audio… |
 | I7 | HDR: BT.2020 PQ/HLG sources auto-detected, 10-bit H.265, `--hdr/--sdr` | EQUAL | on the hyperframes renderer (10a). `"output": {"hdr": true}` renders through the producer's mp4 path: HDR (PQ… |
-| I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | EQUAL | `tools/selfcheck/p8-render-opts.mjs` |
+| I8 | Workers `--workers` 1-24 (auto by cores/memory/frames), `--low-memory… | EQUAL | `tools/selfcheck/render-opts.mjs` |
 | I9 | GPU: `--gpu` hardware ffmpeg (NVENC, VideoToolbox, AMF, VAAPI, QSV),… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/REPRODUCIBLE.md` Software GL is forced (`PRODUCER_BROWSER_GPU_MODE` default software) and the encode is libx264/libvpx; no har… |
 | I10 | Streaming encode (no raw frames on disk), segmented capture + `--resu… | EQUAL | `tools/renderers/hyperframes.mjs` |
 | I11 | Docker deterministic render (`--docker`) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/REPRODUCIBLE.md.` No Dockerfile or `--docker` (repo has cloud/ Colab files and .github/workflows only). Determinism is software… |
@@ -155,18 +155,18 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | ID | Feature | Status | Proof or note |
 |---|---|---|---|
 | 2.1.1 | `interpolate()` n keyframes, per-segment easing array (n-1) | EQUAL | `tools/engine.js` |
-| 2.1.2 | Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `e… | EQUAL | `tools/p9-time.js` |
-| 2.1.3 | `output:'perceptual-scale'` | EQUAL | `tools/p5-media.js` |
+| 2.1.2 | Extrapolation modes `extend`, `clamp`, `identity`, `wrap` (default `e… | EQUAL | `tools/timing.js` |
+| 2.1.3 | `output:'perceptual-scale'` | EQUAL | `tools/animated-image.js` |
 | 2.1.4 | `posterize` N (stepped look) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): no `posterize` option; stepping a film's time is one expression (`K.keys(Math.floor(t… |
 | 2.1.5 | `outputType` string outputs (`"20deg"`, `"0px 0px"`, transform-origin… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/selfcheck/runtimes.mjs` Not built (10z audit): no unit-string lerp callable from `render(t)`; `KIT.gsap` / `KIT.anime` tweens interpo… |
-| 2.1.6 | `interpolateColors()` (rgb, hsl, oklab, easing option) | EQUAL | `tools/p9-time.js` |
+| 2.1.6 | `interpolateColors()` (rgb, hsl, oklab, easing option) | EQUAL | `tools/timing.js` |
 | 2.1.7 | `Easing.*` (step0/1, linear, ease, quad, cubic, poly, sin, circle, ex… | EQUAL/BETTER | `K.easing('power3.out')`, GSAP families, bezier (engine.js L13-90) |
 | 2.1.8 | `Easing.spring({damping...})` as easing; `spring()` (mass, damping, s… | EQUAL | `K.spring`, `K.springDur` (closed form; Phase 9 noted Remotion's critical-damped quirk for zeta>=1) |
-| 2.1.9 | `random(seed)` deterministic PRNG (mulberry32 over string hash) | EQUAL | `tools/p9-time.js` |
-| 2.1.10 | `<Sequence from trimBefore durationInFrames playbackRate loop freeze… | EQUAL | `tools/p9-time.js` |
+| 2.1.9 | `random(seed)` deterministic PRNG (mulberry32 over string hash) | EQUAL | `tools/timing.js` |
+| 2.1.10 | `<Sequence from trimBefore durationInFrames playbackRate loop freeze… | EQUAL | `tools/timing.js` |
 | 2.1.11 | `<Series>` / `Series.Sequence offset` | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/sched.py` Not built (10z audit): scene starts come from `V()` / `W()` and the script's `gap`s (tools/sched.py), which a… |
-| 2.1.12 | `<Loop times durationInFrames>` / `useLoop()`; `loop` prop | EQUAL | `tools/p9-time.js` |
-| 2.1.13 | `<Freeze frame>` / `<Sequence freeze>` | EQUAL | `tools/p9-time.js` |
+| 2.1.12 | `<Loop times durationInFrames>` / `useLoop()`; `loop` prop | EQUAL | `tools/timing.js` |
+| 2.1.13 | `<Freeze frame>` / `<Sequence freeze>` | EQUAL | `tools/timing.js` |
 | 2.1.14 | `<Track>` non-overlapping named timeline lanes; editable timeline gro… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | (Studio-only concept) |
 | 2.1.15 | Premounting (`premountFor`), `SequenceActivityBudget` | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) | (pure `render(t)` has no mount cost) |
 | 2.1.16 | `delayRender()/continueRender()/cancelRender()`, `useDelayRender` | EQUAL | in effect: pvk waits for `window.READY`/fonts/images (README, pvk.mjs) |
@@ -176,8 +176,8 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.1.20 | `<Folder>`, `<Still>`, many `<Composition>` per project, `id` selecti… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | one film per project folder |
 | 2.1.21 | `@remotion/animation-utils` `interpolateStyles`, `makeTransform` | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/selfcheck/runtimes.mjs` Not built (10z audit): no style-object lerp (`K.styles`); GSAP tweens in `KIT.gsap` animate whole style sets… |
 | 2.1.22 | `@remotion/gsap` `useGsapTimeline` (paused timeline seeked to current… | EQUAL | `tools/runtimes.js` |
-| 2.2.1 | `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - o… | EQUAL | `tools/p9-time.js` |
-| 2.2.2 | Timings `linearTiming`, `springTiming` (duration from spring settle;… | EQUAL | `tools/p9-time.js` |
+| 2.2.1 | `<TransitionSeries>` Sequence + Transition + Overlay; total = sum - o… | EQUAL | `tools/timing.js` |
+| 2.2.2 | Timings `linearTiming`, `springTiming` (duration from spring settle;… | EQUAL | `tools/timing.js` |
 | 2.2.3 | Presentation `fade` | EQUAL | `tools/transitions.js` |
 | 2.2.4 | `slide` (from-left/right/top/bottom), `wipe` (4 dir, entering slides… | EQUAL | `tools/transitions.js` |
 | 2.2.5 | `pushCut` (punch-in + flash), `cube` (3D, added 4.0.540), `none` + `u… | EQUAL | `tools/transitions.js` |
@@ -200,23 +200,23 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.3.10 | `<HtmlInCanvas>` (DOM drawn into canvas, `onPaint`, WebGL/WebGPU; Chr… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.3.11 | Motion blur: `<HtmlInCanvasMotionBlur shutterAngle=180 samples=8>`; `… | EQUAL | `tools/fx-blur.js` |
 | 2.3.12 | Greenscreen via `colorKey()`; video matting (`@remotion/video-matting… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
-| 2.4.1 | `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trim… | EQUAL | `tools/p9-media.mjs` |
-| 2.4.2 | `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) | EQUAL | `tools/p9-media.mjs` |
+| 2.4.1 | `<Video>` (@remotion/media; Mediabunny/WebCodecs; frame-perfect; trim… | EQUAL | `tools/media-ffmpeg.mjs` |
+| 2.4.2 | `<OffthreadVideo>` (Rust+FFmpeg exact frame as `<Img>`; `transparent`) | EQUAL | `tools/media-ffmpeg.mjs` |
 | 2.4.3 | `<Html5Video>`, `<Html5Audio>` | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) | (non-seekable, qa forbids) |
-| 2.4.4 | `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `v… | EQUAL | `tools/p9-media.mjs` |
+| 2.4.4 | `<Audio>` trim (`trimBefore`, `durationInFrames`), delay (`from`), `v… | EQUAL | `tools/media-ffmpeg.mjs` |
 | 2.4.5 | Audio exports: `--separate-audio-to`, `--for-seamless-aac-concatenati… | EQUAL/BETTER | encode owns audio; loudnorm gate |
 | 2.4.6 | SFX library (`@remotion/sfx`: ~35 wav at remotion.media, peak -3 dB,… | BETTER | `tools/mix.py` |
-| 2.4.7 | Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bi… | EQUAL | `tools/p9-audio.js` |
+| 2.4.7 | Audio visualisation: `useWindowedAudioData`, `visualizeAudio` (FFT bi… | EQUAL | `tools/audio-viz.js` |
 | 2.4.8 | `getAudioDuration`, `getVideoDuration`, `getVideoDimensions`, `getIma… | EQUAL | ffprobe in tools |
 | 2.4.9 | Silence detection recipe (loudnorm `input_thresh` -> `silencedetect n… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): no silence-detect step; VO is TTS (no dead air) and music is trimmed with `music.start… |
 | 2.4.10 | `@remotion/media-parser`, `@remotion/webcodecs` (convert/crop/resize/… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) | (ffmpeg does this) |
 | 2.4.11 | FFmpeg shipped: `npx remotion ffmpeg/ffprobe`; trim re-encode rule | EQUAL | (system ffmpeg, setup checks it) |
 | 2.4.12 | Images: `<Img>`, `<CanvasImage fit crop>`, dynamic paths, image seque… | EQUAL | `K.img` + DOM |
-| 2.4.13 | Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`… | EQUAL | `tools/p5-media.js` |
+| 2.4.13 | Animated images `<AnimatedImage>` (GIF/APNG/WebP/AVIF, `playbackRate`… | EQUAL | `tools/animated-image.js` |
 | 2.4.14 | Cropping `cropLeft/Right/Top/Bottom` ratios on any layer | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/transitions.js` (CSS clip-path by hand). Not built (10z audit): no `K.crop`; `clip-path: inset(t r b l)` is the one-liner (it… |
 | 2.4.15 | Fonts: `@remotion/google-fonts` (typed loaders, blocks render until r… | BETTER | offline: 17 bundled OFL families, theme tokens (fonts/LICENSES.md) |
 | 2.4.16 | Arabic/RTL text rules (direction, animate by word, keep letters joine… | UNVERIFIED — exception (owner-approved 2026-11-12 and 2026-11-15) | (not tested in Reelwright) |
-| 2.4.17 | `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`… | EQUAL | `tools/p9-text.js` |
+| 2.4.17 | `@remotion/layout-utils`: `measureText`, `fitText`, `fitTextOnNLines`… | EQUAL | `tools/text-measure.js` |
 | 2.4.18 | `@remotion/rounded-text-box` (rounded highlight box behind multi-line… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/math2.js` Not built (10z audit): no rounded text-highlight box; `KIT.math.surround` / `backgroundRect` (tools/math2.js)… |
 | 2.4.19 | `staticFile()`, `getStaticFiles`, `watchStaticFile`, `prefetch/preloa… | EQUAL | files in project dir; encode writes .srt/.vtt/manifest |
 | 2.5.1 | `Caption` JSON type `{text, startMs, endMs, timestampMs, confidence,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/renderers/pvk.mjs` our VO words `{w,t,d}` in seconds. Not built (10z audit): no `Caption` JSON adapter; captions leave as .srt /… |
@@ -225,7 +225,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.5.4 | Display captions: Basic Captions element (copied from remotion.dev/el… | EQUAL |  |
 | 2.5.5 | Transcribe: `@remotion/whisper-webgpu` (WebGPU, Node/browser, Transfo… | EQUAL | `tools/transcribe_fw.py` |
 | 2.5.6 | Voiceover: ElevenLabs per scene -> `calculateMetadata` duration | BETTER | for core (edge-tts free, word timings). Paid ElevenLabs = out of scope (connectors doc) |
-| 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | EQUAL | `tools/p9-highlight.js` |
+| 2.5.7 | Text highlights `@remotion/rough-notation` (Highlight, Circle, Underl… | EQUAL | `tools/highlight.js` |
 | 2.5.8 | `@remotion/animated-emoji` (Noto animated emoji) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.5.9 | `@remotion/mac-cursors` (macOS cursor set) | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | drawn `K.cursor` |
 | 2.6.1 | `@remotion/lottie` `<Lottie animationData>` driven by frame; `getLott… | EQUAL | `tools/runtimes.js` |
@@ -233,17 +233,17 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.6.3 | `@remotion/skia` (`SkiaCanvas`, `enableSkia`; Shopify react-native-sk… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.6.4 | `@remotion/rive` `<RemotionRiveCanvas>` | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.6.5 | Spline/Figma/After Effects import | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/figma_export.py` (10b): `tools/figma_export.py` exports PNG; After Effects reaches films as Lottie JSON through `KIT.lottie` (… |
-| 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | EQUAL | `tools/p9-shapes.js` |
+| 2.6.6 | `@remotion/shapes`: components (Rect, Circle, Ellipse, Triangle, Star… | EQUAL | `tools/shapes.js` |
 | 2.6.7 | `@remotion/paths`: `getLength`, `getPointAtLength`, `getTangentAtLeng… | EQUAL | `vendor/paths` |
-| 2.6.8 | `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1… | EQUAL | `tools/p9-time.js` |
+| 2.6.8 | `@remotion/noise` `noise2D/3D/4D(seed,x,y,z,w)` (simplex-noise 4.0.1… | EQUAL | `tools/timing.js` |
 | 2.6.9 | Maps: static map as image; Mapbox GL, MapLibre GL, MapTiler SDK + Tur… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `vendor/hyperframes/registry/blocks,` (10f): offline maps from the vendored d3 + topojson + world / US atlases as blocks `world-map`, `us-map-bubbl… |
 | 2.6.10 | Canvas capture, `@remotion/svg-3d-engine`, `@remotion/preload`, `@rem… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
-| 2.6.11 | Text rules in skills `video-layout.md`: 1080-wide minimums 84 px head… | EQUAL | `docs/playbook/p9-text-rules.md` |
-| 2.7.1 | Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profi… | EQUAL | `tools/p9-encode.mjs` |
-| 2.7.2 | Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-si… | EQUAL | `tools/p9-encode.mjs` |
+| 2.6.11 | Text rules in skills `video-layout.md`: 1080-wide minimums 84 px head… | EQUAL | `docs/playbook/text-rules.md` |
+| 2.7.1 | Codecs `h264` (default), `h265`, `vp8`, `vp9`, `av1`, `prores` (profi… | EQUAL | `tools/encode.mjs` |
+| 2.7.2 | Quality knobs: `--crf`, `--video-bitrate`, `--max-rate`, `--buffer-si… | EQUAL | `tools/encode.mjs` |
 | 2.7.3 | Hardware-accelerated encode (`--hardware-acceleration`, VideoToolbox… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): no hardware encode; it needs the machine's GPU encoder, differs per platform and would… |
 | 2.7.4 | Transparent video: ProRes 4444 (`--image-format=png --pixel-format=yu… | EQUAL | `tools/renderers/pvk.mjs,` |
-| 2.7.5 | Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30… | EQUAL | `tools/p9-encode.mjs` |
+| 2.7.5 | Frame range `--frames 0-9`, `100-`, single, comma list (tested: `0,30… | EQUAL | `tools/encode.mjs` |
 | 2.7.6 | Still images `npx remotion still` (png, jpeg, webp, pdf) | EQUAL | `stills` |
 | 2.7.7 | Image sequence output + pattern (`--image-sequence-pattern 'frame_[fr… | EQUAL | (frames/ dir) |
 | 2.7.8 | Animated GIF render (`--codec=gif`, `--number-of-gif-loops`, `--every… | EQUAL | `tools/renderers/pvk.mjs,` |
@@ -252,7 +252,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.7.11 | Env/config: `remotion.config.ts` (`Config.set*`), `--env-file`, `--lo… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.12 | Browser: Chrome Headless Shell auto-installed (mac arm64/x64, win x64… | EQUAL | (Playwright Chromium; HF uses its headless shell) |
 | 2.7.13 | Media cache sizes: `--media-cache-size-in-bytes`, `--offthreadvideo-c… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
-| 2.7.14 | HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--me… | EQUAL | `tools/p9-encode.mjs` |
+| 2.7.14 | HDR (not supported: headless Chrome), Rspack, `--repro` bundle, `--me… | EQUAL | `tools/encode.mjs` |
 | 2.7.15 | Cloud: Lambda, Cloud Run, Vercel Sandbox, Azure, Cloudflare, `@remoti… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) | (owner: no cloud render to AWS/GCP; Colab/Actions exist) |
 | 2.7.16 | `@remotion/renderer` Node API (`renderMedia`, `renderFrames`, `render… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.7.17 | Bundler / site: `npx remotion bundle`, `serveUrl` reuse across renders | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
@@ -260,7 +260,7 @@ Source: [docs/parity/remotion.md](parity/remotion.md). 110 rows.
 | 2.8.1 | Remotion Studio (`npx remotion studio`): timeline, props sidebar (Cmd… | EQUAL | `tools/studio/agent.mjs` |
 | 2.8.2 | Interactivity: `Interactive.Div/Svg/Path...`, `Interactive.create()`… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.8.3 | Connected compositions / pre-compose a scene with its own timeline | EQUAL | `tools/compose.js,` |
-| 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | EQUAL | `tools/p9-player.js` |
+| 2.8.4 | `<Player>` (`@remotion/player`): controls, loop, autoPlay, inFrame/ou… | EQUAL | `tools/player.js` |
 | 2.8.5 | Studio export to OpenTimelineIO; Editor Starter ($600) and Timeline (… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
 | 2.8.6 | AI helpers: Remotion Skills (this repo), plugins for Claude Code/Code… | EQUAL | `docs/playbook/claude-workflow.md,` |
 | 2.8.7 | `npx create-video`, `npx remotion add <pkg>` (installs the exact matc… | N/A — exception (owner-approved 2026-11-12 and 2026-11-15) |  |
@@ -383,28 +383,28 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.9 | Pencil grain: graphite skips paper valleys (destination-in tooth tile) | EQUAL | (10g): `D.grain(svg)` tooth mask baked in JS from `D.noise` (no feTurbulence) |
 | 1.10 | Cost-weighted stroke scheduling (len+9 px per lift, 38 cost/frame, 15… | EQUAL | `D.schedule(lengths,t0,t1,rest)`; snap via KIT.snap |
 | 1.11 | Underline / circle-the-number marks that draw on a spoken word | EQUAL | `D.underline`, `D.circle` + HF catalog hw-underline, hw-callout-circle, marker-highlight |
-| 1.12 | Callout: dot lands, leader line drawn, label written; anchor follows… | EQUAL | `tools/p5-doodle.js` |
-| 1.13 | Drawing score: parts, ids, dependencies, removable layers, teaching p… | EQUAL | `tools/p5-doodle.js` |
+| 1.12 | Callout: dot lands, leader line drawn, label written; anchor follows… | EQUAL | `tools/callouts.js` |
+| 1.13 | Drawing score: parts, ids, dependencies, removable layers, teaching p… | EQUAL | `tools/callouts.js` |
 | 1.14 | Film of a picture drawing itself, last frame = still pixel for pixel | EQUAL | (10g): `D.drawSVG(svg,{t0,t1,order,style})`, original attributes restored at t1 |
 | 1.15 | Lessons: step sheet + captioned timelapse, drawn-stroke captions | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): the teaching niche; D.score gives the timelapse but there is no step sheet and no draw… |
 | 1.16 | Pen-written lettering: authored centrelines, pointed-pen width from d… | EQUAL | (10g): `D.letters` on an authored single-stroke skeleton (A–Z 0–9 punctuation), pointed-nib width, constant n… |
-| 1.17 | Illustrated kinetic type: every word drawn stroke by stroke in a medi… | EQUAL | `tools/p5-doodle.js` |
+| 1.17 | Illustrated kinetic type: every word drawn stroke by stroke in a medi… | EQUAL | `tools/callouts.js` |
 | 1.18 | 32 art styles (pencil, watercolour, woodcut, rubber hose, sumi-e, toy… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/doodle2.js,` (10g): 6 of the 32 in `D.styles` (pencil, riso, marker, ballpoint, chalk, blueprint; tools/doodle2.js, docs/p… |
-| 1.19 | Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/a… | EQUAL | `tools/p5-deck.mjs` |
+| 1.19 | Motion deck: 46 named moves with numbers (open/seam/cam/reveal/type/a… | EQUAL | `tools/motion-deck.mjs` |
 | 1.20 | Six seam mechanisms (foreground-as-transition, persistent actor, sele… | EQUAL | `docs/playbook/doodle.md` |
-| 1.21 | Shape handoff: one outline travels, stretches, becomes the target; co… | EQUAL | `tools/p5-morph.js` |
+| 1.21 | Shape handoff: one outline travels, stretches, becomes the target; co… | EQUAL | `tools/morph.js` |
 | 1.22 | Brush wipe, iris, flash-on-cut seams (pure, rng-seeded bristles) | EQUAL | `tools/transitions.js` |
 | 1.23 | Matched-move seam arithmetic (exit accelerates, cut at fastest frame,… | EQUAL | (10g): `D.matchedMove` (cubic exit/entry matched at the cut; selfcheck checks velocity) |
-| 1.24 | Camera: keys with per-segment ease, log2 zoom, monoZoom, authored pat… | EQUAL | `tools/p5-camera.js` |
+| 1.24 | Camera: keys with per-segment ease, log2 zoom, monoZoom, authored pat… | EQUAL | `tools/camera.js` |
 | 1.25 | Camera: true depth parallax (plane z scales with one dolly), line-wei… | EQUAL | `tools/shots2.js` |
-| 1.26 | Lens zoom vs dolly vs dolly-zoom (solved per frame) | EQUAL | `tools/p5-camera.js` |
-| 1.27 | Shake as gradient noise, attack ramp, squared decay, rot about centre | EQUAL | `tools/p5-camera.js` |
-| 1.28 | Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, fi… | EQUAL | `tools/p5-morph.js` |
-| 1.29 | Motion blur: sub-frame render averaged in linear light (`--blur auto`… | EQUAL | `tools/p5-blur.mjs` |
+| 1.26 | Lens zoom vs dolly vs dolly-zoom (solved per frame) | EQUAL | `tools/camera.js` |
+| 1.27 | Shake as gradient noise, attack ramp, squared decay, rot about centre | EQUAL | `tools/camera.js` |
+| 1.28 | Time remap: speed keys, smoothstep ramps, freeze with keepsMoving, fi… | EQUAL | `tools/morph.js` |
+| 1.29 | Motion blur: sub-frame render averaged in linear light (`--blur auto`… | EQUAL | `tools/motion-blur.mjs` |
 | 1.30 | World: every beat a region on one canvas, one camera travels (anti sl… | EQUAL | `docs/recipes/one-world.md` |
 | 1.31 | Motion kit: alternate(), entryFrom(i), temperament tokens, cubicBezie… | EQUAL | theme motion tokens (--kit-ease/tempo/stagger/settle), K.bezier; alternate/entryFrom trivial and absent |
-| 1.32 | Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() | EQUAL | `tools/p5-text.js` |
-| 1.33 | Subtitles: 2-6 word phrases landing on the first spoken word; caption… | EQUAL | `tools/p5-text.js` |
+| 1.32 | Reading-time rule: readS = max(0.7 s, 0.3 s/word); chatHold; paced() | EQUAL | `tools/read-time.js` |
+| 1.33 | Subtitles: 2-6 word phrases landing on the first spoken word; caption… | EQUAL | `tools/read-time.js` |
 | 1.34 | Product UI from data: before/after states, items spring to slots, mat… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `docs/recipes/before-after.md` Reelwright films a real recorded UI instead. Not built (10z audit): no id-keyed before/after list morph; docs… |
 | 1.35 | People placement by head size; pop-out on a disc | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): niche (people placement by head size), the Approach says not needed. Suggest: accept a… |
 | 1.36 | 3D with three.js (extruded type, puppets, camera through space) on th… | EQUAL | `tools/runtimes.js` |
@@ -412,17 +412,17 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 1.38 | Isometric / low-poly / halftone / stipple render styles | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): style plates, the Approach says skip (halftone/dither exist as HF catalog blocks). Sug… |
 | 1.39 | Photo -> marks (tone + direction fields from a user photo) | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): needs per-style mark engines, the Approach says skip. Suggest: accept as exception. |
 | 1.40 | Style adaptation from a reference image | EQUAL | `tools/theme_from.mjs,` |
-| 1.41 | Brand import (Figma sheet, logos, inventory, check) | EQUAL | `tools/p5-brand.mjs` |
+| 1.41 | Brand import (Figma sheet, logos, inventory, check) | EQUAL | `tools/brand.mjs` |
 | 1.42 | Character consistency across shots/styles | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): needs character rigs, the Approach says skip. Suggest: accept as exception. |
 | 1.43 | Original score composed in code: 21 genre vocabularies, instruments,… | PARTIAL — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/selfcheck/sound.mjs` (10g): 4 numpy beds, chill, drive, house (124 BPM), hiphop (90 BPM), with `drop_bar` / `end_bar` form; proof:… |
 | 1.44 | Optional recorded-instrument sound pack (piano, harp, marimba... 373… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | Not built (10z audit): 373 MB hash-pinned CC0 + CC BY 4.0 download, the Approach says do NOT bundle and at mo… |
 | 1.45 | SFX kit: 14 layered seeded effects (tick, press, pop, ink, scratch, p… | EQUAL | `tools/mix.py` |
 | 1.46 | SFX placement rules: cue by frame, score ducks under each cue, <=6 dB… | EQUAL | (10g): PEAK table lands peaks on cues, repeat variants + ×0.8 step, music ducks −6 dB under subdrop (impact/r… |
-| 1.47 | Narration: multiple providers (say, kokoro local; cloud gemini/openai… | EQUAL | `tools/p5-narrate.mjs` |
+| 1.47 | Narration: multiple providers (say, kokoro local; cloud gemini/openai… | EQUAL | `tools/narrate.mjs` |
 | 1.48 | Narration ducking numbers: -9 dB, 40 ms down, 450 ms up | EQUAL | mix.py sidechain-style duck + -14 LUFS |
-| 1.49 | Determinism gate: hash frames forward vs reverse, cold vs cached; dea… | EQUAL | `tools/p5-gate.mjs` |
-| 1.50 | Ship checks on the delivered file: framecheck (text whole, up long en… | EQUAL | `tools/checks/p5-*` |
-| 1.51 | Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-al… | EQUAL | `tools/p5-formats.mjs` |
+| 1.49 | Determinism gate: hash frames forward vs reverse, cold vs cached; dea… | EQUAL | `tools/determinism.mjs` |
+| 1.50 | Ship checks on the delivered file: framecheck (text whole, up long en… | EQUAL | `tools/checks/{readtime,safe-zone,facts,motionscan,dead-air}.page.mjs` |
+| 1.51 | Formats: 1x1, 9x16, 16x9, 4x5 or any WxH; 30 or 60 fps; GIF / WebM-al… | EQUAL | `tools/formats.mjs` |
 | 1.52 | Launch-film kit: spec -> chat types itself, answers bloom, end card,… | BETTER | Reelwright films the real product (record.mjs), VO+captions+srt/vtt, 3 shapes; `from-url` drafts a film |
 | 1.53 | Interactive web art: <ani-doodle> mascots that follow the cursor, scr… | MISSING — exception (owner-approved 2026-11-12 and 2026-11-15) | `tools/commands/embed.mjs` Not built (10z audit): not video, belongs to the embeddable-player / studio work (tools/commands/embed.mjs an… |
 | 2.1 | basic-3d-scene [1 shot] | EQUAL | `tools/shots2.js` |
@@ -549,9 +549,9 @@ Source: [docs/parity/doodle-shots-motion.md](parity/doodle-shots-motion.md). 252
 | 2.122 | row-embed [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2.123 | value-stagger-gradient [1 shot] | EQUAL | `tools/shotcards/ui-entrance.js` |
 | 2.124 | wall-reveal-moves (bento-light-up, wireframe-draw-on) [2 shots] | EQUAL | `tools/shotcards/ui-entrance.js` |
-| 2b.1 | Camera layer: layout-scale `zoom` instead of scale so text stays shar… | EQUAL | `tools/p10-sharp.js` |
+| 2b.1 | Camera layer: layout-scale `zoom` instead of scale so text stays shar… | EQUAL | `tools/sharp-camera.js` |
 | 2b.2 | Gradient depth-of-field band on a tilted page (backdrop blur + mask) | EQUAL | `tools/shots2.js` |
-| 2b.3 | Velocity helpers: velocityAt, lagged, dampedSettle (state-free) | EQUAL | `tools/p10-motion.js` |
+| 2b.3 | Velocity helpers: velocityAt, lagged, dampedSettle (state-free) | EQUAL | `tools/velocity.js` |
 | 2b.4 | Deterministic hand-held + impact shake | EQUAL | K.handheld (same constants x30), K.shake |
 | 2b.5 | Motion blur for fast moves (shutterAngle 200, 8-20 samples) | EQUAL | `tools/renderers/pvk.mjs,` |
 | 2b.6 | Caption info-strip, DigitRoll odometer, FlashCut, VerticalTicker, Cli… | EQUAL | `tools/kit-components.js` |
@@ -687,7 +687,7 @@ Rows in the first ruling (reason groups 1-9, 80 rows, reason = the group) and ro
 - `hyperframes:D5` — Groups, mute, master bus FX on the root (`data-audio-group`) — MISSING — reason: mix.py is a fixed voice/music/SFX mix with one master loudnorm; no groups, mute or buses. Not built: only matters once D1 exists. Suggest: except.
 - `hyperframes:D7` — `normalize-audio` (EBU R128 match to a reference clip) — PARTIAL — reason: The film is loudnormed to project.json `loudness` (default −14 LUFS) in tools/mix.py. Missing: per-clip match to a reference clip; there is no clip-level audio. Suggest: except unless A8 audio clips…
 - `hyperframes:D11` — `media-use resolve`: asset resolver with reuse cache (`.media/`, `~/.media`), types bgm sfx image i… — PARTIAL — reason: Synth SFX/music (tools/mix.py, tools/music.py) and the paid opt-in `gen` connector with an assets/.gen/ prompt-hash cache (tools/gen.mjs). No `asset` resolver, shared cache or Openverse/logo/LUT sour…
-- `hyperframes:E2` — Asset-bearing components (9) — PARTIAL — reason: (11): owner ruling 2026-11-15: exception, final. 7 of 9 asset components install (`reelwright add`, `tools/component_assets.mjs`, proved by `node tools/selfcheck/p12b-components.mjs`), 2 use procedur…
+- `hyperframes:E2` — Asset-bearing components (9) — PARTIAL — reason: (11): owner ruling 2026-11-15: exception, final. 7 of 9 asset components install (`reelwright add`, `tools/component_assets.mjs`, proved by `node tools/selfcheck/component-assets.mjs`), 2 use procedu…
 - `hyperframes:E3` — 210 blocks (`hyperframes:block`, full 5-30 s scenes, mounted as sub-compositions at `compositions/<… — PARTIAL — reason: Needs WebGPU / specific hardware
 - `hyperframes:E4` — Block categories to cover: transitions (33 tagged), overlays (31), backgrounds (30), carousels (26… — PARTIAL — reason: (11): owner ruling 2026-11-15: exception, final, for the blocks not vendored: 37 need WebGPU, 19 have assets with an unknown licence, 14 need upstream source that is not in this repo (and writes unde…
 - `hyperframes:E5` — 8 `examples` registry items (decision-tree, kinetic-type, nyt-graph, play-mode, product-promo, swis… — PARTIAL — reason: Themes part BETTER: themes/hf-{bold,editorial,neutral}.css among 27 themes. `reelwright new` offers only example, example-hf and remotion starters (bin/reelwright.mjs); none of the 8 upstream example…

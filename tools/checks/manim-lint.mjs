@@ -1,5 +1,5 @@
 // Manim scene lints (Phase 11 P4, rows manim:m11.2 and m11.3). Pure functions, no browser, no Manim; run by
-// `reelwright manim-lint <project>` (tools/commands/manim-lint.mjs) and proved by tools/selfcheck/p4-lint.mjs.
+// `reelwright manim-lint <project>` (tools/commands/manim-lint.mjs) and proved by tools/selfcheck/manim-lint.mjs.
 // Own code (the Manim Craft scripts these rules come from carry no licence, so nothing is copied).
 //   lintTexts(doc, opts) -> findings    doc = the texts.json a scene writes with reelwright_manim.texts (px boxes per snapshot)
 //        OFF-FRAME     a text box leaves the frame by more than 1 px                                         (FAIL)

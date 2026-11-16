@@ -236,6 +236,9 @@
     "skill-docs": {
       "s": 0
     },
+    "skills-install": {
+      "s": 0.3
+    },
     "slideshow": {
       "serial": true,
       "s": 5.9

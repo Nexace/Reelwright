@@ -1,7 +1,10 @@
 # python3 tools/sched.py <project>
 # Places every VO line on the film timeline (gap before each line, optional snap to the music's beat)
 # and writes <project>/film/data.js (hf/kit-data.js for renderer "hyperframes") = window.PROJECT + window.VO (absolute word times) + window.MUSIC (beat grid).
+# MUSIC also carries the baked timing tables films read: .onsets (music/onsets.json, tools/beatsync.py --write; KIT.hit) and
+# .marks (marks.json, resolved here by tools/marks.py; KIT.mark / KIT.until / KIT.dur).
 import json, math, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import marks
 
 proj = sys.argv[1]
 P = json.load(open(os.path.join(proj, "project.json")))
@@ -55,6 +58,11 @@ for ln in P["lines"]:
     if lid in base: vo[lid]["base"] = base[lid]
     t = vo[lid]["end"]
 speech_end = t
+mk = marks.resolve(proj, P, vo)   # named markers → marks.json, then baked below
+if mk: music["marks"] = {k: {"t": v["t"], "dur": v["dur"]} for k, v in mk.items()}
+op = os.path.join(proj, "music/onsets.json")
+if os.path.exists(op):            # per-band onsets of the rendered film's audio (tools/beatsync.py --write)
+    music["onsets"] = json.load(open(op)).get("bands", {})
 music.update({k: M[k] for k in ("drop_bar", "end_bar", "style") if k in M})
 if "drop_bar" in M:   # set by hand (or the synth bed's drop): overrides detection
     music["drop"] = round(music["t0"] + M["drop_bar"] * music["bar"], 3)

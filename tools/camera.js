@@ -5,10 +5,16 @@
 //       Exactly the key's state at its t; holds the first and last key outside. KIT.shot.path(fn) is an authored t → state function.
 //   KIT.shot.monoZoom(z0, z1, p)                        log2 zoom between z0 and z1 at progress p (exact at 0 and 1)
 //   KIT.shot.lens({ t0, t1, to, ease })                 lens zoom: the focal length changes, depth does not (planes do not move apart)
-//   KIT.shot.dollyZoomReal(planes, { t0, t1, dolly, ease })   dolly-zoom solved per frame over >= 2 depth planes [{ el, z }] (z = 1 is the
+//   KIT.shot.dollyZoomReal(planes, { t0, t1, dolly, ease, focus })   dolly-zoom solved per frame over >= 2 depth planes [{ el, z }] (z = 1 is the
 //       subject plane, bigger = farther). The camera dollies by q (the planes' pose, S.planes: depth d scales 1 / (1 - q / d)) while the lens
 //       zooms by (1 - q) so the SUBJECT plane keeps its size; a far plane ends at (1 - q) / (1 - q / d). Returns fn(t) that writes the
-//       styles, with .at(t) → [{ scale, line }] (line = --kit-line, the stroke compensation) and .lens(t).
+//       styles, with .at(t) → [{ scale, line }] (line = --kit-line, the stroke compensation) and .lens(t). `focus` = S.focus(...) adds a
+//       per-plane blur through the camera state's own blur channel (camCSS → filter), so a rack focus rides the same dolly.
+//   KIT.shot.focus({ from, to, t0, t1, aperture = 0.025, maxblur = 1 })   a rack focus over the camera's depth planes: the focus depth
+//       moves from `from` to `to` (the theme's ease, held outside [t0, t1]) and returns fn(t) → focus depth, with fn.blur(t, z) → the
+//       blur in px for a plane at depth z: maxblur × clamp(aperture × 60 × |1/z − 1/focus|, 0, 1), a thin-lens circle of confusion
+//       scaled so the 0.025 default spans the 0.7–4 depth range (Three.js BokehPass's focus/aperture/maxblur triple). Blur is 0 at the
+//       focus plane and peaks at maxblur away from it; the only blur path is the camera state's `blur`.
 //   KIT.shakeNoise(t, t0, { amp = 14, dur = 0.5, attack = 0.04, hz = 14, rot = 1.2, seed = 0 }) → { x, y, rz } gradient-noise shake: the
 //       amplitude ramps up over `attack` s (smoothstep), then decays as (1 - u)^2; the rotation (deg, about the frame centre) rides the same
 //       envelope. Exactly 0 outside [t0, t0 + dur]. KIT.shot.withShake(shot, t0, opts) adds it to a shot (x, y and rz, about the centre).
@@ -61,11 +67,12 @@
     return (t) => K.cam3({ z: S.monoZoom(from, to, e(K.seg(t, t0, t1))) });
   };
 
-  S.dollyZoomReal = (planes, { t0, t1, dolly = 0.4, from = 0, ease } = {}) => {
+  S.dollyZoomReal = (planes, { t0, t1, dolly = 0.4, from = 0, ease, focus } = {}) => {
     if (!Array.isArray(planes) || planes.length < 2) throw new Error('dollyZoomReal: needs at least 2 depth planes [{ el, z }]; one plane has nothing to move against');
     for (const l of planes) if (!(l.el && l.z > 0)) throw new Error('dollyZoomReal: every plane needs { el, z > 0 }');
     if (!(t1 > t0)) throw new Error('dollyZoomReal: need t1 > t0');
     if (!(dolly < 1 && from < 1)) throw new Error('dollyZoomReal: dolly must stay below 1 (the camera cannot reach the subject plane)');
+    if (focus && typeof focus.blur !== 'function') throw new Error('dollyZoomReal: focus must be KIT.shot.focus(...)');
     const e = ez(ease), q = (t) => K.lerp(from, dolly, e(K.seg(t, t0, t1)));
     const at = (t) => {
       const d = q(t), lens = 1 - d;
@@ -76,8 +83,23 @@
         return { scale, line: n4(Math.pow(scale, 0.35) / scale) };
       });
     };
-    const fn = (t) => at(t).forEach((s, i) => { K.shoot(planes[i].el, K.cam3({ z: s.scale })); planes[i].el.style.setProperty('--kit-line', String(s.line)); });
+    const fn = (t) => at(t).forEach((s, i) => { K.shoot(planes[i].el, K.cam3({ z: s.scale, blur: focus ? focus.blur(t, planes[i].z) : 0 })); planes[i].el.style.setProperty('--kit-line', String(s.line)); });
     fn.at = at; fn.lens = (t) => 1 - q(t);
+    return fn;
+  };
+
+  S.focus = ({ from = 1, to = 1, t0, t1, aperture = 0.025, maxblur = 1, ease } = {}) => {
+    for (const [k, v] of Object.entries({ from, to, aperture, maxblur })) {
+      const ok = Number.isFinite(v) && (k === 'aperture' || k === 'maxblur' ? v >= 0 : v > 0);
+      if (!ok) throw new Error(`focus: ${k} must be a number${k === 'aperture' || k === 'maxblur' ? ' >= 0' : ' > 0'} (got ${v})`);
+    }
+    if (!(t1 > t0)) throw new Error('focus: need t1 > t0');
+    const e = ez(ease);
+    const fn = (t) => K.lerp(from, to, e(K.seg(t, t0, t1)));   // the focus depth, held outside the window
+    fn.blur = (t, z) => {
+      if (!(z > 0)) throw new Error(`focus.blur: plane depth must be > 0 (got ${z})`);
+      return maxblur * K.clamp(aperture * 60 * Math.abs(1 / z - 1 / fn(t)), 0, 1);
+    };
     return fn;
   };
 
@@ -97,5 +119,5 @@
     const c = shot(t), s = K.shakeNoise(t, t0, o);
     return K.cam3({ ...c, x: c.x + s.x, y: c.y + s.y, rz: c.rz + s.rz });   // rz turns about the frame centre when the focal point is the centre (the default)
   };
-  if (S.names && !S.names.includes('keys')) S.names.push('keys', 'lens', 'dollyZoomReal', 'withShake');
+  if (S.names && !S.names.includes('keys')) S.names.push('keys', 'lens', 'dollyZoomReal', 'focus', 'withShake');
 })();

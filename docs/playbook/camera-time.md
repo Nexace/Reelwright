@@ -6,7 +6,7 @@ HyperFrames (within its raster noise), is `node tools/selfcheck/camera-time.mjs`
 
 | Module | Load after | Gives |
 |---|---|---|
-| `tools/camera.js` | engine.js, shots.js | `KIT.shot.keys`, `monoZoom`, `lens`, `dollyZoomReal`, `withShake`, `KIT.shakeNoise`, `KIT.project` |
+| `tools/camera.js` | engine.js, shots.js | `KIT.shot.keys`, `monoZoom`, `lens`, `dollyZoomReal` (+ `focus` rack), `withShake`, `KIT.shakeNoise`, `KIT.project` |
 | `tools/time-remap.js` | engine.js, shots.js (+ camera.js for `tour`) | `KIT.timeRemap`, `KIT.world` |
 | `tools/morph.js` | engine.js | `KIT.morph.handoff`, `KIT.morph.coverShape` |
 | `tools/callouts.js` | doodle.js, doodle2.js, layouts.js, camera.js | `D.callout`, `D.steps`, `KIT.layout.kinetic({ style: 'drawn' })` |
@@ -24,6 +24,22 @@ a key. `KIT.shot.monoZoom(z0, z1, p)` is the same log blend for your own curves.
 least two depth planes `[{ el, z }]` (z = 1 is the subject, bigger is farther): the camera dollies by q while the lens zooms by (1 - q), so the subject plane
 keeps its size (checked to 1e-12 for every t) and a plane at depth d ends at `(1 - q) / (1 - q / d)`: far planes shrink, near planes grow. One plane throws:
 there is nothing to move against. `KIT.shot.lens` is the other half, a pure lens zoom with no depth change.
+
+## Rack focus over the planes (`KIT.shot.focus`)
+
+`KIT.shot.focus({ from, to, t0, t1, aperture = 0.025, maxblur = 1 })` moves the focus depth from `from` to `to` (the theme's ease, held outside the
+window) and returns `fn(t)` → the focus depth, with `fn.blur(t, z)` → the blur in px for a plane at depth `z`. Pass it to `dollyZoomReal`'s `focus` option
+and every plane gets its own blur through the camera state's existing `blur` channel (`camCSS` → `filter`); nothing writes a second blur path.
+
+The circle of confusion is the thin-lens form, `maxblur × clamp(aperture × 60 × |1/z − 1/focus|, 0, 1)`, scaled so Three.js's BokehPass triple
+(`focus`, `aperture` 0.025, `maxblur` 1.0) is meaningful over the 0.7–4 depth range: 0 at the focus plane, `maxblur` away from it, monotone in between.
+A rack focus is a focus pull, not a blur animation: author `from` and `to` as the planes you want sharp, and the blur falls where physics puts it.
+
+```js
+const focus = KIT.shot.focus({ from: 3, to: 1, t0: W('demo', 'see'), t1: W('demo', 'price'), maxblur: 8 });
+const dolly = KIT.shot.dollyZoomReal([{ el: back, z: 3 }, { el: front, z: 1 }], { t0, t1, dolly: 0.3, focus });
+```
+
 
 ## Shake as gradient noise
 

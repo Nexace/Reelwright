@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  :root {
+    --kit-sub-font: 500 calc(38 * var(--kit-u)) var(--kit-font-display);
+    --note-muted: #4b5563;
+    --ok: #047857;
+    --warn: #b45309;
+  }
+  body { background: var(--kit-bg); }
+  /* Subtle blueprint grid across stage */
+  #stage {
+    background-color: var(--kit-bg);
+    background-image:
+      linear-gradient(rgba(30, 43, 250, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 43, 250, 0.045) 1px, transparent 1px);
+    background-size: calc(48 * var(--kit-u)) calc(48 * var(--kit-u));
+  }
+  /* Keep captions crisp and scaled to 720p via --kit-u */
+  .kit-subs {
+    bottom: calc(28 * var(--kit-u));
+    height: calc(84 * var(--kit-u));
+    z-index: 30;
+  }
+  .kit-subrow {
+    padding: calc(10 * var(--kit-u)) calc(24 * var(--kit-u));
+    line-height: 1.25;
+  }
+  .kit-subrow .now {
+    box-shadow: 0 0 0 calc(4 * var(--kit-u)) #1e2bfa;
+  }
+
+  /* Persistent Top Chapter & Progress Bar */
+  .topbar {
+    left: var(--kit-safe-x);
+    top: calc(var(--kit-safe-y) - 18 * var(--kit-u));
+    width: var(--kit-safe-w);
+    height: calc(56 * var(--kit-u));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(24 * var(--kit-u));
+    z-index: 20;
+    color: var(--kit-ink);
+    font-family: var(--kit-font-display);
+  }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: calc(14 * var(--kit-u));
+  }
+  .chap-pill {
+    background: var(--kit-accent);
+    color: var(--kit-on-accent);
+    font-size: calc(24 * var(--kit-u));
+    font-weight: 700;
+    padding: calc(6 * var(--kit-u)) calc(16 * var(--kit-u));
+    border-radius: calc(8 * var(--kit-u));
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .chap-title {
+    font-size: calc(28 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-ink);
+    white-space: nowrap;
+    min-width: calc(440 * var(--kit-u));
+  }
+  .prog-wrap {
+    flex: 1;
+    max-width: calc(420 * var(--kit-u));
+    height: calc(10 * var(--kit-u));
+    background: rgba(30, 43, 250, 0.12);
+    border-radius: calc(99 * var(--kit-u));
+    overflow: hidden;
+  }
+  .prog-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--kit-accent);
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+
+  /* Scene container sits strictly above captions */
+  .ex-sc {
+    left: var(--kit-safe-x);
+    top: calc(var(--kit-safe-y) + 52 * var(--kit-u));
+    width: var(--kit-safe-w);
+    height: calc(var(--kit-safe-h) - 148 * var(--kit-u));
+    display: flex;
+    gap: calc(28 * var(--kit-u));
+    align-items: stretch;
+    visibility: hidden;
+    color: var(--kit-ink);
+    font-family: var(--kit-font-text);
+  }
+
+  /* Left Visual Stage (60%) */
+  .vis-pane {
+    flex: 0 0 60%;
+    background: var(--kit-surface);
+    border: var(--kit-border);
+    border-radius: var(--kit-radius);
+    padding: calc(26 * var(--kit-u)) calc(30 * var(--kit-u));
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .vis-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(16 * var(--kit-u));
+  }
+  .vis-head h2 {
+    font-family: var(--kit-font-display);
+    font-size: calc(40 * var(--kit-u));
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--kit-ink);
+  }
+  .vis-tag {
+    font-family: var(--kit-font-display);
+    font-size: calc(24 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .vis-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: calc(14 * var(--kit-u));
+    position: relative;
+  }
+  .vis-body svg {
+    width: 100%;
+    height: 100%;
+    max-height: calc(640 * var(--kit-u));
+    display: block;
+  }
+
+  /* Right Running Notes Card (remaining ~38%) */
+  .notes-pane {
+    flex: 1;
+    background: #ffffff;
+    border: 2px solid rgba(30, 43, 250, 0.24);
+    border-radius: var(--kit-radius);
+    padding: calc(24 * var(--kit-u)) calc(26 * var(--kit-u));
+    display: flex;
+    flex-direction: column;
+    gap: calc(16 * var(--kit-u));
+  }
+  .notes-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: calc(12 * var(--kit-u));
+    border-bottom: 2px solid rgba(30, 43, 250, 0.14);
+  }
+  .notes-head b {
+    font-family: var(--kit-font-display);
+    font-size: calc(26 * var(--kit-u));
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--kit-accent);
+  }
+  .notes-head span {
+    font-family: var(--kit-font-display);
+    font-size: calc(24 * var(--kit-u));
+    font-weight: 600;
+    color: var(--note-muted);
+  }
+  .notes-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    gap: calc(12 * var(--kit-u));
+  }
+  .note-item {
+    padding: calc(14 * var(--kit-u)) calc(18 * var(--kit-u));
+    border-radius: calc(10 * var(--kit-u));
+    border-left: calc(6 * var(--kit-u)) solid var(--kit-accent);
+    background: rgba(30, 43, 250, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: calc(4 * var(--kit-u));
+  }
+  .note-item strong {
+    font-family: var(--kit-font-display);
+    font-size: calc(29 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-ink);
+    line-height: 1.18;
+  }
+  .note-item span {
+    font-size: calc(25 * var(--kit-u));
+    color: var(--note-muted);
+    line-height: 1.25;
+  }
+
+  /* Helper HTML grids inside Visual Stage */
+  .mini-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: calc(16 * var(--kit-u));
+  }
+  .mini-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .mini-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .mini-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .mcard {
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.22);
+    border-radius: calc(12 * var(--kit-u));
+    padding: calc(18 * var(--kit-u)) calc(20 * var(--kit-u));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(8 * var(--kit-u));
+  }
+  .mcard.accent {
+    border-color: var(--kit-accent);
+    background: rgba(30, 43, 250, 0.07);
+  }
+  .mcard.good {
+    border-color: var(--ok);
+    background: rgba(5, 150, 105, 0.08);
+  }
+  .mcard.warn {
+    border-color: var(--warn);
+    background: rgba(180, 83, 9, 0.08);
+  }
+  .mcard b {
+    font-family: var(--kit-font-display);
+    font-size: calc(30 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-ink);
+    line-height: 1.15;
+  }
+  .mcard p {
+    font-size: calc(25 * var(--kit-u));
+    color: var(--note-muted);
+    line-height: 1.25;
+  }
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(12 * var(--kit-u));
+  }
+  .pill {
+    padding: calc(10 * var(--kit-u)) calc(18 * var(--kit-u));
+    border-radius: calc(10 * var(--kit-u));
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.28);
+    font-family: var(--kit-font-display);
+    font-size: calc(26 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-ink);
+  }
+  .pill.active {
+    background: var(--kit-accent);
+    color: var(--kit-on-accent);
+    border-color: var(--kit-accent);
+  }
+  .comp-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: calc(12 * var(--kit-u));
+  }
+  .comp-row {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1.2fr;
+    gap: calc(12 * var(--kit-u));
+    align-items: center;
+  }
+  .comp-cell {
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.18);
+    border-radius: calc(10 * var(--kit-u));
+    padding: calc(14 * var(--kit-u)) calc(16 * var(--kit-u));
+    font-size: calc(25 * var(--kit-u));
+    font-weight: 600;
+    color: var(--kit-ink);
+  }
+  .comp-cell.hdr {
+    background: var(--kit-accent);
+    color: var(--kit-on-accent);
+    font-family: var(--kit-font-display);
+    font-weight: 700;
+  }
+  .comp-cell.cnc {
+    border-color: var(--kit-accent);
+    background: rgba(30, 43, 250, 0.08);
+    color: var(--kit-ink);
+  }
+  .gcode-box {
+    width: 100%;
+    display: flex;
+    gap: calc(20 * var(--kit-u));
+    align-items: stretch;
+    height: 100%;
+  }
+  .code-col {
+    flex: 0 0 44%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: calc(10 * var(--kit-u));
+  }
+  .code-line {
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.22);
+    border-radius: calc(10 * var(--kit-u));
+    padding: calc(12 * var(--kit-u)) calc(16 * var(--kit-u));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: calc(10 * var(--kit-u));
+  }
+  .code-line code {
+    font-family: var(--kit-font-display);
+    font-weight: 700;
+    font-size: calc(27 * var(--kit-u));
+    color: var(--kit-accent);
+  }
+  .code-line span {
+    font-size: calc(24 * var(--kit-u));
+    color: var(--kit-ink);
+    font-weight: 600;
+  }
+  .shaft-col {
+    flex: 1;
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.22);
+    border-radius: calc(12 * var(--kit-u));
+    padding: calc(12 * var(--kit-u));
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .shaft-cap {
+    font-family: var(--kit-font-display);
+    font-size: calc(25 * var(--kit-u));
+    font-weight: 700;
+    color: var(--kit-ink);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1280" data-height="720"><div id="stage"></div></div>
+<script src="kit-data.js"></script>
+<script src="kit/engine.js"></script>
+<script src="kit/layouts.js"></script>
+<script src="kit/shots.js"></script>
+<script src="film.js"></script>
+</body>
+</html>

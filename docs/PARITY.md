@@ -17,7 +17,7 @@ Compiled 2026-11-15 from the five per-source checklists in [docs/parity/](parity
 | Higgsfield workflows (docusphere, cth9191) | 3 | 7 | 2 | 12 | 7 | 0 | 1 | 1 | 33 |
 | **All** | **405** | **30** | **6** | **62** | **70** | **6** | **20** | **2** | **601** |
 
-**1.0.0 reaches parity on 441 of 601 rows; the rest are listed as planned or accepted exceptions.**
+**1.0.1 reaches parity on 441 of 601 rows; the rest are listed as planned or accepted exceptions.**
 
 | State | Rows |
 |---|--:|

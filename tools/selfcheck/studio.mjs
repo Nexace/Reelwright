@@ -169,9 +169,16 @@ try {
 
   // raw JSON that is not an object: refused in the page, file untouched
   const keep = fs.readFileSync(pj, "utf8");
-  await page.fill("#raw-project", "[1, 2, 3]");
-  await page.click("#save-raw-project");
-  await page.waitForFunction(() => /must be a JSON object/.test(document.getElementById("status").textContent));
+  // a late file-watcher event can still reload the page under the form (the server cannot know an event that has not arrived): settle, fill, click, and try again if the page was reloaded meanwhile
+  for (let tries = 0; ; tries++) {
+    await settle();
+    try {
+      await page.fill("#raw-project", "[1, 2, 3]");
+      await page.click("#save-raw-project");
+      await page.waitForFunction(() => /must be a JSON object/.test(document.getElementById("status").textContent), null, { timeout: 20000 });
+      break;
+    } catch (e) { if (tries >= 3) throw e; }
+  }
   assert.equal(fs.readFileSync(pj, "utf8"), keep, "project.json unchanged after a refused raw save");
 
   // still at the playhead: an image comes back, and the render's own file writes don't reload the page

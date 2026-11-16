@@ -88,6 +88,11 @@ try {
     await new Promise((ok) => child.stdout.on("data", (d) => String(d).includes("MERGED") && ok()));
     assert.match(fs.readFileSync(path.join(cp, "project.json"), "utf8"), /"composition": "square"/, "the merge is in place while the run lives");
     child.kill(sig); await new Promise((ok) => child.once("exit", ok));
+    if (process.platform === "win32") {   // Windows has no catchable SIGTERM/SIGINT for a child: kill() is a hard kill, like SIGKILL; the backup is the recovery path
+      assert.equal(fs.readFileSync(path.join(cp, "project.json.composition-bak"), "utf8"), original, `${sig} on Windows: the backup holds the original`);
+      fs.renameSync(path.join(cp, "project.json.composition-bak"), path.join(cp, "project.json"));
+      continue;
+    }
     assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), original, `${sig} mid-run: project.json holds the original again`);
     assert.ok(!fs.existsSync(path.join(cp, "project.json.composition-bak")), `${sig}: backup cleaned once restored`);
   }

@@ -12,6 +12,8 @@
 //   type       one of KIT.transition.names, or (p, { from, to, dir, overlay, ... }) => void for your own (writes styles only)
 // Types: cut fade fadeThrough slide push wipe barnDoor blinds clockWipe iris flip cube zoom pushCut flash lightLeak brush glitch (+ none = cut)
 // (+ filmBurn once tools/fx-starburst.js is loaded after this file; KIT.transition.register(name, (p, ctx) => void) adds more)
+// With tools/shaders.js loaded, every KIT.shader name works here too (bookFlip, crossZoom, dissolve, …; `params` = its options): the page shows
+// a fade, the renderer's shader pass draws the WebGL transition over the window (docs/playbook/shader-transitions.md).
 // A layer can be the `to` of one transition and the `from` of the next (a chain): whichever transition started most recently
 // owns the layer, so the order of the set() calls does not matter. Call every transition's set(t) from render(t).
 // Overlays (flash, light leak, glitch bars, fadeThrough colour) are children of KIT.stage with z-index 30 and are hidden outside the window.
@@ -123,8 +125,11 @@
   };
   TYPES.none = TYPES.cut;
 
-  K.transition = (type, { from = null, to = null, at, dur = K.dur(0.6), dir = 'left', x = W / 2, y = H / 2, seed = 1, color, cue, ease = K.ease } = {}) => {
-    const fn = typeof type === 'function' ? type : TYPES[type];
+  K.transition = (type, { from = null, to = null, at, dur = K.dur(0.6), dir = 'left', x = W / 2, y = H / 2, seed = 1, color, cue, ease = K.ease, params = {} } = {}) => {
+    let fn = typeof type === 'function' ? type : TYPES[type];
+    if (!fn && K.shader && K.shader.names.includes(String(type).replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()))) {
+      K.shader(from, to, { shader: type, t: at, dur, ease, ...params }); fn = TYPES.fade;
+    }
     if (!fn) throw new Error('KIT.transition: unknown type "' + type + '" (' + K.transition.names.join(', ') + ')');
     if (!Number.isFinite(at)) throw new Error('KIT.transition: `at` (seconds) is required');
     if (!DIR[dir]) throw new Error('KIT.transition: dir must be left, right, up or down');

@@ -4,7 +4,7 @@
 // window.render(t)) and hyperframes (the producer's file server, window.__hf.seek(t)); page A seeks 12 times forward, page B (a fresh
 // browser) the same times shuffled; every screenshot must match (pvk byte for byte, hyperframes within its raster noise) and the frames
 // must move. check(page) runs in page A (pvk) after load: assertions on the module's pure parts. vo = window.VO; assets copies files next
-// to the page; renderers narrows the list (a fixture says why).
+// to the page; renderers narrows the list (a fixture says why). P9_FIXTURES=<dir> runs the fixtures of another folder (tools/selfcheck/fx-gl.mjs).
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,7 +16,7 @@ import { copyKit } from "../kit_files.mjs";
 import { createFileServer } from "@hyperframes/producer";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const FIX = path.join(ROOT, "tools", "selfcheck", "remotion-kit");
+const FIX = process.env.P9_FIXTURES ? path.resolve(process.env.P9_FIXTURES) : path.join(ROOT, "tools", "selfcheck", "remotion-kit");
 const W = 640, H = 360, N = 12;
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p9-"));
 const url = (rel) => pathToFileURL(path.join(ROOT, ...rel.split("/"))).href;
@@ -90,7 +90,7 @@ async function offPixels(x, y) {
 
 const only = process.argv.slice(2);
 const names = fs.readdirSync(FIX).filter((f) => f.endsWith(".mjs")).map((f) => f.slice(0, -4)).filter((n) => !only.length || only.includes(n)).sort();
-assert.ok(names.length, "no fixtures in tools/selfcheck/remotion-kit/");
+assert.ok(names.length, "no fixtures in " + FIX);
 let bad = 0;
 try {
   for (const name of names) {

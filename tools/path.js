@@ -3,6 +3,12 @@
 // Everything is a pure function of its arguments (p = 0..1, clamped); the only caches hold facts about a path string or an element's size.
 //   KIT.path(d | SVGPathElement)                  → { d, len, at(p) → { x, y, angle }, slice(p0, p1) → d, box → { x1, y1, x2, y2 } }
 //                                                    angle is the tangent in degrees (0 = pointing right, 90 = down, as y grows down)
+//   KIT.path(d | [[x, y], …], { alignOrigin = [0.5, 0.5], autoRotate = false, start = 0, end = 1, curviness = 1 })
+//                                                    motion along the path → the same object plus place(el, p): at(p) walks the
+//                                                    start..end fraction, its angle is the tangent (finite difference) when
+//                                                    autoRotate is true (or that many degrees added), and place puts
+//                                                    alignOrigin of the element on the point and rotates it there. A points
+//                                                    array is smoothed by curviness (0 = straight), as fromPoints.
 //   KIT.path.draw(pathEl, p)                      draw-on: p = 0 shows nothing, p = 1 the whole stroke (strokeDasharray / strokeDashoffset)
 //   KIT.path.morph(a, b, p)                       → d, a at p = 0 and b at p = 1 exactly (interpolatePath; the two ds may differ in shape)
 //   KIT.path.morphMany(ds, p)                     → d through ds at evenly spaced stops (interpolatePaths)
@@ -21,9 +27,51 @@
   const lens = new Map();   // d → length: a path's length never changes, parsing it every frame is the cost
   const lenOf = (d) => { let l = lens.get(d); if (l === undefined) lens.set(d, (l = R.getLength(d))); return l; };
 
-  const P = (src) => {
-    const d = dOf(src);
+  // motion along a path: one hidden SVGPathElement per d (getTotalLength / getPointAtLength are deterministic in headless
+  // Chrome), angle by a small finite difference so a sharp corner still reads as the local tangent
+  const NS = 'http://www.w3.org/2000/svg';
+  let probeSvg;
+  const probes = new Map();
+  const measure = (d) => {
+    let el = probes.get(d);
+    if (el) return el;
+    if (!probeSvg) {
+      probeSvg = document.createElementNS(NS, 'svg');
+      probeSvg.setAttribute('width', '0'); probeSvg.setAttribute('height', '0');
+      probeSvg.style.cssText = 'position:absolute;left:-99999px;top:0;visibility:hidden';
+      document.body.appendChild(probeSvg);
+    }
+    el = document.createElementNS(NS, 'path'); el.setAttribute('d', d); probeSvg.appendChild(el);
+    probes.set(d, el);
+    return el;
+  };
+  const motion = (d, { alignOrigin = [0.5, 0.5], autoRotate = false, start = 0, end = 1 } = {}) => {
+    const el = measure(d), len = el.getTotalLength(), base = P(d);
+    const s0 = K.clamp(start), s1 = K.clamp(end), h = Math.max(0.01, len / 1000);
+    const at = (p) => {
+      const s = (s0 + (s1 - s0) * K.clamp(p)) * len, q = el.getPointAtLength(s);
+      let angle = 0;
+      if (autoRotate) {
+        const a = el.getPointAtLength(Math.max(0, s - h)), b = el.getPointAtLength(Math.min(len, s + h));
+        if (a.x !== b.x || a.y !== b.y) angle = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+        if (autoRotate !== true) angle += Number(autoRotate) || 0;
+      }
+      return { x: q.x, y: q.y, angle };
+    };
+    const place = (node, p) => {
+      const q = at(p), w = node.offsetWidth, hh = node.offsetHeight, ox = alignOrigin[0] * w, oy = alignOrigin[1] * hh;
+      node.style.transformOrigin = ox + 'px ' + oy + 'px';
+      node.style.transform = 'translate(' + (q.x - ox) + 'px,' + (q.y - oy) + 'px)' + (q.angle ? ' rotate(' + q.angle + 'deg)' : '');
+    };
+    return { d, len, at, place, slice: base.slice, box: base.box };
+  };
+
+  const P = (src, opts) => {
+    const d = Array.isArray(src) ? P.fromPoints(src, { curviness: opts && opts.curviness }) : dOf(src);
     if (!d) throw new Error('KIT.path: expected a path d string or an SVGPathElement with a d attribute');
+    // Legacy shape unless opts asks for motion: a second argument that used to be ignored must not change the return.
+    const o = opts && typeof opts === 'object' ? opts : null;
+    if (o && (['start', 'end', 'autoRotate', 'alignOrigin'].some((k) => k in o) || (Array.isArray(src) && 'curviness' in o))) return motion(d, o);
     const len = lenOf(d), b = R.getBoundingBox(d);
     const at = (p) => {
       const s = Math.min(len, K.clamp(p) * len), pt = R.getPointAtLength(d, s), tg = R.getTangentAtLength(d, s);

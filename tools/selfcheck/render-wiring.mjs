@@ -1,6 +1,6 @@
 // node tools/selfcheck/render-wiring.mjs — docs/plans/p8-patches/render-opts.patch (pvk.mjs, hyperframes.mjs, bin/reelwright.mjs) applied to a
 // COPY of tools/ and bin/ in a temp root (vendor, node_modules… symlinked): the patched CLI renders a tiny pvk film. With no new flags the frames
-// and mp4 settings are the old ones; --resolution 2x gives frames twice the size from the same layout; --quality, --keyframe-interval and
+// are 320x180; --resolution 2x gives frames twice the size from the same layout; --quality, --keyframe-interval and
 // --video-bitrate reach ffmpeg; --workers sets the pages. Offline, one 1-second film.
 import fs from "node:fs";
 import os from "node:os";
@@ -32,11 +32,11 @@ window.FILM={DUR:1,FPS:10,cues:[],VO:{}};window.render=async(t)=>{document.body.
   const probe = (f, e, x = []) => sh("ffprobe", ["-v", "error", ...x, "-show_entries", e, "-of", "csv=p=0", f]).stdout.trim();
 
   const a = mk("a"); rw("info", a); rw("frames", a, "--no-cache"); rw("encode", a);
-  assert.equal(size(path.join(a, "frames", "f00000.jpg")), "320x180", "default frame size unchanged");
+  assert.equal(size(path.join(a, "frames", "f00000.png")), "320x180", "default frame size unchanged");
   assert.equal(size(path.join(a, "out", "t.mp4")), "320x180");
 
   const b = mk("b"); rw("info", b); rw("frames", b, "--no-cache", "--resolution", "2x", "--workers", "2");
-  assert.equal(size(path.join(b, "frames", "f00000.jpg")), "640x360", "--resolution 2x: twice the pixels");
+  assert.equal(size(path.join(b, "frames", "f00000.png")), "640x360", "--resolution 2x: twice the pixels");
   rw("encode", b, "--quality", "high", "--keyframe-interval", "5", "--video-bitrate", "30k");
   assert.equal(size(path.join(b, "out", "t.mp4")), "640x360");
   const br = +probe(path.join(b, "out", "t.mp4"), "format=bit_rate");
@@ -45,5 +45,5 @@ window.FILM={DUR:1,FPS:10,cues:[],VO:{}};window.render=async(t)=>{document.body.
   assert.ok(I >= 2, `--keyframe-interval 5 gives a keyframe every 5 frames (${I} in 10)`);
   const c = mk("c"), bad = spawnSync(process.execPath, [path.join(tmp, "bin", "reelwright.mjs"), "frames", c, "--resolution", "portrait-4k"], { cwd: tmp, encoding: "utf8" });
   assert.notEqual(bad.status, 0); assert.match(bad.stderr + bad.stdout, /aspect must match/, "a wrong-aspect preset is refused with the reason");
-  console.log(`render-wiring self-check: patch applies; default 320x180 unchanged; --resolution 2x -> 640x360; --quality/--video-bitrate/--keyframe-interval/--workers reach the encode (${br} bit/s, ${I} keyframes)`);
+  console.log(`render-wiring self-check: patch applies; default frames 320x180; --resolution 2x -> 640x360; --quality/--video-bitrate/--keyframe-interval/--workers reach the encode (${br} bit/s, ${I} keyframes)`);
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }

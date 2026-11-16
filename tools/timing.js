@@ -5,6 +5,10 @@
 //   left / right = what happens outside the input range: 'extend' (the first / last segment carries on, linearly in its progress; a custom
 //   easing FUNCTION is called with the raw progress, as in Remotion; a KIT.easing NAME clamps inside the segment and continues linearly),
 //   'clamp' (the end value), 'identity' (t itself) or 'wrap' (t folded back into the range, then interpolated; both sides use it).
+//   { posterize: fps } steps t to whole frames of that rate first (Remotion's stepped look). Outputs may be STRINGS: "20deg", "0px 0px", "50% 50%",
+//   "translateX(0px) scale(1)", "400" (font-weight): every output has the same text around its numbers, the numbers are interpolated one by one
+//   (easing / left / right / posterize as for numbers) and put back. Colours ("#f00", "rgb(...)", "red") go through KIT.color.interpolate (rgb; { space }).
+// KIT.posterize(t, fps) → t stepped down to a whole frame of `fps`: floor(t · fps) / fps.
 // KIT.color: colours without a clock.
 //   KIT.color.parse(c) → [r, g, b, a] (any CSS colour the browser reads)    KIT.color.toCss([r, g, b, a]) → 'rgba(r, g, b, a)'
 //   KIT.color.mix(a, b, p, { space = 'rgb' | 'hsl' | 'oklab' }) → css     hsl takes the short way round the hue wheel; oklab mixes in linear light
@@ -16,6 +20,9 @@
 //   film clock; local = trim + (t - from) · rate. loop: true | { every, times = Infinity }: local time wraps every `every` seconds of content
 //   (default: the slot's own length · rate). freeze: a local time held for the whole slot. s.info(t) → { active, local, iteration, progress };
 //   s.end = from + dur (finite after loop.times); s.at = s.
+// KIT.series([{ dur, offset = 0, ...seq options }]) → { scenes: [{ start, end, dur, seq }], total, active(t) → [{ index, local }] }
+//   Remotion's <Series> / <Series.Sequence offset>: each scene starts where the one before ended, shifted by its offset (negative = overlap);
+//   scenes[i].seq is a KIT.seq (trim, rate, loop, freeze pass through). Only the last scene may have an infinite dur.
 // KIT.timing.linear({ dur }), KIT.timing.spring({ stiffness, damping, mass, dur?, threshold }), KIT.timing.custom(fn, { dur })
 //   → { dur, at(p) }: Remotion's linearTiming / springTiming / custom. dur of a spring = its settle time (KIT.springDur) unless `dur` stretches it;
 //   at(p) is the progress 0..1 (the spring's value, which reaches 1 at p = 1 within `threshold`, default 0.005).
@@ -25,6 +32,22 @@
 //   (centred on the cut) never shortens anything; a transition longer than either neighbour is refused. Use scenes[i].seq(t) for local time and
 //   transitions[i].progress(t) as the driver of KIT.transition-style effects.
 // KIT.noise2 / noise3 / noise4 (seed, x, y, z, w) → [-1, 1]: simplex noise (simplex-noise 4.0.1's algorithm, seeded through Alea like @remotion/noise)
+//
+// ── motion craft (the film-level motion budget lives in tools/direct.js) ────────────────────────────────────────────────────
+// KIT.spring(o) is unchanged for { from, to, stiffness, damping, mass }. New, opt-in:
+//   { from, to, visualDuration = 0.3, bounce = 0.25, velocity = 0 } → a spring by feel: ζ = 1 − bounce (bounce 0..1, ζ > 0),
+//   ω0 = −ln(0.001)/(ζ·visualDuration), so the envelope is at 0.1 % at visualDuration ("how long it looks like it takes").
+//   Underdamped y(t) = e^(−ζω0t)(y0 cos ωdt + ((v0+ζω0y0)/ωd) sin ωdt), ωd = ω0√(1−ζ²); critically damped
+//   y(t) = (y0 + (v0+ω0y0)t)e^(−ω0t), with y0 = from − to the displacement from the target. All closed form in t: no integrator.
+//   Overshoot of a bounce is e^(−ζπ/√(1−ζ²)): 16.3 % at ζ = 0.5, 0.02 % at ζ = 0.9. `velocity` (units/s) is the hand-off from
+//   the previous segment's derivative (KIT.velocityAt), so a retargeted element does not snap — Motion only fixed that in 14.12.
+// KIT.spring('plop', from = 0, to = 1) → a named spring; KIT.spring.presets is the Motion Canvas table, tuned by motion
+//   designers rather than derived from maths defaults: { mass, stiffness, damping, velocity } (their mass, stiffness, damping,
+//   initial velocity). tools/selfcheck/motion-craft.mjs measures each preset's peak.
+// KIT.timing.spring({ visualDuration, bounce, velocity }) → { dur: visualDuration, at(p) }, the same feel as a timing.
+// output: 'perceptual-scale' on KIT.interpolate / KIT.keys: the output is interpolated as its signed visible AREA (sign·v²)
+//   and square-rooted back, so a scale 0→1 moves linearly in area instead of looking like it accelerates: mid = √0.5 = 0.707.
+//   Easing still shapes the progress; `output` only changes how the value is distributed (Remotion's interpolate output).
 'use strict';
 (function () {
   const K = window.KIT;
@@ -32,10 +55,30 @@
   const ease = (e) => (typeof e === 'string' ? K.easing(e) : typeof e === 'function' ? e : (x) => x);
 
   // ── interpolate ──────────────────────────────────────────────────────────
+  const psArea = (v) => Math.sign(v) * v * v, psBack = (a) => Math.sign(a) * Math.sqrt(Math.abs(a));   // perceptual-scale: signed visible area
+  K.posterize = (t, fps) => { if (!(fps > 0)) throw new Error('posterize: fps must be > 0'); return Math.floor(t * fps + 1e-9) / fps; };
+  const NUM = /-?(?:\d+\.?\d*|\.\d+)/g, COLOUR = /^\s*(#[0-9a-f]{3,8}\s*$|(rgb|hsl|hwb|lab|lch|oklab|oklch|color)a?\()/i;
+  const r4 = (v) => String(+v.toFixed(4));
+  // string outputs: same text around the numbers in every output; the numbers are interpolated one by one. shortcut: no exponents ("1e3"), no calc().
+  const strInterp = (t, input, out, o) => {
+    out = out.map(String);
+    const P = out.map((s) => ({ text: s.split(NUM), n: (s.match(NUM) || []).map(Number) })), k = P[0].n.length;
+    if (out.some((s) => COLOUR.test(s)) || !k) return K.color.interpolate(t, input, out, o);   // hex, rgb(), hsl(), named
+    P.forEach((p, i) => { if (p.n.length !== k || p.text.some((x, j) => x !== P[0].text[j])) throw new Error(`interpolate: output ${i} ("${out[i]}") is not shaped like output 0 ("${out[0]}")`); });
+    const v = P[0].n.map((_, j) => K.interpolate(t, input, P.map((p) => p.n[j]), o));
+    return P[0].text.reduce((acc, x, j) => acc + x + (j < k ? r4(v[j]) : ''), '');
+  };
   K.interpolate = (t, input, output, o = {}) => {
     const n = input.length;
     if (n < 2 || output.length !== n) throw new Error('interpolate: input and output need the same length, at least 2');
     for (let i = 1; i < n; i++) if (!(input[i] > input[i - 1])) throw new Error('interpolate: input must be strictly ascending');
+    if (o.posterize != null) t = K.posterize(t, o.posterize);
+    if (o.output != null && o.output !== 'perceptual-scale') throw new Error("interpolate: output is 'perceptual-scale' (or leave it out)");
+    if (output.some((x) => typeof x === 'string')) {
+      if (o.output) throw new Error('interpolate: output is perceptual-scale, so the outputs must be numbers');
+      return strInterp(t, input, output, { ...o, posterize: undefined });
+    }
+    if (o.output === 'perceptual-scale') return psBack(K.interpolate(t, input, output.map(psArea), { ...o, output: undefined }));
     const L = o.left || 'extend', R = o.right || 'extend', ok = ['extend', 'clamp', 'identity', 'wrap'];
     if (!ok.includes(L) || !ok.includes(R)) throw new Error(`interpolate: left / right is ${ok.join(' | ')}`);
     const e = Array.isArray(o.easing) ? o.easing : null;
@@ -128,12 +171,79 @@
     return s;
   };
 
+  // ── Series ───────────────────────────────────────────────────────────────
+  K.series = (items) => {
+    let cursor = 0;
+    const scenes = items.map(({ dur, offset = 0, ...rest }, i) => {
+      if (!(dur > 0)) throw new Error(`series: item ${i}: dur must be > 0`);
+      if (!Number.isFinite(dur) && i < items.length - 1) throw new Error(`series: item ${i}: only the last scene may be infinite`);
+      const start = cursor + offset;
+      if (start < -1e-9) throw new Error(`series: item ${i} would start before 0 (offset ${offset})`);
+      cursor = start + dur;
+      return { start, end: start + dur, dur, seq: K.seq({ ...rest, from: start, dur }) };
+    });
+    return { scenes, total: Math.max(0, ...scenes.map((s) => s.end)), active: (t) => scenes.flatMap((s, index) => { const local = s.seq(t); return local == null ? [] : [{ index, local }]; }) };
+  };
+
+  // ── springs by feel (engine.js's K.spring is the stiffness/damping/mass form and is left untouched) ─────
+  const springLegacy = K.spring;
+  const PRESETS = {
+    plop: { mass: 0.2, stiffness: 20, damping: 0.68, velocity: 0 },
+    strike: { mass: 0.03, stiffness: 20, damping: 0.9, velocity: 4.8 },
+    smooth: { mass: 0.16, stiffness: 15.35, damping: 1.88, velocity: 0 },
+    bounce: { mass: 0.08, stiffness: 4.75, damping: 0.05, velocity: 0 },
+    swing: { mass: 0.39, stiffness: 19.85, damping: 2.82, velocity: 0 },
+    jump: { mass: 0.04, stiffness: 10, damping: 0.7, velocity: 8 },
+    beat: { mass: 0.13, stiffness: 5.7, damping: 1.2, velocity: 10 },
+  };
+  // displacement y from the target (y0 = from − to, v0 = velocity): value = to + y(t). Closed form, never an integrator.
+  const springY = ({ mass = 1, stiffness = 100, damping = 10, velocity: v0 = 0, from = 0, to = 1 }) => {
+    const w0 = Math.sqrt(stiffness / mass), z = damping / (2 * Math.sqrt(stiffness * mass)), y0 = from - to;
+    if (z >= 1) return (t) => (y0 + (v0 + w0 * y0) * t) * Math.exp(-w0 * t);   // as in engine.js: ζ >= 1 uses the critical form
+    const a = z * w0, wd = w0 * Math.sqrt(1 - z * z);
+    return (t) => Math.exp(-a * t) * (y0 * Math.cos(wd * t) + ((v0 + a * y0) / wd) * Math.sin(wd * t));
+  };
+  K.spring = (o = {}, from, to) => {
+    if (typeof o === 'string') {
+      const p = PRESETS[o];
+      if (!p) throw new Error(`spring: no preset "${o}" (${Object.keys(PRESETS).join(', ')})`);
+      o = { ...p, from: from ?? 0, to: to ?? 1 };
+    }
+    const visual = o.visualDuration != null || o.bounce != null;
+    if (visual && (o.stiffness != null || o.damping != null || o.mass != null)) throw new Error('spring: pass stiffness/damping/mass or visualDuration/bounce, not both');
+    if (!visual && o.velocity == null) return springLegacy(o);   // the old form, byte for byte
+    const f = o.from ?? 0, g = o.to ?? 1;
+    let y;
+    if (visual) {
+      const vd = o.visualDuration ?? 0.3, bounce = o.bounce ?? 0.25, z = 1 - bounce;
+      if (!(vd > 0)) throw new Error(`spring: visualDuration must be > 0 (got ${vd})`);
+      if (!(bounce >= 0 && bounce < 1)) throw new Error(`spring: bounce is 0..<1 (got ${bounce}: ζ = 1 − bounce must be > 0)`);
+      const w0 = -Math.log(0.001) / (z * vd);
+      y = springY({ mass: 1, stiffness: w0 * w0, damping: 2 * z * w0, velocity: o.velocity, from: f, to: g });
+    } else y = springY({ ...o, from: f, to: g });
+    return (t) => (t <= 0 ? f : g + y(t));
+  };
+  K.spring.presets = PRESETS;
+
+  // ── keys with a perceptual scale (engine.js's K.keys is the plain one) ──────────────────────────────────
+  const keysLegacy = K.keys;
+  K.keys = (t, pts, eases = [], o = {}) => {
+    if (o.output == null) return keysLegacy(t, pts, eases, o);   // pass o on: KIT.keys may also carry { easeReverse }
+    if (o.output !== 'perceptual-scale') throw new Error("keys: output is 'perceptual-scale' (or leave it out)");
+    if (pts.some(([, v]) => typeof v !== 'number')) throw new Error('keys: output is perceptual-scale, so the values must be numbers');
+    return psBack(keysLegacy(t, pts.map(([tt, v]) => [tt, psArea(v)]), eases));
+  };
+
   // ── timings ──────────────────────────────────────────────────────────────
   K.timing = {
     linear: ({ dur }) => { if (!(dur > 0)) throw new Error('timing.linear: dur > 0'); return { dur, at: (p) => K.clamp(p) }; },
     custom: (fn, { dur }) => { if (!(dur > 0)) throw new Error('timing.custom: dur > 0'); return { dur, at: (p) => fn(K.clamp(p)) }; },
-    spring: ({ stiffness = 100, damping = 10, mass = 1, dur, threshold = 0.005 } = {}) => {
-      const sp = K.spring({ stiffness, damping, mass }); let D = 0;   // settle: the last 1/240 s step at which the value is off by more than the threshold
+    spring: ({ stiffness = 100, damping = 10, mass = 1, visualDuration, bounce, velocity, dur, threshold = 0.005 } = {}) => {
+      if (visualDuration != null || bounce != null) {   // by feel: visualDuration IS the settle time
+        const D = dur ?? visualDuration ?? 0.3, sp = K.spring({ visualDuration, bounce, velocity });
+        return { dur: D, native: D, at: (p) => sp(K.clamp(p) * D) };
+      }
+      const sp = K.spring({ stiffness, damping, mass, velocity }); let D = 0;   // settle: the last 1/240 s step at which the value is off by more than the threshold
       for (let i = 0; i <= 2400; i++) if (Math.abs(1 - sp(i / 240)) >= threshold) D = (i + 1) / 240;
       D = Math.min(10, D) || 1 / 240;
       return { dur: dur ?? D, native: D, at: (p) => sp(K.clamp(p) * D) };

@@ -23,7 +23,11 @@ This product includes the following MIT-licensed components, each in vendor/<nam
   polygon-clipping, Copyright (c) 2018 Mike Fogel (and splaytree, see vendor/polygon-clipping/THIRD_PARTY.md)
   shiki 3.23.0 (trimmed), Copyright (c) 2021 Pine Wu, (c) 2023 Anthony Fu (and the libraries bundled in it, see vendor/shiki/THIRD_PARTY.md)
   @lottiefiles/dotlottie-web 0.83.2, Copyright (c) 2023 LottieFiles.com (vendor/dotlottie/)
+  @rive-app/canvas 2.50.0, Copyright (c) 2020-2021 Rive (vendor/rive/)
   ui-ux-pro-max-skill data, Copyright (c) 2024 Next Level Builder
+
+This product includes CanvasKit (canvaskit-wasm 0.42.0, Skia), Copyright (c) 2011 Google Inc.,
+licensed under the BSD 3-Clause License (vendor/canvaskit/LICENSE).
 
 This product includes the following ISC-licensed components, each in vendor/<name>/ with its licence file:
   D3, Copyright 2010-2026 Mike Bostock

@@ -7,6 +7,8 @@
 //   blurSpec(P, flag)   project.json "motionBlur" or the --blur flag → { shutter, samples, linear } | null
 //     --blur auto → { shutter: 180, samples: 8, linear: true }; --blur N → N samples, shutter 180, linear; "gamma" in motionBlur
 //     ({ linear: false }) keeps the 0.3 behaviour. Chrome's compositor is not involved: the sub-frames are ordinary render(t) shots.
+//   shotShutter(spec, deg)  the spec with a per-shot shutter (KIT.shot.shutter); unchanged when deg is not 0–360
+//   subFrameTimes(t, fps, spec)  the `samples` render times for frame t, centred on t and clamped at 0
 import { spawnSync } from "node:child_process";
 
 const DEC = "if(lt(val/maxval,0.04045),val/maxval/12.92,pow((val/maxval+0.055)/1.055,2.4))*maxval";
@@ -36,4 +38,14 @@ export function blurSpec(P = {}, flag) {
   const m = P.motionBlur;
   if (!m) return null;
   return { shutter: Number(m.shutter ?? 180), samples: Math.max(2, Math.round(Number(m.samples ?? 8))), linear: m.linear !== false };
+}
+
+export function shotShutter(spec, deg) {
+  if (deg == null || deg === "") return spec;   // no per-shot registration: keep the project shutter
+  const d = Number(deg);
+  return spec && Number.isFinite(d) && d >= 0 && d <= 360 ? { ...spec, shutter: d } : spec;
+}
+
+export function subFrameTimes(t, fps, { samples, shutter }) {
+  return Array.from({ length: samples }, (_, i) => Math.max(0, t + (i / samples - 0.5) * shutter / 360 / fps));
 }

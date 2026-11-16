@@ -3,6 +3,9 @@
 // transitions or state between calls, so scrubbing, shuffled seeks and --formats give the same frames.
 //   KIT.transition(type, { from, to, at, dur = KIT.dur(0.6), dir = 'left', x, y, seed = 1, color, cue, ease = KIT.ease })
 //                                                                                    → { set(t), p(t), at, end }
+//   KIT.cut(cut, { from, to, dur = KIT.dur(0.6), transition = 'fade', audio, ...opts })  the same transition with its window
+//              centred on the cut: [cut − dur/2, cut + dur/2]. The film keeps its length (an overlay on the cut, as Remotion's
+//              <TransitionSeries> offset). `audio` is a KIT.cue at the cut. KIT.progress(cut, dur)(t) is the raw, clamped 0..1.
 //   from / to  scene layers: full-stage absolutely positioned elements the film does not style with transform, clip-path, mask,
 //              filter, opacity, z-index or visibility (the helper owns those). Either may be null. Window = [at, at + dur],
 //              p = ease(seg(t, at, at + dur)). Before `at`: from shown, to hidden. After the window: to shown, from hidden.
@@ -11,6 +14,9 @@
 //   seed       brush, glitch and lightLeak look (same seed, same look)                  cue    KIT.cue(at, cue) once, e.g. 'whoosh'
 //   type       one of KIT.transition.names, or (p, { from, to, dir, overlay, ... }) => void for your own (writes styles only)
 // Types: cut fade fadeThrough slide push wipe barnDoor blinds clockWipe iris flip cube zoom pushCut flash lightLeak brush glitch (+ none = cut)
+// (+ filmBurn once tools/fx-starburst.js is loaded after this file; KIT.transition.register(name, (p, ctx) => void) adds more)
+// With tools/shaders.js loaded, every KIT.shader name works here too (bookFlip, crossZoom, dissolve, …; `params` = its options): the page shows
+// a fade, the renderer's shader pass draws the WebGL transition over the window (docs/playbook/shader-transitions.md).
 // A layer can be the `to` of one transition and the `from` of the next (a chain): whichever transition started most recently
 // owns the layer, so the order of the set() calls does not matter. Call every transition's set(t) from render(t).
 // Overlays (flash, light leak, glitch bars, fadeThrough colour) are children of KIT.stage with z-index 30 and are hidden outside the window.
@@ -122,8 +128,11 @@
   };
   TYPES.none = TYPES.cut;
 
-  K.transition = (type, { from = null, to = null, at, dur = K.dur(0.6), dir = 'left', x = W / 2, y = H / 2, seed = 1, color, cue, ease = K.ease } = {}) => {
-    const fn = typeof type === 'function' ? type : TYPES[type];
+  K.transition = (type, { from = null, to = null, at, dur = K.dur(0.6), dir = 'left', x = W / 2, y = H / 2, seed = 1, color, cue, ease = K.ease, params = {} } = {}) => {
+    let fn = typeof type === 'function' ? type : TYPES[type];
+    if (!fn && K.shader && K.shader.names.includes(String(type).replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()))) {
+      K.shader(from, to, { shader: type, t: at, dur, ease, ...params }); fn = TYPES.fade;
+    }
     if (!fn) throw new Error('KIT.transition: unknown type "' + type + '" (' + K.transition.names.join(', ') + ')');
     if (!Number.isFinite(at)) throw new Error('KIT.transition: `at` (seconds) is required');
     if (!DIR[dir]) throw new Error('KIT.transition: dir must be left, right, up or down');
@@ -148,4 +157,21 @@
     return me;
   };
   K.transition.names = Object.keys(TYPES);
+  // extra types from other kit files (tools/fx-starburst.js adds filmBurn); util = the helpers a type needs: tri(p), cutAt(p, c), wash(c, opacity)
+  K.transition.register = (name, fn) => { TYPES[name] = fn; K.transition.names = Object.keys(TYPES); };
+  K.transition.util = { tri, cutAt, wash };
+
+  // ── cut-centred windows (Remotion <TransitionSeries> offset semantics) ──────
+  // KIT.progress(cut, dur)(t): raw 0..1 across [cut − dur/2, cut + dur/2], clamped outside. No scene is consulted.
+  K.progress = (cut, dur = K.dur(0.6)) => (t) => K.clamp((t - cut) / dur + 0.5);
+  // KIT.cut(cut, { from, to, dur, transition = 'fade', audio, ...opts }) → the KIT.transition with its window centred on the cut.
+  // Nothing is trimmed from the film: the window is an overlay on the cut. `audio` is an SFX cue at the cut (not at the window's start).
+  K.cut = (cut, { from = null, to = null, dur = K.dur(0.6), transition = 'fade', audio, ...opts } = {}) => {
+    if (!Number.isFinite(cut)) throw new Error('KIT.cut: `cut` (seconds) is required');
+    if (!(dur > 0)) throw new Error('KIT.cut: `dur` must be > 0');
+    const at = cut - dur / 2;
+    const tr = K.transition(transition, { from, to, at, dur, ...opts });
+    if (audio) K.cue(cut, audio);
+    return { ...tr, cut, dur, at, end: at + dur };
+  };
 })();

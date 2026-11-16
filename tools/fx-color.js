@@ -17,7 +17,10 @@
 //   KIT.fx.longShadow({ length, angle = 45 (deg, 0 = right, clockwise), color })   a solid shadow dragged `length` px
 // Canvas (the source is any CanvasImageSource: canvas, <img>, <video>; an image from another origin taints the canvas, use a canvas or data: URL):
 //   KIT.fx.pixels(src, fn(d, i, p), { w, h, parent }) → { el, set(p) }   per-pixel map on a copy of src
-//   KIT.fx.colorKey(src, { key = '#00ff00', similarity = 0.4, smoothness = 0.1 }) → { el, set(p?) }   key colour becomes transparent
+//   KIT.fx.colorKey(src, { key = '#00ff00', similarity = 0.4, smoothness = 0.1, spillSuppression = 0 }) → { el, set(p?) }   key colour becomes
+//        transparent; smoothness is the soft edge (the alpha ramp past similarity); spillSuppression 0..1 pulls the key's dominant channel down to the
+//        larger of the other two on what stays (green fringes on hair). Remotion's default spill is 0.25; 0 here keeps older films' frames.
+//        Video matting (an ML model, Remotion's @remotion/video-matting) is not built: colorKey needs a keyable backdrop.
 //   KIT.fx.vibrance(src, { amount }) → { el, set(a) }   saturation boost that spares already saturated pixels (a in -1..1)
 // Overlays (build once at load, set(…) per frame): KIT.fx.vignette(parent, { color, strength, size }) → { el, set(amount 0..1) };
 //   KIT.fx.shine(parent, { angle, width, color, opacity }) → { el, set(progress 0..1) } a light sweep across `parent`.
@@ -128,9 +131,12 @@
     } };
   };
   const smooth = (a, b, x) => { const u = clamp01((x - a) / Math.max(1e-9, b - a)); return u * u * (3 - 2 * u); };
-  X.colorKey = (src, { key = '#00ff00', similarity = 0.4, smoothness = 0.1, ...o } = {}) => {
-    const k = X.rgb(key);
-    return X.pixels(src, (d, i) => { d[i + 3] *= smooth(similarity, similarity + smoothness, Math.hypot(d[i] - k[0], d[i + 1] - k[1], d[i + 2] - k[2]) / 441.673); }, o);
+  X.colorKey = (src, { key = '#00ff00', similarity = 0.4, smoothness = 0.1, spillSuppression = 0, ...o } = {}) => {
+    const k = X.rgb(key), c = k.indexOf(Math.max(...k)), [a, b] = [0, 1, 2].filter((j) => j !== c), sp = clamp01(spillSuppression);
+    return X.pixels(src, (d, i) => {
+      d[i + 3] *= smooth(similarity, similarity + smoothness, Math.hypot(d[i] - k[0], d[i + 1] - k[1], d[i + 2] - k[2]) / 441.673);
+      if (sp) d[i + c] -= sp * Math.max(0, d[i + c] - Math.max(d[i + a], d[i + b]));
+    }, o);
   };
   X.vibrance = (src, { amount = 0.5, ...o } = {}) =>
     X.pixels(src, (d, i, a = amount) => {

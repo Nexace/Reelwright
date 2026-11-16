@@ -9,6 +9,23 @@ files it references, statically: no browser, no network, no rendered frames, abo
 | `tools/checks/hf-lint.page.mjs` | gate (FAIL) | upstream **errors**: broken HTML/CSS, missing local assets, non-deterministic code (`Math.random`, `requestAnimationFrame`), GSAP misuse, SVG, textures |
 | `tools/checks/hf-lint-warn.page.mjs` | WARN | upstream warnings and info, plus the errors in `DOWNGRADE` |
 
+## Craft lints and the delivered-file quality gate
+
+These are built into `tools/qa.py` (no plug-in), so they run on every film:
+
+| Gate | Kind | What it reports |
+|---|---|---|
+| `hero-ease` | gate (FAIL) | an element marked `data-hero` animated with a generic easing keyword (`ease`, `linear`, `ease-in-out`): name the intent instead — `enter`, `exit`, `ambient` or `impact` |
+| `scale-zero` | WARN | an entrance that starts at `scale: 0`: start at `0.93` (scale-from-zero is the most common cheap tell) |
+| `shot-shutter` | gate (FAIL) | `KIT.shot.shutter(deg)` outside 0–360, or on a film with motion blur off (a shutter with no sub-frames to spread) |
+| `cambi` | gate (FAIL) | banding in the delivered mp4: the mean CAMBI score per scene must stay under 6 |
+| `vmaf` | gate (FAIL) | only when `project.json` has `"output": {"master": "<file>"}`: the mp4's VMAF against that master, per scene, mean ≥ 93 |
+
+`cambi` and `vmaf` read the delivered mp4 with ffmpeg's `libvmaf` (`feature=name=cambi`, and the VMAF model), print the
+score per scene (not just PASS/FAIL) and are **skipped, never failed**, when the local ffmpeg has no `libvmaf` — the
+pipeline stays offline-safe and works on any platform. `vmaf` is also skipped when there is no master. Each is
+skippable like any gate (`"qa": {"cambi": false}`), and `scale-zero` like any WARN.
+
 Each line is `<code>: <message> (fix: <hint>)`, cut to 200 characters. `tools/checks/hf-lint.mjs` holds the shared run and
 both lists below. The fixture `projects/qa-broken-lint` trips 6 gate and 6 warn codes on purpose;
 `node tools/selfcheck/hf-lint.mjs` checks it and that every committed hyperframes film passes the gate.

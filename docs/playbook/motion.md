@@ -58,6 +58,36 @@ between the two layers (it cannot shift one band of a single layer); `clockWipe`
 - `KIT.sim(step, state0, { dt, dur })` runs a fixed-step simulation once at load and interpolates samples: physics you can
   seek (bouncing, springs, particles). Never integrate from the previous frame in `render(t)`.
 
+## Noise and grid stagger — `KIT.noise`, `KIT.stagger`
+
+| Module | Load | Gives |
+|---|---|---|
+| `tools/noise.js` | after engine.js and timing.js | `KIT.noise(t, id, { seed, freq, octaves, gain, amp, curl, stagger, timeScale })` |
+| `tools/stagger.js` | after engine.js | `KIT.stagger({ each, from, grid, axis, jitter, seed })` → `(i, n) => delay` |
+
+`KIT.noise` samples one seeded simplex field by time and duplicate, the way Cavalry's Noise behaviour does (Seed, Octaves,
+Gain, Curl Amount, Stagger). `id` is a duplicate index (`0, 1, 2 …`) or a position (`[x, y]` / `{x, y}`), so N cards or
+particles sit at different phases of the same field; `stagger` is the phase step between indices (`0` makes every copy
+identical), `timeScale` is how fast `t` moves through it. The same seed and `(t, id)` are the same number in every frame and
+every render, so it is safe in `render(t)`. With `curl: true` (or a positive amount) it returns `[x, y]`, the curl of the
+scalar field: a bounded, divergence-free vector for drift and particle-ish backdrops. `amp` bounds the result.
+
+```js
+const [dx, dy] = KIT.noise(t, [card.x, card.y], { seed: 'cards', freq: 0.6, curl: 2, amp: 6 });
+card.el.style.transform = `translate(${dx}px, ${dy}px)`;
+```
+
+`KIT.stagger` is anime.js v4's stagger model, and it extends the old `KIT.stagger(i, n, total)` (that form still works).
+`from` is the origin of a distance field: `start` (the first item), `center`, `edges` (the nearest edge) or `last`; `grid:
+[cols, rows]` gives each index a cell, `axis: 'x' | 'y'` measures along one axis, and `jitter` adds a seeded ±jitter·each.
+Delays span `each·(n−1)` like a linear stagger, but by distance: a 3×3 grid from `center` starts the middle first, then the
+edge midpoints, then the corners. The function is stateless and seeded, so it is safe in `render(t)`.
+
+```js
+const at = KIT.stagger({ each: 0.06, from: 'center', grid: [4, 3], jitter: 0.15, seed: 'tiles' });
+cards.forEach((c, i) => { c.style.opacity = KIT.ease(KIT.seg(t, t0 + at(i, cards.length), t0 + at(i, cards.length) + 0.3)); });
+```
+
 ## Verified (`node tools/selfcheck/motion.mjs`, CI on macOS, Windows, Ubuntu)
 
 One fixture per module (`tools/selfcheck/motion/*.mjs`), each in both renderers: 12 seeks forward on one page, the same

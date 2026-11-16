@@ -93,13 +93,18 @@ left planned or half-built. Everything new is opt-in, so a film written for 0.3 
 - **Motion rules.** `KIT.motionRules` (easing, spring and duration tables, material feels, ambient loops, stagger), a
   `motion-rules` QA warning and `KIT.components` (info strip, digit roll, flash cut, vertical ticker, clip card).
   [motion-rules](docs/playbook/motion-rules.md)
+- **Motion craft.** `KIT.direct` (a 20 ms stagger / 500 ms entrance budget for a whole scene), `KIT.anticipate` (a wind-up
+  before a move), `KIT.step` / `KIT.hold` (stepped time, holds), springs by feel (`visualDuration`, `bounce`, `velocity`) and
+  the Motion Canvas presets, `KIT.direct.hierarchy` (a secondary layer at 25-40 % of the hero, a frame behind) and
+  `output: 'perceptual-scale'` for a scale that does not look like it accelerates.
+  [timing](docs/playbook/timing.md#motion-craft-a-motion-budget-anticipation-springs-by-feel-perceptual-scale)
 - **Lottie and dotLottie.** `KIT.dotLottie` with a vendored player, `add-lottie`, expressions lint, text, masks and mattes.
   [lottie](docs/playbook/lottie.md)
 - **Manim, natively.** `Create`, typing, tables, matrices, axes, number lines, bar charts, vector scenes, ZoomedScene, boolean
   path ops (vendored `polygon-clipping`), code highlighting (vendored `shiki`, `reelwright code`), 3D lighting and OBJ
   models, and `manim-lint`. [manim-native](docs/playbook/manim-native.md)
 - **Remotion-style helpers.** `KIT.interpolate`, `KIT.seq`, `KIT.tseries`, `KIT.timing`, a colour, blur, distortion, pattern and
-  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `props`. [timing](docs/playbook/timing.md)
+  reveal effects library (`fx-*`), `KIT.player`, `transcode`, `range`, `spectrum`, `audio-clip`, `silence`, `props`. [timing](docs/playbook/timing.md)
 - **Doodle and camera craft.** Callouts, drawn kinetic type, shape handoff, camera keys, true dolly zoom, shake, time remap,
   one-canvas `KIT.world`, reading-time and subtitle rules, `brand`, `narrate`, `gate` (determinism and dead-air), `ship`
   (delivery checks), `deck` (46 named moves), `animimg`, linear-light motion blur (`--blur`) and any `--formats WxH`.
@@ -148,20 +153,24 @@ source are in [docs/parity/](docs/parity/README.md); the compiled score is [docs
   motion spikes, lopsided or empty frames, low contrast and VO that is too fast. It never fails a build.
 - **HyperFrames lint in QA.** `qa` runs the vendored `@hyperframes/lint` on hyperframes films: its errors are a gate, its
   warnings are `WARN` lines. [PLAYBOOK → QA lint](docs/PLAYBOOK.md#qa-lint-for-hyperframes-films-toolscheckshf-lintpagemjs)
-- **Animation runtimes.** GSAP and its plugins, Lottie, anime.js v4, Three.js r187 and plain CSS/WAAPI, bundled and driven only
-  by seeking from `render(t)` (`KIT.gsap`, `KIT.lottie`, `KIT.anime`, `KIT.three`, `KIT.animations`). A `seekable-runtimes` QA gate
-  bans the paths that use real time or `Math.random`. GSAP is **not MIT** (Webflow's "Standard No Charge" licence, see
-  [THIRD_PARTY.md](THIRD_PARTY.md)). [PLAYBOOK → Animation runtimes](docs/PLAYBOOK.md#animation-runtimes-kitgsap-kitlottie-kitanime-kitthree-toolsruntimesjs)
+- **Animation runtimes.** GSAP and its plugins, Lottie, anime.js v4, Three.js r187, Rive and Skia (CanvasKit) plus plain
+  CSS/WAAPI, bundled and driven only by seeking from `render(t)` (`KIT.gsap`, `KIT.lottie`, `KIT.anime`, `KIT.three`,
+  `KIT.rive`, `KIT.skia`, `KIT.animations`). A `seekable-runtimes` QA gate bans the paths that use real time or `Math.random`.
+  GSAP is **not MIT** (Webflow's "Standard No Charge" licence, see [THIRD_PARTY.md](THIRD_PARTY.md)).
+  [PLAYBOOK → Animation runtimes](docs/PLAYBOOK.md#animation-runtimes-kitgsap-kitlottie-kitanime-kitthree-toolsruntimesjs)
 - **27 themes.** The eleven originals plus HyperFrames' three theme-pack looks and thirteen frame presets, each mapped to
   the `--kit-*` tokens with a motion archetype and caption skin. `reelwright theme-brief "<what the product is>"` drafts a
   theme from a one-line brief, offline. `node tools/theme-check.mjs` and `node tools/theme-gallery.mjs` check and picture them.
 - **Blocks and nested compositions.** `reelwright add <block>` brings in one of 136 supported HyperFrames blocks (of 210
   upstream); `KIT.mount` / `KIT.block` drop it, or any HyperFrames composition file, into a film as one timed layer.
-- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types), `KIT.shader` (14 WebGL
-  transitions), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
-  `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`.
-- **Motion blur, grading and effects.** `"motionBlur": true` in `project.json`; `KIT.grade` (grade presets, vignette, grain,
-  LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer.
+- **More motion and camera.** `KIT.path` (draw, morph, ride a path), `KIT.transition` (18 types) and `KIT.cut`
+  (cut-centred windows), `KIT.shader` (26 WebGL transitions: HyperFrames' 14 and Remotion's 12 presentations), custom
+  SVG eases (`KIT.easing.svg`), more shots (`tour`, `planes` parallax, `bulletTime`, `rackFocus`, …), Manim's rate functions,
+  `KIT.indicate`, `KIT.typewriter` and a seekable `KIT.sim`. `KIT.noise` is seeded simplex/curl noise sampled by `(t, id)`, and
+  `KIT.stagger({ each, from, grid, axis, jitter, seed })` staggers a grid by distance from an origin.
+- **Motion blur, grading and effects.** `"motionBlur": true` in `project.json` (per-shot `KIT.shot.shutter(deg, from, to)`); `KIT.grade` (grade presets, vignette, grain,
+  LUTs) and `KIT.vfx` (noise, wave warp) on a layer; the per-pixel parts need the hyperframes renderer. `KIT.fx` has
+  Remotion's effect set in CSS, canvas and WebGL2 (`fx-gl.js`: outline, tear, cylinder, sphere, pageTurn, shatter, …).
 - **Video clips and extra audio.** `KIT.video` (speed ramps, trims) and `KIT.audio` mix clips and sounds over the soundtrack.
 - **Sound.** New synthesised SFX kinds (shutter, sparkle, riser, subdrop, whoosh variants, …) and `house` and `hiphop` music
   beds beside `chill` and `drive`.
@@ -434,6 +443,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `manim [project] install [ce\|gl] [--yes] \| doctor [ce\|gl] \| render [--force] \| verify` | optional Manim scenes (`"manim"` block in `project.json`, `KIT.manim` in `film.js`): `install` prints what it would download into `<repo>/.venv-manim` and does it only with `--yes`; `render` runs after `sched` and after any VO change (`all` does not run Manim); exit 1 on any problem |
 | `code [project] highlight <file> [--lang L] [--theme T] [--id name] [--lines a-b] \| model <file.obj> [--id name]` | build-time data for `KIT.math.code` (shiki) and `KIT.math3d` models: writes `film/code-<id>.js` or `model-<id>.js` (`hf/` for HyperFrames) |
 | `manim-lint [project] [texts\|pace\|dark\|all] [--video f.mp4] [--strict]` | Manim scene lints: OFF-FRAME, TEXT-OVERLAP, TINY-TEXT, RUSHED, GAP, UNNARRATED, DARK-STRETCH |
+| `marks [project]` | regenerate `marks.json` from the transcript: named markers from `project.json` `"marks"` (`{ "cta": "<line id>" }` or `{ line, word, nth }`) → `{ name: { t, dur } }`; `sched` bakes them for `KIT.mark` / `KIT.until` / `KIT.dur` ([docs/playbook/sound.md](docs/playbook/sound.md)) |
 | `lint [project] [--no-browser]` / `lint --components [name… \| --all]` | native lint beside the vendored one `qa` runs: upstream findings, native ports of 31 of the 44 skipped rules (the other 13 have no counterpart, each with its reason), coordinate drift, HDR; `--components` lints installed catalog components as fragments. Exit 1 on an upstream ERROR (docs/playbook/qa-lint.md) |
 | `slideshow <folder> [name] [--seconds 3] [--transition fade\|a,b,c] [--tdur 0.6] [--zoom 0.05] [--clip-max 8] [--size 1920x1080] [--fit cover\|contain] [--out <dir>]` | a folder of images and clips → a HyperFrames film at `projects/<name>`: one layer per slide, `KIT.transition` between neighbours, slow zoom on stills; also the studio's Slideshow tab |
 | `skills install [--apps codex,opencode,cursor,antigravity] [--dry-run]` | copy this repo's agent skills into Codex, OpenCode, Cursor and Antigravity's global skill folders (with this repo's path), so those agents can make films from any folder; re-run after an update |
@@ -449,10 +459,10 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `audio-report <file> [--at T] [--range A B] [--place-at T] [--json]` | onsets, loudness sections and rhythm (tempo, steadiness) of any audio or video file; `--at` / `--place-at` name the onset and beat nearest a time |
 | `audit [project] [--contrast] [--motion] [--range a-b] [--at-transitions]` | the browser audits of the built film page: WCAG contrast of every visible text (`--contrast`), the project's `*.motion.json` assertions (`--motion`); no flag runs both; exit 1 when a motion assertion fails |
 | `batch <project> <rows.json\|rows.csv> [--concurrency N] [--fail-fast] [--out-dir dir] [--strict] [--keep-work]` | one film per row of composition variables → `out/batch/<name>.mp4` and `batch.json`; rows are checked first ([docs/playbook/variables.md](docs/playbook/variables.md)) |
-| `beatsync [project] [--grid t0,beat] [--json]` | beat-synced cutting measured on the rendered mp4: hits per grid beat, the music offset in ms and every hard cut's error in frames; needs the mp4 and ffmpeg |
+| `beatsync [project] [--grid t0,beat] [--json] [--write]` | beat-synced cutting measured on the rendered mp4: hits per grid beat, the music offset in ms and every hard cut's error in frames; `--write` saves the onsets to `music/onsets.json` for `KIT.hit`; needs the mp4 and ffmpeg |
 | `brand [project] inventory \| check` | the project's logos as a table, and the brand check (palette valid, ink on bg contrast, every logo on disk, raster logos big enough); exit 1 on any problem |
 | `browser path \| ensure [--install] \| clear [--yes]` | the headless browser the kit renders with: `path` prints it, `ensure` launches it (`--install` downloads Chromium), `clear` lists the Playwright cache (`--yes` deletes it) |
-| `captions [project] [<caption-component>]` | write `transcript.json` from the VO words of `timeline.json` and, given a `caption-*` component, install it fed by that transcript (run `info` first) |
+| `captions [project] [<caption-component>] [--format remotion] [--from captions.json]` | write `transcript.json` from the VO words of `timeline.json` and, given a `caption-*` component, install it fed by that transcript (run `info` first). `--format remotion` also writes `captions.json` (Remotion's Caption JSON); `--from` reads such a file instead of `timeline.json` |
 | `capture <url> [--out dir] [--shots N] [--width W] [--video]` | read-only capture of a public page you own or may use: scroll screenshots, contact sheet, HTML, CSS, text, design tokens, fonts, images, notes → `captures/<host>/`; refuses private and loopback addresses |
 | `capture-trio <url> <out_dir> [width] [--selector "<css>"] [--max 40]` | the page capture trio: `full@2x.png`, a transparent cutout PNG per element and `layout.json`, for floating-chip and camera-over-a-page shots |
 | `catalog [words…] [--type block\|component] [--tag <tag>] [--all] [--tags] [--json] [--pick]` | search the HyperFrames catalog; `--all` also shows what this repo cannot run, `--tags` lists tags, `--pick` asks for a number and prints the `add` line |
@@ -476,9 +486,10 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `range [video] --frames 0-9,30,100- [--every-nth-frame N] [--duration S] [--stills dir [--format jpg\|png] [--jpeg-quality 1-100]] [--out clip.mp4] [--dry-run]` | cut a frame selection out of a finished film (Remotion's `--frames`, `--every-nth-frame`, `--duration`) as a clip or as stills |
 | `review [project]` | print the brief for the final independent review: the project's facts, the commands to run and the itemised checklist ([docs/playbook/final-review.md](docs/playbook/final-review.md)); paste it into a fresh subagent |
 | `ship [project] [--sign "name"]` | ship checks on the delivered mp4 (read time, safe zone, facts, motion scan, dead air, A/V sync) and a review ledger in `ship.json`; `--sign` adds a sign-off that counts only while the mp4's sha still matches |
+| `silence <media> [--noise -40dB\|auto] [--min 0.5] [--merge 0.3] [--trim out.wav] [--pad 0.05] [--json]` | speech and silence segments of an audio or video file (ffmpeg `silencedetect`; `--noise auto` takes loudnorm's measured gate threshold; `--merge` absorbs a short sound between two silences); `--trim` writes the file with its leading and trailing silence cut off, for a voice line; offline ([docs/playbook/codecs.md](docs/playbook/codecs.md)) |
 | `spectrum [file] [--out audio-bands.js] [--fps N] [--bins N]` | per-frame spectrum, level and waveform of an audio or video file, FFT at build time, as `window.AUDIO_BANDS` for `KIT.level` / `KIT.spectrum` / `KIT.waveform` |
 | `stills2 [project] [t,t,..] [--at t,t] [--frames N] [--range a-b[:step]] [--zoom <selector>] [--pad px] [--against ref.mp4] [--min-ssim x]` | stills with more than `stills`: times, N evenly spaced, a range, a zoomed crop of one element, or a comparison with a reference video; `stills` with any of those flags runs it |
-| `transcode [video] [--codec h264\|h265\|vp8\|vp9\|av1\|prores\|gif\|mp3\|aac\|wav] [--out file] [--crf N] [--quality draft\|looks\|standard\|high\|delivery] [--scale 0.5] [--metadata key=value]` | a finished film into another codec with Remotion's quality, pixel-format, colour-tag and metadata knobs (the full flag list is in the header of `tools/commands/transcode.mjs`); offline |
+| `transcode [video] [--codec h264\|h265\|vp8\|vp9\|av1\|prores\|gif\|mp3\|aac\|wav] [--out file] [--crf N] [--quality draft\|looks\|standard\|high\|delivery] [--scale 0.5] [--hardware-acceleration auto\|on\|off] [--metadata key=value]` | a finished film into another codec with Remotion's quality, pixel-format, colour-tag and metadata knobs (the full flag list is in the header of `tools/commands/transcode.mjs`); offline |
 | `transcribe install [--model tiny\|base\|small] [--yes]` / `transcribe <audio\|video> [--model m] [--lang l] [--out words.json]` | local speech to text (faster-whisper): word-level `[{text,start,end}]`, the shape `captions` takes. The install is opt-in: it prints the plan and sizes (about 100 MB of packages plus the model: tiny 75, base 145, small 484 MB) and changes nothing without `--yes`; it makes a repo-local `.venv-tts` and `.models/` (both gitignored). Once installed, `new --video/--audio` and `narrate check` use it |
 | `tts install [--yes]` | local Kokoro voiceover, opt-in: plan and sizes first (about 60 MB of packages, `kokoro-v1.0.onnx` 310 MB, `voices-v1.0.bin` 27 MB), nothing without `--yes`. Then `"tts": "kokoro"` in `project.json` makes `vo` use it; with `transcribe install` too its word times are aligned to the audio (`"timing": "aligned"`) instead of estimated |
 | `verify-av [project]` | does the sound in the rendered mp4 land where `mix.wav` put it: AAC priming, the global offset and the lag around every SFX cue; WARN past 1 frame |
@@ -488,7 +499,7 @@ line needs a translation; on-screen copy in `film.js` stays as written.
 | `gen [project] --provider higgsfield "<prompt>" --out assets/<file> [--kind image\|video] [--yes]` | optional, paid, never part of a build: show the estimate, ask, save an AI image or clip to `assets/` |
 | `gen [project] --import <file> --source firefly\|express "<note>"` | register a file made in Firefly or Express in `assets/gen.json` (offline) |
 
-Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1,4x5,16x10` (or any `WxH` with even sides), `--as <format>` (webm, mov, gif, apng, png, hls: an extra output beside the mp4), `--no-cache` (above), `--json` (any command: one JSON envelope), `--variables '<json>'` / `--variables-file <file>` / `--strict-variables` (composition variables for this run; `--props` and `--props-file` are the Remotion names), `--blur`, `--workers N`, `--low-memory`, the encode knobs `--quality draft|looks|standard|high|delivery`, `--crf N`, `--video-bitrate`, `--max-bitrate`, `--buffer-size`, `--keyframe-interval`, `--vp9-cpu-used`, `--resolution 4k|portrait-4k|square-4k`, and on `frames`, `film`, `all`, `stills` and `encode` the safety flags `--strict`, `--best-effort`, `--timeout S`, `--max-render S`, `--browser-timeout MS`, `--player-ready-timeout MS`, `--protocol-timeout MS`, `--lock [--lock-timeout S]`. Environment:
+Options: `--lang <code>`, `--style <name>`, `--formats 16x9,9x16,1x1,4x5,16x10` (or any `WxH` with even sides), `--as <format>` (webm, mov, gif, apng, png, hls: an extra output beside the mp4), `--no-cache` (above), `--json` (any command: one JSON envelope), `--variables '<json>'` / `--variables-file <file>` / `--strict-variables` (composition variables for this run; `--props` and `--props-file` are the Remotion names), `--composition <id>` (one of the `"compositions"` in `project.json`: its keys laid over the project for this run; [timing](docs/playbook/timing.md#compositions-several-films-or-stills-in-one-project)), `--blur`, `--workers N`, `--low-memory`, the encode knobs `--quality draft|looks|standard|high|delivery`, `--crf N`, `--video-bitrate`, `--max-bitrate`, `--buffer-size`, `--keyframe-interval`, `--vp9-cpu-used`, `--resolution 4k|portrait-4k|square-4k`, `--supersample N` (pvk: capture at N× the output pixels, 2-4, and downscale with lanczos at encode — real SSAA for text and shader edges; off by default, `project.json` `output.supersample`; the master and dither switches are `output.master: "prores"` and `output.dither: false` in [docs/playbook/codecs.md](docs/playbook/codecs.md)), `--hardware-acceleration auto|on|off` (GPU H.264 / H.265 encode: VideoToolbox, NVENC, QSV, VAAPI; default off, `project.json` `output.hardware`; [docs/playbook/codecs.md](docs/playbook/codecs.md)), and on `frames`, `film`, `all`, `stills` and `encode` the safety flags `--strict`, `--best-effort`, `--timeout S`, `--max-render S`, `--browser-timeout MS`, `--player-ready-timeout MS`, `--protocol-timeout MS`, `--lock [--lock-timeout S]`. Environment:
 `PAGES=6` (parallel browser pages), `FPS`, `BROWSER=chrome|chromium`, `PYTHON`.
 
 `gen` is off by default and needs a key for Higgsfield; setup, costs and the manual Firefly/Express route are in
@@ -597,17 +608,20 @@ tools/                      shared — you rarely edit these
   renderers/pvk.mjs         the default renderer ("renderer": "pvk")
   renderers/hyperframes.mjs "renderer": "hyperframes" — hf/index.html rendered by the vendored HyperFrames engine
   renderers/remotion.mjs    the opt-in "renderer": "remotion" (installs nothing without a yes)
-  renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs   KIT.video frames and the KIT.shader transition pass
+  renderers/media.mjs, shader_pass.mjs, shader_glsl.mjs, shader_glsl2.mjs   KIT.video frames and the KIT.shader / KIT.fx pass
   commands/                 plug-in commands, one file each: add, embed, studio, manim, theme-brief, gallery (header = its help)
   checks/                   plug-in QA checks: hf-lint, seekable-runtimes, taste (WARN or gate declared in the file)
   studio/                   reelwright studio: server, page and the preview shims it shares with embed
   selfcheck/                CI self-checks (node tools/selfcheck/<name>.mjs): runtimes, motion, themes, studio, sound, …
   layouts.js, theme.mjs     KIT.layout.* scenes; writes each film's theme.css from themes/ + brand.json
   shots.js, shots2.js       KIT.shot.* camera moves; the second file adds tour, planes (parallax), bulletTime, rackFocus, dof
+  hit-sync.js               KIT.hit (snap to a detected onset), KIT.mark / KIT.until / KIT.dur (named markers from the VO)
   doodle.js, doodle2.js     KIT.doodle.* hand-drawn marks; pen strokes, score, lettering, seams
   math.js, math2.js, tex.js, plot2.js, math3d.js   KIT.math.* charts, KIT.tex (MathJax), shapes, plots and fields, KIT.math3d
   runtimes.js               KIT.gsap, KIT.lottie, KIT.anime, KIT.three, KIT.animations — seek-only
-  path.js, transitions.js, motion.js, shaders.js   KIT.path, KIT.transition, KIT.rate / indicate / typewriter / sim, KIT.shader
+  path.js, transitions.js, easing-extra.js, motion.js, shaders.js   KIT.path (draw, morph, motion along a path), KIT.transition / KIT.cut, KIT.easing.svg / KIT.range, KIT.rate / indicate / typewriter / sim, KIT.shader
+  text-measure.js, text-box.js, text-split.js   KIT.measureText / fitText / fillTextBox, KIT.roundedTextBox, KIT.text: split, masked reveals, tracking, variable-font axes
+  fx-color.js, fx-blur.js, fx-distort.js, fx-pattern.js, fx-reveal.js, fx-gl.js   KIT.fx: Remotion's effects in CSS, canvas and WebGL2
   compose.js, media.js      KIT.mount / KIT.block / KIT.grade / KIT.vfx; KIT.video / KIT.audio
   manim.js, manim.mjs, blocks.mjs   KIT.manim playback and the Manim driver; the HyperFrames blocks importer
   theme-check.mjs, theme-gallery.mjs, theme_from.mjs   check, picture and draft themes (theme-brief is in commands/)
@@ -628,6 +642,7 @@ tools/                      shared — you rarely edit these
 vendor/hyperframes/         HyperFrames (Apache 2.0): render packages, lint, blocks and catalog components, see VENDORED.md
 vendor/hf-player/           the HyperFrames player (Apache 2.0) behind embed and studio
 vendor/gsap/ lottie/ anime/ three/ three-r147/   animation runtimes behind tools/runtimes.js (GSAP is not MIT, see its LICENSE-GSAP.md)
+vendor/rive/ canvaskit/     Rive files (KIT.rive, tools/rive.js) and Skia drawing (KIT.skia, tools/skia.js), wasm loaded from disk
 vendor/katex/ mathjax/ flubber/ paths/ polygon-clipping/ shiki/   math, paths, boolean ops and code highlighting: KIT.math.equation, KIT.tex, morphs, KIT.path, KIT.math.bool, reelwright code
 vendor/d3/ topojson-client/ world-atlas/ us-atlas/   what the map blocks load
 vendor/ui-ux-pro-max/       product-type data behind theme-brief (MIT)

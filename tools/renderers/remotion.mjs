@@ -135,6 +135,7 @@ export default async function remotion(DIR, P, mode, [a3, a4] = []) {
     const pub = path.join(RM, "public"), theme = path.join(DIR, "film", "theme.css");
     fs.mkdirSync(pub, { recursive: true });
     fs.copyFileSync(path.join(ROOT, "tools", "kit.css"), path.join(pub, "kit.css"));
+    fs.copyFileSync(path.join(ROOT, "tools", "kit-dither.png"), path.join(pub, "kit-dither.png"));   // kit.css body::after's tile
     if (fs.existsSync(theme)) fs.copyFileSync(theme, path.join(pub, "theme.css"));
     else fs.writeFileSync(path.join(pub, "theme.css"), "/* no film/theme.css yet: kit.css defaults */\n");
     fs.rmSync(BUILD, { recursive: true, force: true });

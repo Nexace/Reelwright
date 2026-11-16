@@ -451,6 +451,8 @@ Every library is paused at load and only ever **seeked** from `render(t)`: `h.se
 | Lottie | `../../../vendor/lottie/lottie.min.js` | `kit/lottie/lottie.min.js` |
 | anime.js v4 | `../../../vendor/anime/anime.umd.min.js` | `kit/anime/anime.umd.min.js` |
 | Three.js r187 | no tag: `KIT.three` imports `three.module.js` on first use | same |
+| Rive 2.50.0 | `../../../tools/rive.js` (script and wasm read from `vendor/rive/`) | `kit/rive.js` (from `kit/rive/`) |
+| Skia (CanvasKit 0.42.0) | `../../../tools/skia.js` (loader and wasm read from `vendor/canvaskit/`) | `kit/skia.js` (from `kit/canvaskit/`) |
 | all | then `../../../tools/runtimes.js`, then `film.js` | then `kit/runtimes.js`, then `film.js` |
 
 Bundled GSAP plugins: CustomEase, CustomWiggle, CustomBounce, EasePack (SlowMo, ExpoScaleEase), SplitText, DrawSVG,
@@ -480,6 +482,14 @@ function render(t) { g.set(t); l.set(t); a.set(t); s.set(t); KIT.animations(t); 
 CSS animation delays are times on the film clock: set them from the VO (`el.style.animationDelay = W('end', 'go') + 's'`).
 anime.js writes nothing before a tween starts, so give its targets their "before" look in CSS (e.g. `opacity: 0`).
 
+**Rive and Skia** (owner ruling 2026-11-16). `KIT.rive(el, { src, animation | stateMachine, start, dur, inputs })` drives the
+Rive runtime's low-level API, not its player: a linear animation's time is the film time, and a state machine is replayed in
+1/60 s ticks with `inputs: [{ at, name, value | fire }]` as the film-time schedule (seeking back replays from the start, so a
+frame does not depend on seek order). `KIT.skia(el, draw)` paints a CanvasKit software surface: `draw(canvas, CanvasKit, t)`
+draws the frame and the surface is cleared first. Both read their wasm from `vendor/` through a `blob:` URL (no CDN), both
+work in pvk and HyperFrames, and both are checked by `node tools/selfcheck/rive.mjs` / `skia.mjs`. Rive is 2.9 MB (MIT),
+CanvasKit 7.4 MB (BSD-3-Clause). Skia text needs a TTF/OTF typeface; the bundled fonts are woff2.
+
 ### Banned (the `seekable-runtimes` QA gate, `tools/checks/seekable-runtimes.py`)
 
 | Path | Why | Use instead |
@@ -497,6 +507,8 @@ anime.js writes nothing before a tween starts, so give its targets their "before
 | `lottie.loadAnimation(…)` directly | autoplays by default | `KIT.lottie` |
 | `gsap.timeline()` / `gsap.delayedCall` outside `KIT.gsap` | real time | the `tl` `KIT.gsap` passes to build |
 | `THREE.Clock`, `getElapsedTime`, `setAnimationLoop` | real time | animate in `update(t)` |
+| `new rive.Rive(…)` / `.play()` (the @rive-app/canvas player) | its own `requestAnimationFrame` clock | `KIT.rive` |
+| CanvasKit `MakeCanvasSurface` / a WebGL surface | GPU raster differs between machines | `KIT.skia` (its software surface) |
 
 Not bundled: ScrollTrigger and the other interactive plugins, GSDevTools, MotionPathHelper, Flip and CSSRulePlugin
 (seek behaviour unverified), the `.map` files.

@@ -61,6 +61,12 @@ export function makeKit(props = {}) {
   const V = (id) => { if (!VO[id]) throw new Error('no VO line ' + id); return VO[id]; };
   const find = (id, word, nth) => { let n = 0; for (const w of V(id).words) if (norm(w.w) === norm(word) && ++n === nth) return w;
     throw new Error(`word "${word}" (#${nth}) not in VO line ${id}: ${V(id).text}`); };
+  // a named marker from MUSIC.marks (project.json "marks" → tools/marks.py → sched.py), the same as KIT.mark in hit-sync.js
+  const markOf = (name) => {
+    const m = MU.marks && MU.marks[name];
+    if (!m) throw new Error(`no mark "${name}": add it to project.json "marks" and run reelwright marks <project>`);
+    return m;
+  };
   // the line's display words (text split on spaces) with the start time of each, matched in order to the spoken words
   const words = (id) => {
     const v = V(id), ws = v.words;
@@ -85,6 +91,18 @@ export function makeKit(props = {}) {
     words,
     beat: (k) => MU.t0 + k * MU.beat, bar: (k) => MU.t0 + k * MU.bar,
     snap: (t, unit = MU.beat) => MU.t0 + Math.round((t - MU.t0) / unit) * unit,   // nearest beat (or bar)
+    // the nearest onset of a band within tol (MUSIC.onsets, tools/beatsync.py --write), else t unchanged (hit-sync.js)
+    hit: (t, { band = 'kick', tol = 1 / 60 } = {}) => {
+      const on = (MU.onsets && MU.onsets[band]) || [];
+      if (!on.length) return t;
+      let lo = 0, hi = on.length - 1;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (on[m] < t) lo = m + 1; else hi = m; }
+      const a = on[Math.max(0, lo - 1)], b = on[lo], near = Math.abs(a - t) <= Math.abs(b - t) ? a : b;
+      return Math.abs(near - t) <= tol ? near : t;
+    },
+    mark: (name) => markOf(name).t,
+    until: (name, t) => { if (!Number.isFinite(t)) throw new Error('until: give t (the frame time in seconds)'); return markOf(name).t - t; },
+    dur: (name) => markOf(name).dur || 0,
     pulse: (t, decay = 9) => { const x = (t - MU.t0) / MU.beat; return x < 0 ? 0 : Math.exp(-(x - Math.floor(x)) * MU.beat * decay); },
     frame: (t) => Math.round(t * fps),
   };

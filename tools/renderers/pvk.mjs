@@ -2,8 +2,9 @@
 // Env: PAGES=6 (more = faster, more RAM), FPS (default project.json fps or 60), BROWSER=chrome|chromium
 // frames: cached in <project>/.cache/frames/ by what each frame shows (see fingerprint); REELWRIGHT_NO_CACHE=1
 // (--no-cache) renders every frame; REELWRIGHT_FRAMES_DIR renders into another folder (verify).
-// project.json "output" ({format, alpha, hdr, prores, crf, gifFps, hlsSegment, scale}, see encode) and "motionBlur" ({shutter, samples}
-// or true) are opt-in: with neither set, frames and the mp4 are exactly what they were. alpha: frames are PNGs with a
+// project.json "output" ({format, alpha, hdr, prores, master, dither, supersample, bitDepth, crf, gifFps, hlsSegment, scale}, see encode) and "motionBlur" ({shutter, samples}
+// or true) are opt-in; the defaults are the fidelity path (PNG frames, -tune animation, aq-mode=3, BT.709 tags, the dither
+// tile: docs/playbook/codecs.md). alpha: frames are PNGs with a
 // transparent page (the film must not paint a stage background); motionBlur: each frame is the average of `samples`
 // sub-frames rendered across the shutter (docs/playbook/motion-blur.md, output-formats.md).
 import fs from "node:fs";
@@ -13,16 +14,26 @@ import os from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { launch } from "../browser.mjs";
-import { blurSpec, linearBlurFilter } from "../motion-blur.mjs";
+import { blurSpec, linearBlurFilter, shotShutter, subFrameTimes } from "../motion-blur.mjs";
 import { pagesMedia, mediaMix } from "./media.mjs";
 import { shaderPass } from "./shader_pass.mjs";
-import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv } from "../render_opts.mjs";
+import { x264Args, vp9Args, resolution, autoWorkers, outputFromEnv, outputSize, supersample, BT709 } from "../render_opts.mjs";
+import { colorFilter } from "../encode.mjs";
+import { hardwareEncode } from "../hw_encode.mjs";
 
-const SHOT = { type: "jpeg", quality: 94 };
+// frames are PNG: a JPEG q94 intermediate would be a second 4:2:0 generation before x264's own, which is what bleeds
+// saturated text and coloured syntax. stills/ stay jpeg (the contact sheet and stills2 --against read them).
+const SHOT = { type: "png" };
 const SHOT_ALPHA = { type: "png", omitBackground: true };
+const STILL = { type: "jpeg", quality: 94 };
 // html/body and the kit's #stage (the theme paints its background there) transparent for alpha output, injected
 // after load so the film's own CSS stays untouched; anything else the film paints stays in the frame
 export const TRANSPARENT = "html, body, #stage { background: transparent !important; background-image: none !important; }";
+// the kit's dither tile (tools/kit.css) is on for an opaque film capture: the renderer adds this class to <html>
+export const DITHER_CLASS = "kit-dither";
+// the same text and colour flags the producer (tools/blocks.mjs) and the shader pass set, so every capture path agrees
+export const launchArgs = (px) => [`--force-device-scale-factor=${px}`, "--allow-file-access-from-files",
+  "--font-render-hinting=none", "--force-color-profile=srgb"];
 // project.json "motionBlur": true | {shutter (deg, default 180), samples (default 8)} → null when off
 export const blurOf = (P) => blurSpec(P);   // project.json motionBlur or --blur auto|N; linear light unless { linear: false }
 const sha = (b) => crypto.createHash("sha256").update(b).digest("hex");
@@ -60,17 +71,18 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
   const N = Number(process.env.PAGES) || autoWorkers({ lowMemory: !!process.env.REELWRIGHT_LOW_MEMORY });   // PAGES wins; else min(cores/2, RAM/512 MB)
   const WIDTH = P.width || 1920, HEIGHT = P.height || 1080;
   const SCALE = process.env.REELWRIGHT_RESOLUTION ? resolution(P, process.env.REELWRIGHT_RESOLUTION).scale : 1;   // --resolution 4k: layout size stays, pixels x SCALE
+  const SS = supersample(P.output), PX = SCALE * SS;   // --supersample: capture at PX x the layout, encode() downscales to SCALE
   const BEST_EFFORT = !!process.env.REELWRIGHT_BEST_EFFORT, READY_MS = Number(process.env.REELWRIGHT_PLAYER_READY_TIMEOUT) || 0;   // I13 flags, off = as before
-  const ALPHA = !!P.output?.alpha, EXT = ALPHA ? "png" : "jpg", MB = blurOf(P);
+  const ALPHA = !!P.output?.alpha, EXT = "png", MB = blurOf(P), DITHER = !ALPHA && P.output?.dither !== false;
   if (P.output?.hdr) { console.error("HDR needs the hyperframes renderer (project.json \"renderer\": \"hyperframes\")"); process.exit(1); }
   const SHOTOPT = ALPHA ? SHOT_ALPHA : SHOT;
 
-  async function openPages(n, alpha = false) {
-    const browser = await launch([`--force-device-scale-factor=${SCALE}`, "--allow-file-access-from-files"]);
+  async function openPages(n, alpha = false, px = PX) {
+    const browser = await launch(launchArgs(px));
     const pages = [], loaded = new Set();   // every file a page requested (frame cache key)
     let errors = 0;
     for (let i = 0; i < n; i++) {
-      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
+      const p = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: px });
       p.on("request", (r) => loaded.add(r.url()));
       p.on("pageerror", (e) => { errors++; console.error("PAGE ERROR:", e.message); });
       p.on("console", (m) => { if (m.type() === "error") { errors++; console.error("CONSOLE ERROR:", m.text()); } });
@@ -81,6 +93,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       if (!ok || (errors && !BEST_EFFORT)) { await browser.close(); console.error("film/index.html failed to load — fix the errors above"); process.exit(1); }
       if (errors) console.error(`best-effort: carrying on past ${errors} page error${errors > 1 ? "s" : ""}`);
       if (alpha) await p.addStyleTag({ content: TRANSPARENT });
+      if (DITHER) await p.evaluate((c) => document.documentElement.classList.add(c), DITHER_CLASS);
       await pagesMedia(DIR, p, FPS, path.join(DIR, "film"), { frames: mode !== "info" });   // KIT.video / KIT.audio (tools/media.js)
       pages.push(p);
     }
@@ -101,26 +114,27 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     const css = await page.evaluate(() => [...document.styleSheets].map((s) => {
       try { return [...s.cssRules].map((r) => r.cssText).join("\n"); } catch { return s.href; }
     }).join("\n"));
-    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT, SCALE], platform: `${process.platform}-${process.arch}`,
+    return sha(JSON.stringify({ files, css: sha(css), size: [WIDTH, HEIGHT, SCALE, SS], platform: `${process.platform}-${process.arch}`,
       browser: process.env.BROWSER || "", version: browser.version(), shot: SHOTOPT }));
   }
   async function shot(p, t, file) {
     await p.evaluate((t) => window.render(t), t);
-    fs.writeFileSync(file, await p.screenshot(SHOT));
+    fs.writeFileSync(file, await p.screenshot(STILL));
   }
   // frames-mode screenshot (alpha-aware); with motionBlur: `samples` sub-frames spread over the shutter, averaged by ffmpeg
   async function frameShot(p, f, file) {
     if (!MB) { await p.evaluate((t) => window.render(t), f / FPS); return fs.writeFileSync(file, await p.screenshot(SHOTOPT)); }
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelwright-mb-"));
     try {
+      const deg = await p.evaluate((t) => (window.__reelwrightShutter ? window.__reelwrightShutter(t) : null), f / FPS);   // KIT.shot.shutter
+      const spec = shotShutter(MB, deg), times = subFrameTimes(f / FPS, FPS, spec);
       for (let i = 0; i < MB.samples; i++) {
-        const t = Math.max(0, f / FPS + (i / MB.samples - 0.5) * MB.shutter / 360 / FPS);
-        await p.evaluate((t) => window.render(t), t);
+        await p.evaluate((t) => window.render(t), times[i]);
         fs.writeFileSync(path.join(tmp, `s${String(i).padStart(2, "0")}.${EXT}`), await p.screenshot(SHOTOPT));
       }
       const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-framerate", "1", "-i", path.join(tmp, `s%02d.${EXT}`),
         "-vf", MB.linear ? linearBlurFilter(MB.samples, { alpha: ALPHA }) : `${ALPHA ? "premultiply=inplace=1," : ""}tmix=frames=${MB.samples}${ALPHA ? ",unpremultiply=inplace=1" : ""},select=eq(n\\,${MB.samples - 1})`, "-frames:v", "1", "-update", "1",
-        ...(ALPHA ? [] : ["-q:v", "2"]), file], { stdio: "inherit" });
+        file], { stdio: "inherit" });
       if (r.status !== 0) { console.error("motion blur: ffmpeg failed"); process.exit(r.status || 1); }
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   }
@@ -132,7 +146,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
     fs.writeFileSync(path.join(DIR, "timeline.json"), JSON.stringify(film, null, 1));
     console.log(`timeline.json: ${film.DUR}s, ${film.cues.length} SFX cues, ${Object.keys(film.VO || {}).length} VO lines`);
   } else if (mode === "stills") {
-    const { browser, pages } = await openPages(1);
+    const { browser, pages } = await openPages(1, false, SCALE);   // stills are the output size: no supersample
     const dur = await pages[0].evaluate(() => window.FILM.DUR);
     const ts = a3 ? a3.split(",").map(Number) : Array.from({ length: 12 }, (_, i) => +((i + 0.5) * dur / 12).toFixed(2));
     const out = path.join(DIR, "stills");
@@ -186,7 +200,7 @@ export default async function pvk(DIR, P, mode, [a3, a4] = []) {
       }
     } finally { await browser.close(); }
     // KIT.shader windows: always recomposited after the cache step (the cache holds the crossfade)
-    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })), SCALE);
+    await shaderPass(path.join(DIR, "film/index.html"), WIDTH, HEIGHT, all.map((f) => ({ t: f / FPS, file: name(f) })), PX);   // PX: the frames are supersampled
     const shots = [];   // runs of consecutive re-rendered frames
     for (const f of todo) { const s = shots[shots.length - 1]; if (s && s[1] === f - 1) s[1] = f; else shots.push([f, f]); }
     const list = shots.slice(0, 8).map(([a, b]) => `${a}–${b} (${(a / FPS).toFixed(2)}–${((b + 1) / FPS).toFixed(2)} s)`).join(", ");
@@ -217,6 +231,7 @@ function audioInputs(DIR) {
 export function encode(DIR, P, FPS, pattern, start) {
   const o = { ...P.output, ...outputFromEnv() }, fmt = process.env.REELWRIGHT_OUT_FORMAT || o.format || "mp4";
   if (!FORMATS.includes(fmt)) { console.error(`output format "${fmt}" is not one of ${FORMATS.join(", ")}`); process.exit(1); }
+  if (o.master != null && o.master !== "prores") { console.error(`output.master "${o.master}" is not one of prores`); process.exit(1); }
   const outFile = path.join(DIR, P.out || "out/film.mp4");
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const base = outFile.replace(/\.mp4$/, "");
@@ -225,15 +240,24 @@ export function encode(DIR, P, FPS, pattern, start) {
   if (!aud.has) console.log("no mix.wav — encoding silent video");
   const ff = (...a) => { const r = spawnSync("ffmpeg", ["-y", "-v", "error", ...a], { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status || 1); };
-  ff(...frames, ...aud.args, ...x264Args(o),
+  const { width: OW, height: OH } = outputSize(P);
+  const down = supersample(o) > 1 ? `scale=${OW}:${OH}:flags=lanczos` : null;   // --supersample: 2x/3x/4x capture → the output size
+  let hw = null;   // output.hardware / --hardware-acceleration: off (default) leaves the software arguments untouched
+  try { hw = hardwareEncode("h264", o); } catch (e) { console.error(e.message); process.exit(1); }
+  if (hw) console.log("hardware encode:", hw.encoder);
+  // ffmpeg 7+ takes primaries / trc from the frame properties: the tags go in as a setparams filter too, or the mp4 says "unknown"
+  const vf = [down, colorFilter(BT709), hw?.vf].filter(Boolean);
+  ff(...(hw ? hw.pre : []), ...frames, ...aud.args, ...(vf.length ? ["-vf", vf.join(",")] : []), ...(hw ? hw.video : x264Args(o)),
     "-movflags", "+faststart", ...(aud.has ? ["-c:a", "aac", "-b:a", "256k", "-shortest"] : []), outFile);
   console.log("→", outFile);
-  if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff);
+  if (fmt !== "mp4") extra(fmt, o, base, frames, aud, ff, down);
+  // output.master: "prores" → a ProRes 4444 10-bit master beside the mp4 (the same encoder path as --as mov)
+  if (o.master === "prores") extra("mov", { ...o, prores: "4444" }, base + "-master", frames, aud, ff, down);
   subtitles(DIR, outFile);
 }
 
-function extra(fmt, o, base, frames, aud, ff) {
-  const alpha = !!o.alpha, sc = o.scale && o.scale !== 1 ? [`scale=trunc(iw*${o.scale}/2)*2:-2`] : [];
+function extra(fmt, o, base, frames, aud, ff, down = null) {
+  const alpha = !!o.alpha, sc = [down, o.scale && o.scale !== 1 ? `scale=trunc(iw*${o.scale}/2)*2:-2` : null].filter(Boolean);
   const vf = (...f) => { const l = [...sc, ...f]; return l.length ? ["-vf", l.join(",")] : []; };
   const sound = (...c) => (aud.has ? [...c, "-shortest"] : []);
   const file = base + "." + fmt;

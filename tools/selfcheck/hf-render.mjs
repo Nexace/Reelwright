@@ -95,7 +95,7 @@ try {
     fs.writeFileSync(path.join(pv, "film", "film.js"), fs.readFileSync(path.join(pv, "film", "film.js"), "utf8") + "\nsetTimeout(() => { throw new Error('late page error'); }, 0);\n");
     r = rw("frames", pv, "--no-cache"); assert.notEqual(r.status, 0); assert.match(r.out, /late page error/); assert.match(r.out, /failed to load/);
     r = rw("frames", pv, "--no-cache", "--best-effort"); ok(r, "pvk --best-effort"); assert.match(r.out, /best-effort: carrying on past \d+ page error/);
-    assert.equal(fs.readdirSync(path.join(pv, "frames")).filter((f) => f.endsWith(".jpg")).length, 13, "all frames rendered");
+    assert.equal(fs.readdirSync(path.join(pv, "frames")).filter((f) => f.endsWith(".png")).length, 13, "all frames rendered (pvk writes png)");
     r = rw("frames", pv, "--no-cache", "--best-effort", "--player-ready-timeout", "1"); assert.notEqual(r.status, 0, "a 1 ms player-ready timeout fails a pvk render");
   } finally { fs.rmSync(pv, { recursive: true, force: true }); }
   const lock = path.join(tmp, "lock"); process.env.REELWRIGHT_LOCK_DIR = lock;

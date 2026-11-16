@@ -49,12 +49,15 @@
 //   --as <format>         extra output beside the mp4: webm, mov, gif, apng, png (a folder) or hls; same as project.json
 //                         "output": {"format": …}
 //   --no-cache            frames: render every frame instead of reusing .cache/frames/
+//   --composition <id>    any command: project.json "compositions" entry laid over the project for this run (tools/compositions.mjs)
 //   --json                any command: ONE JSON envelope on stdout { ok, command, args, exit, stdout, stderr, data?, _meta } (tools/commands/json.mjs);
 //                         the commands that print their own JSON with --json (doctor, check, catalog, …) keep doing that. Exit codes: 0 ok, 1 failed, 2 usage
 //                         (an unknown command: "did you mean" on stderr). The update notice in _meta is always null: there is no network call to ask.
 //   frames [from] [to] --cache | --resume [--segment N]   HyperFrames: render only that range, keep frames by content hash in .cache/frames-hf/,
 //                         re-render only changed ones in segments of N frames (default 240); --resume finishes an interrupted render
 //   --resolution 4k|portrait-4k|square-4k   frames and stills at that size from the same layout (the aspect must match the film); both renderers
+//   --supersample N       pvk: capture at N x the output pixels (2, 3 or 4) and downscale with lanczos at encode — real SSAA for
+//                         text and shader edges; off by default, project.json "output".supersample is the same switch
 //   safety (frames, film, all, stills, encode): --strict (the producer fails on capture warnings) | --best-effort (hyperframes: the default; pvk:
 //                         carry on past page errors), --timeout S (kill the step, exit 124), --max-render S (hyperframes: abort a render that would run
 //                         longer), --browser-timeout MS, --player-ready-timeout MS, --protocol-timeout MS, --lock [--lock-timeout S] (renders on this
@@ -94,9 +97,11 @@ if (nc >= 0) { args.splice(nc, 1); process.env.REELWRIGHT_NO_CACHE = "1"; }
 const as = args.indexOf("--as");   // encode: also write this format beside the mp4 (tools/renderers/pvk.mjs encode)
 if (as >= 0) process.env.REELWRIGHT_OUT_FORMAT = args.splice(as, 2)[1] || "";
 // render options → env (tools/render_opts.mjs): --quality draft|looks|standard|high|delivery, --crf N, --video-bitrate 8M, --max-bitrate 10M,
-// --buffer-size 20M, --keyframe-interval N, --vp9-cpu-used 0-8, --resolution 4k|portrait-4k|square-4k|2x, --workers N, --low-memory
+// --buffer-size 20M, --keyframe-interval N, --vp9-cpu-used 0-8, --resolution 4k|portrait-4k|square-4k|2x, --hardware-acceleration auto|on|off, --workers N, --low-memory
+// --supersample N: pvk captures at N x the output pixels and encode downscales with lanczos (real SSAA; off by default)
 for (const [flag, env] of [["--quality", "QUALITY"], ["--crf", "CRF"], ["--video-bitrate", "VIDEO_BITRATE"], ["--max-bitrate", "MAX_BITRATE"], ["--buffer-size", "BUFFER_SIZE"],
-  ["--keyframe-interval", "KEYFRAME_INTERVAL"], ["--vp9-cpu-used", "VP9_CPU_USED"], ["--resolution", "RESOLUTION"]]) {
+  ["--keyframe-interval", "KEYFRAME_INTERVAL"], ["--vp9-cpu-used", "VP9_CPU_USED"], ["--resolution", "RESOLUTION"], ["--hardware-acceleration", "HARDWARE"],
+  ["--supersample", "SUPERSAMPLE"]]) {
   const i = args.indexOf(flag); if (i >= 0) process.env["REELWRIGHT_" + env] = args.splice(i, 2)[1] || "";
 }
 const wk = args.indexOf("--workers"); if (wk >= 0) process.env.PAGES = args.splice(wk, 2)[1] || "";
@@ -146,6 +151,9 @@ if (!["new", "from-url", "theme-from", "slideshow", "make"].includes(cmd) && arg
   if (vj || vf) (await import("../tools/commands/props.mjs")).checkProps(proj, { json: vj, file: vf });
   if (vj || vf) (await import("../tools/commands/batch.mjs")).applyVariables(proj, { json: vj, file: vf, strict: sv >= 0 });
 }
+
+// --composition <id>   any command: this project.json "compositions" entry laid over the project for this run (tools/compositions.mjs)
+{ const i = args.indexOf("--composition"); if (i >= 0) (await import("../tools/compositions.mjs")).applyComposition(proj, args.splice(i, 2)[1] || ""); }
 
 function isDir(p) { return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false; }
 function step(name) { console.log(`\n\x1b[1;32m▶ ${name}\x1b[0m  (${proj})`); }

@@ -3,7 +3,10 @@
 //   transcriptFrom(timeline)         → [{ text, start, end }, …]   timeline.json's VO words (reelwright audio/info), in film time, in order
 //   transcriptFromTimeline(timeline) → the same (the name tools/caption_transcript.mjs used; that file is merged here)
 //   writeTranscript(proj)            → <proj>/transcript.json       the same array, so a component or a tool outside reelwright can read it
-//   captionComponents()              → names of the caption-* components that take a transcript (caption-blend-difference is a CSS blend recipe)
+//   toCaptions(words)                → [{ text, startMs, endMs, timestampMs, confidence, pageBreakAfter }, …]   Remotion's Caption JSON (whitespace-sensitive: every
+//                                          word after the first has a leading space; timestampMs is the midpoint, confidence null, pageBreakAfter true after a sentence end)
+//   fromCaptions(captions)           → [{ text, start, end }, …]   the other way (text trimmed, empty entries dropped); `reelwright captions --format remotion`
+//   captionComponents()            → names of the caption-* components that take a transcript (caption-blend-difference is a CSS blend recipe)
 //   adaptCaption(html, words)        → html                         a vendored caption-* component with ITS demo script swapped for `words`
 //   retarget(html, words, duration)  → html                         the older adapter, `captions`' fallback: the word list replaced, DURATION and
 //                                          data-duration set to `duration`, KEYWORDS (emphasis) re-picked from the new words (the long ones),
@@ -28,6 +31,22 @@ export function transcriptFrom(tl) {
   return out;
 }
 export const transcriptFromTimeline = transcriptFrom;
+
+const SENTENCE_END = /[.!?]["')\]]*$/;
+export function toCaptions(words) {
+  return words.map((w, i) => {
+    const text = String(w.text).trim(), startMs = Math.round(w.start * 1000), endMs = Math.round(w.end * 1000);
+    return { text: (i ? " " : "") + text, startMs, endMs, timestampMs: Math.round((startMs + endMs) / 2), confidence: null, pageBreakAfter: SENTENCE_END.test(text) };
+  });
+}
+export function fromCaptions(captions) {
+  if (!Array.isArray(captions)) throw new Error("Caption JSON is an array of { text, startMs, endMs, … }");
+  return captions.flatMap((c, i) => {
+    if (typeof c?.text !== "string" || !Number.isFinite(c.startMs) || !Number.isFinite(c.endMs)) throw new Error(`caption ${i}: needs text (string), startMs and endMs (numbers)`);
+    const text = c.text.trim();
+    return text ? [{ text, start: r3(c.startMs / 1000), end: r3(c.endMs / 1000) }] : [];
+  });
+}
 
 export function writeTranscript(proj) {
   const words = transcriptFrom(JSON.parse(fs.readFileSync(path.join(proj, "timeline.json"), "utf8")));

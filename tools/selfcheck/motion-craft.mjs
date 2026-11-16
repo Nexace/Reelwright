@@ -129,6 +129,19 @@ group('spring: the old form is untouched, visualDuration settles at 0.1 %, overs
     () => K.spring({ bounce: 0.4, stiffness: 100 }), () => K.spring('nope')]) { try { bad(); ok(false, 'a bad spring was accepted'); } catch { /* refused */ } }
 });
 
+group('spring: overshootClamping stops at the target on every form, and leaves the unclamped path alone', () => {
+  const peakOf = (sp) => { let m = -Infinity; for (let i = 0; i <= 3000; i++) m = Math.max(m, sp(i / 500)); return m; };
+  for (const cfg of [{ stiffness: 120, damping: 7, mass: 1 }, { visualDuration: 0.5, bounce: 0.5 }, { stiffness: 120, damping: 7, mass: 1, velocity: 3 }]) {
+    ok(peakOf(K.spring({ ...cfg })) > 1.05, `${JSON.stringify(cfg)} overshoots without the flag`);
+    ok(peakOf(K.spring({ ...cfg, overshootClamping: true })) === 1, `${JSON.stringify(cfg)} is clamped at 1 with it`);
+  }
+  const down = K.spring({ from: 10, to: 0, visualDuration: 0.5, bounce: 0.5, overshootClamping: true });
+  ok(Array.from({ length: 600 }, (_, i) => down(i / 100)).every((v) => v >= 0 && v <= 10), 'falling spring never goes below the target');
+  const tm = K.timing.spring({ stiffness: 120, damping: 7, overshootClamping: true });
+  ok(Array.from({ length: 101 }, (_, i) => tm.at(i / 100)).every((v) => v <= 1), 'KIT.timing.spring honours overshootClamping');
+  near(K.spring({ stiffness: 100, damping: 10 })(0.37), K.spring({ stiffness: 100, damping: 10, overshootClamping: false })(0.37), 0, 'false changes nothing');
+});
+
 group('spring presets: the Motion Canvas table, each at its measured overshoot', () => {
   const table = K.spring.presets;
   ok(Object.keys(table).sort().join() === 'beat,bounce,jump,plop,smooth,strike,swing', `presets: ${Object.keys(table)}`);

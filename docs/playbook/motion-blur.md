@@ -21,7 +21,7 @@ sub-frame is a pure `render(t)`, nothing in the film changes; do not add your ow
 A project-global 180° is a compromise: a fast action shot wants 270–360° and a crisp UI shot wants 90°. Load
 `kit/shutter.js` after `kit/shots.js` and register windows in film time; the pvk renderer asks
 `window.__reelwrightShutter(t)` for each frame and keeps the global value outside every window (and with nothing
-registered). `deg` is 0–360, `from`/`to` are seconds (`KIT.shot.shutter(270, { from: t0, to: t1 })` also works).
+registered). Register the windows at load (top level of film.js), never inside `render(t)`. `deg` is 0–360, `from`/`to` are seconds (`KIT.shot.shutter(270, { from: t0, to: t1 })` also works).
 
 ```js
 KIT.shot.shutter(320, t0, t1);   // the action shot: a long smear

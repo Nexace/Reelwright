@@ -41,6 +41,7 @@
 //   y(t) = (y0 + (v0+ω0y0)t)e^(−ω0t), with y0 = from − to the displacement from the target. All closed form in t: no integrator.
 //   Overshoot of a bounce is e^(−ζπ/√(1−ζ²)): 16.3 % at ζ = 0.5, 0.02 % at ζ = 0.9. `velocity` (units/s) is the hand-off from
 //   the previous segment's derivative (KIT.velocityAt), so a retargeted element does not snap — Motion only fixed that in 14.12.
+//   { overshootClamping: true } on any form (and on KIT.timing.spring) clamps the value at `to`: no overshoot, Remotion's overshootClamping.
 // KIT.spring('plop', from = 0, to = 1) → a named spring; KIT.spring.presets is the Motion Canvas table, tuned by motion
 //   designers rather than derived from maths defaults: { mass, stiffness, damping, velocity } (their mass, stiffness, damping,
 //   initial velocity). tools/selfcheck/motion-craft.mjs measures each preset's peak.
@@ -224,6 +225,15 @@
     return (t) => (t <= 0 ? f : g + y(t));
   };
   K.spring.presets = PRESETS;
+  // { overshootClamping: true } (Remotion's spring option): the value stops at the target, never past it. Works with every form above.
+  const springFree = K.spring;
+  K.spring = (o = {}, from, to) => {
+    const sp = springFree(o, from, to);
+    if (!o.overshootClamping) return sp;
+    const f = o.from ?? 0, g = o.to ?? 1;
+    return (t) => (f < g ? Math.min(sp(t), g) : Math.max(sp(t), g));
+  };
+  K.spring.presets = PRESETS;
 
   // ── keys with a perceptual scale (engine.js's K.keys is the plain one) ──────────────────────────────────
   const keysLegacy = K.keys;
@@ -238,12 +248,12 @@
   K.timing = {
     linear: ({ dur }) => { if (!(dur > 0)) throw new Error('timing.linear: dur > 0'); return { dur, at: (p) => K.clamp(p) }; },
     custom: (fn, { dur }) => { if (!(dur > 0)) throw new Error('timing.custom: dur > 0'); return { dur, at: (p) => fn(K.clamp(p)) }; },
-    spring: ({ stiffness = 100, damping = 10, mass = 1, visualDuration, bounce, velocity, dur, threshold = 0.005 } = {}) => {
+    spring: ({ stiffness = 100, damping = 10, mass = 1, visualDuration, bounce, velocity, dur, threshold = 0.005, overshootClamping } = {}) => {
       if (visualDuration != null || bounce != null) {   // by feel: visualDuration IS the settle time
-        const D = dur ?? visualDuration ?? 0.3, sp = K.spring({ visualDuration, bounce, velocity });
+        const D = dur ?? visualDuration ?? 0.3, sp = K.spring({ visualDuration, bounce, velocity, overshootClamping });
         return { dur: D, native: D, at: (p) => sp(K.clamp(p) * D) };
       }
-      const sp = K.spring({ stiffness, damping, mass, velocity }); let D = 0;   // settle: the last 1/240 s step at which the value is off by more than the threshold
+      const sp = K.spring({ stiffness, damping, mass, velocity, overshootClamping }); let D = 0;   // settle: the last 1/240 s step at which the value is off by more than the threshold
       for (let i = 0; i <= 2400; i++) if (Math.abs(1 - sp(i / 240)) >= threshold) D = (i + 1) / 240;
       D = Math.min(10, D) || 1 / 240;
       return { dur: dur ?? D, native: D, at: (p) => sp(K.clamp(p) * D) };

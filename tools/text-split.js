@@ -8,7 +8,7 @@
 //     Breaks on "\n" and at maxWidth on spaces, then into words and glyphs with measureText. y is the line's baseline
 //     (i·lineHeight·size + half-leading + ascent), x is its left edge, glyph x/w are advances from the line's left edge with
 //     tracking included (per glyph: no pair kerning, which is what tracked display type is). Cached by every input, so a
-//     second call with the same arguments measures nothing. A declared @font-face family with no loaded face throws (a fallback
+//     second call with the same arguments measures nothing. A declared @font-face family whose face for this call (document.fonts.check of weight, style, size) is not loaded throws (a fallback
 //     face would silently change every box), as does a size of 0. tracking is em as a number, or '0.04em' / '2px'.
 //
 //   KIT.text.reveal(host, split, { by = 'lines'|'words'|'chars', mask = true, stagger = 0.04, from = 'start'|'center'|'edges',
@@ -60,7 +60,7 @@
     const hit = cache.get(key);
     if (hit) return hit;
     const list = faces(o.font);
-    if (list.length && !list.some((f) => f.status === 'loaded')) throw new Error(`KIT.text.split: no face of font "${family(o.font)}" is loaded (faces: ${faceList(list)}); build the split after document.fonts.ready, never in render(t)`);
+    if (list.length && !document.fonts.check(fontOf(o, size))) throw new Error(`KIT.text.split: the face of font "${family(o.font)}" this call uses (${fontOf(o, size)}) is not loaded (faces: ${faceList(list)}); build the split after document.fonts.ready, never in render(t)`);
     measure(o, size);
     const lh = size * (o.lineHeight || 1.2), maxW = o.maxWidth > 0 ? o.maxWidth : Infinity;
     const adv = new Map();   // one char measured once per (font, size, tracking)

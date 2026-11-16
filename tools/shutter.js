@@ -5,6 +5,9 @@
 //   KIT.shot.shutter(deg, from, to)          deg 0–360, film-time window [from, to)
 //   KIT.shot.shutter(deg, { from, to })      the same, as an options object
 //   KIT.shot.shutterAt(t) → degrees          the shutter in force at t (180 with none registered)
+// Register windows at load (top level of film.js), never inside render(t): the renderer reads them for every frame, so a window
+// added mid-render would change what an earlier frame already used. The renderer sees null outside every window and keeps the
+// project's shutter; shutterAt is the 180-default convenience for film code.
 // Motion blur must be on (project.json "motionBlur" or --blur); otherwise a shutter has no frame to spread.
 'use strict';
 (function () {
@@ -19,10 +22,7 @@
     regs.push({ deg: d, from, to });
     return d;
   };
-  S.shutterAt = (t) => {
-    let deg = 180;
-    for (const r of regs) if (t >= r.from && t < r.to) deg = r.deg;   // a later registration wins an overlap
-    return deg;
-  };
-  window.__reelwrightShutter = S.shutterAt;
+  const inWindow = (t) => { let deg = null; for (const r of regs) if (t >= r.from && t < r.to) deg = r.deg; return deg; };   // a later registration wins an overlap
+  S.shutterAt = (t) => inWindow(t) ?? 180;
+  window.__reelwrightShutter = inWindow;   // null outside every window, so the renderer keeps the project's own shutter (not 180)
 })();

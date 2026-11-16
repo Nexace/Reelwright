@@ -23,4 +23,11 @@ assert.ok(doc.includes("26"), "the page no longer says 26 transitions");
 const tr = rd("tools/transitions.js");
 assert.ok(tr.includes("K.shader"), "KIT.transition no longer forwards an unknown type to KIT.shader");
 assert.ok(!hf.some((n) => tr.includes("'" + n + "'")), "tools/transitions.js hard-codes a shader name instead of forwarding it");
+// the six gl-transitions ports carry their MIT licence: the full text and every author in THIRD_PARTY.md, a line in NOTICE, the credit in the file header
+const tp = rd("THIRD_PARTY.md"), notice = rd("NOTICE"), glh = rd("tools/renderers/shader_glsl2.mjs").split("import ")[0];
+assert.match(tp, /Permission is hereby granted, free of charge[\s\S]*THE SOFTWARE IS PROVIDED "AS IS"/, "THIRD_PARTY.md lacks the gl-transitions MIT text");
+assert.match(tp, /Copyright \(c\) 2017-present gl-transitions contributors/);
+for (const who of ["rectalogic", "Eke Péter", "Zeh Fernando", "gre", "Evan Wallace"]) for (const [name, text] of [["THIRD_PARTY.md", tp], ["NOTICE", notice], ["shader_glsl2.mjs header", glh]]) assert.ok(text.includes(who), `${name} does not credit ${who}`);
+// the libraries linked into the wasm builds are credited (strings of each binary checked when this list was written)
+for (const lib of ["ICU", "FreeType", "HarfBuzz", "libpng", "zlib", "libjpeg-turbo", "Luau"]) assert.ok(notice.includes(lib) && tp.includes(lib), `NOTICE / THIRD_PARTY.md lack ${lib}`);
 console.log(`shader-transitions self-check: ${hf.length} HyperFrames + ${Object.keys(SHADERS2).length} Remotion shaders match both registries and the page`);

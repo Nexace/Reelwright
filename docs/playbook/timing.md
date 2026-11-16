@@ -44,8 +44,9 @@ branches on it: `if (PROJECT.composition === 'square') …`. A still is a compos
 (`stills` takes the composition's size but does not re-schedule; `film` and `all` run `sched` themselves), then `reelwright stills <project> 1.5 --composition cover`.
 
 Not a second engine entry: `tools/engine.js` still starts one film per page, so every composition shares one `film.js` and one set of recordings.
-`project.json` is rewritten for the run and put back byte for byte when the process exits (a kill leaves `project.json.composition-bak`, which the next
-`--composition` run restores; a command that writes `project.json` itself, like `beats import`, keeps its write). Do not run two compositions of the same
+`project.json` is rewritten for the run (every build step reads it from disk) and put back byte for byte when the process exits, on Ctrl-C / SIGTERM / SIGHUP or on an error
+(a SIGKILL leaves `project.json.composition-bak`, which the next `--composition` run restores; a command that writes `project.json` itself, like `beats import`, keeps its
+write and the backup is kept, never deleted over a changed file). Do not run two compositions of the same
 project at the same time; use `--formats` for the same film in several sizes.
 
 ## Motion craft: a motion budget, anticipation, springs by feel, perceptual scale
@@ -62,6 +63,7 @@ in both renderers. Proof: `node tools/selfcheck/motion-craft.mjs` (exact numbers
 | `KIT.anticipate(t, t0, { dur = 0.08, amount = 0.06 })` | `-amount..0`, a counter-move over `[t0 − dur, t0]` that is back at 0 at `t0`, C¹ at both ends: `p * (1 + KIT.anticipate(t, t0))` |
 | `KIT.step(fps = 12)` / `KIT.hold(t, t0, t1)` | stepped time (`floor(t·fps + 1e-6)/fps`, "on twos" at 12) and a clamp that holds a driver still outside a window |
 | `KIT.spring({ visualDuration, bounce, velocity })` | a spring by feel instead of by constants: `bounce` 0..1 is the overshoot, `visualDuration` is how long it looks like it takes, `velocity` continues the previous segment's motion |
+| `KIT.spring({ …, overshootClamping: true })` | any spring form (and `KIT.timing.spring`) stops at `to` instead of overshooting it, Remotion's `overshootClamping` |
 | `KIT.spring('plop', from, to)`, `KIT.spring.presets` | the Motion Canvas presets below |
 | `KIT.interpolate(t, input, output, { output: 'perceptual-scale' })`, same option on `KIT.keys` | the value is interpolated as its signed visible **area** (`sign·v²`) and square-rooted back, so scale 0→1 moves linearly in area instead of looking like it accelerates |
 

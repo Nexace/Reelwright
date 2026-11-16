@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -69,15 +69,34 @@ try {
   fs.writeFileSync(path.join(cp, "project.json.composition-bak"), original); fs.writeFileSync(path.join(cp, "project.json"), "{ merged by a killed run }");   // repair after a kill
   r = run(["bin/reelwright.mjs", "sched", cp, "--composition", "square"]);
   assert.equal(r.status, 0, r.stdout + r.stderr); assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), original, "a killed run's leftovers are repaired");
-  // a command that rewrites project.json itself (beats import) keeps its write: the merge is not put back over it
+  // a command that rewrites project.json itself (beats import) keeps its write: the merge is not put back over it, and the backup stays
   const writer = path.join(tmp, "writer.mjs"), comp = pathToFileURL(path.join(ROOT, "tools/compositions.mjs")).href;
   fs.writeFileSync(writer, `import { applyComposition } from ${JSON.stringify(comp)};\nimport fs from "node:fs";\n` +
     `applyComposition(${JSON.stringify(cp)}, "square");\nfs.writeFileSync(${JSON.stringify(path.join(cp, "project.json"))}, '{"rewritten": true}\\n');\n`);
   r = run([writer]);
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), '{"rewritten": true}\n', "a rewrite during the run is kept");
-  assert.ok(!fs.existsSync(path.join(cp, "project.json.composition-bak")), "and no backup is left behind");
+  assert.equal(fs.readFileSync(path.join(cp, "project.json.composition-bak"), "utf8"), original, "a rewrite mid-run keeps the backup, holding the original with its compositions");
   assert.match(r.stderr, /rewritten during the run/);
+  fs.rmSync(path.join(cp, "project.json.composition-bak"));
+  // a run killed mid-way (SIGTERM while the merged file is in place) puts project.json back, compositions array and all
+  fs.writeFileSync(path.join(cp, "project.json"), original);
+  const waiter = path.join(tmp, "waiter.mjs");
+  fs.writeFileSync(waiter, `import { applyComposition } from ${JSON.stringify(comp)};\napplyComposition(${JSON.stringify(cp)}, "square");\nconsole.log("MERGED");\nsetInterval(() => {}, 1000);\n`);
+  for (const sig of ["SIGTERM", "SIGINT"]) {
+    const child = spawn(process.execPath, [waiter], { stdio: ["ignore", "pipe", "pipe"] });
+    await new Promise((ok) => child.stdout.on("data", (d) => String(d).includes("MERGED") && ok()));
+    assert.match(fs.readFileSync(path.join(cp, "project.json"), "utf8"), /"composition": "square"/, "the merge is in place while the run lives");
+    child.kill(sig); await new Promise((ok) => child.once("exit", ok));
+    assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), original, `${sig} mid-run: project.json holds the original again`);
+    assert.ok(!fs.existsSync(path.join(cp, "project.json.composition-bak")), `${sig}: backup cleaned once restored`);
+  }
+  // a throw mid-run restores too; a rewrite mid-run keeps the backup
+  const thrower = path.join(tmp, "thrower.mjs");
+  fs.writeFileSync(thrower, `import { applyComposition } from ${JSON.stringify(comp)};\napplyComposition(${JSON.stringify(cp)}, "square");\nthrow new Error("boom");\n`);
+  r = run([thrower]); assert.notEqual(r.status, 0);
+  assert.equal(fs.readFileSync(path.join(cp, "project.json"), "utf8"), original, "an uncaught exception puts project.json back");
+  assert.ok(!fs.existsSync(path.join(cp, "project.json.composition-bak")), "and the backup is cleaned");
   fs.writeFileSync(path.join(cp, "project.json"), original);
   r = run(["bin/reelwright.mjs", "sched", cp]);   // without the flag: the project's own size
   assert.match(fs.readFileSync(path.join(cp, "film", "data.js"), "utf8"), /"width": 1920, "height": 1080, "speechEnd"/);

@@ -102,9 +102,11 @@ KIT.start({ dur: 3, render: (t) => { lines.set(t); words.set(t); chars.set(t); d
       const multi = T.split('One face', { font: 'MultiFace', size: 20, weight: 400 });
       is('split: a family with one loaded face measures (an unused face may be unloaded)', multi.lines.length === 1 && multi.lines[0].glyphs.length > 0, multi.lines.length);
       is('axes: a family with one loaded face passes the loaded check', T.axes('MultiFace', { wght: [400, 700] }, { variable: true })(0.5) === '"wght" 550.00', 0);
+      try { T.split('Bold face', { font: 'MultiFace', size: 20, weight: 700 }); bad.push('split: an unloaded face that this call uses was accepted'); }
+      catch (e) { is('split: the face actually used must be loaded (700 unloaded, 400 loaded)', /MultiFace/.test(e.message) && /not loaded/.test(e.message), e.message); }
       document.fonts.add(new FontFace('DeadFace', `url("${woff}")`));   // declared, never loaded
       try { T.split('No face', { font: 'DeadFace', size: 20 }); bad.push('split: a family with no loaded face was accepted'); }
-      catch (e) { is('split: no loaded face throws and names every face', /no face of font "DeadFace"/.test(e.message) && /faces: normal normal → unloaded/.test(e.message), e.message); }
+      catch (e) { is('split: no loaded face throws and names every face', /font "DeadFace"/.test(e.message) && /faces: normal normal → unloaded/.test(e.message), e.message); }
       try { T.axes('DeadFace', { wght: [400, 700] }, { variable: true }); bad.push('axes: a family with no loaded face was accepted'); }
       catch (e) { is('axes: no loaded face throws and names every face', /no face of font "DeadFace"/.test(e.message) && /unloaded/.test(e.message), e.message); }
       // a canvas draws through ctx.font: font-variation-settings cannot apply, so axes is refused, not ignored

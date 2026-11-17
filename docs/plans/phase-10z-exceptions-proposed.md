@@ -1,6 +1,6 @@
 # Phase 10z: non-EQUAL rows, grouped by reason
 
-Generated 2026-11-16 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
+Generated 2026-11-15 by tools/parity_compile.mjs from docs/parity/*.md. Do not hand-edit. **Owner rulings 2026-11-12: the 80 rows of groups 1-9 and the rows the re-audit tagged except are accepted exceptions; rows tagged build are planned for Phase 11 (not claimed); the four rows tagged "proposed" wait for the owner. The state is shown after every row.** This is every row whose status is not EQUAL, BETTER or EQUAL/BETTER, grouped by the reason the row's own text (or the plan's Known exceptions) gives. The last group, "Not done, no stated reason", is the to-do list.
 
 Total rows 601; EQUAL + BETTER + EQUAL/BETTER 457; not 144 (grand total of the groups below: 144).
 

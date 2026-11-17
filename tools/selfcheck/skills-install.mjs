@@ -14,11 +14,11 @@ try {
   const skills = fs.readdirSync(path.join(ROOT, ".claude", "skills"));
   let r = run("install", "--dry-run"); assert.equal(r.status, 0, r.stderr); assert.equal(fs.readdirSync(home).length, 0, "dry run writes nothing");
   r = run("install"); assert.equal(r.status, 0, r.stdout + r.stderr);
-  for (const dir of [".codex/skills", ".config/opencode/skills", ".cursor/skills", ".gemini/config/skills"]) for (const s of skills) {
+  for (const dir of [".codex/skills", ".config/opencode/skills", ".cursor/skills", ".gemini/config/skills", ".claude/skills"]) for (const s of skills) {
     const name = s === "product-video" ? "reelwright" : s, f = path.join(home, dir, name, "SKILL.md");
     assert.ok(fs.existsSync(f), f); const t = fs.readFileSync(f, "utf8");
     assert.match(t, new RegExp(`^---\\nname: ${name}\\n`)); assert.ok(t.includes(`Repo: \`${ROOT}\``), "repo path preface");
   }
   r = run("install", "--apps", "codex,nope"); assert.equal(r.status, 1); assert.match(r.stdout, /unknown app\(s\): nope/);
-  console.log(`skills-install self-check: ${skills.length} skills into 4 apps, dry run, rename, preface, refusal`);
+  console.log(`skills-install self-check: ${skills.length} skills into 5 apps, dry run, rename, preface, refusal`);
 } finally { fs.rmSync(home, { recursive: true, force: true }); }

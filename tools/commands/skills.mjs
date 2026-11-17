@@ -1,7 +1,7 @@
-// skills install [--apps codex,opencode,cursor,antigravity] [--dry-run]   copy this repo's agent skills (.claude/skills/*) into
+// skills install [--apps codex,opencode,cursor,antigravity,claude] [--dry-run]   copy this repo's agent skills (.claude/skills/*) into
 //                        other coding agents' global skill folders, each with a preface naming this repo's path, so they can make films
 //                        from any folder: Codex ~/.codex/skills, OpenCode ~/.config/opencode/skills, Cursor ~/.cursor/skills,
-//                        Antigravity ~/.gemini/config/skills. product-video is installed as `reelwright`. Re-run after an update. Writes only those folders.
+//                        Antigravity ~/.gemini/config/skills, Claude Code ~/.claude/skills. product-video is installed as `reelwright`. Re-run after an update. Writes only those folders.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -12,6 +12,7 @@ export const APPS = {
   opencode: ".config/opencode/skills",
   cursor: ".cursor/skills",
   antigravity: ".gemini/config/skills",
+  claude: ".claude/skills",   // Claude Code outside this repo (inside it, .claude/skills here already loads)
 };
 const RENAME = { "product-video": "reelwright" };   // the name the global copy has always used
 
@@ -40,7 +41,7 @@ export function install(ROOT, apps, { dry = false } = {}) {
 }
 
 export default async function skills({ args, ROOT }) {
-  if (args[0] !== "install") { console.log("usage: reelwright skills install [--apps codex,opencode,cursor,antigravity] [--dry-run]"); process.exit(1); }
+  if (args[0] !== "install") { console.log("usage: reelwright skills install [--apps codex,opencode,cursor,antigravity,claude] [--dry-run]"); process.exit(1); }
   const a = args.indexOf("--apps"), apps = a >= 0 ? String(args[a + 1] || "").split(",").filter(Boolean) : Object.keys(APPS);
   const bad = apps.filter((x) => !APPS[x]);
   if (!apps.length || bad.length) { console.log(`unknown app(s): ${bad.join(", ") || "(none given)"}; known: ${Object.keys(APPS).join(", ")}`); process.exit(1); }

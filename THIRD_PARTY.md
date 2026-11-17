@@ -17,6 +17,9 @@ Every vendored folder keeps its licence file and a `VENDORED.md` (version, integ
 | polygon-clipping 0.15.7 | `vendor/polygon-clipping/` | MIT, [LICENSE](vendor/polygon-clipping/LICENSE) | Copyright (c) 2018 Mike Fogel (parts (c) 2016 Alexander Milevski) | boolean ops for `KIT.math.bool` | [VENDORED.md](vendor/polygon-clipping/VENDORED.md). Unchanged. Bundles splaytree (MIT) and a Microsoft TypeScript-helper notice (Apache-2.0); see its [THIRD_PARTY.md](vendor/polygon-clipping/THIRD_PARTY.md). |
 | shiki 3.23.0 (trimmed bundle) | `vendor/shiki/` | MIT, [LICENSE](vendor/shiki/LICENSE) | Copyright (c) 2021 Pine Wu, (c) 2023 Anthony Fu | build-time syntax highlighting for `KIT.math.code` (`reelwright code`) | [VENDORED.md](vendor/shiki/VENDORED.md). One esbuild bundle: shiki core, JS regex engine, 7 grammars, 2 themes, plus vscode-textmate, oniguruma-to-es and others; see its [THIRD_PARTY.md](vendor/shiki/THIRD_PARTY.md). |
 | @lottiefiles/dotlottie-web 0.83.2 (`dotlottie-web.js`, `dotlottie-player.wasm`) | `vendor/dotlottie/` | MIT (SPDX `MIT`), [LICENSE](vendor/dotlottie/LICENSE) | Copyright (c) 2023 LottieFiles.com | plays .lottie archives for `KIT.dotLottie` (tools/dotlottie.js); the wasm is the dotlottie-rs / ThorVG engine | [VENDORED.md](vendor/dotlottie/VENDORED.md). Unchanged. |
+| @rive-app/canvas 2.50.0 (`rive.js`, `rive.wasm`) | `vendor/rive/` | MIT, [LICENSE](vendor/rive/LICENSE) | Copyright (c) 2020-2021 Rive | Rive files drawn by `KIT.rive` (tools/rive.js); the wasm is the CanvasKit (Skia) renderer | [VENDORED.md](vendor/rive/VENDORED.md). Unchanged. The wasm statically links Luau and others, listed [below](#libraries-linked-into-the-wasm-builds). |
+| canvaskit-wasm 0.42.0 (Skia; `canvaskit.js`, `canvaskit.wasm`) | `vendor/canvaskit/` | BSD-3-Clause, [LICENSE](vendor/canvaskit/LICENSE) | Copyright (c) 2011 Google Inc. | `KIT.skia` (tools/skia.js): Skia drawing on a software CanvasKit surface | [VENDORED.md](vendor/canvaskit/VENDORED.md). Unchanged. The wasm statically links further libraries, listed [below](#libraries-linked-into-the-wasm-builds). |
+| gl-transitions shader formulas (six ports: cross-zoom, crosswarp, dreamy-zoom, linear-blur, ripple, swap; cross-zoom is itself based on glfx.js zoomBlur, MIT, Copyright (c) 2011 Evan Wallace) | `tools/renderers/shader_glsl2.mjs` (rewritten GLSL, not a copy of the files) | MIT, text [below](#gl-transitions) | Copyright (c) 2017-present gl-transitions contributors; shader authors: rectalogic (CrossZoom), Eke Péter (crosswarp), Zeh Fernando (DreamyZoom), gre (LinearBlur, ripple, swap) | `KIT.shader` transitions of the same names | Source: [github.com/gl-transitions/gl-transitions](https://github.com/gl-transitions/gl-transitions). |
 | lottie-web 5.13.0 | `vendor/lottie/` | MIT, [LICENSE.md](vendor/lottie/LICENSE.md) | Copyright (c) 2015 Bodymovin | `KIT.lottie` | [VENDORED.md](vendor/lottie/VENDORED.md). Unchanged. |
 | Anime.js 4.5.0 | `vendor/anime/` | MIT, [LICENSE.md](vendor/anime/LICENSE.md) | Copyright (c) 2025 Julian Garnier | `KIT.anime` | [VENDORED.md](vendor/anime/VENDORED.md). Unchanged. |
 | MathJax 3.2.2 (`es5/tex-svg-full.js`) | `vendor/mathjax/` | Apache 2.0, [LICENSE](vendor/mathjax/LICENSE) | The MathJax Consortium (the licence file carries only the template copyright line) | `KIT.tex` (TeX to SVG glyph paths) | [VENDORED.md](vendor/mathjax/VENDORED.md). Unchanged; `config.js` and `kit.json` are ours. Upstream has no `NOTICE` file. |
@@ -76,3 +79,53 @@ Reelwright does not install TinyTeX or any other TeX distribution; real LaTeX (`
 - Music you add (e.g. from Mixkit) keeps its own licence and is never committed (`.gitignore`).
 - HyperFrames blocks that need WebGPU, three r128, the Draco decoder, clipper-lib, d3-delaunay, audio/video, or unlicensed assets, and HyperFrames' AWS / GCP cloud packages, are not vendored (`vendor/hyperframes/registry/blocks/UNSUPPORTED.md`).
 - Remotion, Manim CE, ManimGL, Typst: not vendored (see above).
+
+## gl-transitions
+
+The six shaders named in the table above follow formulas from the gl-transitions collection. The licence of the collection:
+
+```
+MIT License
+
+Copyright (c) 2017-present gl-transitions contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+Each ported shader's own header names its author and `License: MIT` (CrossZoom: rectalogic, ported by gre, based on glfx.js zoomBlur by Evan Wallace, MIT; crosswarp: Eke Péter; DreamyZoom: Zeh Fernando; LinearBlur, ripple, Swap: gre).
+
+## Libraries linked into the wasm builds
+
+`vendor/canvaskit/canvaskit.wasm` and `vendor/rive/rive.wasm` are compiled binaries that carry other projects' code. This list comes from the strings in each binary (checked on this release); each library keeps its own licence, and the wasm is unchanged from upstream.
+
+| Library | In | Licence | Copyright |
+|---|---|---|---|
+| Skia | canvaskit.wasm | BSD-3-Clause ([vendor/canvaskit/LICENSE](vendor/canvaskit/LICENSE)) | Copyright (c) 2011 Google Inc. |
+| ICU (Unicode data and algorithms) | canvaskit.wasm | Unicode License ([unicode.org/copyright.html](https://www.unicode.org/copyright.html), named in the binary) | Copyright (C) 2016 and later Unicode, Inc. and others |
+| FreeType | canvaskit.wasm | FreeType License (BSD-style; FreeType is dual-licensed FTL / GPLv2, taken here under the FTL) | Copyright The FreeType Project (portions Copyright David Turner, Robert Wilhelm and Werner Lemberg) |
+| HarfBuzz | canvaskit.wasm | MIT ("Old MIT") | Copyright The HarfBuzz authors |
+| libpng | canvaskit.wasm | libpng License | Copyright The PNG Reference Library authors |
+| zlib | canvaskit.wasm | zlib License | Copyright Jean-loup Gailly and Mark Adler |
+| libjpeg-turbo | canvaskit.wasm | IJG, BSD-3-Clause and zlib licences | Copyright 1991-2024 The libjpeg-turbo Project and many others |
+| libwebp | canvaskit.wasm | BSD-3-Clause | Copyright Google Inc. |
+| Wuffs | canvaskit.wasm | Apache-2.0 | Copyright The Wuffs Authors |
+| Luau | rive.wasm | MIT | Copyright (c) 2019-2024 Roblox Corporation (scripting for Rive files); portions Copyright (c) 1994-2019 Lua.org, PUC-Rio |
+| miniaudio | rive.wasm | Public domain or MIT-0 | David Reid |
+
+Expat is part of Skia's usual third-party set, but no Expat code showed in the strings of this canvaskit build, so it is not listed. If a later check of the binaries finds more libraries, add them here and to NOTICE.

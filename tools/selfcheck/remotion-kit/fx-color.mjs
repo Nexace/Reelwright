@@ -17,8 +17,10 @@ const fLev = X.levels({ inBlack: 0.25, inWhite: 0.75 }), fCur = X.curves([[0, 0]
 const src = (draw) => { const c = document.createElement('canvas'); c.width = 70; c.height = 70; draw(c.getContext('2d')); return c; };
 const keySrc = src((g) => { g.fillStyle = '#0f0'; g.fillRect(0, 0, 35, 70); g.fillStyle = '#f00'; g.fillRect(35, 0, 35, 70); });
 const vibSrc = src((g) => { g.fillStyle = 'rgb(150,120,120)'; g.fillRect(0, 0, 70, 70); });
+const spillSrc = src((g) => { g.fillStyle = 'rgb(100,160,100)'; g.fillRect(0, 0, 70, 70); });   // green fringe, far from the key colour
 const host = (i, css = {}) => box(i, css);
 T.key = X.colorKey(keySrc, { w: 70, h: 70, parent: host(13) });
+T.spill = X.colorKey(spillSrc, { w: 70, h: 70, parent: host(16), similarity: 0.05, smoothness: 0.01, spillSuppression: 1 });
 T.vib = X.vibrance(vibSrc, { w: 70, h: 70, parent: host(14) });
 const dark = host(15, { background: '#555' });
 T.vig = X.vignette(dark, { strength: 0.9 }); T.shn = X.shine(dark, { width: 0.2 });
@@ -29,7 +31,7 @@ KIT.start({ dur: 6, render: (t) => {
   const m = 0.5 + 0.3 * sw(t, 3); fCur.set([[0, 0], [0.5, m], [1, 1]]).on(T.cur); fCr.set([[0, 0], [0.5, m], [1, 1]]).on(T.cr);
   fLs.set({ length: 40 * sw(t, 3), angle: 0, color: '#000' }).on(T.ls);
   T.gl.style.filter = X.filter({ glow: { radius: 10, color: '#f00', strength: Math.round(3 * sw(t, 3)) } }); T.ds.style.filter = X.filter({ dropShadow: { x: 0, y: 12 * sw(t, 3), blur: 0, color: '#000' } });
-  T.key.set(); T.vib.set(sw(t, 3)); T.vig.set(sw(t, 3)); T.shn.set(sw(t, 6));
+  T.key.set(); T.spill.set(); T.vib.set(sw(t, 3)); T.vig.set(sw(t, 3)); T.shn.set(sw(t, 6));
 } });`,
   check: async (p) => {
     await at(p, 3);
@@ -58,6 +60,8 @@ KIT.start({ dur: 6, render: (t) => {
     v = await px(p, ...c(12, 15, 38)); want('dropShadow: dark below the box', v[0] < 60, v);
     const k = await p.evaluate(() => { const d = window.T.key.el.getContext('2d').getImageData(0, 0, 70, 70).data; return [d[3], d[(35 * 70 + 60) * 4 + 3]]; });
     want('colorKey: green transparent, red kept', k[0] === 0 && k[1] === 255, k);
+    const ks = await p.evaluate(() => { const d = window.T.spill.el.getContext('2d').getImageData(35, 35, 1, 1).data; return [d[0], d[1], d[2], d[3]]; });
+    want('colorKey spillSuppression 1 pulls the green fringe down to the other channels', ks[3] === 255 && near(ks[0], 100, 2) && near(ks[1], 100, 2) && near(ks[2], 100, 2), ks);
     const vb = await p.evaluate(() => { const d = window.T.vib.el.getContext('2d').getImageData(1, 1, 1, 1).data; return [d[0], d[1], d[2]]; });
     want('vibrance +1 spreads the channels of a muted colour', vb[0] - vb[1] > 40, vb);
     const a = await px(p, ...c(15, 3, 66)), b2 = await px(p, ...c(15));

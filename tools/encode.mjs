@@ -8,12 +8,14 @@
 //                        o.colorTrc, o.colorRange (tv|pc). Tags only: no pixel conversion.
 //   colorFilter(o)       the same tags as a setparams filter (what makes primaries / trc stick)
 //   metadataArgs(m)      { title, comment, key: value } or ["k=v", …] → -metadata pairs
-//   transcode(src, out, o)  src (a video or a finished film's mp4) → out in the codec's container, audio kept; returns the path
+//   transcode(src, out, o)  src (a video or a finished film's mp4) → out in the codec's container, audio kept; returns the path. o.hardware auto | on | off
+//                        (default off) encodes h264 / h265 on the GPU where one works (tools/hw_encode.mjs, Remotion 2.7.3)
 //   stillArgs(o)         jpeg-quality 1 (best) to 100 → ffmpeg -q:v 2..31 for the jpg stills `range` and the renderers write
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { x264Args, vp9Args, PRESETS } from "./render_opts.mjs";
+import { hardwareEncode } from "./hw_encode.mjs";
 
 export const CODECS = ["h264", "h265", "vp8", "vp9", "av1", "prores", "gif", "mp3", "aac", "wav"];
 const PRORES = { proxy: 0, lt: 1, "422": 2, hq: 3, "4444": 4, "4444xq": 5 };
@@ -84,11 +86,13 @@ export function codecArgs(codec, o = {}) {
 const kbps = (s) => { const m = /^(\d+(?:\.\d+)?)([kKmM]?)$/.exec(String(s)); return Math.round(m[1] * ({ "": 0.001, k: 1, m: 1000 }[m[2].toLowerCase()])); };
 
 export function transcode(src, out, o = {}) {
-  const c = codecArgs(o.codec ?? "h264", o), file = out || src.replace(/\.[^.]+$/, "") + "." + c.ext;
+  let c = codecArgs(o.codec ?? "h264", o), file = out || src.replace(/\.[^.]+$/, "") + "." + c.ext;
   if (path.resolve(file) === path.resolve(src)) throw new Error("transcode: the output would overwrite the source");
   fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
   const scale = o.scale && o.scale !== 1 ? `scale=trunc(iw*${o.scale}/2)*2:-2` : null;
-  const vf = [scale, colorFilter(o)].filter(Boolean), args = ["-y", "-v", "error", "-i", src];
+  const hw = hardwareEncode(o.codec ?? "h264", o);   // o.hardware auto | on; off / absent: the software arguments, unchanged
+  if (hw) c = { ...c, video: [...hw.video, ...colorArgs(o)] };
+  const vf = [scale, colorFilter(o), hw?.vf].filter(Boolean), args = ["-y", "-v", "error", ...(hw ? hw.pre : []), "-i", src];
   if (c.audioOnly) args.push(...c.video, ...c.audio);
   else if (c.gif) args.push("-an", "-filter_complex", `[0:v]fps=${c.fps}${scale ? "," + scale : ""},split[a][b];[a]palettegen[p];[b][p]paletteuse`, "-loop", "0");
   else args.push(...(vf.length ? ["-vf", vf.join(",")] : []), ...c.video, ...c.audio, ...(c.ext === "mp4" ? ["-movflags", "+faststart"] : []));

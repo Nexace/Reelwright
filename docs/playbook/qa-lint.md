@@ -9,6 +9,23 @@ files it references, statically: no browser, no network, no rendered frames, abo
 | `tools/checks/hf-lint.page.mjs` | gate (FAIL) | upstream **errors**: broken HTML/CSS, missing local assets, non-deterministic code (`Math.random`, `requestAnimationFrame`), GSAP misuse, SVG, textures |
 | `tools/checks/hf-lint-warn.page.mjs` | WARN | upstream warnings and info, plus the errors in `DOWNGRADE` |
 
+## Craft lints and the delivered-file quality gate
+
+These are built into `tools/qa.py` (no plug-in), so they run on every film:
+
+| Gate | Kind | What it reports |
+|---|---|---|
+| `hero-ease` | gate (FAIL) | a line that references the element marked `data-hero` (its id or `KIT.el` name, the variable it is in, or a `[data-hero]` rule) animates with a generic easing keyword (`ease`, `linear`, `ease-in-out`): name the intent instead — `enter`, `exit`, `ambient` or `impact`. Line by line: a rule spread over several lines is only seen on the line that names the hero |
+| `scale-zero` | WARN | an entrance that starts at `scale: 0`: start at `0.93` (scale-from-zero is the most common cheap tell) |
+| `shot-shutter` | gate (FAIL) | `KIT.shot.shutter(deg)` outside 0–360, or on a film with motion blur off (a shutter with no sub-frames to spread). Blur counts as on with `"motionBlur"`, `--blur` on this run, or a `--blur` the last encode recorded in `<out>.manifest.json`; with none of those and no manifest yet, the motion-blur half is not checked |
+| `cambi` | opt-in gate (FAIL) | only with `"qa": {"cambi": true}`: banding in the delivered mp4, the mean CAMBI score per scene must stay under 6. Off by default (not yet calibrated, and it decodes the whole mp4 twice) |
+| `vmaf` | WARN, or gate with `"qa": {"vmaf": true}` | only when `project.json` has `"output": {"master": "prores"}`: the mp4's VMAF against the `<out>-master.mov` encode writes beside it, per scene, mean ≥ 93 |
+
+`cambi` and `vmaf` read the delivered mp4 with ffmpeg's `libvmaf` (`feature=name=cambi`, and the VMAF model), print the
+score per scene (not just PASS/FAIL) and are **skipped, never failed**, when the local ffmpeg has no `libvmaf` — the
+pipeline stays offline-safe and works on any platform. `vmaf` is also skipped when there is no master. Each is
+skippable like any gate (`"qa": {"vmaf": false}`), and `scale-zero` like any WARN.
+
 Each line is `<code>: <message> (fix: <hint>)`, cut to 200 characters. `tools/checks/hf-lint.mjs` holds the shared run and
 both lists below. The fixture `projects/qa-broken-lint` trips 6 gate and 6 warn codes on purpose;
 `node tools/selfcheck/hf-lint.mjs` checks it and that every committed hyperframes film passes the gate.

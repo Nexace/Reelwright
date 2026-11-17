@@ -359,6 +359,33 @@
     color: var(--kit-ink);
     text-align: center;
   }
+  .prog-lines {
+    display: flex;
+    flex-direction: column;
+    gap: calc(8 * var(--kit-u));
+    justify-content: center;
+  }
+  .pline {
+    background: #ffffff;
+    border: 1.5px solid rgba(30, 43, 250, 0.22);
+    border-radius: calc(8 * var(--kit-u));
+    padding: calc(9 * var(--kit-u)) calc(14 * var(--kit-u));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: calc(10 * var(--kit-u));
+  }
+  .pline code {
+    font-family: var(--kit-font-display);
+    font-weight: 700;
+    font-size: calc(24 * var(--kit-u));
+    color: var(--kit-accent);
+  }
+  .pline span {
+    font-size: calc(22 * var(--kit-u));
+    color: var(--note-muted);
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>

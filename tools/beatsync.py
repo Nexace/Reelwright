@@ -1,4 +1,4 @@
-# python3 tools/beatsync.py <project | file.mp4> [--grid t0,beat] [--json]
+# python3 tools/beatsync.py <project | file.mp4> [--grid t0,beat] [--json] [--write]
 # Beat-synced cutting, measured on the RENDERED mp4 (row 2b.18). beatgrid.py fits the grid of the source track; this checks what
 # reached the screen and the speakers:
 #   onset classes   kick (30-150 Hz), snare (150-2500 Hz body + crack), hat (6-14 kHz), each a list of hit times, from the mp4's own
@@ -9,6 +9,9 @@
 #   cut error       hard cuts found in the picture (frame difference, 64x36 grey) against the nearest grid beat or half beat, in frames
 #                   (the rule of thumb is <= 3 f), and against the nearest audible hit (hit_frames)
 # The grid is project music/grid.json (beatgrid.py) or the synth bed's bpm, placed like tools/sched.py does; --grid t0,beat overrides.
+# --write saves the detected onsets to <project>/music/onsets.json (film time, the audio the film actually has); sched.py bakes
+# them into window.MUSIC.onsets, which KIT.hit (tools/hit-sync.js) snaps to. Run it once after a render; the audio does not
+# change between renders, so the next one can land on those hits. A bare mp4 has nowhere to write.
 # As a plug-in: tools/checks/cut-on-beat.py (opt-in: project.json "qa": {"cut-on-beat": true}).
 import json, os, subprocess, sys
 import numpy as np
@@ -139,7 +142,14 @@ if __name__ == "__main__":
     if "--grid" in sys.argv: t0, beat = map(float, sys.argv[sys.argv.index("--grid") + 1].split(","))
     elif proj: t0, beat = project_grid(proj)
     else: sys.exit("give --grid t0,beat for a bare mp4")
-    rep, _ = analyse(mp4, t0, beat)
+    rep, on = analyse(mp4, t0, beat)
+    if "--write" in sys.argv:
+        if not proj: sys.exit("--write needs a project folder (a bare mp4 has nowhere to write music/onsets.json)")
+        op = os.path.join(proj, "music/onsets.json")
+        os.makedirs(os.path.dirname(op), exist_ok=True)
+        json.dump({"source": os.path.relpath(mp4, proj), "fps": round(rep["fps"], 4), "duration": rep["duration"],
+                   "bands": {k: [round(float(v), 4) for v in vals] for k, vals in on.items()}}, open(op, "w"), indent=1)
+        print(f"onsets → {op} (run sched to bake them into the film; KIT.hit reads them)")
     if "--json" in sys.argv: print(json.dumps(rep, indent=1)); sys.exit()
     print(f"{rep['duration']}s at {rep['fps']:g} fps; hits kick {rep['onsets']['kick']}, snare {rep['onsets']['snare']}, hat {rep['onsets']['hat']}")
     c = rep["coverage"]

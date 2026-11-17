@@ -31,6 +31,8 @@ try {
   assert.throws(() => metadataArgs(["notapair"]), /key=value/); assert.throws(() => colorArgs({ colorRange: "x" }), /tv or pc/); assert.throws(() => stillArgs({ jpegQuality: 0 }), /1 to 100/);
   assert.deepEqual(metadataArgs({ title: "A b", comment: "c" }), ["-metadata", "title=A b", "-metadata", "comment=c"]);
   assert.deepEqual(codecArgs("h264", { pixFmt: "yuv444p" }).video.filter((x) => x === "-profile:v"), [], "a custom pixel format drops the fixed high profile");
+  assert.ok(!/-tune|aq-mode|-colorspace|-color_primaries|-color_trc|-color_range/.test(codecArgs("h264").video.join(" ")),
+    "transcode's h264 adds no animation tune and no BT.709 tags: arbitrary footage (HDR, BT.601) keeps its own colour");
   assert.ok(Number(stillArgs({ jpegQuality: 100 })[1]) < Number(stillArgs({ jpegQuality: 1 })[1]), "jpeg quality 100 is the lower (better) -q:v");
 
   // ── 2.7.1: every codec, read back ──

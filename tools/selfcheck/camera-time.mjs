@@ -28,7 +28,7 @@ background:#f6f4ef;color:#1d1b16;font:600 40px Arial,sans-serif}#stage div{posit
 .scene{left:0;top:0;width:${W}px;height:${H}px}.a{background:#36c}.b{background:#e0a030}.c{background:#2f9e6b}</style>`;
 
 function pages(name, fx) {
-  const data = `<script>window.PROJECT = { fps: 30, width: ${W}, height: ${H}, speechEnd: ${fx.dur}, tail: 0 }; window.VO = ${JSON.stringify(fx.vo || {})}; window.MUSIC = {};</script>`;
+  const data = `<script>window.PROJECT = { fps: 30, width: ${W}, height: ${H}, speechEnd: ${fx.dur}, tail: 0 }; window.VO = ${JSON.stringify(fx.vo || {})}; window.MUSIC = ${JSON.stringify(fx.music || {})};</script>`;
   const body = `<script>'use strict'; const S = KIT.stage;\n${fx.film}\n</script>`;
   const scripts = ["tools/engine.js", ...fx.scripts];
   const pvk = path.join(tmp, name, "film"), hf = path.join(tmp, name, "hf");

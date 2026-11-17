@@ -87,14 +87,18 @@ reports:
 - `stagger`: three or more same-size siblings start one after another over more than 0.5 s;
 - `together`: more than a third of three or more same-size siblings start in the same frame.
 
-Counter-motion and hero-first need judgement: they are rules for you, not lints.
+Counter-motion and hero-first need judgement: they are rules for you, not lints. Two calls do the arithmetic for you
+(`docs/playbook/timing.md` → Motion craft): `KIT.direct(cues, { order, stagger: 0.02, total: 0.5, maxConcurrent: 2 })` returns
+one delay per cue inside the 500 ms budget, and `KIT.direct.hierarchy(hero, ['shadow', 'label'], { ratio: 0.35, lag: 1 / 60 })`
+returns the secondary layer — 25-40 % of the hero's displacement, same direction, one frame behind.
 
 ## 7. Disney principles, emotion and story (3.9)
 
 The twelve principles, as they apply to a film (the film-relevant lines):
 
 1. **Squash and stretch**: a landing squashes a few percent, a fast move stretches along its path (`KIT.indicate`, scale).
-2. **Anticipation**: a small move the other way before the main one (`elasticSnap`, or a 5 % wind-up key).
+2. **Anticipation**: a small move the other way before the main one (`elasticSnap`, or a 5 % wind-up key — `KIT.anticipate(t, t0)`
+   returns exactly that, C¹ at both ends, to multiply into an eased value).
 3. **Staging**: one thing reads at a time; dim the rest to 0.25.
 4. **Straight-ahead and pose to pose**: author keys with `KIT.keys`, let eases do the in-betweens.
 5. **Follow-through and overlapping action**: secondary parts settle later than the primary (stagger, `KIT.settle`).

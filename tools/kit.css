@@ -19,6 +19,13 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { overflow: hidden; }   /* size set by engine.js from project.json width/height */
+/* light-on-dark glyphs render heavier than the design on macOS without this */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* Dither: a fixed 128px tile of black/white pixels at alpha 1-2/255 (±1-2 LSB, no runtime randomness) over the finished
+   frame, so 8-bit quantisation does not band dark gradients, vignettes and fades. The renderers add html.kit-dither for an
+   opaque film capture (never for an alpha one; project.json "output": { "dither": false } leaves it off), so element
+   cutouts (KIT.fx layers, capture-trio) never carry the noise. */
+html.kit-dither body::after { content: ""; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; background: url("kit-dither.png") repeat; }
 #stage { position: absolute; inset: 0; overflow: hidden; }
 #stage > * { position: absolute; }
 .kit-word { display: inline-block; white-space: pre; will-change: transform, opacity; }

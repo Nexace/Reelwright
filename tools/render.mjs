@@ -1,7 +1,7 @@
 // node tools/render.mjs <project> <mode>
 //   info                 → <project>/timeline.json (duration, VO, SFX cues) — mix.py reads it
 //   stills 1.2,8.5,...     → <project>/stills/t<time>.jpg   (check moments before a full render)
-//   frames [from] [to]   → <project>/frames/f%05d.jpg      (PAGES browser pages in parallel, default 4)
+//   frames [from] [to]   → <project>/frames/f%05d.png      (PAGES browser pages in parallel, default 4)
 //   encode               → <project>/<project.json "out">  (frames + mix.wav, H.264 + AAC), then <out>.manifest.json
 //   verify               inputs still match the manifest, re-rendered frames match it (tools/manifest.mjs)
 // Look: project.json "style" and brand.json → <page dir>/theme.css (tools/theme.mjs).
@@ -9,8 +9,8 @@
 //
 // Renderer contract: project.json "renderer" (default "pvk") picks tools/renderers/<name>.mjs, whose default
 // export is `async (projectDir, projectJson, mode, extraArgs)` and implements info, stills, frames and encode with the
-// same outputs: info → timeline.json {DUR, cues, VO}, stills → stills/*.jpg, frames → frames/ as .jpg or .png in
-// time order (pvk f%05d.jpg, hyperframes frame_%06d.png), encode → the mp4 at "out" (frames + mix.wav). Everything else in the pipeline only reads those files.
+// same outputs: info → timeline.json {DUR, cues, VO}, stills → stills/*.jpg, frames → frames/ as png in
+// time order (pvk f%05d.png, hyperframes frame_%06d.png), encode → the mp4 at "out" (frames + mix.wav). Everything else in the pipeline only reads those files.
 import fs from "node:fs";
 import path from "node:path";
 import { writeTheme } from "./theme.mjs";

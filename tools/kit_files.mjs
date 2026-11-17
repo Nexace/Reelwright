@@ -1,5 +1,5 @@
 // copyKit(hfDir): the kit travels with a HyperFrames composition (HyperFrames serves only that folder).
-// Copies every tools/*.js and tools/kit.css into <hf>/kit/, and every vendor/<lib>/ that has a kit.json manifest
+// Copies every tools/*.js, tools/kit.css and its dither tile into <hf>/kit/, and every vendor/<lib>/ that has a kit.json manifest
 // into <hf>/kit/<lib>/. A new kit module or library is a new file, not an edit to a list.
 import fs from "node:fs";
 import path from "node:path";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 export function kitFiles() {
-  return fs.readdirSync(path.join(ROOT, "tools")).filter((f) => f.endsWith(".js") || f === "kit.css").sort();
+  return fs.readdirSync(path.join(ROOT, "tools")).filter((f) => f.endsWith(".js") || f === "kit.css" || f === "kit-dither.png").sort();
 }
 export function kitLibs() {
   const V = path.join(ROOT, "vendor");

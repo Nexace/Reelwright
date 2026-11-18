@@ -77,7 +77,7 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 ## What's new in 1.1
 
 1.1 brings Reelwright's own Remotion-style toolkit and a pass on animation quality. Of the 601 audited features,
-**457 are now EQUAL or BETTER and 144 are accepted exceptions** ([docs/PARITY.md](docs/PARITY.md)); Remotion alone is 85 of
+**457 are now EQUAL or BETTER and 144 are accepted exceptions** ([docs/PARITY.md](docs/PARITY.md)); Remotion alone is 88 of
 110. Everything is opt-in: a 1.0 film builds the same way, except that pvk films look slightly different after a re-render
 (see Upgrading below).
 

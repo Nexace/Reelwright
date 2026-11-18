@@ -74,6 +74,42 @@ and a final hit on the bar the edit picks. <code>projects/reel</code>
 
 ---
 
+## What's new in 1.1
+
+1.1 brings Reelwright's own Remotion-style toolkit and a pass on animation quality. Of the 601 audited features,
+**457 are now EQUAL or BETTER and 144 are accepted exceptions** ([docs/PARITY.md](docs/PARITY.md)); Remotion alone is 85 of
+110. Everything is opt-in: a 1.0 film builds the same way, except that pvk films look slightly different after a re-render
+(see Upgrading below).
+
+- **Start here.** `./video.sh make "<brief>"` plans a film from one sentence (template, theme, script, length) and `--yes`
+  creates it; `reelwright skills install` puts the agent skills into Codex, OpenCode, Cursor, Antigravity and Claude Code.
+  [make](docs/playbook/make.md)
+- **Remotion features, built natively.** `posterize`, string interpolation outputs, `KIT.series`, `KIT.interpolateStyles`,
+  crop ratios, `KIT.roundedTextBox`, Remotion caption JSON, several compositions per project (`--composition <id>`) and
+  spring `overshootClamping`. [timing](docs/playbook/timing.md)
+- **Effects in WebGL2.** A WebGL2 effects library (`fx-gl`), 12 HTML-in-canvas shader transitions, edge and 3D effects,
+  greenscreen spill, starburst and film burn. No WebGPU needed. [effects](docs/playbook/effects.md)
+- **Rive and Skia.** Vendored runtimes as `KIT.rive` and `KIT.skia`, driven only by seeking, with no network at film time.
+  (Skia text is not drawn yet.) [runtimes](docs/playbook/runtimes.md)
+- **Media.** `silence` finds and trims silence; `--hardware-acceleration auto|on|off` encodes with VideoToolbox, NVENC,
+  QSV or VAAPI when present and falls back to software. [codecs](docs/playbook/codecs.md)
+- **Motion and type.** `KIT.direct` stagger budgets, `KIT.anticipate`, `KIT.step` / `KIT.hold`, springs by feel,
+  perceptual scale, `KIT.text.split` with masked line, word and glyph reveals, tracking and variable-font axes.
+- **Timing and sync.** Cut-centred transition windows (`KIT.cut`), SVG eases, `easeReverse`, motion along a path,
+  `KIT.range().retime()`, `KIT.hit` on detected beats, `KIT.shot.focus` and `marks.json`.
+- **Texture and fidelity.** Seeded `KIT.noise`, grid stagger, per-shot shutter, PNG frame intermediates, explicit BT.709
+  colour, x264 animation tuning, dither, `--supersample`, a ProRes master and 10-bit output.
+- **Gallery and checks.** `gallery` renders every shotcard and effect into one page with reference strips;
+  VMAF and CAMBI quality gates are available as opt-in (`"qa": {"vmaf": true}`, `{"cambi": true}`).
+- **Offline voice and speech.** The voiceover falls back to the computer's own voice offline; `transcribe install` and
+  `tts install` add local Whisper captions and a Kokoro voice on request.
+- **Reliability.** The studio no longer drops unsaved edits on Windows or misses reloads on Linux; CI is sharded and green
+  on macOS, Windows and Ubuntu.
+
+**Upgrading.** Phase-named tool files were renamed by topic in 1.0.1 (for example `tools/p5-camera.js` → `tools/camera.js`);
+films outside this repo that load old script paths need their `<script src>` updated. pvk films render slightly
+differently (PNG frames, BT.709, font smoothing, dither).
+
 ## What's new in 1.0
 
 Phase 11 finished the port. Of the 601 features audited in HyperFrames, Remotion, Manim, anidoodle, video-shotcraft,
